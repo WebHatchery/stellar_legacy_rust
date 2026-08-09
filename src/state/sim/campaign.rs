@@ -94,6 +94,8 @@ impl SimState {
             pending_event: None,
             pending_dilemma: None,
             consequences: Vec::new(),
+            obligations: Vec::new(),
+            next_obligation_id: 1,
             reputation: HashMap::new(),
             scheduled_events: Vec::new(),
             event_fire_counts: HashMap::new(),

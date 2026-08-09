@@ -214,6 +214,7 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
     {
         let year = sim.year();
         let (new_leader, _) = succession::install_successor(&mut sim.dynasty, &data.config, year);
+        sim.inherit_obligations();
         if let Some(name) = new_leader {
             let idx = sim.dynasty.next_member_id as usize; // varies per handoff
             if let Some(line) =

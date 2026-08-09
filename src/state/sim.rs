@@ -15,6 +15,7 @@ pub mod debrief;
 pub mod dynasty;
 pub mod factions;
 pub mod market;
+pub mod obligations;
 pub mod pools;
 pub mod session;
 pub mod subsystems;
@@ -23,6 +24,7 @@ pub use campaign::*;
 pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
 pub use dynasty::*;
 pub use market::*;
+pub use obligations::*;
 pub use pools::*;
 pub use session::*;
 
@@ -111,6 +113,12 @@ pub struct SimState {
     /// Accumulated named consequences from past outcomes (Pillar 2). Read by
     /// future event weighting; append-only from outcome application.
     pub consequences: Vec<String>,
+    /// Stateful promises carried by the campaign. Unlike `consequences`, these
+    /// have owners, deadlines, stakes, and a lifecycle.
+    #[serde(default)]
+    pub obligations: Vec<Obligation>,
+    #[serde(default)]
+    pub next_obligation_id: u64,
     /// Graded reputation traits (content-depth event families round 16): the ship's
     /// cumulative *character*, where `consequences` records discrete deeds. A named
     /// 0-1 scalar (0.5 neutral) nudged a little by many separate outcomes, so a
