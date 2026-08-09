@@ -69,27 +69,27 @@ async fn main() {
 
     // Screenshot harness: STELLAR_LEGACY_CAPTURE_PATH renders a named scene
     // ("menu", "gameplay", "event") headlessly and exits.
-    if let Some(config) = capture::CaptureConfig::from_env("STELLAR_LEGACY") {
-        game.begin_capture_scene(&config.scene);
-        // Measure this scene's controls while it draws. The capture harness is
-        // the only place the whole game is walked screen by screen, so it is
-        // where a target too small to press should be noticed — a photograph
-        // shows what a control looks like, not whether a finger can hit it.
-        begin_target_audit();
-        // Reported from inside the last frame, because `run_capture` exits the
-        // process the moment it has its PNG — anything after the call is dead.
-        let mut frame_no = 0;
-        capture::run_capture(&config, |dt| {
-            frame_no += 1;
-            begin_target_frame();
-            game.update(dt);
-            game.draw();
-            if frame_no >= config.frames {
-                end_target_audit();
-                report_touch_targets(&config.scene);
-            }
-        })
-        .await;
+    if let Some(configs) = capture::CaptureConfig::all_from_env("STELLAR_LEGACY") {
+        for config in configs {
+            game.begin_capture_scene(&config.scene);
+            // Measure this scene's controls while it draws. The capture harness is
+            // the only place the whole game is walked screen by screen, so it is
+            // where a target too small to press should be noticed — a photograph
+            // shows what a control looks like, not whether a finger can hit it.
+            begin_target_audit();
+            let mut frame_no = 0;
+            capture::run_capture_once(&config, |dt| {
+                frame_no += 1;
+                begin_target_frame();
+                game.update(dt);
+                game.draw();
+                if frame_no >= config.frames {
+                    end_target_audit();
+                    report_touch_targets(&config.scene);
+                }
+            })
+            .await;
+        }
         return;
     }
 
