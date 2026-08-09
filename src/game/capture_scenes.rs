@@ -113,18 +113,23 @@ impl Game {
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
+                sim.subsystems.get_mut("engineering_bay").unwrap().knowledge = 0.2;
                 sim.pending_event = Some(crate::state::sim::PendingEvent {
-                    template_id: "cultural_schism".to_owned(),
+                    template_id: "the_last_engineer".to_owned(),
                     rolled_month_clock: 0,
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
             "crew" => {
-                let sim = SimState::new_campaign(
+                let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                sim.resources.credits = 10_000;
+                let _ = crate::simulation::institutions::designate_apprentice(
+                    &mut sim, &self.data, "engineer",
                 );
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::CrewDynasty;
@@ -214,6 +219,28 @@ impl Game {
                 if let Some(s) = sim.subsystems.get_mut("agriculture") {
                     s.tier = 3;
                 }
+                sim.resources.credits = 20_000;
+                sim.resources.influence = 100;
+                let _ = crate::simulation::institutions::establish_or_support_school(
+                    &mut sim,
+                    &self.data,
+                    "agriculture",
+                );
+                let _ = crate::simulation::institutions::compile_archive(
+                    &mut sim,
+                    &self.data,
+                    "agriculture",
+                );
+                let _ = crate::simulation::institutions::grant_custodianship(
+                    &mut sim,
+                    &self.data,
+                    "agriculture",
+                );
+                let _ = crate::simulation::institutions::establish_or_support_school(
+                    &mut sim,
+                    &self.data,
+                    "medical_bay",
+                );
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Subsystems;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
@@ -454,6 +481,19 @@ impl Game {
         let Some(template) = self.data.contracts.get(contract_id).cloned() else {
             return;
         };
+        sim.resources.credits = 20_000;
+        let _ =
+            crate::simulation::institutions::designate_apprentice(&mut sim, &self.data, "engineer");
+        let _ = crate::simulation::institutions::establish_or_support_school(
+            &mut sim,
+            &self.data,
+            "engineering_bay",
+        );
+        let _ = crate::simulation::institutions::compile_archive(
+            &mut sim,
+            &self.data,
+            "engineering_bay",
+        );
         sim.ship.fuel = 1.0;
         if let Some(event) = self.data.events.get("sanctuary_berths_asked").cloned() {
             event_resolver::apply_outcome(&mut sim, &self.data, &event, 0);

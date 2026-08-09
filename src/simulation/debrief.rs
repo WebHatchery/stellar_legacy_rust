@@ -64,6 +64,12 @@ pub fn seal(
         })
         .cloned()
         .collect();
+    let institutions = sim
+        .institution_records
+        .iter()
+        .filter(|record| record.year >= began_year && record.year <= ended_year)
+        .cloned()
+        .collect();
 
     Some(VoyageDebrief {
         contract_name: contract.name.clone(),
@@ -99,6 +105,7 @@ pub fn seal(
         highlights: contract.highlights.clone(),
         commanders,
         obligations,
+        institutions,
         population_start: contract.starting_population,
         population_end: sim.population.count,
         homecoming_line,

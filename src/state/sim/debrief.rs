@@ -11,7 +11,7 @@
 //! it).
 
 use crate::data::ResourceDelta;
-use crate::state::sim::{dynasty::Reign, Obligation};
+use crate::state::sim::{dynasty::Reign, InstitutionRecord, Obligation};
 use serde::{Deserialize, Serialize};
 
 /// What kind of beat a highlight records — the debrief tags each line with
@@ -112,6 +112,9 @@ pub struct VoyageDebrief {
     pub commanders: Vec<Reign>,
     /// Duties created, inherited, or resolved during this voyage.
     pub obligations: Vec<Obligation>,
+    /// Appointments, losses, and preservation work recorded during the voyage.
+    #[serde(default)]
+    pub institutions: Vec<InstitutionRecord>,
     pub population_start: u32,
     pub population_end: u32,
     /// The authored homecoming prose for this outcome band, if the pool had a
@@ -138,6 +141,7 @@ impl Default for VoyageDebrief {
             highlights: Vec::new(),
             commanders: Vec::new(),
             obligations: Vec::new(),
+            institutions: Vec::new(),
             population_start: 0,
             population_end: 0,
             homecoming_line: None,

@@ -330,4 +330,75 @@ mod tests {
             .preserved_experts
             .contains(&officer.name));
     }
+
+    #[test]
+    fn school_support_slows_decay_and_the_benefit_ends_when_funding_lapses() {
+        let (data, mut supported) = campaign();
+        supported.resources.credits = 10_000;
+        establish_or_support_school(&mut supported, &data, "medical_bay").unwrap();
+        let mut lapsed = supported.clone();
+        supported
+            .subsystems
+            .get_mut("medical_bay")
+            .unwrap()
+            .knowledge = 0.8;
+        lapsed.subsystems.get_mut("medical_bay").unwrap().knowledge = 0.8;
+        lapsed.month_clock = (data.config.crew.school_support_years + 1) * 12;
+        crate::simulation::subsystems::transmit_knowledge(&mut supported, &data);
+        crate::simulation::subsystems::transmit_knowledge(&mut lapsed, &data);
+        assert!(
+            supported.subsystems["medical_bay"].knowledge
+                > lapsed.subsystems["medical_bay"].knowledge
+        );
+        let old_until = supported.subsystem_schools[0].supported_until_year;
+        establish_or_support_school(&mut supported, &data, "medical_bay").unwrap();
+        assert!(supported.subsystem_schools[0].supported_until_year >= old_until);
+    }
+
+    #[test]
+    fn apprentices_succeed_on_both_retirement_and_death_and_survive_a_save() {
+        let (data, mut retirement) = campaign();
+        retirement.resources.credits = 10_000;
+        designate_apprentice(&mut retirement, &data, "engineer").unwrap();
+        retirement
+            .crew
+            .iter_mut()
+            .find(|c| c.archetype_id == "engineer")
+            .unwrap()
+            .age = data.config.crew.retirement_age;
+        crate::simulation::mortality::annual_aging(&mut retirement, &data);
+        let successor = retirement
+            .crew
+            .iter()
+            .find(|c| c.archetype_id == "engineer")
+            .expect("apprentice takes the retired officer's post");
+        assert_eq!(successor.age, 25);
+        let saved = serde_json::to_string(&retirement).unwrap();
+        let loaded: SimState = serde_json::from_str(&saved).unwrap();
+        assert_eq!(
+            loaded
+                .crew
+                .iter()
+                .find(|c| c.archetype_id == "engineer")
+                .unwrap()
+                .name,
+            successor.name
+        );
+
+        let (data, mut death) = campaign();
+        death.resources.credits = 10_000;
+        designate_apprentice(&mut death, &data, "engineer").unwrap();
+        death
+            .crew
+            .iter_mut()
+            .find(|c| c.archetype_id == "engineer")
+            .unwrap()
+            .age = data.config.member_max_age;
+        let mut report = crate::simulation::tick::TickReport::default();
+        crate::simulation::mortality::monthly_tick(&mut death, &data, &mut report);
+        assert!(death
+            .crew
+            .iter()
+            .any(|c| c.archetype_id == "engineer" && c.age == 25));
+    }
 }

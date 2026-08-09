@@ -8,7 +8,9 @@ mod completion;
 use super::Game;
 use crate::data::ship_components::ComponentKind;
 use crate::save;
-use crate::simulation::{contract, crew, event_resolver, legacy, market, subsystems, tick};
+use crate::simulation::{
+    contract, crew, event_resolver, institutions, legacy, market, subsystems, tick,
+};
 use crate::state::{GameState, MenuState, StateTransition};
 use crate::ui::UiAction;
 use macroquad::prelude::get_time;
@@ -225,6 +227,41 @@ impl Game {
                 );
                 None
             }
+            UiAction::EstablishSchool(id) => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    match institutions::establish_or_support_school(
+                        &mut gameplay.sim,
+                        &self.data,
+                        &id,
+                    ) {
+                        Ok(name) => self.notifications.success(format!("{name} school funded.")),
+                        Err(err) => self.notifications.warning(err),
+                    }
+                }
+                None
+            }
+            UiAction::CompileProcedureArchive(id) => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    match institutions::compile_archive(&mut gameplay.sim, &self.data, &id) {
+                        Ok(name) => self
+                            .notifications
+                            .success(format!("{name} archive compiled.")),
+                        Err(err) => self.notifications.warning(err),
+                    }
+                }
+                None
+            }
+            UiAction::GrantDisciplineCustody(id) => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    match institutions::grant_custodianship(&mut gameplay.sim, &self.data, &id) {
+                        Ok(name) => self
+                            .notifications
+                            .success(format!("{name} granted custody.")),
+                        Err(err) => self.notifications.warning(err),
+                    }
+                }
+                None
+            }
             UiAction::ResolveEvent(index) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;
@@ -262,6 +299,19 @@ impl Game {
                         Ok(name) => self
                             .notifications
                             .success(format!("{name} completed training.")),
+                        Err(err) => self.notifications.warning(err),
+                    }
+                }
+                None
+            }
+            UiAction::DesignateApprentice(archetype_id) => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    match institutions::designate_apprentice(
+                        &mut gameplay.sim,
+                        &self.data,
+                        &archetype_id,
+                    ) {
+                        Ok(name) => self.notifications.success(format!("{name} designated.")),
                         Err(err) => self.notifications.warning(err),
                     }
                 }

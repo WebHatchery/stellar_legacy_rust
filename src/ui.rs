@@ -208,6 +208,7 @@ pub enum UiAction {
     ResolveDilemma(usize),
     RecruitCrew(String),
     TrainCrew(String),
+    DesignateApprentice(String),
     SelectHeir(u32),
     /// Put a charter under consideration in port — never starts it (W4).
     SelectCharter(String),
@@ -234,6 +235,9 @@ pub enum UiAction {
     /// drydock-only, distinct from the bought `UpgradeSubsystem`.
     InstallFitting(String),
     TrainSubsystemKnowledge(String),
+    EstablishSchool(String),
+    CompileProcedureArchive(String),
+    GrantDisciplineCustody(String),
     Buy(TradeResource, i64),
     Sell(TradeResource, i64),
     ToggleDelegation(EventCategory),

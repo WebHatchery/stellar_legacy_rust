@@ -248,6 +248,23 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     TextStyle::new(13.0, term::accent()).params(),
                 );
                 let maxed = holder.skill >= archetype.skill_max;
+                let apprentice = ctx
+                    .sim
+                    .apprenticeships
+                    .iter()
+                    .find(|a| a.post_id == archetype.id);
+                if term_button(
+                    Rect::new(content.right() - 302.0, y - 14.0, 144.0, POST_BUTTON_H),
+                    &apprentice.map_or_else(
+                        || format!("APPRENTICE ({} CR)", crew_cfg.apprentice_cost_credits),
+                        |a| format!("SUCCESSOR · SK {}", a.skill),
+                    ),
+                    apprentice.is_none()
+                        && ctx.sim.resources.credits >= crew_cfg.apprentice_cost_credits,
+                    pointer,
+                ) {
+                    actions.push(UiAction::DesignateApprentice(archetype.id.clone()));
+                }
                 if term_button(
                     Rect::new(content.right() - 150.0, y - 14.0, 144.0, POST_BUTTON_H),
                     &if maxed {

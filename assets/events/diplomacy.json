@@ -422,6 +422,7 @@
   "title": "The Unlearned Watch",
   "description": "Generations of peace have hollowed out the security corps — the watch stands its posts by tradition, drills half-remembered, nobody left who has trained for a real breach. A rowdy dispute nearly turns to blood before anyone knows how to stop it.",
   "requires_decision": true,
+  "advisor_posts": ["security_chief", "commander"],
   "family": "diplomacy",
   "knowledge_below": [
    {

@@ -586,6 +586,7 @@
   "title": "The Last Engineer",
   "description": "The one aging specialist who truly understands the reactor is failing, and no one has been trained to take her place. What she knows will die with her unless the ship acts now.",
   "requires_decision": true,
+  "advisor_posts": ["engineer", "commander"],
   "family": "engineering",
   "knowledge_below": [
    {
@@ -843,6 +844,7 @@
   "title": "The Breath Keepers",
   "description": "The atmosphere plant runs on rote now — the last technicians who truly understood the scrubber chemistry are gone, and the current keepers follow checklists they cannot explain. A drift in the CO2 numbers has no one who knows why.",
   "requires_decision": true,
+  "advisor_posts": ["scientist", "engineer"],
   "family": "engineering",
   "knowledge_below": [
    {

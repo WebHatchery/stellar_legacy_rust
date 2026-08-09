@@ -203,6 +203,36 @@ fn every_officer_archetype_has_non_prescriptive_council_advice() {
     }
 }
 
+#[test]
+fn every_discipline_has_an_authored_succession_of_craft_situation() {
+    let data = GameData::load().unwrap();
+    let exemplars = [
+        ("engineering_bay", "the_last_engineer"),
+        ("medical_bay", "the_forgotten_medicine"),
+        ("agriculture", "the_lost_gardeners"),
+        ("security", "the_unlearned_watch"),
+        ("life_support_habitat", "the_breath_keepers"),
+        ("education_culture", "the_teachers_gap"),
+    ];
+    for (discipline, event_id) in exemplars {
+        let event = data.events.get(event_id).unwrap_or_else(|| {
+            panic!("missing authored {discipline} succession event '{event_id}'")
+        });
+        assert!(
+            event
+                .knowledge_below
+                .iter()
+                .any(|gate| gate.id == discipline),
+            "'{event_id}' does not gate on its discipline '{discipline}'"
+        );
+        assert_eq!(
+            event.advisor_posts.len(),
+            2,
+            "'{event_id}' should stage competent disagreement"
+        );
+    }
+}
+
 /// The on-station leg is where the charter's *work* happens, so every objective
 /// family the contract pool defines must have Operation content that touches the
 /// tally rather than only flavouring it. A family with no such event leaves its

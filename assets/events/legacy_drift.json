@@ -712,6 +712,7 @@
   "title": "The Teachers' Gap",
   "description": "The schools have been coasting — teaching the shape of knowledge without its substance, graduating cohorts who can recite but not reason. One generation more of this and the ship forgets how to teach itself anything.",
   "requires_decision": true,
+  "advisor_posts": ["navigator", "scientist"],
   "family": "legacy_drift",
   "knowledge_below": [
    {

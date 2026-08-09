@@ -73,7 +73,48 @@ pub(super) fn draw_report(report: &VoyageDebrief, area: Rect) {
 
     y = draw_payout(report, content, y);
     y = draw_obligation_accounting(report, content, y);
+    y = draw_institution_accounting(report, content, y);
     draw_scorecard(report, content, y);
+}
+
+fn draw_institution_accounting(report: &VoyageDebrief, content: Rect, mut y: f32) -> f32 {
+    use crate::state::sim::InstitutionRecordKind;
+    draw_ui_text_ex(
+        "-- CRAFT & SCHOOLS --",
+        content.x,
+        y,
+        TextStyle::new(13.0, term::faint()).params(),
+    );
+    y += 19.0;
+    if report.institutions.is_empty() {
+        draw_ui_text_ex(
+            "No institutional turning this voyage.",
+            content.x,
+            y,
+            TextStyle::new(12.0, term::dim()).params(),
+        );
+        return y + 23.0;
+    }
+    let count = |kind| {
+        report
+            .institutions
+            .iter()
+            .filter(|record| record.kind == kind)
+            .count()
+    };
+    draw_ui_text_ex(
+        &format!(
+            "APPOINTED {} · PRESERVED {} · LOST {} · SCHOOLS {}",
+            count(InstitutionRecordKind::Appointment),
+            count(InstitutionRecordKind::ExpertisePreserved),
+            count(InstitutionRecordKind::ExpertiseLost),
+            count(InstitutionRecordKind::SchoolFounded),
+        ),
+        content.x,
+        y,
+        TextStyle::new(11.0, term::accent()).params(),
+    );
+    y + 24.0
 }
 
 fn draw_obligation_accounting(report: &VoyageDebrief, content: Rect, mut y: f32) -> f32 {

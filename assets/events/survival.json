@@ -478,6 +478,7 @@
   "title": "The Lost Gardeners",
   "description": "The grow-decks yield less every cycle, and the reason is quiet: the master gardeners' craft — the reading of soil and light and blight — was never fully passed on. The beds are tended by rote, and the harvests know it.",
   "requires_decision": true,
+  "advisor_posts": ["agronomist", "commander"],
   "family": "survival",
   "knowledge_below": [
    {

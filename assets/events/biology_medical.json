@@ -413,6 +413,7 @@
   "title": "The Forgotten Medicine",
   "description": "A physician opens the old pharmacopoeia and finds she can no longer read half of it — the training that made sense of it lapsed generations back. A fever season is coming.",
   "requires_decision": true,
+  "advisor_posts": ["medic", "scientist"],
   "family": "biology_medical",
   "knowledge_below": [
    {

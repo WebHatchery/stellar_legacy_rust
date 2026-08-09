@@ -3,6 +3,7 @@
 
 use crate::data::GameData;
 use crate::state::sim::SimState;
+use crate::state::sim::{InstitutionRecord, InstitutionRecordKind};
 
 use super::effective_severity;
 
@@ -72,6 +73,36 @@ pub fn transmit_knowledge(sim: &mut SimState, data: &GameData) {
     let transmission =
         education_tier as f32 * cfg.education_transmission_per_tier * transmission_factor;
     let year = sim.year();
+    let newly_lapsed: Vec<String> = sim
+        .subsystem_schools
+        .iter()
+        .filter(|school| school.supported_until_year < year)
+        .filter(|school| {
+            !sim.institution_records.iter().any(|record| {
+                record.kind == InstitutionRecordKind::SchoolLapsed
+                    && record.discipline == school.subsystem_id
+                    && record.year >= school.supported_until_year
+            })
+        })
+        .map(|school| school.subsystem_id.clone())
+        .collect();
+    for id in newly_lapsed {
+        let name = data
+            .subsystems
+            .get(&id)
+            .map_or(id.as_str(), |definition| definition.name.as_str())
+            .to_owned();
+        sim.institution_records.push(InstitutionRecord {
+            year,
+            kind: InstitutionRecordKind::SchoolLapsed,
+            subject: format!("{name} school"),
+            discipline: id,
+            knowledge_change: -cfg.knowledge_decay_per_generation,
+        });
+        sim.push_log(format!(
+            "Support for the {name} school lapses; its discipline again bears full generational decay."
+        ));
+    }
     for id in GameData::sorted_ids(&data.subsystems) {
         let school_reduction = sim
             .subsystem_schools
