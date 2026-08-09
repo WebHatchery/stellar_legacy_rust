@@ -16,6 +16,17 @@ pub struct CrewConfig {
     pub retirement_age: u32,
     /// Security-chief unity recovery only applies below this ceiling.
     pub unity_recovery_ceiling: f32,
+    pub apprentice_cost_credits: i64,
+    pub apprentice_skill_retention: f32,
+    pub unplanned_knowledge_loss: f32,
+    pub school_cost_credits: i64,
+    pub school_upkeep_credits: i64,
+    pub school_support_years: u32,
+    pub school_decay_reduction: f32,
+    pub archive_cost_credits: i64,
+    pub archive_loss_reduction: f32,
+    pub custody_influence_cost: i64,
+    pub custody_approval_gain: f32,
 }
 
 /// Per-character mortality (real-time loop follow-up: characters age and die).

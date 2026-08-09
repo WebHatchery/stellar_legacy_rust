@@ -33,11 +33,13 @@ pub fn recruit(sim: &mut SimState, data: &GameData, archetype_id: &str) -> Resul
     let age_span = (crew_cfg.recruit_age_max - crew_cfg.recruit_age_min + 1) as usize;
     let age = crew_cfg.recruit_age_min + sim.rng.below(age_span) as u32;
     let legacy_id = sim.legacy.legacy_id.clone();
+    let faction_id = sim.dominant_faction_id().unwrap_or_default().to_owned();
     let Some(member) = generate_crew_member(
         data,
         &legacy_id,
         archetype_id,
         age,
+        faction_id,
         &mut sim.rng,
         &mut sim.next_crew_id,
     ) else {

@@ -9,6 +9,7 @@ pub mod contract;
 pub mod crew;
 pub mod debrief;
 pub mod event_resolver;
+pub mod institutions;
 pub mod legacy;
 pub mod market;
 pub mod mortality;

@@ -72,6 +72,10 @@ impl SimState {
             dynasty,
             crew: Vec::new(),
             next_crew_id: 0,
+            apprenticeships: Vec::new(),
+            subsystem_schools: Vec::new(),
+            procedure_archives: Vec::new(),
+            institution_records: Vec::new(),
             legacy: LegacyTrack {
                 legacy_id: legacy_id.to_owned(),
                 tradition_points: 50,
@@ -213,6 +217,7 @@ impl SimState {
                 legacy_id,
                 archetype_id,
                 age,
+                faction_ids[(sim.next_crew_id as usize) % faction_ids.len()].clone(),
                 &mut sim.rng,
                 &mut sim.next_crew_id,
             ) {

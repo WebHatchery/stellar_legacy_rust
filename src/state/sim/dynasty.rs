@@ -141,6 +141,9 @@ pub struct CrewMember {
     pub age: u32,
     /// 0-100, capped by the archetype's skill_max.
     pub skill: u32,
+    /// The aboard people this officer belongs to; old saves load unaffiliated.
+    #[serde(default)]
+    pub faction_id: String,
 }
 
 /// Per-legacy tracked inputs to the failure-risk formula (GDD §5.5). These
@@ -226,6 +229,7 @@ pub fn generate_crew_member(
     legacy_id: &str,
     archetype_id: &str,
     age: u32,
+    faction_id: String,
     rng: &mut SeededRng,
     next_id: &mut u32,
 ) -> Option<CrewMember> {
@@ -248,6 +252,7 @@ pub fn generate_crew_member(
         archetype_id: archetype.id.clone(),
         age,
         skill,
+        faction_id,
     })
 }
 

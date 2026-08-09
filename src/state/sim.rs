@@ -14,6 +14,7 @@ pub mod contract;
 pub mod debrief;
 pub mod dynasty;
 pub mod factions;
+pub mod institutions;
 pub mod market;
 pub mod obligations;
 pub mod pools;
@@ -23,6 +24,7 @@ pub mod subsystems;
 pub use campaign::*;
 pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
 pub use dynasty::*;
+pub use institutions::*;
 pub use market::*;
 pub use obligations::*;
 pub use pools::*;
@@ -52,6 +54,15 @@ pub struct SimState {
     pub crew: Vec<CrewMember>,
     #[serde(default)]
     pub next_crew_id: u32,
+    /// Explicit successors and institutions that preserve named officers' craft.
+    #[serde(default)]
+    pub apprenticeships: Vec<Apprenticeship>,
+    #[serde(default)]
+    pub subsystem_schools: Vec<SubsystemSchool>,
+    #[serde(default)]
+    pub procedure_archives: Vec<ProcedureArchive>,
+    #[serde(default)]
+    pub institution_records: Vec<InstitutionRecord>,
     pub legacy: LegacyTrack,
     pub contract: Option<ActiveContract>,
     /// A charter under consideration in port before launch (W4). Cleared when

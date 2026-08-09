@@ -69,9 +69,16 @@ pub fn transmit_knowledge(sim: &mut SimState, data: &GameData) {
     let education_condition = education.map_or(1.0, |s| s.condition);
     let transmission_factor =
         (1.0 - cfg.education_transmission_condition_penalty * (1.0 - education_condition)).max(0.0);
-    let delta = -cfg.knowledge_decay_per_generation
-        + education_tier as f32 * cfg.education_transmission_per_tier * transmission_factor;
+    let transmission =
+        education_tier as f32 * cfg.education_transmission_per_tier * transmission_factor;
+    let year = sim.year();
     for id in GameData::sorted_ids(&data.subsystems) {
+        let school_reduction = sim
+            .subsystem_schools
+            .iter()
+            .find(|school| school.subsystem_id == id && school.supported_until_year >= year)
+            .map_or(0.0, |_| data.config.crew.school_decay_reduction);
+        let delta = -cfg.knowledge_decay_per_generation * (1.0 - school_reduction) + transmission;
         if let Some(state) = sim.subsystems.get_mut(&id) {
             state.knowledge = (state.knowledge + delta).clamp(0.0, 1.0);
         }

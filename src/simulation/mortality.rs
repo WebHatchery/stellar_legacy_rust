@@ -14,7 +14,7 @@
 
 use crate::data::{FlavorConfig, GameData, MortalityConfig};
 use crate::simulation::tick::TickReport;
-use crate::simulation::{subsystems, succession};
+use crate::simulation::{institutions, subsystems, succession};
 use crate::state::sim::{generate_member, CrewMember, DynastyMember, SimState};
 
 /// The chance a character of `age` dies in a given month: a flat accident floor
@@ -61,6 +61,7 @@ pub fn annual_aging(sim: &mut SimState, data: &GameData) {
         !leaving
     });
     for officer in &retired {
+        institutions::officer_departed(sim, data, officer);
         let post = post_name(data, &officer.archetype_id);
         let line = FlavorConfig::line_with_name(
             &data.config.flavor.retirement,
@@ -180,6 +181,7 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
         sim.push_log(line);
     }
     for officer in &crew_dead {
+        institutions::officer_departed(sim, data, officer);
         let post = post_name(data, &officer.archetype_id);
         let line = FlavorConfig::line_with_name_post(
             &data.config.flavor.crew_death,
@@ -287,6 +289,7 @@ fn claim_one_named_person(sim: &mut SimState, data: &GameData) {
     let pick = sim.rng.below(exposed);
     if pick < sim.crew.len() {
         let officer = sim.crew.remove(pick);
+        institutions::officer_departed(sim, data, &officer);
         let post = post_name(data, &officer.archetype_id).to_owned();
         // Pooled so a disaster-heavy voyage's many losses don't read as a form letter
         // (content-depth voice round 24); indexed by log length so consecutive vary.
