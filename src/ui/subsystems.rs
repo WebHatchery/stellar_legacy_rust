@@ -111,42 +111,28 @@ fn draw_card(
         .any(|archive| archive.subsystem_id == id);
     let (institution_label, institution_ok, institution_action) = match school {
         None => (
-            format!("ESTABLISH SCHOOL ({}cr)", cfg.crew.school_cost_credits),
+            format!("SCHOOL ({}cr)", cfg.crew.school_cost_credits),
             ctx.sim.resources.credits >= cfg.crew.school_cost_credits,
             UiAction::EstablishSchool(id.to_owned()),
         ),
         Some(_) if !archived => (
-            format!("COMPILE ARCHIVE ({}cr)", cfg.crew.archive_cost_credits),
+            format!("ARCHIVE ({}cr)", cfg.crew.archive_cost_credits),
             ctx.sim.resources.credits >= cfg.crew.archive_cost_credits,
             UiAction::CompileProcedureArchive(id.to_owned()),
         ),
         Some(school) if school.custodian_faction_id.is_none() => (
-            format!("GRANT CUSTODY ({}inf)", cfg.crew.custody_influence_cost),
+            format!("CUSTODY ({}inf)", cfg.crew.custody_influence_cost),
             ctx.sim.resources.influence >= cfg.crew.custody_influence_cost,
             UiAction::GrantDisciplineCustody(id.to_owned()),
         ),
-        Some(school) => (
-            format!(
-                "RECOMMIT SCHOOL ({}cr) · TO {} · {}",
-                cfg.crew.school_upkeep_credits,
-                school.supported_until_year,
-                school.custodian_faction_id.as_deref().unwrap_or("—")
-            ),
+        Some(_) => (
+            format!("RECOMMIT ({}cr)", cfg.crew.school_upkeep_credits),
             ctx.sim.resources.credits >= cfg.crew.school_upkeep_credits,
             UiAction::EstablishSchool(id.to_owned()),
         ),
     };
-    if term_button(
-        Rect::new(content.x, content.bottom() - 70.0, content.w, 26.0),
-        &institution_label,
-        institution_ok,
-        pointer,
-    ) {
-        actions.push(institution_action);
-    }
-
     // --- Verbs: Repair / Upgrade (port) / Train ---
-    let bw = (content.w - 2.0 * 8.0) / 3.0;
+    let bw = (content.w - 3.0 * 8.0) / 4.0;
     let by = content.bottom() - 40.0;
 
     let ceiling = if in_port {
@@ -200,5 +186,13 @@ fn draw_card(
         pointer,
     ) {
         actions.push(UiAction::TrainSubsystemKnowledge(id.to_owned()));
+    }
+    if term_button(
+        Rect::new(content.x + 3.0 * (bw + 8.0), by, bw, 40.0),
+        &institution_label,
+        institution_ok,
+        pointer,
+    ) {
+        actions.push(institution_action);
     }
 }

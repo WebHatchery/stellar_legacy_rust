@@ -32,7 +32,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         &header,
         countdown_secs(ctx.decision_remaining),
         available.len(),
-        advice.len() as f32 * 52.0,
+        advice.len() as f32 * 60.0,
         term::alert(),
     );
     // Drop the title clear of the header divider — at the old offset its caps
@@ -72,15 +72,15 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         );
         draw_text_block(
             &counsel.text,
-            content.x + 138.0,
-            y - 10.0,
-            content.w - 138.0,
+            content.x,
+            y + 8.0,
+            content.w,
             44.0,
             11.0,
             3.0,
             term::dim(),
         );
-        y += 52.0;
+        y += 60.0;
     }
 
     for (shown, &i) in available.iter().enumerate() {

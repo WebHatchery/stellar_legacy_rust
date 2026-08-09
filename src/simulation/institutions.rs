@@ -37,7 +37,19 @@ pub fn designate_apprentice(
         return Err("The treasury cannot fund that apprenticeship.".to_owned());
     }
     sim.resources.credits -= cost;
-    let apprentice_name = format!("{}'s apprentice", officer.name);
+    let given = sim
+        .rng
+        .choose(&data.dynasty_names.given_names)
+        .cloned()
+        .unwrap_or_else(|| "Unnamed".to_owned());
+    let surname = data
+        .dynasty_names
+        .surnames_by_legacy
+        .get(&sim.legacy.legacy_id)
+        .and_then(|names| sim.rng.choose(names))
+        .cloned()
+        .unwrap_or_else(|| "Voyager".to_owned());
+    let apprentice_name = format!("{given} {surname}");
     let skill = ((officer.skill as f32 * data.config.crew.apprentice_skill_retention).round()
         as u32)
         .max(1);

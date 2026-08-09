@@ -92,12 +92,23 @@ example, may protect knowledge while increasing that people's political leverage
 
 This release is complete when:
 
-- [ ] Every decision domain can surface advice from a relevant named officer.
-- [ ] Advice reacts to live game state and never directly identifies a best choice.
-- [ ] Vacant posts are mechanically and visibly different from filled posts.
-- [ ] Apprenticeships and subsystem schools are player-controlled, persistent systems.
-- [ ] Officer loss can damage expertise, and preparation can materially reduce that
+- [x] Every decision domain can surface advice from a relevant named officer.
+- [x] Advice reacts to live game state and never directly identifies a best choice.
+- [x] Vacant posts are mechanically and visibly different from filled posts.
+- [x] Apprenticeships and subsystem schools are player-controlled, persistent systems.
+- [x] Officer loss can damage expertise, and preparation can materially reduce that
       damage.
-- [ ] Every subsystem has at least one authored knowledge-succession situation.
-- [ ] Homecoming identifies important appointments, losses, and preserved institutions.
-- [ ] Save compatibility, deterministic tests, autoplay, and `publish.ps1` all pass.
+- [x] Every subsystem has at least one authored knowledge-succession situation.
+- [x] Homecoming identifies important appointments, losses, and preserved institutions.
+- [x] Save compatibility, deterministic tests, autoplay, and `publish.ps1` all pass.
+
+## Completion evidence
+
+- 405 tests pass (404 unit tests plus the source-size gate; one release balance test is
+  intentionally ignored), including advice state selection, vacant posts, retirement and
+  death transfer, school upkeep/lapse, save/load, succession content, and autoplay.
+- Deterministic captures at 1600x900 and 1280x720 cover named event advice, apprenticeship
+  management, subsystem schools/archives/custody, and Homecoming institution accounting in
+  `docs/verification/officers_1600x900` and `docs/verification/officers_1280x720`.
+- `./publish.ps1` passed without parameters on 2026-08-09: Windows and WebGL builds and
+  packages succeeded, preview deployment completed, and the catalog was refreshed.
