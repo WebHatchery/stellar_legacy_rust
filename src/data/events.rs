@@ -369,6 +369,9 @@ pub struct EventTemplate {
     pub category: EventCategory,
     pub title: String,
     pub description: String,
+    /// Serving posts asked to advise on this decision, in display order.
+    #[serde(default)]
+    pub advisor_posts: Vec<String>,
     #[serde(default)]
     pub requires_decision: bool,
     /// Event family (W5, filled by W6). Matches a subsystem's `buffers_family`

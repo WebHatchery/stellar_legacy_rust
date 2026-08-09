@@ -1,6 +1,7 @@
 //! Stateless simulation services (GDD §11). Each module receives state and
 //! returns results; none of them touch UI or rendering.
 
+pub mod advice;
 #[cfg(test)]
 pub mod autoplay;
 #[cfg(test)]

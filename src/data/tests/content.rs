@@ -165,6 +165,44 @@ fn every_event_category_is_well_represented() {
     );
 }
 
+#[test]
+fn every_officer_archetype_has_non_prescriptive_council_advice() {
+    let data = GameData::load().unwrap();
+    for archetype in &data.crew_archetypes {
+        let advice = &archetype.advice;
+        for (kind, line) in [
+            ("steady", &advice.steady),
+            ("novice", &advice.novice),
+            ("expert", &advice.expert),
+            ("strained", &advice.strained),
+            ("faction", &advice.faction_aligned),
+            ("reputation", &advice.reputation),
+            ("obligation", &advice.obligation),
+            ("vacant", &advice.vacant),
+        ] {
+            assert!(
+                !line.trim().is_empty(),
+                "{} has no {kind} advice",
+                archetype.id
+            );
+            let lower = line.to_lowercase();
+            assert!(
+                !lower.contains("optimal") && !lower.contains("best choice"),
+                "{} {kind} advice labels an optimum: {line}",
+                archetype.id
+            );
+        }
+    }
+    for (event_id, event) in data.events.iter() {
+        for post_id in &event.advisor_posts {
+            assert!(
+                data.crew_archetypes.iter().any(|post| &post.id == post_id),
+                "event '{event_id}' names unknown advisor post '{post_id}'"
+            );
+        }
+    }
+}
+
 /// The on-station leg is where the charter's *work* happens, so every objective
 /// family the contract pool defines must have Operation content that touches the
 /// tally rather than only flavouring it. A family with no such event leaves its

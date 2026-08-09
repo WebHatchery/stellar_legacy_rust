@@ -3,6 +3,7 @@
     "id": "commander",
     "name": "Commander",
     "description": "Runs the watch rotation and the chain of command.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, asks what precedent this choice leaves for the next watch.", "novice": "{name} admits command has not yet taught them every cost, and urges room to revise the order.", "expert": "{name} has seen enough councils to warn that a clean order may still leave a divided crew.", "strained": "The chain of command is already frayed; {name} warns that an order nobody can enforce is only theatre.", "faction_aligned": "As one of the {faction}, {name} knows the largest voice aboard will expect to be heard.", "reputation": "{name} cautions that the ship's established name will shape how any order is received.", "obligation": "{name} sets {obligation} beside the proposal: an old promise will judge the new one.", "vacant": "The Commander post is vacant; no named officer can speak for command continuity." },
     "skill_min": 50,
     "skill_max": 90,
     "production_per_skill": { "credits": 0.004, "influence": 0.002 }
@@ -11,6 +12,7 @@
     "id": "engineer",
     "name": "Engineer",
     "description": "Keeps the reactor lit and the hull honest.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, asks which systems can bear the strain and which cannot.", "novice": "{name} can name the immediate load, but warns that hidden faults may outlast this decision.", "expert": "{name} separates the repair that buys time from the rebuild that preserves the ship.", "strained": "The engineering craft is thin or the bay is failing; {name} warns that promised margins may not exist.", "faction_aligned": "The {faction} trust {name}'s workshops, giving this warning unusual weight below decks.", "reputation": "{name} notes that suppliers and rivals already believe they know what risks this ship accepts.", "obligation": "{name} points to {obligation}: the ledger may already claim the parts or labour under discussion.", "vacant": "The Engineer post is vacant; the council has no serving engineer to certify the risk." },
     "skill_min": 40,
     "skill_max": 85,
     "production_per_skill": { "energy": 0.004 }
@@ -19,6 +21,7 @@
     "id": "medic",
     "name": "Medic",
     "description": "Guards the health of a sealed-city population.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, asks who carries the bodily cost and who gets time to recover.", "novice": "{name} warns that the symptoms are clearer than the long consequences.", "expert": "{name} distinguishes the lives saved now from the health debt passed to the next generation.", "strained": "The medical line is depleted; {name} warns that even a sound protocol may exceed the wards' reach.", "faction_aligned": "The {faction} will hear {name}'s triage as the judgement of one of their own.", "reputation": "{name} reminds the council that patients arrive expecting the mercy—or severity—the ship is known for.", "obligation": "{name} will not discuss this case without naming {obligation}, whose beneficiaries may be placed at risk.", "vacant": "The Medic post is vacant; no serving physician can speak for the likely human cost." },
     "skill_min": 40,
     "skill_max": 85,
     "famine_loss_reduction_per_skill": 0.006
@@ -27,6 +30,7 @@
     "id": "scientist",
     "name": "Scientist",
     "description": "Reads the void and the genome alike.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, separates what the evidence shows from what the council merely hopes.", "novice": "{name} asks for caution: the first explanation is plausible, not proven.", "expert": "{name} identifies the uncertainty worth buying down and the uncertainty no instrument can remove.", "strained": "The ship's research craft is eroded; {name} warns that old methods may no longer support a fine conclusion.", "faction_aligned": "The {faction} are ready to treat {name}'s reading as their case in council.", "reputation": "{name} notes that a ship famous for wonder or restraint will be offered different evidence by outsiders.", "obligation": "{name} asks whether {obligation} limits what may ethically be tested here.", "vacant": "The Scientist post is vacant; the council has observations but no named scientific adviser." },
     "skill_min": 35,
     "skill_max": 90,
     "production_per_skill": { "minerals": 0.004 }
@@ -35,6 +39,7 @@
     "id": "agronomist",
     "name": "Agronomist",
     "description": "Feeds a thousand mouths from hydroponic decks.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, counts the harvests this choice consumes as well as the mouths it serves.", "novice": "{name} can promise the next crop, not yet the resilience of the tenth.", "expert": "{name} weighs seed stock, labour, and hunger across a generation rather than one ration cycle.", "strained": "The green-deck craft is fading; {name} warns that projected yields rest on knowledge the ship is losing.", "faction_aligned": "The {faction} work the same decks and will rally behind {name}'s account of the stores.", "reputation": "{name} asks whether the ship's known habits will make others share provisions—or hide them.", "obligation": "{name} reserves part of the calculation for {obligation}; promised mouths still count.", "vacant": "The Agronomist post is vacant; no named officer can vouch for the harvest forecast." },
     "skill_min": 40,
     "skill_max": 80,
     "production_per_skill": { "food": 0.005 }
@@ -43,6 +48,7 @@
     "id": "security_chief",
     "name": "Security Chief",
     "description": "Keeps the peace between decks and generations.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, asks which peace this choice keeps and which grievance it stores up.", "novice": "{name} sees where disorder may begin, but cautions that force can create the crowd it expects.", "expert": "{name} distinguishes deterrence, mediation, and punishment—and warns they purchase different kinds of quiet.", "strained": "The peacekeeping discipline is weak; {name} doubts the watch can contain every consequence the council names.", "faction_aligned": "The {faction} fill the loudest decks, and {name}'s affiliation makes both trust and suspicion sharper.", "reputation": "{name} warns that the ship's reputation will decide whether a show of force reads as resolve or threat.", "obligation": "{name} names {obligation} as a standing claim on the council's good faith.", "vacant": "The Security Chief post is vacant; no named officer can answer for order after the decision." },
     "skill_min": 40,
     "skill_max": 80,
     "unity_recovery_per_skill": 0.0004
@@ -51,6 +57,7 @@
     "id": "navigator",
     "name": "Navigator",
     "description": "Owns the burn schedule and the century-long course.",
+    "advice": { "steady": "{name}, the {skill_band} {post}, asks what destination remains reachable after this detour.", "novice": "{name} trusts the plotted leg but warns that the farther consequences are still estimates.", "expert": "{name} lays the immediate opening beside the fuel, time, and futures it closes.", "strained": "The navigational record is incomplete; {name} warns that the safest-looking course may rest on inherited error.", "faction_aligned": "The {faction} see their own future in {name}'s course and will press that reading hard.", "reputation": "{name} notes that the ship's name travels ahead of it and changes which routes remain open.", "obligation": "{name} keeps {obligation} on the chart; a promise with a date is also a waypoint.", "vacant": "The Navigator post is vacant; the council has no serving navigator to speak for the long course." },
     "skill_min": 45,
     "skill_max": 90,
     "production_per_skill": { "credits": 0.002 }

@@ -4,6 +4,18 @@ use crate::data::ProductionRates;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OfficerAdviceSet {
+    pub steady: String,
+    pub novice: String,
+    pub expert: String,
+    pub strained: String,
+    pub faction_aligned: String,
+    pub reputation: String,
+    pub obligation: String,
+    pub vacant: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CrewArchetype {
     pub id: String,
@@ -22,6 +34,9 @@ pub struct CrewArchetype {
     /// (security chief).
     #[serde(default)]
     pub unity_recovery_per_skill: f32,
+    /// Reusable council prose, selected and substituted from live state.
+    #[serde(default)]
+    pub advice: OfficerAdviceSet,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

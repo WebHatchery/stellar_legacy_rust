@@ -27,10 +27,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     // a path only a past choice unlocks — is hidden until its condition holds. The
     // real outcome index is preserved for `ResolveEvent`.
     let available = crate::simulation::event_resolver::available_outcome_indices(ctx.sim, template);
+    let advice = crate::simulation::advice::for_event(ctx.sim, ctx.data, template);
     let content = modal_frame(
         &header,
         countdown_secs(ctx.decision_remaining),
         available.len(),
+        advice.len() as f32 * 52.0,
         term::alert(),
     );
     // Drop the title clear of the header divider — at the old offset its caps
@@ -48,6 +50,38 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let description = crate::simulation::event_resolver::shown_description(ctx.sim, template);
     draw_typed_block(&description, content.x, y, content.w, ctx.modal_reveal);
     y += 84.0;
+
+    for counsel in &advice {
+        let speaker = counsel.officer_name.as_deref().map_or_else(
+            || counsel.post_name.clone(),
+            |name| format!("{name} · {}", counsel.post_name),
+        );
+        draw_ui_text_ex(
+            &speaker.to_uppercase(),
+            content.x,
+            y,
+            TextStyle::new(
+                11.0,
+                if counsel.officer_name.is_some() {
+                    term::accent()
+                } else {
+                    term::alert()
+                },
+            )
+            .params(),
+        );
+        draw_text_block(
+            &counsel.text,
+            content.x + 138.0,
+            y - 10.0,
+            content.w - 138.0,
+            44.0,
+            11.0,
+            3.0,
+            term::dim(),
+        );
+        y += 52.0;
+    }
 
     for (shown, &i) in available.iter().enumerate() {
         let outcome = &template.outcomes[i];
@@ -112,6 +146,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
         &header,
         countdown_secs(ctx.decision_remaining),
         dilemma.options.len(),
+        0.0,
         term::primary(),
     );
     // Drop the title clear of the header divider — at the old offset its caps
@@ -280,7 +315,13 @@ fn known_effects(
 /// Dim the world and draw the modal surface with `header` centered in the title
 /// band and the auto-resolve `countdown` right-aligned within it (real-time loop
 /// §2); returns the content rect.
-fn modal_frame(header: &str, countdown: i32, option_count: usize, accent: Color) -> Rect {
+fn modal_frame(
+    header: &str,
+    countdown: i32,
+    option_count: usize,
+    extra_height: f32,
+    accent: Color,
+) -> Rect {
     draw_rectangle(
         0.0,
         0.0,
@@ -291,7 +332,7 @@ fn modal_frame(header: &str, countdown: i32, option_count: usize, accent: Color)
 
     // Taller cards (bigger buttons) and the lower title need more room; a wider
     // frame lets the option labels breathe on two comfortable lines.
-    let height = 210.0 + option_count as f32 * 104.0;
+    let height = 210.0 + option_count as f32 * 104.0 + extra_height;
     let rect = Rect::new(
         LOGICAL_WIDTH / 2.0 - 350.0,
         (LOGICAL_HEIGHT - height) / 2.0,
