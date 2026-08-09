@@ -93,14 +93,22 @@ honour, renegotiation, and default.
 
 This release is complete when:
 
-- [ ] Obligations are first-class serialized state, distinct from consequence flags.
-- [ ] Events and charters can create and resolve obligations entirely through data.
-- [ ] An obligation can cross one or more captain successions without losing ownership
+- [x] Obligations are first-class serialized state, distinct from consequence flags.
+- [x] Events and charters can create and resolve obligations entirely through data.
+- [x] An obligation can cross one or more captain successions without losing ownership
       or history.
-- [ ] The player can always see the duty, beneficiary, deadline, and stakes before it is
+- [x] The player can always see the duty, beneficiary, deadline, and stakes before it is
       resolved.
-- [ ] Charter selection identifies direct conflicts with active obligations.
-- [ ] Homecoming reports obligations created, inherited, fulfilled, renegotiated, and
+- [x] Charter selection identifies direct conflicts with active obligations.
+- [x] Homecoming reports obligations created, inherited, fulfilled, renegotiated, and
       defaulted during the voyage.
-- [ ] Three multi-stage obligation chains ship with meaningfully different outcomes.
-- [ ] Old saves load safely, deterministic tests pass, and `publish.ps1` passes.
+- [x] Three multi-stage obligation chains ship with meaningfully different outcomes.
+- [x] Old saves load safely, deterministic tests pass, and `publish.ps1` passes.
+
+## Completion record
+
+- 397 tests passed (396 unit tests plus the source-size gate; one release-balance
+  analysis test remains intentionally ignored).
+- `publish.ps1` built and packaged Windows and WebGL releases and deployed the preview.
+- Chronicle ledger, PREP conflict warning, succession inheritance marker, and
+  Homecoming accounting were captured and visually checked at 1600x900 and 1280x720.

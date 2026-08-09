@@ -250,7 +250,12 @@ impl Game {
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                sim.selected_charter = Some("deep_vein_survey".to_owned());
+                if let Some(event) = self.data.events.get("sanctuary_berths_asked").cloned() {
+                    crate::simulation::event_resolver::apply_outcome(
+                        &mut sim, &self.data, &event, 0,
+                    );
+                }
+                sim.selected_charter = Some("the_hard_contract".to_owned());
                 sim.ship.fuel = 0.6;
                 sim.resources.food = 800;
                 sim.ship.spare_parts = 45;
@@ -351,6 +356,31 @@ impl Game {
                 );
                 sim.dynasty.generation = 5;
                 sim.month_clock = 120 * 12;
+                for event_id in [
+                    "sanctuary_berths_asked",
+                    "station_foundation_request",
+                    "aboard_compact_offer",
+                ] {
+                    if let Some(event) = self.data.events.get(event_id).cloned() {
+                        crate::simulation::event_resolver::apply_outcome(
+                            &mut sim, &self.data, &event, 0,
+                        );
+                    }
+                }
+                let heir = sim
+                    .dynasty
+                    .members
+                    .iter()
+                    .find(|member| !member.is_leader)
+                    .map(|member| member.name.clone());
+                if let Some(heir) = heir {
+                    sim.dynasty.end_reign(sim.year());
+                    for member in &mut sim.dynasty.members {
+                        member.is_leader = member.name == heir;
+                    }
+                    sim.dynasty.begin_reign(sim.year());
+                    sim.inherit_obligations();
+                }
                 // More entries than the panel can hold, so the capture shows the
                 // state the log's scroll exists for rather than a short list that
                 // never reaches it.
@@ -425,6 +455,9 @@ impl Game {
             return;
         };
         sim.ship.fuel = 1.0;
+        if let Some(event) = self.data.events.get("sanctuary_berths_asked").cloned() {
+            event_resolver::apply_outcome(&mut sim, &self.data, &event, 0);
+        }
         sim.contract = Some(contract::start_contract(&template, &sim));
         if let Some(c) = sim.contract.as_mut() {
             c.beats = event_resolver::skeleton::generate_beats(
