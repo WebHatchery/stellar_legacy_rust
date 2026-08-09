@@ -54,6 +54,10 @@ const EVENT_FILES: &[(&str, &str)] = &[
     ),
     ("mystery", include_str!("../assets/events/mystery.json")),
     (
+        "obligations",
+        include_str!("../assets/events/obligations.json"),
+    ),
+    (
         "science_anomaly",
         include_str!("../assets/events/science_anomaly.json"),
     ),

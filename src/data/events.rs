@@ -192,6 +192,10 @@ pub struct EventOutcome {
     /// in auto-resolve outcome scoring (GDD §5.4).
     #[serde(default)]
     pub long_term_consequences: Vec<String>,
+    /// Reusable promise lifecycle operations. Authored event data creates or
+    /// resolves duties without chain-specific simulation branches.
+    #[serde(default)]
+    pub obligation_operations: Vec<crate::state::sim::ObligationOperation>,
     /// Nudges to the ship's graded reputation traits (content-depth event families
     /// round 16): where `long_term_consequences` records a discrete deed, these move
     /// a *tendency* — so a hundred small choices add up to the character the ship

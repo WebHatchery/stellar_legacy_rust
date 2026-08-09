@@ -1,0 +1,139 @@
+[
+  {
+    "id": "sanctuary_berths_asked",
+    "category": "generational_challenge",
+    "family": "diplomacy",
+    "title": "Berths for the Uncounted",
+    "description": "A broken refugee flotilla asks the ship to hold sanctuary berths for families following on slower drives. They will arrive in another captain's lifetime.",
+    "requires_decision": true,
+    "outcomes": [
+      {
+        "id": "promise_sanctuary",
+        "label": "Keep the berths open",
+        "description": "Reserve food, air, and legal standing for those still crossing.",
+        "schedule_followup": { "template_id": "sanctuary_berths_due", "delay_years": 45 },
+        "obligation_operations": [{
+          "action": "create",
+          "authored_id": "sanctuary_berths",
+          "title": "The Open Berths",
+          "source": "event:sanctuary_berths_asked",
+          "beneficiary": "The Uncounted flotilla",
+          "due_in_years": 45,
+          "visibility": "public",
+          "material_stakes": "2,400 food and crowded life support",
+          "reputation_stakes": "Mercy and sanctuary trust"
+        }],
+        "log": "The council entered forty-five years of open berths in the ledger, for refugees still crossing under slower drives."
+      },
+      {
+        "id": "refuse_sanctuary",
+        "label": "Promise nothing",
+        "description": "The ship cannot bind unborn crews to unknown arrivals.",
+        "log": "The council offered directions but no promise, and the berths remained the future's to decide."
+      }
+    ]
+  },
+  {
+    "id": "sanctuary_berths_due",
+    "category": "mission_milestone",
+    "family": "diplomacy",
+    "title": "The Flotilla at the Ramp",
+    "description": "The promised families have arrived. The names that opened the berths are memorial names; the living captain must answer the entry they left.",
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      {
+        "id": "honour_sanctuary",
+        "label": "Open every berth",
+        "description": "Pay the promised cost and receive the flotilla.",
+        "resource_delta": { "food": -2400 },
+        "population_delta": { "count": 260, "morale": 0.04, "unity": 0.02 },
+        "obligation_operations": [{ "action": "fulfil", "authored_id": "sanctuary_berths", "note": "Every promised family was received." }],
+        "log": "The old promise became an open ramp, and every family named in it came aboard."
+      },
+      {
+        "id": "renegotiate_sanctuary",
+        "label": "Stage the sanctuary",
+        "description": "Take the most vulnerable now and bind the ship to a later convoy.",
+        "resource_delta": { "food": -900 },
+        "population_delta": { "count": 90, "unity": -0.01 },
+        "obligation_operations": [{ "action": "renegotiate", "authored_id": "sanctuary_berths", "due_in_years": 20, "note": "A first convoy boarded; the remainder accepted a new date." }],
+        "log": "The flotilla accepted a smaller first sanctuary and a renewed date for those left waiting."
+      },
+      {
+        "id": "default_sanctuary",
+        "label": "Close the ramp",
+        "description": "Keep the ship's stores and break the inherited word.",
+        "population_delta": { "morale": -0.05, "stability": -0.03 },
+        "obligation_operations": [{ "action": "default", "authored_id": "sanctuary_berths", "note": "The promised berths were denied." }],
+        "log": "The ramp stayed shut on a promise the dead had made and the living refused."
+      }
+    ]
+  },
+  {
+    "id": "station_foundation_request",
+    "category": "generational_challenge",
+    "family": "engineering",
+    "title": "A Foundation in the Dark",
+    "description": "A remote station asks for designs, teachers, and a return visit after its first generation has learned the work.",
+    "requires_decision": true,
+    "outcomes": [
+      {
+        "id": "promise_station_aid",
+        "label": "Promise the return mission",
+        "description": "Leave the plans and bind a later crew to inspect the finished station.",
+        "schedule_followup": { "template_id": "station_aid_due", "delay_years": 50 },
+        "obligation_operations": [{
+          "action": "create", "authored_id": "station_aid", "title": "The Second Survey", "source": "event:station_foundation_request", "beneficiary": "Harrowlight Station", "due_in_years": 50, "visibility": "public", "material_stakes": "1,200 minerals and engineering expertise", "reputation_stakes": "Reliability among frontier stations"
+        }],
+        "log": "The ship left its plans and signed for a second survey fifty years hence."
+      },
+      { "id": "give_plans_only", "label": "Give plans, not a bond", "description": "Help now without commanding the future.", "resource_delta": { "minerals": -250 }, "log": "The plans changed hands without a promise attached." }
+    ]
+  },
+  {
+    "id": "station_aid_due",
+    "category": "mission_milestone",
+    "family": "engineering",
+    "title": "Harrowlight's Second Survey",
+    "description": "The station stands where the old plans said it would. Its makers are waiting for the promised inspection and aid.",
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      { "id": "finish_station", "label": "Finish the work", "description": "Spend the full material and teaching commitment.", "resource_delta": { "minerals": -1200 }, "subsystem_deltas": [{ "id": "engineering_bay", "knowledge": 0.04 }], "obligation_operations": [{ "action": "fulfil", "authored_id": "station_aid", "note": "The station passed its promised second survey." }], "log": "Harrowlight lit every ring under the eyes of the crew whose ancestors had drawn it." },
+      { "id": "revise_station", "label": "Certify a smaller station", "description": "Agree on a safe reduced design and another inspection.", "resource_delta": { "minerals": -400 }, "obligation_operations": [{ "action": "renegotiate", "authored_id": "station_aid", "due_in_years": 18, "note": "A reduced design was certified pending one final inspection." }], "log": "The station accepted a smaller design and one more date in the ledger." },
+      { "id": "abandon_station", "label": "Abandon the works", "description": "Keep the material and disclaim the old design.", "reputation_deltas": [{ "id": "resolve", "delta": -0.04 }], "obligation_operations": [{ "action": "default", "authored_id": "station_aid", "note": "The promised second survey was abandoned." }], "log": "Harrowlight kept the plans and lost faith in the hull that had left them." }
+    ]
+  },
+  {
+    "id": "aboard_compact_offer",
+    "category": "legacy_moment",
+    "family": "legacy_drift",
+    "title": "The Hearth Compact",
+    "description": "The Hearth Union asks for a guaranteed council seat, school, and stores through the next succession.",
+    "requires_decision": true,
+    "requires_factions_aboard": ["hearth_union"],
+    "outcomes": [
+      {
+        "id": "sign_hearth_compact", "label": "Sign the compact", "description": "Bind the first chair, whoever next holds it.", "schedule_followup": { "template_id": "aboard_compact_due", "delay_years": 40 },
+        "obligation_operations": [{ "action": "create", "authored_id": "hearth_compact", "title": "The Hearth Compact", "source": "event:aboard_compact_offer", "beneficiary": "The Hearth Union aboard", "due_in_years": 40, "visibility": "public", "material_stakes": "600 food, influence, and a protected school", "reputation_stakes": "Internal legitimacy and faction trust" }],
+        "log": "The first chair signed a compact meant to survive the hand that held it."
+      },
+      { "id": "decline_hearth_compact", "label": "Keep custom unwritten", "description": "Offer goodwill without a binding office.", "population_delta": { "unity": -0.01 }, "log": "The council kept the Hearth's place a custom rather than a debt." }
+    ]
+  },
+  {
+    "id": "aboard_compact_due",
+    "category": "mission_milestone",
+    "family": "legacy_drift",
+    "title": "The Compact Changes Hands",
+    "description": "A new reign opens with the Hearth compact on its desk. Its school and seat now require the resources the old council promised.",
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      { "id": "honour_compact", "label": "Seat the Hearth", "description": "Fund the school and uphold the guaranteed voice.", "resource_delta": { "food": -600, "influence": -25 }, "population_delta": { "unity": 0.05, "stability": 0.03 }, "obligation_operations": [{ "action": "fulfil", "authored_id": "hearth_compact", "note": "The protected school opened and the council seat was kept." }], "log": "The new captain seated the Hearth and opened the school under the old seal." },
+      { "id": "revise_compact", "label": "Trade the seat for a veto", "description": "Rewrite the guarantee with the Hearth's consent.", "resource_delta": { "influence": -10 }, "population_delta": { "unity": 0.01 }, "obligation_operations": [{ "action": "renegotiate", "authored_id": "hearth_compact", "due_in_years": 15, "note": "The permanent seat became a limited veto, subject to review." }], "log": "The Hearth traded its permanent chair for a narrower power and a date to review it." },
+      { "id": "break_compact", "label": "Strike the compact", "description": "Refuse inherited privileges and accept the internal breach.", "population_delta": { "unity": -0.07, "stability": -0.04 }, "obligation_operations": [{ "action": "default", "authored_id": "hearth_compact", "note": "The inherited compact was struck from the council book." }], "log": "The new reign struck out the old compact, and the Hearth remembered who had signed and who had broken it." }
+    ]
+  }
+]

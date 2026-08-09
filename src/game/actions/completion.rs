@@ -128,6 +128,9 @@ impl Game {
                 level == contract::SuccessLevel::Failure,
             );
             if level == contract::SuccessLevel::Failure {
+                for operation in &template.failure_obligation_operations {
+                    sim.apply_obligation_operation(operation);
+                }
                 // A charter defaulted or given up leaves the opposite of a legacy
                 // (content-depth charters round 18): the negative mirror of the
                 // completion reward. Only a Failure earns the mark; a genuinely
@@ -145,6 +148,9 @@ impl Game {
                     sim.consequences.push(template.failure_consequence.clone());
                 }
             } else {
+                for operation in &template.completion_obligation_operations {
+                    sim.apply_obligation_operation(operation);
+                }
                 if !template.completion_consequence.is_empty()
                     && !sim.consequences.contains(&template.completion_consequence)
                 {

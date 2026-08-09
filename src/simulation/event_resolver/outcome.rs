@@ -116,6 +116,9 @@ pub fn apply_outcome(
     crate::simulation::mortality::event_claim(sim, data, population_lost);
     sim.consequences
         .extend(outcome.long_term_consequences.iter().cloned());
+    for operation in &outcome.obligation_operations {
+        sim.apply_obligation_operation(operation);
+    }
     // …and nudge the ship's cumulative character (content-depth round 16): many
     // small reputation moves across a campaign build a lasting tendency.
     for delta in &outcome.reputation_deltas {

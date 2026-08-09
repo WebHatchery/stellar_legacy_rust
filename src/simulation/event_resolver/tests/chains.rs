@@ -4,6 +4,74 @@
 use super::*;
 
 #[test]
+fn all_three_obligation_chains_cross_a_succession_and_offer_three_endings() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let chains = [
+        (
+            "sanctuary_berths_asked",
+            "sanctuary_berths_due",
+            "sanctuary_berths",
+        ),
+        (
+            "station_foundation_request",
+            "station_aid_due",
+            "station_aid",
+        ),
+        (
+            "aboard_compact_offer",
+            "aboard_compact_due",
+            "hearth_compact",
+        ),
+    ];
+
+    for (seed_id, due_id, authored_id) in chains {
+        let seed = data.events.get(seed_id).unwrap();
+        let due = data.events.get(due_id).unwrap();
+        assert!(due.scheduled_only);
+        assert_eq!(
+            due.outcomes.len(),
+            3,
+            "{due_id} must offer honour, revision, default"
+        );
+
+        for expected in [
+            crate::state::sim::ObligationStatus::Fulfilled,
+            crate::state::sim::ObligationStatus::Renegotiated,
+            crate::state::sim::ObligationStatus::Defaulted,
+        ] {
+            let mut sim = SimState::new_campaign(&data, "preservers", 701, &picks);
+            apply_outcome(&mut sim, &data, seed, 0);
+            assert_eq!(sim.obligations[0].authored_id, authored_id);
+            assert_eq!(sim.scheduled_events[0].template_id, due_id);
+
+            let heir = sim
+                .dynasty
+                .members
+                .iter()
+                .find(|member| !member.is_leader)
+                .unwrap()
+                .name
+                .clone();
+            for member in &mut sim.dynasty.members {
+                member.is_leader = member.name == heir;
+            }
+            sim.inherit_obligations();
+            assert_eq!(sim.obligations[0].successions_crossed, 1);
+
+            let outcome_index = match expected {
+                crate::state::sim::ObligationStatus::Fulfilled => 0,
+                crate::state::sim::ObligationStatus::Renegotiated => 1,
+                crate::state::sim::ObligationStatus::Defaulted => 2,
+                _ => unreachable!(),
+            };
+            apply_outcome(&mut sim, &data, due, outcome_index);
+            assert_eq!(sim.obligations[0].status, expected, "{due_id}");
+        }
+    }
+}
+
+#[test]
 fn a_chain_payoff_waits_for_its_seeded_consequence() {
     // Content-depth event families round 21: closing the loops — a payoff event
     // stays out of the pool until the choice that seeds it is on record.

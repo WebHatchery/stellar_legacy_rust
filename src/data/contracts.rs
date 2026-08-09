@@ -168,6 +168,15 @@ pub struct ContractTemplate {
     pub failure_risks: Vec<String>,
     #[serde(default)]
     pub reward: ResourceDelta,
+    /// Promise operations applied when this charter is accepted.
+    #[serde(default)]
+    pub launch_obligation_operations: Vec<crate::state::sim::ObligationOperation>,
+    /// Promise operations applied on a non-failing homecoming.
+    #[serde(default)]
+    pub completion_obligation_operations: Vec<crate::state::sim::ObligationOperation>,
+    /// Promise operations applied when this charter comes home in failure.
+    #[serde(default)]
+    pub failure_obligation_operations: Vec<crate::state::sim::ObligationOperation>,
     /// Chronicle renown a dynasty must have accrued before this charter unlocks
     /// (PLAN M4.8). 0 = available from the founding; richer charters gate higher.
     #[serde(default)]

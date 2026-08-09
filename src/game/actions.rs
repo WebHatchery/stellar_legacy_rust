@@ -322,6 +322,9 @@ impl Game {
                     if let Some(id) = selected {
                         if let Some(template) = self.data.contracts.get(&id) {
                             sim.contract = Some(contract::start_contract(template, sim));
+                            for operation in &template.launch_obligation_operations {
+                                sim.apply_obligation_operation(operation);
+                            }
                             // Lay out the seeded campaign skeleton at LAUNCH (W6).
                             if let Some(c) = sim.contract.as_mut() {
                                 c.beats = event_resolver::skeleton::generate_beats(
