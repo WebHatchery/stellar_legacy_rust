@@ -2219,6 +2219,7 @@
  },
  {
   "id": "the_hard_contract",
+  "obligation_conflicts": ["sanctuary_berths", "station_aid", "hearth_compact"],
   "name": "Enforcement Writ: The Vane Default",
   "objective": "salvage",
   "reward_reputation_trait": "resolve",

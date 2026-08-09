@@ -88,6 +88,30 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     );
     y += 28.0;
 
+    let conflicts = crate::simulation::contract::obligation_conflicts(sim, template);
+    if !conflicts.is_empty() {
+        draw_ui_text_ex(
+            "! OBLIGATION CONFLICT — LAUNCH WOULD CONTRADICT:",
+            content.x,
+            y,
+            TextStyle::new(13.0, term::alert()).params(),
+        );
+        y += 18.0;
+        for obligation in conflicts {
+            draw_ui_text_ex(
+                &format!(
+                    "  {} — owed to {}",
+                    obligation.title, obligation.beneficiary
+                ),
+                content.x,
+                y,
+                TextStyle::new(12.0, term::alert()).params(),
+            );
+            y += 17.0;
+        }
+        y += 6.0;
+    }
+
     // --- Phase plan (authored segments, proportional) ---
     draw_ui_text_ex(
         "PHASE PLAN",

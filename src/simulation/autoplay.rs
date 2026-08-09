@@ -54,6 +54,9 @@ pub fn play_mission(
     sim.ship.fuel = 1.0;
     sim.selected_charter = Some(contract_id.to_owned());
     sim.contract = Some(start_contract(&template, sim));
+    for operation in &template.launch_obligation_operations {
+        sim.apply_obligation_operation(operation);
+    }
     // Lay out the seeded campaign skeleton at LAUNCH (W6).
     if let Some(c) = sim.contract.as_mut() {
         c.beats = event_resolver::skeleton::generate_beats(
@@ -224,6 +227,36 @@ fn assert_year_invariants(sim: &SimState) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn autoplay_identifies_and_resolves_a_due_obligation_without_deadlock() {
+        let mut data = GameData::load().unwrap();
+        data.config.event_chance_base = 0.0;
+        data.config.event_chance_cap = 0.0;
+        data.config.dilemma_chance_per_generation = 0.0;
+        let picks = crate::state::sim::founding_faction_ids(&data);
+        let mut sim = SimState::new_campaign(&data, "preservers", 913, &picks);
+        sim.resources.food = 10_000_000;
+        let seed = data.events.get("sanctuary_berths_asked").unwrap().clone();
+        event_resolver::apply_outcome(&mut sim, &data, &seed, 0);
+
+        while sim.year() <= 46 {
+            if let Some(pending) = sim.pending_event.clone() {
+                let event = data.events.get(&pending.template_id).unwrap().clone();
+                event_resolver::apply_outcome(&mut sim, &data, &event, 0);
+            }
+            advance_months(&mut sim, &data, 12);
+        }
+        if let Some(pending) = sim.pending_event.clone() {
+            let event = data.events.get(&pending.template_id).unwrap().clone();
+            event_resolver::apply_outcome(&mut sim, &data, &event, 0);
+        }
+        assert!(sim.due_obligations().is_empty());
+        assert_eq!(
+            sim.obligations[0].status,
+            crate::state::sim::ObligationStatus::Fulfilled
+        );
+    }
 
     /// Economy rebalance soak (phase 5): fly a full early
     /// campaign — six low-renown charters back to back on one dynasty — and prove

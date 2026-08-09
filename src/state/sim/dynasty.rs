@@ -34,6 +34,8 @@ pub struct Reign {
     /// Leadership score at the moment they took the chair.
     pub leadership: u32,
     pub trait_name: String,
+    #[serde(default)]
+    pub inherited_obligations: u32,
 }
 
 impl Reign {
@@ -112,6 +114,7 @@ impl Dynasty {
             generation: self.generation,
             leadership: leader.leadership,
             trait_name: leader.trait_name.clone(),
+            inherited_obligations: 0,
         };
         self.reigns.push(reign);
     }
@@ -343,6 +346,7 @@ mod tests {
             generation: 1,
             leadership: 50,
             trait_name: String::new(),
+            inherited_obligations: 0,
         };
         // Voyage runs years 20..60.
         assert!(!closed(0, 19).overlaps(20, 60), "ended before the launch");

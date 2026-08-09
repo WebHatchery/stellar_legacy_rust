@@ -11,7 +11,7 @@
 //! it).
 
 use crate::data::ResourceDelta;
-use crate::state::sim::dynasty::Reign;
+use crate::state::sim::{dynasty::Reign, Obligation};
 use serde::{Deserialize, Serialize};
 
 /// What kind of beat a highlight records — the debrief tags each line with
@@ -110,6 +110,8 @@ pub struct VoyageDebrief {
     /// Every captain who held the chair between launch and homecoming, oldest
     /// first. Empty only on a save written before the reign roster existed.
     pub commanders: Vec<Reign>,
+    /// Duties created, inherited, or resolved during this voyage.
+    pub obligations: Vec<Obligation>,
     pub population_start: u32,
     pub population_end: u32,
     /// The authored homecoming prose for this outcome band, if the pool had a
@@ -135,6 +137,7 @@ impl Default for VoyageDebrief {
             milestones: Vec::new(),
             highlights: Vec::new(),
             commanders: Vec::new(),
+            obligations: Vec::new(),
             population_start: 0,
             population_end: 0,
             homecoming_line: None,

@@ -52,6 +52,18 @@ pub fn seal(
         .filter(|reign| reign.overlaps(began_year, ended_year))
         .cloned()
         .collect();
+    let obligations = sim
+        .obligations
+        .iter()
+        .filter(|obligation| {
+            obligation.created_year >= began_year
+                || obligation
+                    .history
+                    .iter()
+                    .any(|entry| entry.year >= began_year)
+        })
+        .cloned()
+        .collect();
 
     Some(VoyageDebrief {
         contract_name: contract.name.clone(),
@@ -86,6 +98,7 @@ pub fn seal(
             .collect(),
         highlights: contract.highlights.clone(),
         commanders,
+        obligations,
         population_start: contract.starting_population,
         population_end: sim.population.count,
         homecoming_line,
@@ -281,6 +294,7 @@ mod tests {
             generation: 1,
             leadership: 60,
             trait_name: String::new(),
+            inherited_obligations: 0,
         });
         sim.dynasty.begin_reign(began);
         // A handoff mid-voyage: both the outgoing and incoming captain count.

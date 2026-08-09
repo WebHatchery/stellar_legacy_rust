@@ -13,10 +13,94 @@ const ENTRY_H: f32 = 40.0;
 const GUTTER: f32 = 12.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, _actions: &mut Vec<UiAction>) {
-    let left = Rect::new(area.x, area.y, area.w * 0.62, area.h);
-    let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
+    let left = Rect::new(area.x, area.y, area.w * 0.42, area.h);
+    let ledger = Rect::new(left.right() + 12.0, area.y, area.w * 0.34, area.h);
+    let right = Rect::new(
+        ledger.right() + 12.0,
+        area.y,
+        area.right() - ledger.right() - 12.0,
+        area.h,
+    );
     draw_log(ctx, left, pointer);
+    draw_obligations(ctx, ledger);
     draw_milestones(ctx, right);
+}
+
+fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect) {
+    term_panel(area, Some("OBLIGATIONS LEDGER"));
+    let content = area.inset(18.0);
+    let mut y = content.y + 38.0;
+    let obligations: Vec<_> = ctx.sim.active_obligations().collect();
+    if obligations.is_empty() {
+        draw_text_block(
+            "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided.",
+            content.x, y, content.w, 90.0, 13.0, 4.0, term::dim(),
+        );
+        return;
+    }
+    for obligation in obligations {
+        let overdue = ctx
+            .sim
+            .due_obligations()
+            .iter()
+            .any(|due| due.id == obligation.id);
+        let due = obligation
+            .due_year
+            .map(|year| format!("Y{year:03}"))
+            .unwrap_or_else(|| "OPEN".to_owned());
+        let inherited = if obligation.successions_crossed > 0 {
+            " · INHERITED"
+        } else {
+            ""
+        };
+        draw_ui_text_ex(
+            &format!(
+                "{} [{}{}]",
+                obligation.title,
+                if overdue {
+                    "DUE"
+                } else {
+                    obligation.status.label()
+                },
+                inherited
+            ),
+            content.x,
+            y,
+            TextStyle::new(
+                14.0,
+                if overdue {
+                    term::alert()
+                } else {
+                    term::primary()
+                },
+            )
+            .params(),
+        );
+        y += 18.0;
+        for line in [
+            format!("TO: {}", obligation.beneficiary),
+            format!("OWNER: {} · DUE {due}", obligation.responsible),
+            format!("MATERIAL: {}", obligation.stakes.material),
+            format!(
+                "NAME: {} · {}",
+                obligation.stakes.reputation,
+                obligation.visibility.label()
+            ),
+        ] {
+            draw_text_block(
+                &line,
+                content.x + 8.0,
+                y,
+                content.w - 8.0,
+                28.0,
+                11.0,
+                2.0,
+                term::dim(),
+            );
+            y += 24.0;
+        }
+        y += 12.0;
+    }
 }
 
 fn draw_log(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {

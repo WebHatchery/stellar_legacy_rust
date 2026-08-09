@@ -177,6 +177,9 @@ pub struct ContractTemplate {
     /// Promise operations applied when this charter comes home in failure.
     #[serde(default)]
     pub failure_obligation_operations: Vec<crate::state::sim::ObligationOperation>,
+    /// Active authored obligations this charter would directly contradict.
+    #[serde(default)]
+    pub obligation_conflicts: Vec<String>,
     /// Chronicle renown a dynasty must have accrued before this charter unlocks
     /// (PLAN M4.8). 0 = available from the founding; richer charters gate higher.
     #[serde(default)]

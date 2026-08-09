@@ -72,7 +72,61 @@ pub(super) fn draw_report(report: &VoyageDebrief, area: Rect) {
     y += 10.0;
 
     y = draw_payout(report, content, y);
+    y = draw_obligation_accounting(report, content, y);
     draw_scorecard(report, content, y);
+}
+
+fn draw_obligation_accounting(report: &VoyageDebrief, content: Rect, mut y: f32) -> f32 {
+    draw_ui_text_ex(
+        "-- OBLIGATIONS --",
+        content.x,
+        y,
+        TextStyle::new(13.0, term::faint()).params(),
+    );
+    y += 19.0;
+    if report.obligations.is_empty() {
+        draw_ui_text_ex(
+            "No promise changed this voyage.",
+            content.x,
+            y,
+            TextStyle::new(12.0, term::dim()).params(),
+        );
+        return y + 23.0;
+    }
+    let created = report
+        .obligations
+        .iter()
+        .filter(|o| o.created_year >= report.began_year)
+        .count();
+    let inherited: u32 = report
+        .obligations
+        .iter()
+        .map(|o| {
+            o.history
+                .iter()
+                .filter(|h| h.year >= report.began_year && h.note.contains("inherited"))
+                .count() as u32
+        })
+        .sum();
+    let count = |status| {
+        report
+            .obligations
+            .iter()
+            .filter(|o| o.status == status)
+            .count()
+    };
+    draw_ui_text_ex(
+        &format!(
+            "NEW {created} · INHERITED {inherited} · KEPT {} · REVISED {} · BROKEN {}",
+            count(crate::state::sim::ObligationStatus::Fulfilled),
+            count(crate::state::sim::ObligationStatus::Renegotiated),
+            count(crate::state::sim::ObligationStatus::Defaulted)
+        ),
+        content.x,
+        y,
+        TextStyle::new(11.0, term::accent()).params(),
+    );
+    y + 24.0
 }
 
 /// What the charter actually paid, after the objective proration and the
@@ -257,6 +311,14 @@ pub(super) fn draw_commanders(
             row.y + 31.0,
             TextStyle::new(12.0, term::dim()).params(),
         );
+        if reign.inherited_obligations > 0 {
+            draw_ui_text_ex(
+                &format!("  inherited {} active duties", reign.inherited_obligations),
+                row.x,
+                row.y + 45.0,
+                TextStyle::new(11.0, term::accent()).params(),
+            );
+        }
         if !reign.trait_name.is_empty() {
             draw_ui_text_ex(
                 &format!("  {}", reign.trait_name),

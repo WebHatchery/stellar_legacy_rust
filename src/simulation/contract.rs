@@ -93,6 +93,20 @@ pub fn meets_in_world_gate(sim: &SimState, template: &ContractTemplate) -> bool 
             .all(|g| sim.reputation(&g.id) <= g.threshold)
 }
 
+/// Active promises a proposed charter would contradict, in stable ledger order.
+pub fn obligation_conflicts<'a>(
+    sim: &'a SimState,
+    template: &ContractTemplate,
+) -> Vec<&'a crate::state::sim::Obligation> {
+    sim.active_obligations()
+        .filter(|obligation| {
+            template
+                .obligation_conflicts
+                .contains(&obligation.authored_id)
+        })
+        .collect()
+}
+
 /// Whether the ship's *loadout* meets a charter's minimum fitting (content-depth
 /// charters round 26): the drydock-availability twin of `meets_in_world_gate`. A writ
 /// that names a `min_combat`/`min_cargo`/`min_speed` is offered only to a hull whose

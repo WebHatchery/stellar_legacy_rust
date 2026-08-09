@@ -4,6 +4,18 @@
 use super::*;
 
 #[test]
+fn charter_conflicts_name_the_active_duty_before_launch() {
+    let (data, mut sim) = armed(811, "the_long_tow");
+    sim.contract = None;
+    let seed = data.events.get("sanctuary_berths_asked").unwrap().clone();
+    crate::simulation::event_resolver::apply_outcome(&mut sim, &data, &seed, 0);
+    let hard = data.contracts.get("the_hard_contract").unwrap();
+    let conflicts = obligation_conflicts(&sim, hard);
+    assert_eq!(conflicts.len(), 1);
+    assert_eq!(conflicts[0].authored_id, "sanctuary_berths");
+}
+
+#[test]
 fn the_writ_board_reflects_the_ships_reputation() {
     // Content-depth charters round 16: the board reads the ship's cumulative
     // character. The sanctuary run opens only to a hull famous for mercy; the

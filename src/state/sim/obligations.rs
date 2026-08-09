@@ -73,6 +73,8 @@ pub struct Obligation {
     pub beneficiary: String,
     pub created_year: u32,
     pub due_year: Option<u32>,
+    #[serde(default)]
+    pub resolution_event: String,
     pub visibility: ObligationVisibility,
     pub status: ObligationStatus,
     pub stakes: ObligationStakes,
@@ -88,6 +90,7 @@ pub struct ObligationCreate {
     pub source: String,
     pub beneficiary: String,
     pub due_in_years: Option<u32>,
+    pub resolution_event: String,
     pub visibility: ObligationVisibility,
     pub material_stakes: String,
     pub reputation_stakes: String,
@@ -140,8 +143,14 @@ impl SimState {
             .unwrap_or_else(|| "The vacant office".to_owned());
         match operation {
             ObligationOperation::Create(spec) => {
+                if self.obligations.iter().any(|obligation| {
+                    obligation.authored_id == spec.authored_id && obligation.status.is_active()
+                }) {
+                    return;
+                }
                 let id = format!("obligation-{:06}", self.next_obligation_id.max(1));
                 self.next_obligation_id = self.next_obligation_id.max(1) + 1;
+                let due_year = spec.due_in_years.map(|years| year.saturating_add(years));
                 self.obligations.push(Obligation {
                     id,
                     authored_id: spec.authored_id.clone(),
@@ -151,7 +160,8 @@ impl SimState {
                     responsible: captain.clone(),
                     beneficiary: spec.beneficiary.clone(),
                     created_year: year,
-                    due_year: spec.due_in_years.map(|years| year.saturating_add(years)),
+                    due_year,
+                    resolution_event: spec.resolution_event.clone(),
                     visibility: spec.visibility,
                     status: ObligationStatus::Pending,
                     stakes: ObligationStakes {
@@ -166,6 +176,12 @@ impl SimState {
                         note: "Promise entered in the ship's ledger.".to_owned(),
                     }],
                 });
+                if let Some(fire_year) = due_year.filter(|_| !spec.resolution_event.is_empty()) {
+                    self.scheduled_events.push(super::ScheduledEvent {
+                        template_id: spec.resolution_event.clone(),
+                        fire_year,
+                    });
+                }
             }
             ObligationOperation::Fulfil { authored_id, note } => {
                 self.resolve_obligation(authored_id, ObligationStatus::Fulfilled, note, None)
@@ -219,6 +235,17 @@ impl SimState {
                 status,
                 note: note.to_owned(),
             });
+            if status == ObligationStatus::Renegotiated {
+                if let Some(fire_year) = obligation
+                    .due_year
+                    .filter(|_| !obligation.resolution_event.is_empty())
+                {
+                    self.scheduled_events.push(super::ScheduledEvent {
+                        template_id: obligation.resolution_event.clone(),
+                        fire_year,
+                    });
+                }
+            }
         }
     }
 
@@ -227,18 +254,23 @@ impl SimState {
         let Some(captain) = self.dynasty.leader().map(|leader| leader.name.clone()) else {
             return;
         };
+        let mut inherited = 0;
         for obligation in self.obligations.iter_mut().filter(|o| o.status.is_active()) {
             if obligation.responsible == captain {
                 continue;
             }
             obligation.responsible = captain.clone();
             obligation.successions_crossed += 1;
+            inherited += 1;
             obligation.history.push(ObligationHistoryEntry {
                 year,
                 captain: captain.clone(),
                 status: obligation.status,
                 note: "Responsibility inherited with the first chair.".to_owned(),
             });
+        }
+        if let Some(reign) = self.dynasty.reigns.last_mut() {
+            reign.inherited_obligations = inherited;
         }
     }
 }
@@ -265,6 +297,7 @@ mod tests {
             source: "event:refugee_signal".to_owned(),
             beneficiary: "The Kestrel refugees".to_owned(),
             due_in_years: Some(20),
+            resolution_event: "sanctuary_berths_due".to_owned(),
             visibility: ObligationVisibility::Public,
             material_stakes: "500 food".to_owned(),
             reputation_stakes: "Mercy and refugee trust".to_owned(),

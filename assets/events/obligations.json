@@ -11,7 +11,6 @@
         "id": "promise_sanctuary",
         "label": "Keep the berths open",
         "description": "Reserve food, air, and legal standing for those still crossing.",
-        "schedule_followup": { "template_id": "sanctuary_berths_due", "delay_years": 45 },
         "obligation_operations": [{
           "action": "create",
           "authored_id": "sanctuary_berths",
@@ -19,6 +18,7 @@
           "source": "event:sanctuary_berths_asked",
           "beneficiary": "The Uncounted flotilla",
           "due_in_years": 45,
+          "resolution_event": "sanctuary_berths_due",
           "visibility": "public",
           "material_stakes": "2,400 food and crowded life support",
           "reputation_stakes": "Mercy and sanctuary trust"
@@ -82,9 +82,8 @@
         "id": "promise_station_aid",
         "label": "Promise the return mission",
         "description": "Leave the plans and bind a later crew to inspect the finished station.",
-        "schedule_followup": { "template_id": "station_aid_due", "delay_years": 50 },
         "obligation_operations": [{
-          "action": "create", "authored_id": "station_aid", "title": "The Second Survey", "source": "event:station_foundation_request", "beneficiary": "Harrowlight Station", "due_in_years": 50, "visibility": "public", "material_stakes": "1,200 minerals and engineering expertise", "reputation_stakes": "Reliability among frontier stations"
+          "action": "create", "authored_id": "station_aid", "title": "The Second Survey", "source": "event:station_foundation_request", "beneficiary": "Harrowlight Station", "due_in_years": 50, "resolution_event": "station_aid_due", "visibility": "public", "material_stakes": "1,200 minerals and engineering expertise", "reputation_stakes": "Reliability among frontier stations"
         }],
         "log": "The ship left its plans and signed for a second survey fifty years hence."
       },
@@ -115,8 +114,8 @@
     "requires_factions_aboard": ["hearth_union"],
     "outcomes": [
       {
-        "id": "sign_hearth_compact", "label": "Sign the compact", "description": "Bind the first chair, whoever next holds it.", "schedule_followup": { "template_id": "aboard_compact_due", "delay_years": 40 },
-        "obligation_operations": [{ "action": "create", "authored_id": "hearth_compact", "title": "The Hearth Compact", "source": "event:aboard_compact_offer", "beneficiary": "The Hearth Union aboard", "due_in_years": 40, "visibility": "public", "material_stakes": "600 food, influence, and a protected school", "reputation_stakes": "Internal legitimacy and faction trust" }],
+        "id": "sign_hearth_compact", "label": "Sign the compact", "description": "Bind the first chair, whoever next holds it.",
+        "obligation_operations": [{ "action": "create", "authored_id": "hearth_compact", "title": "The Hearth Compact", "source": "event:aboard_compact_offer", "beneficiary": "The Hearth Union aboard", "due_in_years": 40, "resolution_event": "aboard_compact_due", "visibility": "public", "material_stakes": "600 food, influence, and a protected school", "reputation_stakes": "Internal legitimacy and faction trust" }],
         "log": "The first chair signed a compact meant to survive the hand that held it."
       },
       { "id": "decline_hearth_compact", "label": "Keep custom unwritten", "description": "Offer goodwill without a binding office.", "population_delta": { "unity": -0.01 }, "log": "The council kept the Hearth's place a custom rather than a debt." }
