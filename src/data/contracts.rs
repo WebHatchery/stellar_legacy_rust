@@ -332,6 +332,21 @@ pub struct ContractTemplate {
     pub abandonment: Abandonment,
 }
 
+impl ContractTemplate {
+    /// A concise authored-site label for route presentation. Charter names are
+    /// the authoritative destination/operation identity in the current data;
+    /// stripping the writ prefix keeps the active view readable without a
+    /// second route field that can drift away from it.
+    pub fn operation_site(&self) -> String {
+        self.name
+            .split_once(':')
+            .map(|(_, site)| site.trim())
+            .filter(|site| !site.is_empty())
+            .unwrap_or(&self.name)
+            .to_owned()
+    }
+}
+
 /// The mark a defaulted or abandoned charter leaves on the ship's *name* (content-depth
 /// charters round 18): the negative mirror of `CompletionReward`, applied when a charter
 /// concludes at Failure. Chiefly reputation — a name for folding, a hardened mercy — with

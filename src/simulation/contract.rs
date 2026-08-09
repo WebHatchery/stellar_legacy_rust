@@ -39,9 +39,9 @@ pub fn score_success(metrics: &[MetricState]) -> (f32, SuccessLevel) {
 
     let level = if score >= 0.9 {
         SuccessLevel::Complete
-    } else if score >= 0.7 {
+    } else if score >= 0.75 {
         SuccessLevel::Partial
-    } else if score >= 0.4 {
+    } else if score >= 0.45 {
         SuccessLevel::Pyrrhic
     } else {
         SuccessLevel::Failure

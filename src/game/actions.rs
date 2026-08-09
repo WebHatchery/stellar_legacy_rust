@@ -486,11 +486,25 @@ impl Game {
 
         if report.decision_required {
             self.notifications.warning("The council must decide.");
+            self.audio
+                .cue(crate::audio::Cue::Council, self.display.audio_volume);
         }
         if report.dynasty_extinct {
             self.notifications.danger("The dynasty has ended.");
+            self.audio
+                .cue(crate::audio::Cue::GameOver, self.display.audio_volume);
+        }
+        if report.leader_died {
+            self.audio
+                .cue(crate::audio::Cue::Succession, self.display.audio_volume);
+        }
+        if report.phase_changed.is_some() {
+            self.audio
+                .cue(crate::audio::Cue::Phase, self.display.audio_volume);
         }
         if let Some((score, level)) = report.contract_completed {
+            self.audio
+                .cue(crate::audio::Cue::Homecoming, self.display.audio_volume);
             self.conclude_contract(score, level);
         }
 

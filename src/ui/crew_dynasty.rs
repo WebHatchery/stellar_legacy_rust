@@ -15,15 +15,10 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, RectExt};
 /// touch expansion had nowhere to grow into and the target stayed 24 logical
 /// pixels — around 22 CSS pixels on a tablet, against a standard of 44.
 ///
-/// 30 is what this column can afford. The left side carries the roster, seven
-/// post rows and the peoples list in 576 pixels, and reaching a full 44 here
-/// would cost the roster every row it shows. That is the honest ceiling for
-/// this screen without redrawing it, and it is recorded here so the next
-/// person does not rediscover it by trying.
-const POST_STRIDE: f32 = 30.0;
-/// The button drawn inside a [`POST_STRIDE`] row. The 4px it leaves is what the
-/// hit area grows into, 2px each way, reaching the full stride.
-const POST_BUTTON_H: f32 = 26.0;
+/// A 40px visual row with clear gutters lets the shared touch expansion reach
+/// 44px while preserving enough room to show all founding peoples below it.
+const POST_STRIDE: f32 = 44.0;
+const POST_BUTTON_H: f32 = 44.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let left = Rect::new(area.x, area.y, area.w * 0.55, area.h);
@@ -31,7 +26,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     // Posts is sized to exactly one row per archetype — as a fixed ratio its
     // last TRAIN/RECRUIT button bled into the PEOPLES panel below.
     let posts_h = 78.0 + (ctx.data.crew_archetypes.len().saturating_sub(1)) as f32 * POST_STRIDE;
-    let roster = Rect::new(left.x, left.y, left.w, left.h * 0.325);
+    let roster = Rect::new(left.x, left.y, left.w, 110.0);
     let posts = Rect::new(left.x, roster.bottom() + 8.0, left.w, posts_h);
     let factions = Rect::new(
         left.x,
@@ -214,7 +209,7 @@ fn draw_roster(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mu
             && !member.is_leader
             && !designated
             && term_button(
-                Rect::new(row.right() - 90.0, row.y, 90.0, 30.0),
+                Rect::new(row.right() - 100.0, row.y, 100.0, 44.0),
                 "NAME HEIR",
                 true,
                 pointer,
@@ -334,14 +329,14 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
             if delegated { "DELEGATED" } else { "COUNCIL" }
         );
         if term_button(
-            Rect::new(content.x, y, content.w, 34.0),
+            Rect::new(content.x, y, content.w, 44.0),
             &label,
             true,
             pointer,
         ) {
             actions.push(UiAction::ToggleDelegation(category));
         }
-        y += 42.0;
+        y += 48.0;
     }
 
     y += 10.0;

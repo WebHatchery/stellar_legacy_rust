@@ -3,6 +3,8 @@
 
 #[cfg(test)]
 pub mod autoplay;
+#[cfg(test)]
+mod balance;
 pub mod contract;
 pub mod crew;
 pub mod debrief;

@@ -98,7 +98,7 @@ fn draw_card(
 
     // --- Verbs: Repair / Upgrade (port) / Train ---
     let bw = (content.w - 2.0 * 8.0) / 3.0;
-    let by = content.bottom() - 26.0;
+    let by = content.bottom() - 40.0;
 
     let ceiling = if in_port {
         1.0
@@ -110,7 +110,7 @@ fn draw_card(
         && ctx.sim.ship.spare_parts >= def.repair_parts_cost
         && ctx.sim.resources.minerals >= def.repair_minerals_cost;
     if term_button(
-        Rect::new(content.x, by, bw, 22.0),
+        Rect::new(content.x, by, bw, 40.0),
         &format!(
             "REPAIR ({}p·{}min)",
             def.repair_parts_cost, def.repair_minerals_cost
@@ -134,7 +134,7 @@ fn draw_card(
                 && ctx.sim.resources.minerals >= t.cost.minerals
         });
     if term_button(
-        Rect::new(content.x + bw + 8.0, by, bw, 22.0),
+        Rect::new(content.x + bw + 8.0, by, bw, 40.0),
         &upgrade_label,
         upgrade_ok,
         pointer,
@@ -145,7 +145,7 @@ fn draw_card(
     // Train: anytime, raises this subsystem's knowledge.
     let train_ok = ctx.sim.resources.credits >= cfg.subsystems.train_cost_credits;
     if term_button(
-        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 22.0),
+        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 40.0),
         &format!("TRAIN ({}cr)", cfg.subsystems.train_cost_credits),
         train_ok,
         pointer,

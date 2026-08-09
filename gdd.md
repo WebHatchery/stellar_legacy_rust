@@ -48,7 +48,7 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
 
   | Old mechanic | Disposition | Notes |
   | --- | --- | --- |
-  | Resources/ship/crew/market "Phase 0" loop | Keep, redesign | Real-time `setInterval` tick doesn't fit a deterministic turn-based Rust sim (per `CODE_STANDARDS.md` §5); becomes an explicit "advance time" step. Ship/crew/market data moves to `assets/*.json`. |
+  | Resources/ship/crew/market "Phase 0" loop | Keep, redesign | The unbounded browser `setInterval` loop becomes a deterministic month simulation driven by a player-facing real-time clock. While under way it auto-advances at Pause / 1× / 2× / 3×; in drydock it is frozen. Ship/crew/market data lives in `assets/*.json`. |
   | Star system explore/colonize ("Galaxy Map", up to 50 systems + trade routes) | Redesign, scope down | The multi-system empire-building framing overlaps `frontier`/`realmseed`/`empire_builder`'s genre slot and was never implemented past a system list + one boost stat. Ported as: the ship's current mission has a handful of relevant systems (origin, waypoints, destination), not a sprawling colonial empire. |
   | 4-resource market buy/sell w/ price trends | Keep as-is | Already fully implemented, simple, fine. |
   | Generational Mission sim (population, resources, phases, milestones, success metrics) | Keep — this is the core system | This *is* the game. Ported wholesale but content-expanded (only 4 event templates existed — see §8) and with the dead colonization-boost code path (§5.1) actually fixed. |
@@ -56,7 +56,7 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
   | 3 Legacy factions (Preservers/Adaptors/Wanderers) + per-legacy dilemmas | Keep, fix | Dilemma resolution math is real and good; several inputs (`traditionPoints`, `bodyHorrorEvents`, `existentialDread`, `piracyReputation`) were hardcoded placeholders never actually tracked — port makes these real tracked state. |
   | Dynasty Hall / Legacy Relations / Cultural Evolution actions (~15 buttons, ~13 of them cosmetic no-ops) | Redesign | Collapse to ~5–6 actions that actually move real `Population`/`Dynasty` stats (unity, culturalDrift, legacyLoyalty, influence already exist in the data model — just weren't wired to most buttons). No flavor-text-only actions in the port. |
   | Legacy Deck (narrative card meta-game) | Cut for v1 | Fully scaffolded in types/services but **unreachable in play** — every card-content generator except one returns `null`/stub, and no `LegacyCard` is ever created in a real playthrough. Revisit only as a post-v1 stretch (§12). |
-  | Chronicle + Heritage modifiers (cross-playthrough meta-progression) | Redesign, scope down | Concept kept (a lightweight persistent log that grants small modifiers to a new dynasty), but the original's analytics (`engagement`, `AI-performance metrics`, artifact/discovery generation) are almost entirely stub methods returning empty arrays — port replaces them with a small, honest, fully-implemented summary instead of scaffolding that looks deep but isn't. |
+  | Chronicle + Heritage (cross-playthrough meta-progression) | Redesign, scope down | The Chronicle is a lightweight persistent log. Its cumulative renown selects the highest unlocked Heritage tier automatically when a new dynasty is founded; that tier grants a small, deterministic resource/tradition head start. There is no modifier-selection screen. |
   | Pacing/"AI director" (time acceleration, engagement scoring, emergent event scheduling) | Redesign, scope down | The "engagement score" heuristic isn't derived from real telemetry and most of its methods are stubs. Replaced with explicit player-facing time controls (step 1 year / step to next decision) and a simple rule: always pause on a decision-required event. |
   | Automation/Council delegation (auto-resolve events via advisor AI) | Keep, simplified | The outcome-scoring auto-resolver (`evaluateOutcomeScore`) is real and reasonable; keep as an optional per-domain delegation so late-game "century-scale" ticking doesn't require manual resolution of every event. |
   | Phase1SimulationService ("vertical slice" demo tab) | Cut as a separate screen; keep its design | Isolated from the rest of the game in the original. Its shape — monthly tick, seeded LCG RNG, contract-due-date scoring, banded event outcomes — is the cleanest, most tractable model in the whole codebase and becomes the blueprint for the unified simulation tick (§5), not a standalone demo mode. |
@@ -115,7 +115,7 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
    player asks it to, so a "century-scale mission" is legible and deterministic, not a
    race against a wall-clock timer.~~
    **Superseded (real-time loop).** Time now auto-advances while a mission is under way
-   (~1 month per 5 s real time, `real_time.seconds_per_month`), controllable with a
+   (1 month per 0.25 s at 1×, `real_time.seconds_per_month`), controllable with a
    Pause / 1× / 2× / 3× selector; **docked, time is frozen** so refit and charter choice
    are unhurried. A blocked council decision holds the clock and **auto-resolves to a
    random option after 30 s** (`real_time.decision_timeout_secs`). The *sim internals*
@@ -131,15 +131,14 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
 
 ## 3. Core Loop
 
-**Session loop** (one "turn" = one in-game year, occasionally finer during an active
-event):
+**Session loop** (month-precise while a charter is active):
 
 1. Review the ship/colony dashboard — resources, population, hull/life-support health,
    any pending decision-required events.
 2. Allocate the turn: assign crew/cohort focus, spend resources on ship components,
    crew training, or colony development; adjust delegation settings.
-3. Advance time (explicit player action). The simulation tick applies production,
-   population change, dynasty aging, and rolls for a new event.
+3. Let the underway clock auto-advance at 1× / 2× / 3×, or pause it. Monthly ticks
+   apply production, population change, dynasty aging, and event rolls.
 4. Resolve any event that requires a decision (or let a delegated advisor auto-resolve
    it, per §5.4). Auto-resolved events still log their outcome.
 5. Repeat until the active mission/contract reaches its target duration or fails outright.
@@ -156,8 +155,8 @@ prototype/full split):
 5. Use the outcome — resources, reputation, a surviving dynasty — to prepare the next
    contract or expand the ship itself.
 6. Continue until the ship's dynasty goes extinct or the player chooses to retire the
-   save; the Chronicle then offers a small set of Heritage modifiers for a new
-   playthrough (§7).
+   save. On the next founding, Chronicle renown automatically grants the highest
+   unlocked Heritage tier (§7).
 
 ### 3.1 The Voyage-and-Return Refit Loop (v2 direction, 2026-07-19)
 
@@ -275,8 +274,8 @@ front so the bonus lands).
 ```text
 success_score = Σ( min(1, metric.current / metric.target) * metric.weight )
 score >= 0.9 -> complete
-score >= 0.7 -> partial
-score >= 0.4 -> pyrrhic
+score >= 0.75 -> partial
+score >= 0.45 -> pyrrhic
 else         -> failure
 ```
 
@@ -337,8 +336,11 @@ auto-resolves: each outcome is scored and the highest-scoring one is applied.
 outcome_score = food_weight(x2 if food<500) + hull/life_support penalty (x1000 if below threshold)
               + credits*0.1 + energy*0.2 + minerals*0.3 + morale*500 + unity*600
               - 100 per long-term negative consequence
-              + legacy_specific_modifier * 200
 ```
+
+Delegation is intentionally legacy-neutral. Legacy identity changes event availability,
+dilemmas, drift, and tracked state elsewhere; the advisor ranks the immediate material
+outcomes shown here without a hidden legacy preference.
 
 **Content gap to close:** the original ships **4 hardcoded event templates** total
 (`system_failure`, `population_growth`, `arrival_at_target`, `cultural_schism`) for a
@@ -441,7 +443,7 @@ game has no hot-reload requirement beyond normal balance iteration, so embed-onl
   | Preparation | Contract accepted | Resource/crew allocation phase, no time pressure |
   | Travel → Operation → Return | Time advances | Event rolls active, milestones progress |
   | Completion | `current_year >= target_duration` | Success level computed (§5.2), Chronicle entry recorded |
-  | Dynasty extinction / retirement | No eligible heir, or player choice | Playthrough ends, Heritage modifiers offered for a new save |
+  | Dynasty extinction / retirement | No eligible heir, or player choice | Playthrough ends; Chronicle renown sets the next dynasty's automatic Heritage tier |
 
 - **Save/persistence model:** local save slots via `macroquad_toolkit::persistence`
   (`save_to_slot_with_version` / `load_from_slot_with_migration`) — this fully replaces
@@ -456,14 +458,14 @@ game has no hot-reload requirement beyond normal balance iteration, so embed-onl
 
 | Content type | Prototype target | Full target |
 | --- | ---: | ---: |
-| Event templates (across 4 categories) | 12 | 30+ |
+| Event templates (across 4 categories) | 12 | **309 authored** |
 | Ship hulls / engines / weapons | 3 / 3 / 3 (as original) | 5 / 5 / 5 |
-| Contract objective templates (mining/colonization/exploration/rescue) | 4 (as original) | 6–8 |
+| Contract objective templates | 4 (as original) | **22 across 6 objective families** |
 | Legacy factions | 3 (fixed — Preservers/Adaptors/Wanderers) | 3 |
 | Per-legacy dilemmas | 3–4 each (as original) | 6 each |
 | Dynasty name/specialization/trait pools | as original (10 names/legacy, 10 specializations, 5 traits/legacy) | roughly doubled |
 | Crew roles | 7 (as original) | 7 |
-| Heritage modifier tiers | 4 (minor/moderate/major/legendary, as original) | 4 |
+| Heritage tiers | 4 | **4 automatic renown tiers** |
 
 The original's content is thin almost everywhere except the mechanics that consume it
 (4 event templates trying to carry a century-scale campaign is the clearest gap) — the
@@ -484,15 +486,15 @@ on loop, not to invent new systems.
 | Market | Buy/sell the 4 tradeable resources with price trend | `TextStyle`, simple table layout |
 | Event/Decision modal | Resolve a triggered event or dilemma; shows outcome preview | `NotificationManager` / modal surface |
 | Homecoming debrief | Full-screen takeover on contract conclusion: authored outcome prose, the pay actually banked, the scorecard behind the band, every captain the voyage passed through, and the voyage log (marks, legs, council decisions). The success counterpart to the extinction takeover | `ScrollArea`, `term_bar`, panels |
-| Chronicle & Heritage | End-of-playthrough summary, Heritage modifier selection for a new save | `ScrollTabs`, `TextStyle` |
+| Chronicle & Heritage | Cross-playthrough voyage log, renown, and the automatic tier inherited by a new dynasty | `ScrollTabs`, `TextStyle` |
 | Pause/Settings | Time-advance pace, delegation toggles, save/load | `VirtualUi` |
 
 Interaction flow (mirrors `realmseed/gdd.md`'s numbered turn structure):
 
 1. Player reviews Dashboard; if a decision-required event is pending, it interrupts here.
 2. Player allocates the turn (Ship Builder / Crew & Dynasty / Market as needed).
-3. Player presses Advance Time; the tick runs (§5), producing resource/population deltas
-   and possibly a new event.
+3. The underway clock advances at the selected pace (§5), producing resource/population
+   deltas and possibly a new event; Pause freezes it immediately.
 4. If the event needs a decision, the modal opens and blocks further advancement until
    resolved (or handled by a delegated advisor, which logs the outcome without
    blocking).

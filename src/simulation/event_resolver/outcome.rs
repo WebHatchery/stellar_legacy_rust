@@ -20,16 +20,63 @@ pub fn score_outcome(outcome: &EventOutcome, sim: &SimState, config: &GameConfig
         || sim.ship.life_support < config.life_support_warning_threshold;
     let ship_weight = if ship_distressed { 1000.0 } else { 100.0 };
 
+    let subsystem_value: f32 = outcome
+        .subsystem_deltas
+        .iter()
+        .map(|delta| delta.condition * 700.0 + delta.knowledge * 600.0)
+        .sum();
+    let faction_value: f32 = outcome
+        .faction_approval_deltas
+        .iter()
+        .map(|delta| delta.delta * 300.0)
+        .sum::<f32>()
+        + outcome.faction_approval_smallest * 300.0;
+    let reputation_value: f32 = outcome
+        .reputation_deltas
+        .iter()
+        .map(|delta| delta.delta * 250.0)
+        .sum();
+    let irreversible_cost = if outcome.force_return { 700.0 } else { 0.0 }
+        + if outcome.faction_loss.is_some() {
+            1200.0
+        } else {
+            0.0
+        }
+        + if outcome.faction_merge_id.is_some() {
+            350.0
+        } else {
+            0.0
+        };
+
     outcome.resource_delta.food as f32 * food_weight
         + (outcome.ship_delta.hull_integrity + outcome.ship_delta.life_support) * ship_weight
+        + outcome.ship_delta.fuel * 500.0
+        + outcome.ship_delta.spare_parts as f32 * 12.0
         + outcome.resource_delta.credits as f32 * 0.1
         + outcome.resource_delta.energy as f32 * 0.2
         + outcome.resource_delta.minerals as f32 * 0.3
+        + outcome.resource_delta.influence as f32 * 1.5
+        + outcome.population_delta.count as f32 * 2.0
         + outcome.population_delta.morale * 500.0
         + outcome.population_delta.unity * 600.0
+        + outcome.population_delta.stability * 600.0
+        + outcome.population_delta.legacy_loyalty * 350.0
+        + outcome.objective_progress_delta * 1000.0
+        + subsystem_value
+        + faction_value
+        + reputation_value
+        + if outcome.grant_component.is_some() {
+            600.0
+        } else {
+            0.0
+        }
+        + if outcome.grant_fitting.is_some() {
+            600.0
+        } else {
+            0.0
+        }
         - 100.0 * outcome.long_term_consequences.len() as f32
-    // TODO(next agent): + legacy_specific_modifier * 200 once outcomes carry
-    // per-legacy modifiers (GDD §5.4).
+        - irreversible_cost
 }
 
 /// Apply one outcome of a pending event to the sim and log it.

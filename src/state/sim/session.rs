@@ -97,14 +97,14 @@ impl GameSpeed {
     ];
 
     /// Real-time multiplier on the auto-advance cadence (0 while paused). The
-    /// baseline was rescaled so the slowest running speed matches the old top
-    /// rate (1x ran too slow); the labels stay honest — 2x is twice 1x, 3x thrice.
+    /// Labels and multipliers are identical: 1x is the expected readable pace,
+    /// 2x is twice it, and 3x is three times it.
     pub fn multiplier(self) -> f32 {
         match self {
             GameSpeed::Paused => 0.0,
-            GameSpeed::X1 => 3.0,
-            GameSpeed::X2 => 6.0,
-            GameSpeed::X3 => 9.0,
+            GameSpeed::X1 => 1.0,
+            GameSpeed::X2 => 2.0,
+            GameSpeed::X3 => 3.0,
         }
     }
 
@@ -116,5 +116,18 @@ impl GameSpeed {
             GameSpeed::X2 => "2x",
             GameSpeed::X3 => "3x",
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn displayed_speeds_are_truthful_multipliers() {
+        assert_eq!(GameSpeed::Paused.multiplier(), 0.0);
+        assert_eq!(GameSpeed::X1.multiplier(), 1.0);
+        assert_eq!(GameSpeed::X2.multiplier(), 2.0);
+        assert_eq!(GameSpeed::X3.multiplier(), 3.0);
     }
 }

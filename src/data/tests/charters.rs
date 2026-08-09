@@ -3,6 +3,13 @@
 
 use super::*;
 
+#[test]
+fn active_route_site_is_derived_from_the_authored_writ_name() {
+    let data = GameData::load().unwrap();
+    let charter = data.contracts.get("deep_vein_survey").unwrap();
+    assert_eq!(charter.operation_site(), "Karst Belt");
+}
+
 /// W1-rescale and W2: >= 300 years, phases summing exactly to it.
 #[test]
 fn every_charter_is_a_generational_voyage_with_authored_phases() {

@@ -2,7 +2,7 @@
 
 **Review date:** 2026-08-05
 
-**Status:** Proposed implementation plan
+**Status:** Completed 2026-08-05
 
 **Scope:** Balance, feature coherence, pacing, UI/UX, documentation, and release validation
 
@@ -308,3 +308,35 @@ and `publish.ps1` succeeds from a clean worktree.
 Do not begin another large event-content expansion until these gates are met. The current
 content inventory is already large enough to expose the balance and presentation issues;
 more content would increase the cost of resolving them without addressing their cause.
+
+## 10. Completion evidence
+
+- Release truth is aligned across onboarding, Help, the GDD, README, content inventory,
+  and TODO. Displayed speeds now use truthful 0/1/2/3 multipliers; Heritage is explicitly
+  an automatic tier grant; delegation is explicitly legacy-neutral; and the active writ
+  shows authored/derived route, objective, phase, and milestone information.
+- `balance_report.md` and `balance_matrix.csv` contain 49,500 deterministic voyages:
+  all 22 charters × three legacies × five legal loadouts × three policies × 50 seeds.
+  The report records the requested outcome, resource-floor, loss, decision, maintenance,
+  subsystem, economy, duration, and pacing evidence and explains the revised extinction
+  hypothesis rather than manufacturing single-charter dynasty wipes.
+- A clean-profile renown-0 live walkthrough covered founding, charter comparison,
+  provisioning, launch, route state, and reactive council play with mouse and keyboard.
+  It exposed the final missing choice-effects summary, which was fixed. Repeatable full-
+  voyage conservative, objective-first, and reactive cohorts are supplied by the matrix;
+  this hybrid validation is recorded explicitly instead of presenting policy automation
+  as three literal human playthroughs.
+- The shell, dashboard, dossiers/preparation, decision cards, ship/subsystem schematic,
+  Crew & Dynasty, Chronicle, Help, settings, and Homecoming captures were refreshed.
+  The capture audit reports 44-pixel clearance for every control. Responsive captures
+  cover 1280×720, 1440×900, requested 1920×1080 and 2560×1440 host modes, amber/green,
+  and CRT enabled/disabled. The CI headless surface caps the largest requested window at
+  roughly 1920 physical pixels, but the requested dimensions still exercise the game's
+  virtual-canvas scaling path.
+- Restrained procedural ambience and cues cover activation, council alert, resolution,
+  phase transition, succession, Homecoming, and game over. Volume, ambience, phosphor,
+  and CRT settings persist; no audio cue carries unique information.
+- Final validation passed: formatting, clippy with warnings denied, 390 regular crate
+  tests, the source-size gate, the ignored 49,500-voyage release matrix, all capture
+  scenes, and `publish.ps1` with no arguments. Windows and WebGL packages contain
+  byte-identical `assets.zip` archives with all 20 current source assets.

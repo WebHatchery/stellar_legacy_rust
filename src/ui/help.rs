@@ -12,7 +12,10 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 /// unreachable there.
 const KEYS: &[(&str, &str)] = &[
     ("1 - 7", "Switch screen tabs"),
-    ("SPACE / ENTER", "Advance time at the chosen speed"),
+    (
+        "ON-SCREEN",
+        "Pause or choose the displayed 1x / 2x / 3x pace",
+    ),
     ("1 - 9", "Choose an option in a council modal"),
     ("F1", "Display & delegation settings (DISPLAY)"),
     ("F2", "This help screen (HELP)"),
@@ -63,7 +66,7 @@ pub fn draw(pointer: Pointer) -> bool {
     );
 
     term_button(
-        Rect::new(content.x, content.bottom() - 44.0, content.w, 40.0),
+        Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0),
         "CLOSE",
         true,
         pointer,

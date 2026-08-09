@@ -66,19 +66,22 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             3.0,
             term::dim(),
         );
-        // The uncertain human cost of this choice (real-time loop §3): a band, not
-        // a number — the council rarely knows exactly who a crisis will take.
-        if let Some((lo, hi)) = crate::simulation::event_resolver::outcome_pop_impact_range(
+        // Put knowable costs on the card, while keeping random mortality as an
+        // explicit range rather than pretending the council knows the roll.
+        let population_range = crate::simulation::event_resolver::outcome_pop_impact_range(
             ctx.sim, ctx.data, template, i,
-        ) {
-            let (text, color) = impact_label(lo, hi);
-            draw_ui_text_ex(
-                &text,
-                card.x + 14.0,
-                card.y + 80.0,
-                TextStyle::new(12.0, color).params(),
-            );
-        }
+        );
+        let (effects, effects_color) = known_effects(outcome, population_range);
+        draw_text_block(
+            &effects,
+            card.x + 14.0,
+            card.y + 62.0,
+            card.w - 264.0,
+            26.0,
+            11.0,
+            2.0,
+            effects_color,
+        );
         if term_button(
             Rect::new(card.right() - 244.0, card.y + 18.0, 230.0, 56.0),
             &format!("[{}] {}", shown + 1, outcome.label.to_uppercase()),
@@ -202,6 +205,76 @@ fn impact_label(lo: i64, hi: i64) -> (String, Color) {
     } else {
         (format!("~ {lo} to +{hi} souls"), term::dim())
     }
+}
+
+fn known_effects(
+    outcome: &crate::data::events::EventOutcome,
+    population_range: Option<(i64, i64)>,
+) -> (String, Color) {
+    let mut effects = Vec::new();
+    let r = outcome.resource_delta;
+    for (label, value) in [
+        ("CR", r.credits),
+        ("EN", r.energy),
+        ("MIN", r.minerals),
+        ("FOOD", r.food),
+        ("INF", r.influence),
+    ] {
+        if value != 0 {
+            effects.push(format!("{label} {value:+}"));
+        }
+    }
+    let s = outcome.ship_delta;
+    for (label, value) in [
+        ("hull", s.hull_integrity),
+        ("life", s.life_support),
+        ("fuel", s.fuel),
+    ] {
+        if value.abs() > f32::EPSILON {
+            effects.push(format!("{label} {:+.0}%", value * 100.0));
+        }
+    }
+    if s.spare_parts != 0 {
+        effects.push(format!("parts {:+}", s.spare_parts));
+    }
+    let p = outcome.population_delta;
+    for (label, value) in [
+        ("morale", p.morale),
+        ("unity", p.unity),
+        ("stability", p.stability),
+    ] {
+        if value.abs() > f32::EPSILON {
+            effects.push(format!("{label} {:+.0}%", value * 100.0));
+        }
+    }
+    if outcome.objective_progress_delta.abs() > f32::EPSILON {
+        effects.push(format!(
+            "objective {:+.0}%",
+            outcome.objective_progress_delta * 100.0
+        ));
+    }
+    if outcome.force_return {
+        effects.push("forced return".to_owned());
+    }
+    if outcome.faction_loss.is_some() {
+        effects.push("faction may leave".to_owned());
+    }
+    if !outcome.long_term_consequences.is_empty() || outcome.schedule_followup.is_some() {
+        effects.push("future consequence".to_owned());
+    }
+
+    let mut color = term::accent();
+    let mut text = if effects.is_empty() {
+        "KNOWN: no immediate material change".to_owned()
+    } else {
+        format!("KNOWN: {}", effects.join(" · "))
+    };
+    if let Some((lo, hi)) = population_range {
+        let (impact, impact_color) = impact_label(lo, hi);
+        text.push_str(&format!(" · UNCERTAIN: {impact}"));
+        color = impact_color;
+    }
+    (text, color)
 }
 
 /// Dim the world and draw the modal surface with `header` centered in the title

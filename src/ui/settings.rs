@@ -17,6 +17,8 @@ pub enum DisplayAction {
     ToggleScanlines,
     ToggleFlicker,
     SetPhosphor(Phosphor),
+    AdjustAudio(f32),
+    ToggleAmbience,
     /// Flip whether this category is delegated by default in new voyages.
     ToggleDelegationDefault(EventCategory),
     Close,
@@ -37,12 +39,7 @@ pub fn draw(
         Color::new(0.0, 0.0, 0.0, 0.8),
     );
 
-    let panel = Rect::new(
-        LOGICAL_WIDTH / 2.0 - 250.0,
-        LOGICAL_HEIGHT / 2.0 - 280.0,
-        500.0,
-        560.0,
-    );
+    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 250.0, 20.0, 500.0, 680.0);
     term_panel(panel, Some("DISPLAY // CRT MONITOR"));
     let content = panel.inset(28.0);
     let mut y = content.y + 30.0;
@@ -91,7 +88,7 @@ pub fn draw(
     );
     let bw = 92.0;
     if choice_button(
-        Rect::new(content.right() - bw * 2.0 - 8.0, y, bw, 34.0),
+        Rect::new(content.right() - bw * 2.0 - 8.0, y, bw, 44.0),
         "AMBER",
         display.phosphor == Phosphor::Amber,
         pointer,
@@ -99,7 +96,7 @@ pub fn draw(
         actions.push(DisplayAction::SetPhosphor(Phosphor::Amber));
     }
     if choice_button(
-        Rect::new(content.right() - bw, y, bw, 34.0),
+        Rect::new(content.right() - bw, y, bw, 44.0),
         "GREEN",
         display.phosphor == Phosphor::Green,
         pointer,
@@ -107,6 +104,50 @@ pub fn draw(
         actions.push(DisplayAction::SetPhosphor(Phosphor::Green));
     }
     y += 62.0;
+
+    draw_ui_text_ex(
+        "AUDIO MIX",
+        content.x,
+        y + 22.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    let volume_label = format!("{:.0}%", display.audio_volume * 100.0);
+    if choice_button(
+        Rect::new(content.right() - 202.0, y, 54.0, 44.0),
+        "−",
+        false,
+        pointer,
+    ) {
+        actions.push(DisplayAction::AdjustAudio(-0.1));
+    }
+    draw_text_centered_in_box_ex(
+        &volume_label,
+        content.right() - 142.0,
+        y,
+        70.0,
+        44.0,
+        TextStyle::new(15.0, term::accent()),
+    );
+    if choice_button(
+        Rect::new(content.right() - 66.0, y, 54.0, 44.0),
+        "+",
+        false,
+        pointer,
+    ) {
+        actions.push(DisplayAction::AdjustAudio(0.1));
+    }
+    y += 50.0;
+    toggle_row(
+        content.x,
+        y,
+        content.w,
+        "UNDERWAY AMBIENCE",
+        display.ambience,
+        pointer,
+        DisplayAction::ToggleAmbience,
+        &mut actions,
+    );
+    y += 48.0;
 
     // Delegation defaults: which council categories auto-resolve in new voyages.
     draw_ui_text_ex(
@@ -126,26 +167,24 @@ pub fn draw(
         );
         let bw = 120.0;
         if choice_button(
-            Rect::new(content.right() - bw, y, bw, 32.0),
+            Rect::new(content.right() - bw, y, bw, 44.0),
             if delegated { "DELEGATED" } else { "COUNCIL" },
             delegated,
             pointer,
         ) {
             actions.push(DisplayAction::ToggleDelegationDefault(category));
         }
-        y += 40.0;
+        y += 48.0;
     }
-    y += 6.0;
-
     draw_ui_text_ex(
         "F1 panel · F2 help · F10 CRT · ESC closes.",
         content.x,
-        y + 12.0,
+        content.bottom() - 54.0,
         TextStyle::new(13.0, term::faint()).params(),
     );
 
     if term_button(
-        Rect::new(content.x, content.bottom() - 44.0, content.w, 40.0),
+        Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0),
         "CLOSE",
         true,
         pointer,
@@ -173,7 +212,7 @@ fn toggle_row(
         y + 22.0,
         TextStyle::new(16.0, term::dim()).params(),
     );
-    let rect = Rect::new(x + w - 92.0, y, 92.0, 34.0);
+    let rect = Rect::new(x + w - 92.0, y, 92.0, 44.0);
     if choice_button(rect, if on { "ON" } else { "OFF" }, on, pointer) {
         actions.push(action);
     }

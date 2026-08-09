@@ -108,7 +108,8 @@
         "minerals": 200
       },
       "stats": {
-        "speed": 4
+        "speed": 4,
+        "fuel_regen": 1
       },
       "field_installable": true
     },
@@ -123,7 +124,7 @@
       },
       "stats": {
         "speed": 3,
-        "fuel_regen": 1
+        "fuel_regen": 2
       },
       "field_installable": true
     },
@@ -137,7 +138,7 @@
       },
       "stats": {
         "speed": 1,
-        "fuel_regen": 2
+        "fuel_regen": 3
       },
       "field_installable": true
     },

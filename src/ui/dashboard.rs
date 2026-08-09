@@ -173,8 +173,8 @@ fn draw_ship_panel(
     let in_port = sim.contract.is_none();
     // The field-repair price is the same for either system, so it is stated once
     // in the heading. That buys back the width to sit the two side by side, which
-    // is what lets three 24-tall rows become two 34-tall ones in the same 78
-    // pixels — a 28-pixel touch target becomes a 44-pixel one for free.
+    // is what lets the two field actions sit side by side while every
+    // maintenance action keeps a full 44-pixel touch target.
     draw_ui_text_ex(
         &format!(
             "MAINTENANCE · FIELD {}p·{}min",
@@ -190,7 +190,7 @@ fn draw_ship_panel(
             && sim.ship.spare_parts >= repair.field_parts_cost
             && sim.resources.minerals >= repair.field_minerals_cost
     };
-    const REPAIR_H: f32 = 34.0;
+    const REPAIR_H: f32 = 44.0;
     const REPAIR_GAP: f32 = 10.0;
     let half_w = (content.w - REPAIR_GAP) * 0.5;
     if term_button(
@@ -254,7 +254,7 @@ fn draw_ship_panel(
     let gap = 6.0;
     let bw = (content.w - gap * 3.0) / 4.0;
     for (i, step) in GameSpeed::ALL.iter().enumerate() {
-        let r = Rect::new(content.x + (bw + gap) * i as f32, y, bw, 36.0);
+        let r = Rect::new(content.x + (bw + gap) * i as f32, y, bw, 44.0);
         let active = underway && sim.speed == *step;
         let label = if active {
             format!("[{}]", step.label())
@@ -434,9 +434,9 @@ fn short_faction(name: &str) -> String {
         .to_uppercase()
 }
 
-/// The bottom instrument strip: a row of system gauges reading straight from
-/// ship + colony state — hull, life support, fuel, the years of food the stores
-/// cover, the maintenance posture, and a count of systems currently in the red.
+/// The bottom command strip complements (rather than duplicates) the primary
+/// vital meters: mission state, the next interruption, the most urgent risk,
+/// a causal maintenance label, and the live clock posture.
 fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
     term_panel(rect, None);
     let sim = ctx.sim;
@@ -449,61 +449,87 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
     } else {
         0.0
     };
-    let parts_dry = sim.ship.spare_parts <= 0;
-    let alerts = [
-        sim.ship.hull_integrity < 0.35,
-        sim.ship.life_support < 0.35,
-        sim.ship.fuel < 0.2,
-        parts_dry,
-        food_years < 3.0,
-    ]
-    .iter()
-    .filter(|f| **f)
-    .count();
-
-    let tone = |ok: bool| if ok { term::accent() } else { term::alert() };
+    let contract = sim.contract.as_ref();
+    let (phase, objective) = contract
+        .map(|contract| {
+            (
+                contract.phase.label().to_uppercase(),
+                format!("{:.0}% BANKED", contract.objective_fraction() * 100.0),
+            )
+        })
+        .unwrap_or_else(|| ("DRYDOCK".to_owned(), "SELECT A WRIT".to_owned()));
+    let next_decision = sim
+        .pending_event
+        .as_ref()
+        .and_then(|pending| ctx.data.events.get(&pending.template_id))
+        .map(|event| event.title.to_uppercase())
+        .or_else(|| {
+            sim.pending_dilemma
+                .as_ref()
+                .map(|_| "LEGACY DILEMMA".to_owned())
+        })
+        .unwrap_or_else(|| {
+            if contract.is_some() {
+                "CLOCK RUNNING".to_owned()
+            } else {
+                "NO ACTIVE COUNCIL".to_owned()
+            }
+        });
+    let risks = [
+        (sim.ship.hull_integrity, "HULL WEAR"),
+        (sim.ship.life_support, "AIR PLANT"),
+        (sim.ship.fuel, "FUEL MARGIN"),
+        ((food_years / 10.0).clamp(0.0, 1.0), "FOOD COVER"),
+    ];
+    let (risk_value, risk_label) = risks
+        .into_iter()
+        .min_by(|a, b| a.0.total_cmp(&b.0))
+        .unwrap();
+    let weakest = sim
+        .subsystems
+        .iter()
+        .min_by(|a, b| a.1.condition.total_cmp(&b.1.condition))
+        .and_then(|(id, state)| {
+            ctx.data.subsystems.get(id).map(|definition| {
+                let short = definition
+                    .name
+                    .split(" & ")
+                    .next()
+                    .unwrap_or(&definition.name);
+                format!("{short} ↓ {:.0}%", state.condition * 100.0)
+            })
+        })
+        .unwrap_or_else(|| "SYSTEMS NOMINAL".to_owned());
+    let pace = if contract.is_some() {
+        sim.speed.label().to_uppercase()
+    } else {
+        "FROZEN".to_owned()
+    };
     let cells: [(GaugeIcon, &str, String, Color); 6] = [
+        (GaugeIcon::Fuel, "MISSION PHASE", phase, term::primary()),
+        (GaugeIcon::Maint, "OBJECTIVE", objective, term::accent()),
         (
-            GaugeIcon::Hull,
-            "HULL",
-            format!("{:.0}%", sim.ship.hull_integrity * 100.0),
-            tone(sim.ship.hull_integrity >= 0.35),
+            GaugeIcon::Alert,
+            "NEXT DECISION",
+            next_decision,
+            if sim.has_pending_decision() {
+                term::alert()
+            } else {
+                term::primary()
+            },
         ),
         (
             GaugeIcon::Life,
-            "LIFE SUPPORT",
-            format!("{:.0}%", sim.ship.life_support * 100.0),
-            tone(sim.ship.life_support >= 0.35),
-        ),
-        (
-            GaugeIcon::Fuel,
-            "FUEL",
-            format!("{:.0}%", sim.ship.fuel * 100.0),
-            tone(sim.ship.fuel >= 0.2),
-        ),
-        (
-            GaugeIcon::Food,
-            "FOOD SUPPLY",
-            format!("{food_years:.0} YRS"),
-            tone(food_years >= 3.0),
-        ),
-        (
-            GaugeIcon::Maint,
-            "MAINTENANCE",
-            if parts_dry {
-                "STORES DRY"
+            "PRIMARY RISK",
+            risk_label.to_owned(),
+            if risk_value < 0.35 {
+                term::alert()
             } else {
-                "ON SCHEDULE"
-            }
-            .to_owned(),
-            tone(!parts_dry),
+                term::accent()
+            },
         ),
-        (
-            GaugeIcon::Alert,
-            "SHIP ALERTS",
-            alerts.to_string(),
-            tone(alerts == 0),
-        ),
+        (GaugeIcon::Hull, "CHANGE DRIVER", weakest, term::dim()),
+        (GaugeIcon::People, "TIME CONTROL", pace, term::accent()),
     ];
     let n = cells.len();
     let cw = inner.w / n as f32;
@@ -578,16 +604,58 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
         } else {
             entry.text.clone()
         };
+        let (marker, color) = log_tone(&entry.text);
+        draw_ui_text_ex(
+            marker,
+            content.x + 46.0,
+            y,
+            TextStyle::new(13.0, color).params(),
+        );
         draw_text_block(
             &shown,
-            content.x + 46.0,
+            content.x + 68.0,
             y - 12.0,
-            content.w - 46.0,
+            content.w - 68.0,
             30.0,
             13.0,
             2.0,
-            term::dim(),
+            color,
         );
         y += line_h;
+    }
+}
+
+/// Give the chronological feed a readable channel without changing its save
+/// format. The marker ensures meaning never depends on colour alone.
+fn log_tone(text: &str) -> (&'static str, Color) {
+    let text = text.to_ascii_lowercase();
+    if [
+        "lost", "died", "gone", "failed", "failure", "damaged", "rupture", "collapse", "shortage",
+    ]
+    .iter()
+    .any(|needle| text.contains(needle))
+    {
+        ("!", term::alert())
+    } else if ["council", "votes", "decision", "heir designate"]
+        .iter()
+        .any(|needle| text.contains(needle))
+    {
+        (">", term::primary())
+    } else if [
+        "charter",
+        "contract",
+        "phase",
+        "milestone",
+        "launched",
+        "return",
+        "refit complete",
+        "fitted",
+    ]
+    .iter()
+    .any(|needle| text.contains(needle))
+    {
+        ("◆", term::accent())
+    } else {
+        ("·", term::dim())
     }
 }

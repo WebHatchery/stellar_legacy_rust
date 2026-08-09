@@ -207,7 +207,7 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         contract.phase,
         ContractPhase::Travel | ContractPhase::Operation
     );
-    let abort = Rect::new(content.x, content.bottom() - 40.0, content.w, 32.0);
+    let abort = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
     if underway {
         if term_button(
             abort,
@@ -221,12 +221,35 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         term_button(abort, "— HOMEBOUND —", false, pointer);
     }
 
-    term_panel(right, Some("RELEVANT SYSTEMS"));
+    term_panel(right, Some("ROUTE & MISSION"));
     let rcontent = right.inset(20.0);
-    // TODO(next agent, M2): populate origin/waypoint/destination entries per
-    // contract template (GDD §7) instead of this static journey summary.
+    let template = ctx.data.contracts.get(&contract.template_id);
+    let operation = template
+        .map(|t| t.operation_site())
+        .unwrap_or_else(|| contract.name.clone());
+    let objective_system = contract
+        .objective_subsystem
+        .is_empty()
+        .then_some("No single subsystem")
+        .or_else(|| {
+            ctx.data
+                .subsystems
+                .get(&contract.objective_subsystem)
+                .map(|s| s.name.as_str())
+        })
+        .unwrap_or(&contract.objective_subsystem);
+    let next_milestone = contract
+        .milestones
+        .iter()
+        .find(|milestone| !milestone.reached)
+        .map(|milestone| milestone.name.as_str())
+        .unwrap_or("All authored milestones reached");
+    let phase = contract.phase.label().to_uppercase();
+    let route = format!(
+        "ORIGIN\nHome Berth — departed\n\nOPERATION SITE\n{operation}\n\nRETURN BERTH\nHome Berth\n\nOBJECTIVE SYSTEM\n{objective_system}\n\nCURRENT PHASE\n{phase}\n\nNEXT MILESTONE\n{next_milestone}"
+    );
     draw_text_block(
-        "ORIGIN: Home Berth (departed)\nWAYPOINT: deep transit\nDESTINATION: per charter\n\nSystems relevant to the active charter appear here. Not a starmap by design — see gdd.md §7.",
+        &route,
         rcontent.x,
         rcontent.y + 40.0,
         rcontent.w,
@@ -575,7 +598,7 @@ fn draw_charter_card(
         2.0,
         term::dim(),
     );
-    let btn = Rect::new(card.right() - 170.0, card.y + 24.0, 156.0, 30.0);
+    let btn = Rect::new(card.right() - 170.0, card.y + 17.0, 156.0, 44.0);
     if locked {
         term_button(btn, &entry.lock_label, false, pointer);
     } else {

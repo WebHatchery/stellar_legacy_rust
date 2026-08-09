@@ -26,7 +26,7 @@ fn draw_log(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
 
     if ctx.chronicle.entries.is_empty() {
         draw_text_block(
-            "No voyages recorded yet.\n\nEvery completed contract is written here, and the Chronicle outlives any single save. Past voyages grant Heritage modifiers to new dynasties.",
+            "No voyages recorded yet.\n\nEvery completed contract is written here, and the Chronicle outlives any single save. Renown automatically grants a stronger Heritage tier to new dynasties.",
             content.x,
             y,
             content.w,

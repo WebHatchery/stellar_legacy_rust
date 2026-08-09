@@ -5,6 +5,7 @@
 mod actions;
 mod capture_scenes;
 
+use crate::audio::{AudioManager, Cue};
 use crate::boot::BootScreen;
 use crate::chronicle::ChronicleStore;
 use crate::data::GameData;
@@ -62,6 +63,8 @@ pub struct Game {
     /// Cross-playthrough achievements (GDD §10), persisted separately.
     achievements: Achievements,
     notifications: NotificationManager,
+    /// Procedural ambience and redundant state-change cues.
+    audio: AudioManager,
     events: EventBus<UiAction>,
     /// The one piece of bitmap art the game ships: the title plate behind the
     /// main menu. Everything else is drawn (GDD §0), so the manifest stays tiny.
@@ -175,6 +178,7 @@ impl Game {
         let crt_style = display.crt_style();
         ui::term::set_phosphor(display.phosphor);
         let delegation_defaults = crate::settings::load_delegation(&data.config.game_name);
+        let audio = AudioManager::new().await;
 
         let mut assets = AssetManager::new();
         let _ = assets.load_asset_pack("assets.zip").await;
@@ -192,6 +196,7 @@ impl Game {
             chronicle,
             achievements,
             notifications: NotificationManager::new(),
+            audio,
             events: EventBus::new(),
             assets,
             legacy_ids,
@@ -278,6 +283,13 @@ impl Game {
         self.gather_keyboard_actions(&mut actions);
         let mut transition = None;
         for action in actions {
+            self.audio.cue(Cue::Button, self.display.audio_volume);
+            if matches!(
+                action,
+                UiAction::ResolveEvent(_) | UiAction::ResolveDilemma(_)
+            ) {
+                self.audio.cue(Cue::Resolution, self.display.audio_volume);
+            }
             if let Some(t) = self.apply_action(action) {
                 transition = Some(t);
             }
@@ -289,6 +301,10 @@ impl Game {
         // Drive real time last, once input has been applied (real-time loop §1/§2):
         // auto-advance the month clock under way, or run the decision countdown.
         self.update_realtime(dt);
+        let ambience = self.display.ambience
+            && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && !gameplay.sim.dynasty.extinct);
+        self.audio
+            .update_ambience(ambience, self.display.audio_volume);
     }
 
     /// The real-time driver (real-time loop §1/§2). While under way and unpaused,
@@ -567,6 +583,10 @@ impl Game {
             DisplayAction::ToggleScanlines => self.display.scanlines = !self.display.scanlines,
             DisplayAction::ToggleFlicker => self.display.flicker = !self.display.flicker,
             DisplayAction::SetPhosphor(p) => self.display.phosphor = p,
+            DisplayAction::AdjustAudio(delta) => {
+                self.display.audio_volume = (self.display.audio_volume + delta).clamp(0.0, 1.0)
+            }
+            DisplayAction::ToggleAmbience => self.display.ambience = !self.display.ambience,
             DisplayAction::ToggleDelegationDefault(category) => {
                 self.delegation_defaults.toggle(category);
                 if let Err(err) = crate::settings::save_delegation(

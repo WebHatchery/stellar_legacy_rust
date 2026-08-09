@@ -4,6 +4,7 @@ use macroquad::prelude::*;
 use macroquad_toolkit::capture;
 
 mod achievements;
+mod audio;
 mod boot;
 mod chronicle;
 mod data;

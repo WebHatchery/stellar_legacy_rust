@@ -73,7 +73,7 @@ pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
     }
 
     term_button(
-        Rect::new(content.x, content.bottom() - 44.0, content.w, 40.0),
+        Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0),
         &welcome.dismiss_label,
         true,
         pointer,

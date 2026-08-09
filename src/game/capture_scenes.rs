@@ -44,6 +44,19 @@ impl Game {
                 menu.phase = crate::state::MenuPhase::NewGame;
                 self.state = crate::state::GameState::Menu(menu);
             }
+            "crt_off" => {
+                self.display.crt_enabled = false;
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                if let Some(template) = self.data.contracts.get("founding_colony") {
+                    sim.contract = Some(contract::start_contract(template, &sim));
+                }
+                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+            }
             "settings" => {
                 // Delegate one category so the capture shows both toggle states.
                 self.delegation_defaults.mission_milestone = true;

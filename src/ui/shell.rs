@@ -176,8 +176,8 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
 }
 
 /// One chrome button (SAVE / MENU / HELP / DISPLAY) at the right of the tab row.
-const CHROME_BTN_W: f32 = 88.0;
-const CHROME_GAP: f32 = 6.0;
+const CHROME_BTN_W: f32 = 72.0;
+const CHROME_GAP: f32 = 4.0;
 /// Width the four of them claim from the tab strip.
 const CHROME_W: f32 = CHROME_BTN_W * 4.0 + CHROME_GAP * 3.0;
 
@@ -188,7 +188,7 @@ fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction
     let total_w = LOGICAL_WIDTH - 32.0 - CHROME_W - 12.0;
     let tab_w = (total_w - (tabs.len() as f32 - 1.0) * 6.0) / tabs.len() as f32;
     for (i, screen) in tabs.iter().enumerate() {
-        let rect = Rect::new(16.0 + i as f32 * (tab_w + 6.0), 80.0, tab_w, 38.0);
+        let rect = Rect::new(16.0 + i as f32 * (tab_w + 6.0), 78.0, tab_w, 44.0);
         let hit = touch_area(rect);
         note_neighbour(rect);
         note_target(screen.label(), rect);
@@ -220,6 +220,15 @@ fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction
             rect.h,
             TextStyle::new(14.0, if active { term::accent() } else { term::dim() }),
         );
+        if active {
+            draw_rectangle(
+                rect.x + 8.0,
+                rect.bottom() - 3.0,
+                rect.w - 16.0,
+                3.0,
+                term::accent(),
+            );
+        }
         if !active && pointer.released_on(hit) {
             actions.push(UiAction::SelectScreen(*screen));
         }
@@ -229,6 +238,15 @@ fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction
     // used to answer only to F1 and F2. A tablet has no function keys, so the
     // display settings — which carry the council's delegation defaults, not just
     // the CRT look — and the controls legend were simply unreachable there.
+    let utility_x = LOGICAL_WIDTH - 16.0 - CHROME_W;
+    draw_line(
+        utility_x - 8.0,
+        82.0,
+        utility_x - 8.0,
+        116.0,
+        1.0,
+        term::faint(),
+    );
     for (i, (label, action)) in [
         ("SAVE", UiAction::SaveGame),
         ("MENU", UiAction::ToMenu),
@@ -239,7 +257,7 @@ fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction
     .enumerate()
     {
         let x = LOGICAL_WIDTH - 16.0 - CHROME_W + i as f32 * (CHROME_BTN_W + CHROME_GAP);
-        if term_button(Rect::new(x, 80.0, CHROME_BTN_W, 38.0), label, true, pointer) {
+        if term_button(Rect::new(x, 78.0, CHROME_BTN_W, 44.0), label, true, pointer) {
             actions.push(action);
         }
     }

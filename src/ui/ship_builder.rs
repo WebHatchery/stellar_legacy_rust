@@ -20,7 +20,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     // MODULES ladders. Both are drydock work, so both live behind this one screen.
     let modules = ctx.ship_modules_tab.get();
     const SEG_W: f32 = 160.0;
-    const SEG_H: f32 = 30.0;
+    const SEG_H: f32 = 44.0;
     for (i, label) in ["LOADOUT", "MODULES"].iter().enumerate() {
         let seg = Rect::new(area.x + i as f32 * (SEG_W + 8.0), area.y, SEG_W, SEG_H);
         let hit = touch_area(seg);
@@ -75,7 +75,7 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
     ];
     let col_w = (area.w - 24.0) / 3.0;
 
-    const STRIDE: f32 = 100.0;
+    const STRIDE: f32 = 118.0;
     // Gutter reserved at each column's right edge for its scrollbar.
     const GUTTER: f32 = 12.0;
     let mut scrolls = ctx.ship_scroll.get();
@@ -120,7 +120,7 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
 
         let mut y = view.y - scroll.offset();
         for component in cards {
-            let card = Rect::new(view.x, y, card_w, 96.0);
+            let card = Rect::new(view.x, y, card_w, 112.0);
             // Cull partially-scrolled cards so none spills past the panel.
             if is_fully_visible(card, view) {
                 let installed = is_installed(ctx, *kind, &component.id);
@@ -551,7 +551,7 @@ fn draw_component_card(
         cost_parts.push(format!("{} en", cost.energy));
     }
 
-    let btn = Rect::new(rect.x + 12.0, rect.y + 68.0, rect.w - 24.0, 22.0);
+    let btn = Rect::new(rect.x + 12.0, rect.y + 68.0, rect.w - 24.0, 40.0);
     if installed {
         draw_text_centered_in_box_ex(
             "INSTALLED",

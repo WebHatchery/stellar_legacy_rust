@@ -13,6 +13,20 @@ the ship makes will be kept (or broken) by someone else's grandchildren.
 - Port of the web original `game_apps/stellar_legacy/` (React/PHP); all game rules
   now live in a deterministic Rust simulation, saves are local toolkit slots.
 
+The current release contains 309 event templates, 22 charters across six objective
+families, three legacies, six founding factions, six maintainable subsystems, and a
+month-precise voyage clock. Under way, time advances automatically at the displayed
+Pause / 1× / 2× / 3× pace; drydock and blocking council decisions freeze it. Chronicle
+renown automatically applies the highest unlocked Heritage tier when a new dynasty is
+founded—Heritage is a transparent head start, not a separate modifier choice.
+Restrained procedural ambience and redundant cues are mixed from the Display panel;
+critical state remains fully readable with audio muted.
+
+The primary flow is New Game → legacy and founding peoples → drydock charter dossier →
+preparation checklist → launch → dashboard/specialist screens and council decisions →
+Homecoming debrief → drydock. Chronicle, Help, and Display remain available from the
+command shell.
+
 ## Layout
 
 ```

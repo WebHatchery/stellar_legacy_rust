@@ -73,6 +73,10 @@ pub struct DisplaySettings {
     pub flicker: bool,
     /// Phosphor tint of the overlay.
     pub phosphor: Phosphor,
+    /// Master mix, deliberately restrained by default.
+    pub audio_volume: f32,
+    /// Underway engine-room ambience; cues remain available when disabled.
+    pub ambience: bool,
 }
 
 impl Default for DisplaySettings {
@@ -82,6 +86,8 @@ impl Default for DisplaySettings {
             scanlines: true,
             flicker: true,
             phosphor: Phosphor::Amber,
+            audio_volume: 0.35,
+            ambience: true,
         }
     }
 }

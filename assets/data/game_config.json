@@ -148,7 +148,7 @@
     "sections": [
       {
         "heading": "THE VOYAGE",
-        "body": "You accept a charter — a destination and a term of years — then prep the ship and LAUNCH. Time runs in months while under way; press SPACE or ENTER to advance, and pick a faster speed when the road is quiet. Food, spare parts, and fuel must last the whole crossing, so provision for centuries, not for a season."
+        "body": "You accept a charter — a destination and a term of years — then prep the ship and LAUNCH. Time advances automatically while under way. Use Pause when you need to think, or choose the displayed 1× / 2× / 3× pace when the road is quiet. Food, spare parts, and fuel must last the whole crossing, so provision for centuries, not for a season."
       },
       {
         "heading": "YOUR PEOPLE",
@@ -872,7 +872,7 @@
     "at_risk_threshold": 50
   },
   "ship": {
-    "credits_per_speed": 40,
+    "credits_per_speed": 5,
     "minerals_per_cargo": 0.1,
     "fuel_regen_per_point": 0.05,
     "contract_progress_per_speed": 0.04,
@@ -954,7 +954,7 @@
     }
   ],
   "real_time": {
-    "seconds_per_month": 5.0,
+    "seconds_per_month": 0.25,
     "decision_timeout_secs": 30.0,
     "impact_variance": 0.4,
     "impact_min_magnitude_for_range": 20

@@ -251,21 +251,41 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
 
 /// A heavy population-loss outcome may also claim a named character (real-time
 /// loop follow-up: "a random chance of dying … especially due to an event"). When
-/// the loss meets `event_death_loss_threshold`, one roll against
-/// `event_death_chance` takes a crew officer if any serve (they are in harm's
-/// way), else a non-leader relative. The leader is spared here — only the age
-/// roll unseats them, so a mid-event succession never surprises the player.
+/// the loss meets `event_death_loss_threshold`, up to three severity-scaled rolls
+/// against `event_death_chance` take named people from the exposed crew and
+/// non-leader dynasty members. The leader is spared here — only the age roll
+/// unseats them, so a mid-event succession never surprises the player. Drawing
+/// from both pools lets repeated disasters genuinely threaten the line instead
+/// of consuming officers forever while every heir remains magically sheltered.
 pub fn event_claim(sim: &mut SimState, data: &GameData, population_lost: u32) {
     let cfg = &data.config.mortality;
     if population_lost < cfg.event_death_loss_threshold {
         return;
     }
-    if !sim.rng.chance(cfg.event_death_chance) {
+    let attempts = (population_lost / cfg.event_death_loss_threshold.max(1)).clamp(1, 3);
+    for _ in 0..attempts {
+        if sim.rng.chance(cfg.event_death_chance) {
+            claim_one_named_person(sim, data);
+        }
+    }
+}
+
+fn claim_one_named_person(sim: &mut SimState, data: &GameData) {
+    let dynasty_candidates: Vec<usize> = sim
+        .dynasty
+        .members
+        .iter()
+        .enumerate()
+        .filter(|(_, member)| !member.is_leader)
+        .map(|(index, _)| index)
+        .collect();
+    let exposed = sim.crew.len() + dynasty_candidates.len();
+    if exposed == 0 {
         return;
     }
-    if !sim.crew.is_empty() {
-        let idx = sim.rng.below(sim.crew.len());
-        let officer = sim.crew.remove(idx);
+    let pick = sim.rng.below(exposed);
+    if pick < sim.crew.len() {
+        let officer = sim.crew.remove(pick);
         let post = post_name(data, &officer.archetype_id).to_owned();
         // Pooled so a disaster-heavy voyage's many losses don't read as a form letter
         // (content-depth voice round 24); indexed by log length so consecutive vary.
@@ -280,17 +300,8 @@ pub fn event_claim(sim: &mut SimState, data: &GameData, population_lost: u32) {
         sim.push_log(line);
         return;
     }
-    let candidates: Vec<usize> = sim
-        .dynasty
-        .members
-        .iter()
-        .enumerate()
-        .filter(|(_, m)| !m.is_leader)
-        .map(|(i, _)| i)
-        .collect();
-    if !candidates.is_empty() {
-        let pick = candidates[sim.rng.below(candidates.len())];
-        let member = sim.dynasty.members.remove(pick);
+    if let Some(&dynasty_index) = dynasty_candidates.get(pick - sim.crew.len()) {
+        let member = sim.dynasty.members.remove(dynasty_index);
         let pool = &data.config.flavor.event_loss_member;
         let line = if pool.is_empty() {
             format!(

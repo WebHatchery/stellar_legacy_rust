@@ -1,7 +1,7 @@
 //! The simulation tick (GDD §3 step 3, §5.1).
 //!
-//! Time advances only on explicit player action (Pillar 4). `advance` steps the
-//! month clock forward by the current speed step, applying the W1-tuned economic
+//! The game-loop clock advances time while a voyage is under way. `advance_months`
+//! steps the month clock forward by a requested span, applying the W1-tuned economic
 //! year on each year boundary (production, upkeep, wear, aging, contract
 //! progress, market) and rolling for a dated event every month — hard-stopping
 //! the instant a decision, completion, or extinction lands (W3). The economic

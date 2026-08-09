@@ -193,7 +193,6 @@ pub enum GaugeIcon {
     Hull,
     Life,
     Fuel,
-    Food,
     Maint,
     Alert,
     People,
@@ -208,14 +207,6 @@ pub fn draw_gauge_icon(icon: GaugeIcon, cx: f32, cy: f32, r: f32, color: Color) 
             draw_circle_lines(cx, cy, r * 0.42, t, color);
         }
         GaugeIcon::Fuel => draw_poly_lines(cx, cy, 4, r, 45.0, t, color),
-        GaugeIcon::Food => {
-            draw_line(cx, cy - r, cx, cy + r, t, color);
-            for i in 0..3 {
-                let yy = cy - r * 0.7 + i as f32 * r * 0.65;
-                draw_line(cx, yy, cx - r * 0.6, yy + r * 0.4, t, color);
-                draw_line(cx, yy, cx + r * 0.6, yy + r * 0.4, t, color);
-            }
-        }
         GaugeIcon::Maint => {
             draw_poly_lines(cx, cy, 8, r, 22.5, t, color);
             draw_circle_lines(cx, cy, r * 0.4, t, color);
