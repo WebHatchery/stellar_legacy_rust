@@ -109,6 +109,6 @@ This release is complete when:
   death transfer, school upkeep/lapse, save/load, succession content, and autoplay.
 - Deterministic captures at 1600x900 and 1280x720 cover named event advice, apprenticeship
   management, subsystem schools/archives/custody, and Homecoming institution accounting in
-  `docs/verification/officers_1600x900` and `docs/verification/officers_1280x720`.
+  the flat `docs/verification/` directory.
 - `./publish.ps1` passed without parameters on 2026-08-09: Windows and WebGL builds and
   packages succeeded, preview deployment completed, and the catalog was refreshed.

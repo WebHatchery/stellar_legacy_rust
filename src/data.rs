@@ -25,9 +25,12 @@ use subsystems::SubsystemDef;
 
 pub use config::*;
 
-const GAME_CONFIG_JSON: &str = include_str!("../assets/data/game_config.json");
-const TEXTURE_MANIFEST_JSON: &str = include_str!("../assets/data/texture_manifest.json");
-const SHIP_COMPONENTS_JSON: &str = include_str!("../assets/ship_components.json");
+const GAME_CONFIG_JSON: &str =
+    macroquad_toolkit::include_json_str!("../assets/data/game_config.json");
+const TEXTURE_MANIFEST_JSON: &str =
+    macroquad_toolkit::include_json_str!("../assets/data/texture_manifest.json");
+const SHIP_COMPONENTS_JSON: &str =
+    macroquad_toolkit::include_json_str!("../assets/ship_components.json");
 /// Event templates, split per `family` (content-depth): one file per family
 /// under `assets/events/` so no single content file grows unwieldy. Embedded via
 /// `include_str!` (WASM-safe, same as before); merged into one registry at load
@@ -35,40 +38,57 @@ const SHIP_COMPONENTS_JSON: &str = include_str!("../assets/ship_components.json"
 const EVENT_FILES: &[(&str, &str)] = &[
     (
         "biology_medical",
-        include_str!("../assets/events/biology_medical.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/biology_medical.json"),
     ),
-    ("comedy", include_str!("../assets/events/comedy.json")),
-    ("diplomacy", include_str!("../assets/events/diplomacy.json")),
+    (
+        "comedy",
+        macroquad_toolkit::include_json_str!("../assets/events/comedy.json"),
+    ),
+    (
+        "diplomacy",
+        macroquad_toolkit::include_json_str!("../assets/events/diplomacy.json"),
+    ),
     (
         "engineering",
-        include_str!("../assets/events/engineering.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/engineering.json"),
     ),
-    ("ethics", include_str!("../assets/events/ethics.json")),
+    (
+        "ethics",
+        macroquad_toolkit::include_json_str!("../assets/events/ethics.json"),
+    ),
     (
         "exploration_first_contact",
-        include_str!("../assets/events/exploration_first_contact.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/exploration_first_contact.json"),
     ),
     (
         "legacy_drift",
-        include_str!("../assets/events/legacy_drift.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/legacy_drift.json"),
     ),
-    ("mystery", include_str!("../assets/events/mystery.json")),
+    (
+        "mystery",
+        macroquad_toolkit::include_json_str!("../assets/events/mystery.json"),
+    ),
     (
         "obligations",
-        include_str!("../assets/events/obligations.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/obligations.json"),
     ),
     (
         "science_anomaly",
-        include_str!("../assets/events/science_anomaly.json"),
+        macroquad_toolkit::include_json_str!("../assets/events/science_anomaly.json"),
     ),
-    ("survival", include_str!("../assets/events/survival.json")),
+    (
+        "survival",
+        macroquad_toolkit::include_json_str!("../assets/events/survival.json"),
+    ),
 ];
-const LEGACIES_JSON: &str = include_str!("../assets/legacies.json");
-const CONTRACTS_JSON: &str = include_str!("../assets/contracts.json");
-const FACTIONS_JSON: &str = include_str!("../assets/factions.json");
-const SUBSYSTEMS_JSON: &str = include_str!("../assets/subsystems.json");
-const DYNASTY_NAMES_JSON: &str = include_str!("../assets/dynasty_names.json");
-const CREW_ARCHETYPES_JSON: &str = include_str!("../assets/crew_archetypes.json");
+const LEGACIES_JSON: &str = macroquad_toolkit::include_json_str!("../assets/legacies.json");
+const CONTRACTS_JSON: &str = macroquad_toolkit::include_json_str!("../assets/contracts.json");
+const FACTIONS_JSON: &str = macroquad_toolkit::include_json_str!("../assets/factions.json");
+const SUBSYSTEMS_JSON: &str = macroquad_toolkit::include_json_str!("../assets/subsystems.json");
+const DYNASTY_NAMES_JSON: &str =
+    macroquad_toolkit::include_json_str!("../assets/dynasty_names.json");
+const CREW_ARCHETYPES_JSON: &str =
+    macroquad_toolkit::include_json_str!("../assets/crew_archetypes.json");
 
 /// How a fitting (ship component or subsystem version) is obtained. `Purchasable`
 /// is bought in the drydock at its `cost`; `MissionReward` is never for sale —
