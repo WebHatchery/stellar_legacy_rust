@@ -343,6 +343,11 @@ impl Game {
                 sim.resources.credits = self.data.config.distress_credit_floor - 500;
                 sim.resources.food = (self.data.config.low_food_threshold - 100).max(0);
                 sim.resources.energy = (self.data.config.low_energy_threshold - 100).max(0);
+                let _ = crate::simulation::market::sell(
+                    &mut sim,
+                    crate::state::sim::TradeResource::Minerals,
+                    50,
+                );
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Market;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));

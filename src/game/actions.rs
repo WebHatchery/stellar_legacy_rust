@@ -533,9 +533,12 @@ impl Game {
             UiAction::Buy(resource, amount) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     match market::buy(&mut gameplay.sim, resource, amount) {
-                        Ok(()) => self
-                            .notifications
-                            .success(format!("Bought {amount} {}", resource.label())),
+                        Ok(receipt) => self.notifications.success(format!(
+                            "Bought {amount} {} for {}cr · next {:.2}/u",
+                            resource.label(),
+                            receipt.total_credits,
+                            receipt.market_price_after
+                        )),
                         Err(err) => self.notifications.warning(err),
                     }
                 }
@@ -544,9 +547,12 @@ impl Game {
             UiAction::Sell(resource, amount) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     match market::sell(&mut gameplay.sim, resource, amount) {
-                        Ok(()) => self
-                            .notifications
-                            .success(format!("Sold {amount} {}", resource.label())),
+                        Ok(receipt) => self.notifications.success(format!(
+                            "Sold {amount} {} for {}cr · next {:.2}/u",
+                            resource.label(),
+                            receipt.total_credits,
+                            receipt.market_price_after
+                        )),
                         Err(err) => self.notifications.warning(err),
                     }
                 }

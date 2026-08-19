@@ -34,13 +34,27 @@ impl TradeResource {
 pub struct MarketEntry {
     pub resource: TradeResource,
     pub price: f32,
-    /// Signed change applied by the most recent yearly drift.
+    /// Signed change from the latest drift or player trade.
     pub trend: f32,
+}
+
+/// The exchange's last settled ticket. Kept with market state so leaving and
+/// returning to the screen does not erase what the player just moved.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct TradeReceipt {
+    pub buying: bool,
+    pub resource: TradeResource,
+    pub amount: i64,
+    pub total_credits: i64,
+    pub market_price_before: f32,
+    pub market_price_after: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MarketState {
     pub entries: Vec<MarketEntry>,
+    #[serde(default)]
+    pub last_trade: Option<TradeReceipt>,
     /// How much a bulk trade moves the local price against the ship (content-depth
     /// provisioning round 22): a lone generation ship trading at a small waypoint is a
     /// whale in a thin pool — buying up a good drives its price up, dumping a surplus

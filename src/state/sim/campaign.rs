@@ -32,6 +32,7 @@ impl SimState {
                     trend: 0.0,
                 })
                 .collect(),
+            last_trade: None,
             impact_per_unit: config.market_impact_per_unit,
             trade_reputation_scale: config.trade_reputation_scale,
             desperation_premium: config.market_desperation_premium,

@@ -14,12 +14,35 @@ fn buy_and_sell_move_credits_and_goods() {
     let credits_before = sim.resources.credits;
     let food_before = sim.resources.food;
 
-    buy(&mut sim, TradeResource::Food, 100).unwrap();
+    let receipt = buy(&mut sim, TradeResource::Food, 100).unwrap();
     assert_eq!(sim.resources.food, food_before + 100);
     assert!(sim.resources.credits < credits_before);
+    assert!(receipt.market_price_after > receipt.market_price_before);
+    assert_eq!(sim.market.last_trade, Some(receipt));
 
-    sell(&mut sim, TradeResource::Food, 100).unwrap();
+    let receipt = sell(&mut sim, TradeResource::Food, 100).unwrap();
     assert_eq!(sim.resources.food, food_before);
+    assert!(receipt.market_price_after < receipt.market_price_before);
+    assert_eq!(sim.market.last_trade, Some(receipt));
+}
+
+#[test]
+fn old_market_saves_default_to_no_settlement_ticket() {
+    let data = GameData::load().unwrap();
+    let sim = SimState::new_campaign(
+        &data,
+        "wanderers",
+        12,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let mut value = serde_json::to_value(sim).unwrap();
+    value["market"]
+        .as_object_mut()
+        .unwrap()
+        .remove("last_trade");
+
+    let migrated: SimState = serde_json::from_value(value).unwrap();
+    assert!(migrated.market.last_trade.is_none());
 }
 
 #[test]
@@ -222,6 +245,13 @@ fn the_ships_own_trades_move_the_thin_local_market() {
         after_buy > before,
         "buying a bulk lot drives the price up: {before} -> {after_buy}"
     );
+    let entry = sim
+        .market
+        .entries
+        .iter()
+        .find(|entry| entry.resource == TradeResource::Minerals)
+        .unwrap();
+    assert_eq!(entry.trend, after_buy - before);
 
     // Dumping a surplus floods the market and drives the price back down.
     sell(&mut sim, TradeResource::Minerals, 3_000).unwrap();

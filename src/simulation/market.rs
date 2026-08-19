@@ -1,7 +1,7 @@
 //! Market trading and yearly price drift (GDD §5.1 "Keep as-is").
 
 use crate::data::ResourceDelta;
-use crate::state::sim::{base_price, SimState, TradeResource};
+use crate::state::sim::{base_price, SimState, TradeReceipt, TradeResource};
 
 /// A price the exchange can show before the player commits. Keeping the
 /// modifier factors beside the total lets the UI explain why the effective
@@ -97,11 +97,16 @@ fn desperation_factor(sim: &SimState, resource: TradeResource) -> f32 {
     }
 }
 
-pub fn buy(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<(), String> {
+pub fn buy(
+    sim: &mut SimState,
+    resource: TradeResource,
+    amount: i64,
+) -> Result<TradeReceipt, String> {
     if amount <= 0 {
         return Err("Trade amount must be positive".to_owned());
     }
-    let cost = buy_quote(sim, resource, amount).total_credits;
+    let quote = buy_quote(sim, resource, amount);
+    let cost = quote.total_credits;
     let delta = trade_delta(resource, amount, -cost);
     if !sim.resources.can_afford(&delta) {
         return Err(format!("Need {cost} credits"));
@@ -109,8 +114,17 @@ pub fn buy(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<(
     sim.resources.apply(&delta);
     // The ship's own demand moves the thin local market (content-depth provisioning
     // round 22): buying up a good drives its price up against the next lot.
-    shift_price(sim, resource, amount);
-    Ok(())
+    let market_price_after = shift_price(sim, resource, amount);
+    let receipt = TradeReceipt {
+        buying: true,
+        resource,
+        amount,
+        total_credits: cost,
+        market_price_before: quote.market_unit_price,
+        market_price_after,
+    };
+    sim.market.last_trade = Some(receipt);
+    Ok(receipt)
 }
 
 /// The discount the market takes on a *sell* the ship makes while its treasury is critically bare
@@ -165,19 +179,33 @@ pub fn sell_quote(sim: &SimState, resource: TradeResource, amount: i64) -> Trade
     }
 }
 
-pub fn sell(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<(), String> {
+pub fn sell(
+    sim: &mut SimState,
+    resource: TradeResource,
+    amount: i64,
+) -> Result<TradeReceipt, String> {
     if amount <= 0 {
         return Err("Trade amount must be positive".to_owned());
     }
-    let proceeds = sell_quote(sim, resource, amount).total_credits;
+    let quote = sell_quote(sim, resource, amount);
+    let proceeds = quote.total_credits;
     let delta = trade_delta(resource, -amount, proceeds);
     if !sim.resources.can_afford(&delta) {
         return Err(format!("Not enough {} to sell", resource.label()));
     }
     sim.resources.apply(&delta);
     // …and dumping a surplus floods the market and drives its price down (round 22).
-    shift_price(sim, resource, -amount);
-    Ok(())
+    let market_price_after = shift_price(sim, resource, -amount);
+    let receipt = TradeReceipt {
+        buying: false,
+        resource,
+        amount,
+        total_credits: proceeds,
+        market_price_before: quote.market_unit_price,
+        market_price_after,
+    };
+    sim.market.last_trade = Some(receipt);
+    Ok(receipt)
 }
 
 /// Move a resource's local price by the ship's own trade (content-depth provisioning
@@ -186,10 +214,10 @@ pub fn sell(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<
 /// the same 0.5x-3x band the yearly drift honours. The drift then walks it back toward
 /// base over the following years, so a bulk trade's mark on the market is real but
 /// temporary. Inert when `impact_per_unit` is 0.
-fn shift_price(sim: &mut SimState, resource: TradeResource, signed_amount: i64) {
+fn shift_price(sim: &mut SimState, resource: TradeResource, signed_amount: i64) -> f32 {
     let k = sim.market.impact_per_unit;
     if k == 0.0 {
-        return;
+        return price_of(sim, resource);
     }
     let base = base_price(resource);
     let shift = base * k * signed_amount as f32;
@@ -199,7 +227,12 @@ fn shift_price(sim: &mut SimState, resource: TradeResource, signed_amount: i64) 
         .iter_mut()
         .find(|e| e.resource == resource)
     {
+        let old = entry.price;
         entry.price = (entry.price + shift).clamp(base * 0.5, base * 3.0);
+        entry.trend = entry.price - old;
+        entry.price
+    } else {
+        base
     }
 }
 

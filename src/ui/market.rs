@@ -186,10 +186,26 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         y += ROW_H + ROW_GAP;
     }
 
+    if let Some(receipt) = ctx.sim.market.last_trade {
+        draw_ui_text_ex(
+            &format!(
+                "LAST TICKET · {} {} {} · {}CR · MARKET {:.2} → {:.2}/U",
+                if receipt.buying { "BOUGHT" } else { "SOLD" },
+                receipt.amount,
+                receipt.resource.label().to_uppercase(),
+                receipt.total_credits,
+                receipt.market_price_before,
+                receipt.market_price_after
+            ),
+            content.x,
+            y + 2.0,
+            TextStyle::new(12.0, term::accent()).params(),
+        );
+    }
     draw_text_block(
         "The market line is raw. Quoted terms include your name and any desperation or distress penalty before you commit.",
         content.x,
-        y + 4.0,
+        y + 19.0,
         content.w,
         34.0,
         12.0,
