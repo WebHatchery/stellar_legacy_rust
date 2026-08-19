@@ -288,6 +288,25 @@ fn an_untrained_line_loses_then_relearns_the_repair() {
 }
 
 #[test]
+fn training_projects_its_real_gain_and_never_charges_at_mastery() {
+    let (data, mut sim) = campaign(51);
+    sim.resources.credits = 10_000;
+    sim.subsystems.get_mut("medical_bay").unwrap().knowledge = 0.94;
+    let target = training_target_knowledge(&sim, &data, "medical_bay").unwrap();
+    assert!(target > 0.94 && target <= 1.0);
+    train_subsystem_knowledge(&mut sim, &data, "medical_bay").unwrap();
+    assert!((sim.subsystems["medical_bay"].knowledge - target).abs() < f32::EPSILON);
+
+    sim.subsystems.get_mut("medical_bay").unwrap().knowledge = 1.0;
+    let credits = sim.resources.credits;
+    assert!(train_subsystem_knowledge(&mut sim, &data, "medical_bay").is_err());
+    assert_eq!(
+        sim.resources.credits, credits,
+        "mastery cannot consume tuition"
+    );
+}
+
+#[test]
 fn condition_decays_and_knowledge_transmits_with_education() {
     let (data, mut sim) = campaign(1);
 

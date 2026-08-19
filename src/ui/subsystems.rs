@@ -3,7 +3,7 @@
 //! Train verbs. Pure view: it reads `&SimState` and emits `UiAction` only.
 
 use crate::data::GameData;
-use crate::simulation::subsystems::repair_target_condition;
+use crate::simulation::subsystems::{repair_target_condition, training_target_knowledge};
 use crate::state::sim::factions::steward_decay_factor;
 use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
@@ -257,15 +257,25 @@ fn draw_card(
     }
 
     // Train: anytime, raises this subsystem's knowledge.
-    let train_ok = ctx.sim.resources.credits >= cfg.subsystems.train_cost_credits;
+    let training_target =
+        training_target_knowledge(ctx.sim, ctx.data, id).unwrap_or(state.knowledge);
+    let training_complete = training_target <= state.knowledge + f32::EPSILON;
+    let train_ok =
+        !training_complete && ctx.sim.resources.credits >= cfg.subsystems.train_cost_credits;
+    let train_label = if training_complete {
+        "MASTERED".to_owned()
+    } else if ctx.sim.resources.credits < cfg.subsystems.train_cost_credits {
+        format!("NEED {}cr", cfg.subsystems.train_cost_credits)
+    } else {
+        format!(
+            "TRAIN TO {:.0}% · {}cr",
+            training_target * 100.0,
+            cfg.subsystems.train_cost_credits
+        )
+    };
     if term_button(
         Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 40.0),
-        &priced_action_label(
-            "TRAIN",
-            cfg.subsystems.train_cost_credits,
-            ctx.sim.resources.credits,
-            "cr",
-        ),
+        &train_label,
         train_ok,
         pointer,
     ) {

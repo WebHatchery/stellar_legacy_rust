@@ -6,6 +6,15 @@ use crate::state::sim::SimState;
 
 use super::effects::education_training_factor;
 
+/// Knowledge a paid training cohort would leave behind right now. The academy's
+/// condition scales the configured gain, so both the verb and UI use this one
+/// projection instead of promising the nominal gain when the school is failing.
+pub fn training_target_knowledge(sim: &SimState, data: &GameData, id: &str) -> Option<f32> {
+    let current = sim.subsystems.get(id)?.knowledge;
+    let academy = education_training_factor(sim, data);
+    Some((current + data.config.subsystems.train_knowledge_gain * academy).min(1.0))
+}
+
 /// Condition a successful repair would leave behind right now. This is the
 /// single projection used by both the verb and the maintenance UI, including
 /// the field ceiling and the Engineering Bay's effect on underway work.
@@ -179,6 +188,20 @@ pub fn train_subsystem_knowledge(
     let Some(def) = data.subsystems.get(id) else {
         return Err("Unknown subsystem.".to_owned());
     };
+    let current = sim
+        .subsystems
+        .get(id)
+        .map(|state| state.knowledge)
+        .unwrap_or(1.0);
+    let Some(target) = training_target_knowledge(sim, data, id) else {
+        return Err("Unknown subsystem.".to_owned());
+    };
+    if target <= current + f32::EPSILON {
+        return Err(format!(
+            "The {} discipline is already fully learned.",
+            def.name
+        ));
+    }
     let cfg = &data.config.subsystems;
     let cost = ResourceDelta {
         credits: -cfg.train_cost_credits,
@@ -191,13 +214,9 @@ pub fn train_subsystem_knowledge(
         ));
     }
     sim.resources.apply(&cost);
-    // A cohort learns only as well as the ship's academy can teach (content-depth subsystems
-    // round 27): the education/culture module's condition scales the knowledge a training run
-    // imparts, so a crew that lets its schools rot trains new hands to a fainter craft.
-    let academy = education_training_factor(sim, data);
     let name = def.name.clone();
     if let Some(state) = sim.subsystems.get_mut(id) {
-        state.knowledge = (state.knowledge + cfg.train_knowledge_gain * academy).min(1.0);
+        state.knowledge = target;
     }
     let line = crate::data::FlavorConfig::line_with_name(
         &data.config.flavor.subsystem_training,
