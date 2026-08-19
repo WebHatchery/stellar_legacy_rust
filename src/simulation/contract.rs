@@ -109,6 +109,54 @@ pub fn obligation_conflicts<'a>(
         .collect()
 }
 
+/// Record every active promise a charter explicitly contradicts as defaulted,
+/// and cancel its now-obsolete scheduled reckoning. Returns the broken duty
+/// titles for launch narration. A conflicted launch is a deliberate act the PREP
+/// control names; this is the deterministic consequence behind that warning.
+pub fn default_obligation_conflicts(
+    sim: &mut SimState,
+    template: &ContractTemplate,
+) -> Vec<String> {
+    let conflicts: Vec<_> = obligation_conflicts(sim, template)
+        .into_iter()
+        .map(|obligation| {
+            (
+                obligation.authored_id.clone(),
+                obligation.title.clone(),
+                obligation.resolution_event.clone(),
+            )
+        })
+        .collect();
+    for (authored_id, _, resolution_event) in &conflicts {
+        sim.apply_obligation_operation(&crate::state::sim::ObligationOperation::Default {
+            authored_id: authored_id.clone(),
+            note: format!(
+                "The council accepted {}, knowingly contradicting this duty.",
+                template.name
+            ),
+        });
+        if !resolution_event.is_empty() {
+            sim.scheduled_events
+                .retain(|scheduled| scheduled.template_id != *resolution_event);
+        }
+    }
+    if !conflicts.is_empty() {
+        if !sim.consequences.iter().any(|tag| tag == "broke_a_bargain") {
+            sim.consequences.push("broke_a_bargain".to_owned());
+        }
+        let titles: Vec<_> = conflicts
+            .iter()
+            .map(|(_, title, _)| title.as_str())
+            .collect();
+        sim.push_log(format!(
+            "Accepting {} defaulted the ship's incompatible duties: {}.",
+            template.name,
+            titles.join(", ")
+        ));
+    }
+    conflicts.into_iter().map(|(_, title, _)| title).collect()
+}
+
 /// Whether the ship's *loadout* meets a charter's minimum fitting (content-depth
 /// charters round 26): the drydock-availability twin of `meets_in_world_gate`. A writ
 /// that names a `min_combat`/`min_cargo`/`min_speed` is offered only to a hull whose

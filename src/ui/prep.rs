@@ -88,6 +88,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     y += 28.0;
 
     let conflicts = crate::simulation::contract::obligation_conflicts(sim, template);
+    let conflict_count = conflicts.len();
     if !conflicts.is_empty() {
         draw_ui_text_ex(
             "! OBLIGATION CONFLICT — LAUNCH WOULD CONTRADICT:",
@@ -108,6 +109,13 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
             );
             y += 17.0;
         }
+        draw_ui_text_ex(
+            "  LAUNCH & DEFAULT records each promise broken.",
+            content.x,
+            y,
+            TextStyle::new(12.0, term::alert()).params(),
+        );
+        y += 17.0;
         y += 6.0;
     }
 
@@ -348,9 +356,14 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
             as i64;
     let by = content.bottom() - 44.0;
     let bw = (content.w - 12.0) / 2.0;
+    let launch_label = if conflict_count > 0 {
+        format!("LAUNCH & DEFAULT {conflict_count}")
+    } else {
+        "[ LAUNCH ]".to_owned()
+    };
     if term_button(
-        Rect::new(content.x, by, bw, 40.0),
-        "[ LAUNCH ]",
+        Rect::new(content.x, by, bw, 44.0),
+        &launch_label,
         true,
         pointer,
     ) {
@@ -362,7 +375,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         "TANKS FULL".to_owned()
     };
     if term_button(
-        Rect::new(content.x + bw + 12.0, by, bw, 40.0),
+        Rect::new(content.x + bw + 12.0, by, bw, 44.0),
         &refuel_label,
         refuel_missing > 0.0 && sim.resources.credits >= refuel_cost,
         pointer,

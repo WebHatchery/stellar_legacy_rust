@@ -409,6 +409,7 @@ impl Game {
                     };
                     if let Some(id) = selected {
                         if let Some(template) = self.data.contracts.get(&id) {
+                            contract::default_obligation_conflicts(sim, template);
                             sim.contract = Some(contract::start_contract(template, sim));
                             for operation in &template.launch_obligation_operations {
                                 sim.apply_obligation_operation(operation);

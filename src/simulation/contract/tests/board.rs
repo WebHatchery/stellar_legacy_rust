@@ -16,6 +16,32 @@ fn charter_conflicts_name_the_active_duty_before_launch() {
 }
 
 #[test]
+fn a_conflicted_launch_defaults_the_duty_and_cancels_its_reckoning() {
+    let (data, mut sim) = armed(812, "the_long_tow");
+    sim.contract = None;
+    let seed = data.events.get("sanctuary_berths_asked").unwrap().clone();
+    crate::simulation::event_resolver::apply_outcome(&mut sim, &data, &seed, 0);
+    assert_eq!(sim.scheduled_events.len(), 1);
+    let hard = data.contracts.get("the_hard_contract").unwrap();
+
+    let broken = default_obligation_conflicts(&mut sim, hard);
+
+    assert_eq!(broken, vec!["The Open Berths"]);
+    assert_eq!(
+        sim.obligations[0].status,
+        crate::state::sim::ObligationStatus::Defaulted
+    );
+    assert!(sim.scheduled_events.is_empty());
+    assert!(sim.consequences.contains(&"broke_a_bargain".to_owned()));
+    assert!(sim.obligations[0]
+        .history
+        .last()
+        .unwrap()
+        .note
+        .contains("Enforcement Writ"));
+}
+
+#[test]
 fn the_writ_board_reflects_the_ships_reputation() {
     // Content-depth charters round 16: the board reads the ship's cumulative
     // character. The sanctuary run opens only to a hull famous for mercy; the
