@@ -5,13 +5,13 @@ the discrete open items left behind by finished workstreams.
 
 ## Ship schematic (underway view)
 
-- Sharpen the barge vs ark silhouettes — both read as full-bulge hulls today.
-- Give the deck captions real information; they are pure flavour.
-- Thicken the compartment icon strokes so they survive capture-scale rendering.
-- Add a legend entry explaining the compartment pictograms.
-
-## Event content
-
-- Prefer a small number of 2–4 event consequence chains over another large batch of
-  isolated two-choice events. Target a few strong chains per objective family and
-  additional legacy/faction chains for replay value.
+- Give `colony_barge` a broad, blunt freighter profile with a visibly flatter working
+  body and squared stern.
+- Give `generation_ark` a longer, more architectural profile with a distinct central
+  habitat structure so it cannot be mistaken for the barge.
+- Replace the hash-derived `DECKS N-M` labels with stable labels based on each module's
+  actual schematic placement rather than cosmetic flavour.
+- Thicken every compartment pictogram stroke, including the fixed-width medical and
+  weapon strokes, until the icons remain legible in capture-scale rendering.
+- Extend the schematic legend with the pictogram key for `AGR`, `EDU`, `ENG`, `LSH`,
+  `MED`, `SEC`, `CMD`, `DRV`, and `WPN`.
