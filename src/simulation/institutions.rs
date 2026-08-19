@@ -87,7 +87,11 @@ pub fn establish_or_support_school(
         return Err("The treasury cannot support that school.".to_owned());
     }
     sim.resources.credits -= cost;
-    let until = sim.year() + data.config.crew.school_support_years;
+    let base_year = existing
+        .map(|index| sim.subsystem_schools[index].supported_until_year)
+        .unwrap_or_else(|| sim.year())
+        .max(sim.year());
+    let until = base_year.saturating_add(data.config.crew.school_support_years);
     let name = data
         .subsystems
         .get(subsystem_id)

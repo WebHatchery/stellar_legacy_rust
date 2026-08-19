@@ -181,7 +181,7 @@ fn draw_card(
         ),
         Some(_) => (
             priced_action_label(
-                "RECOMMIT",
+                &format!("EXTEND +{}Y", cfg.crew.school_support_years),
                 cfg.crew.school_upkeep_credits,
                 ctx.sim.resources.credits,
                 "cr",

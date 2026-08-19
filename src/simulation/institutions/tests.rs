@@ -78,7 +78,11 @@ fn school_support_slows_decay_and_the_benefit_ends_when_funding_lapses() {
     );
     let old_until = supported.subsystem_schools[0].supported_until_year;
     establish_or_support_school(&mut supported, &data, "medical_bay").unwrap();
-    assert!(supported.subsystem_schools[0].supported_until_year >= old_until);
+    assert_eq!(
+        supported.subsystem_schools[0].supported_until_year,
+        old_until + data.config.crew.school_support_years,
+        "every upkeep payment buys one complete support term"
+    );
 }
 
 #[test]
