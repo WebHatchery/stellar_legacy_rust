@@ -23,12 +23,22 @@
           "material_stakes": "2,400 food and crowded life support",
           "reputation_stakes": "Mercy and sanctuary trust"
         }],
+        "record": {
+          "official": "The council reserved lawful sanctuary capacity for a registered flotilla due in forty-five years.",
+          "dynasty": "We lent our descendants the strength of our name because the living before us had nowhere else to turn.",
+          "affected": [{ "people": "The Uncounted flotilla", "account": "They did not offer spare bunks. They made room for families they would never live to meet." }]
+        },
         "log": "The council entered forty-five years of open berths in the ledger, for refugees still crossing under slower drives."
       },
       {
         "id": "refuse_sanctuary",
         "label": "Promise nothing",
         "description": "The ship cannot bind unborn crews to unknown arrivals.",
+        "record": {
+          "official": "The council declined a future capacity guarantee while transmitting navigation and relief contacts.",
+          "dynasty": "We refused to spend the breath of descendants who had no voice in our room.",
+          "affected": [{ "people": "The Uncounted flotilla", "account": "They gave us directions through the dark and kept every warm berth for their own unborn." }]
+        },
         "log": "The council offered directions but no promise, and the berths remained the future's to decide."
       }
     ]
@@ -49,6 +59,11 @@
         "resource_delta": { "food": -2400 },
         "population_delta": { "count": 260, "morale": 0.04, "unity": 0.02 },
         "obligation_operations": [{ "action": "fulfil", "authored_id": "sanctuary_berths", "note": "Every promised family was received." }],
+        "record": {
+          "official": "The Open Berths obligation was fulfilled in full; all registered families boarded under sanctuary law.",
+          "dynasty": "Our predecessor wrote a promise beyond their lifetime. We made their hand good when the names reached our ramp.",
+          "affected": [{ "people": "The Uncounted flotilla", "account": "The faces at the ramp were not the faces that promised us shelter, but the door still opened." }]
+        },
         "log": "The old promise became an open ramp, and every family named in it came aboard."
       },
       {
@@ -58,6 +73,11 @@
         "resource_delta": { "food": -900 },
         "population_delta": { "count": 90, "unity": -0.01 },
         "obligation_operations": [{ "action": "renegotiate", "authored_id": "sanctuary_berths", "due_in_years": 20, "note": "A first convoy boarded; the remainder accepted a new date." }],
+        "record": {
+          "official": "The sanctuary obligation was revised by consent: priority families boarded and the remainder accepted a twenty-year schedule.",
+          "dynasty": "We kept what the ship could bear today and bound ourselves again for what it could not.",
+          "affected": [{ "people": "The Uncounted flotilla", "account": "Some crossed the ramp beneath the old promise. The rest watched their kin go and received another date." }]
+        },
         "log": "The flotilla accepted a smaller first sanctuary and a renewed date for those left waiting."
       },
       {
@@ -66,6 +86,11 @@
         "description": "Keep the ship's stores and break the inherited word.",
         "population_delta": { "morale": -0.05, "stability": -0.03 },
         "obligation_operations": [{ "action": "default", "authored_id": "sanctuary_berths", "note": "The promised berths were denied." }],
+        "record": {
+          "official": "The council defaulted the Open Berths obligation on grounds of present provisioning risk.",
+          "dynasty": "The dead spent our stores with a signature. We chose the living who had carried that debt to its due date.",
+          "affected": [{ "people": "The Uncounted flotilla", "account": "For forty-five years their seal meant a home. At the ramp it became an explanation." }]
+        },
         "log": "The ramp stayed shut on a promise the dead had made and the living refused."
       }
     ]
@@ -116,9 +141,14 @@
       {
         "id": "sign_hearth_compact", "label": "Sign the compact", "description": "Bind the first chair, whoever next holds it.",
         "obligation_operations": [{ "action": "create", "authored_id": "hearth_compact", "title": "The Hearth Compact", "source": "event:aboard_compact_offer", "beneficiary": "The Hearth Union aboard", "due_in_years": 40, "resolution_event": "aboard_compact_due", "visibility": "public", "material_stakes": "600 food, influence, and a protected school", "reputation_stakes": "Internal legitimacy and faction trust" }],
+        "record": {
+          "official": "The council ratified a protected Hearth seat, school, and stores through the next succession.",
+          "dynasty": "We accepted that command is inherited only when the people consent to inherit it with us.",
+          "affected": [{ "people": "The Hearth Union", "account": "At last our place at the long table was written where a change of captain could not quietly erase it." }]
+        },
         "log": "The first chair signed a compact meant to survive the hand that held it."
       },
-      { "id": "decline_hearth_compact", "label": "Keep custom unwritten", "description": "Offer goodwill without a binding office.", "population_delta": { "unity": -0.01 }, "log": "The council kept the Hearth's place a custom rather than a debt." }
+      { "id": "decline_hearth_compact", "label": "Keep custom unwritten", "description": "Offer goodwill without a binding office.", "population_delta": { "unity": -0.01 }, "record": { "official": "The council declined to constitutionalize the Hearth's customary place while affirming its present welcome.", "dynasty": "A living custom can bend where an inherited privilege becomes a chain.", "affected": [{ "people": "The Hearth Union", "account": "They praised our place at the table and refused to write our name on the chair." }] }, "log": "The council kept the Hearth's place a custom rather than a debt." }
     ]
   },
   {
@@ -130,9 +160,9 @@
     "requires_decision": true,
     "scheduled_only": true,
     "outcomes": [
-      { "id": "honour_compact", "label": "Seat the Hearth", "description": "Fund the school and uphold the guaranteed voice.", "resource_delta": { "food": -600, "influence": -25 }, "population_delta": { "unity": 0.05, "stability": 0.03 }, "obligation_operations": [{ "action": "fulfil", "authored_id": "hearth_compact", "note": "The protected school opened and the council seat was kept." }], "log": "The new captain seated the Hearth and opened the school under the old seal." },
-      { "id": "revise_compact", "label": "Trade the seat for a veto", "description": "Rewrite the guarantee with the Hearth's consent.", "resource_delta": { "influence": -10 }, "population_delta": { "unity": 0.01 }, "obligation_operations": [{ "action": "renegotiate", "authored_id": "hearth_compact", "due_in_years": 15, "note": "The permanent seat became a limited veto, subject to review." }], "log": "The Hearth traded its permanent chair for a narrower power and a date to review it." },
-      { "id": "break_compact", "label": "Strike the compact", "description": "Refuse inherited privileges and accept the internal breach.", "population_delta": { "unity": -0.07, "stability": -0.04 }, "obligation_operations": [{ "action": "default", "authored_id": "hearth_compact", "note": "The inherited compact was struck from the council book." }], "log": "The new reign struck out the old compact, and the Hearth remembered who had signed and who had broken it." }
+      { "id": "honour_compact", "label": "Seat the Hearth", "description": "Fund the school and uphold the guaranteed voice.", "resource_delta": { "food": -600, "influence": -25 }, "population_delta": { "unity": 0.05, "stability": 0.03 }, "obligation_operations": [{ "action": "fulfil", "authored_id": "hearth_compact", "note": "The protected school opened and the council seat was kept." }], "record": { "official": "The inherited Hearth Compact was fulfilled with its guaranteed seat and protected school intact.", "dynasty": "We showed that our house receives promises as well as authority when the chair changes hands.", "affected": [{ "people": "The Hearth Union", "account": "The new captain read the old seal, set our chair, and proved the compact was more than one person's kindness." }] }, "log": "The new captain seated the Hearth and opened the school under the old seal." },
+      { "id": "revise_compact", "label": "Trade the seat for a veto", "description": "Rewrite the guarantee with the Hearth's consent.", "resource_delta": { "influence": -10 }, "population_delta": { "unity": 0.01 }, "obligation_operations": [{ "action": "renegotiate", "authored_id": "hearth_compact", "due_in_years": 15, "note": "The permanent seat became a limited veto, subject to review." }], "record": { "official": "By mutual consent, the permanent Hearth seat became a limited veto subject to review in fifteen years.", "dynasty": "We preserved the compact by letting the living alter its shape instead of worshipping its wording.", "affected": [{ "people": "The Hearth Union", "account": "We surrendered a chair no captain could ignore for a power no council could overrule, and kept a date to judge the bargain." }] }, "log": "The Hearth traded its permanent chair for a narrower power and a date to review it." },
+      { "id": "break_compact", "label": "Strike the compact", "description": "Refuse inherited privileges and accept the internal breach.", "population_delta": { "unity": -0.07, "stability": -0.04 }, "obligation_operations": [{ "action": "default", "authored_id": "hearth_compact", "note": "The inherited compact was struck from the council book." }], "record": { "official": "The council voided the inherited Hearth Compact as an impermissible constraint on the present charter.", "dynasty": "Our predecessor mistook concession for law. We restored one council for one ship.", "affected": [{ "people": "The Hearth Union", "account": "One captain signed our place into the ship. The next taught us exactly how much a dynasty's seal was worth." }] }, "log": "The new reign struck out the old compact, and the Hearth remembered who had signed and who had broken it." }
     ]
   }
 ]

@@ -152,7 +152,39 @@ pub fn apply_outcome(
     } else {
         outcome.log.clone()
     };
-    sim.push_log(text);
+    sim.push_log(text.clone());
+    // A consequential outcome may carry several interpretations, but only one
+    // fact. Capture names and prose now so later successions, faction departures,
+    // or content revisions cannot rewrite the contemporary record.
+    if let Some(record) = &outcome.record {
+        let captain = sim
+            .dynasty
+            .leader()
+            .map(|leader| leader.name.clone())
+            .unwrap_or_else(|| "The vacant chair".to_owned());
+        let affected_accounts = record
+            .affected
+            .iter()
+            .map(|account| crate::state::sim::AffectedAccount {
+                people: account.people.clone(),
+                account: account.account.clone(),
+            })
+            .collect();
+        sim.decision_records
+            .push(crate::state::sim::DecisionRecord {
+                year: sim.year(),
+                month: sim.month(),
+                event_id: template.id.clone(),
+                event_title: template.title.clone(),
+                outcome_id: outcome.id.clone(),
+                outcome_label: outcome.label.clone(),
+                fact: text,
+                captain,
+                official_account: record.official.clone(),
+                dynasty_account: record.dynasty.clone(),
+                affected_accounts,
+            });
+    }
     // The council's own answers are the voyage's most-worth-remembering beats,
     // so the homecoming can show the player what they decided a century ago.
     // Only events that actually asked count — an auto-resolved incident was

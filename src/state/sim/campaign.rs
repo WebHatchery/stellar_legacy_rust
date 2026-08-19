@@ -76,6 +76,7 @@ impl SimState {
             subsystem_schools: Vec::new(),
             procedure_archives: Vec::new(),
             institution_records: Vec::new(),
+            decision_records: Vec::new(),
             legacy: LegacyTrack {
                 legacy_id: legacy_id.to_owned(),
                 tradition_points: 50,

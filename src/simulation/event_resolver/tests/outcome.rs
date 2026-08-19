@@ -87,6 +87,40 @@ fn apply_outcome_clears_pending_and_records_consequences() {
 }
 
 #[test]
+fn interpreted_outcome_records_one_fact_and_several_accounts() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        51,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let template = data.events.get("sanctuary_berths_asked").unwrap();
+    let outcome_index = template
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "promise_sanctuary")
+        .unwrap();
+    let captain = sim.dynasty.leader().unwrap().name.clone();
+
+    apply_outcome(&mut sim, &data, template, outcome_index);
+
+    let record = sim.decision_records.last().unwrap();
+    assert_eq!(record.event_id, "sanctuary_berths_asked");
+    assert_eq!(record.outcome_id, "promise_sanctuary");
+    assert_eq!(record.fact, template.outcomes[outcome_index].log);
+    assert_eq!(record.captain, captain);
+    assert!(!record.official_account.is_empty());
+    assert!(!record.dynasty_account.is_empty());
+    assert_eq!(record.affected_accounts.len(), 1);
+    assert_eq!(record.affected_accounts[0].people, "The Uncounted flotilla");
+
+    let encoded = serde_json::to_string(&sim).unwrap();
+    let restored: SimState = serde_json::from_str(&encoded).unwrap();
+    assert_eq!(restored.decision_records, sim.decision_records);
+}
+
+#[test]
 fn a_force_return_outcome_turns_the_ship_home() {
     use crate::data::contracts::ContractPhase;
     use crate::simulation::contract::{advance_contract, start_contract};

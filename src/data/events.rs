@@ -171,6 +171,32 @@ pub struct ScheduledFollowup {
     pub delay_years: u32,
 }
 
+/// One affected people's interpretation of a consequential decision. The
+/// mechanical deed remains the outcome's authoritative `log`; these fragments
+/// let the Chronicle show how different constituencies remember that same fact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AffectedRecordText {
+    /// Contemporary name of the people or community whose account this is.
+    /// It need not be one of the six playable aboard factions: refugees,
+    /// stations, and encountered societies also deserve their own record.
+    pub people: String,
+    pub account: String,
+}
+
+/// Optional competing accounts attached to an event outcome (Release 6). This
+/// deliberately does not duplicate the factual record: `EventOutcome::log` is
+/// the single authoritative statement of what happened, while these fields are
+/// interpretations that can disagree without changing simulation state.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OutcomeRecord {
+    #[serde(default)]
+    pub official: String,
+    #[serde(default)]
+    pub dynasty: String,
+    #[serde(default)]
+    pub affected: Vec<AffectedRecordText>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventOutcome {
     pub id: String,
@@ -258,6 +284,11 @@ pub struct EventOutcome {
     /// event families round 9). `None` = no scheduled payoff.
     #[serde(default)]
     pub schedule_followup: Option<ScheduledFollowup>,
+    /// Competing interpretations retained in the voyage Chronicle. The
+    /// outcome's `log` is still the authoritative fact and all mechanics remain
+    /// independent of which account the player reads.
+    #[serde(default)]
+    pub record: Option<OutcomeRecord>,
     #[serde(default)]
     pub log: String,
 }

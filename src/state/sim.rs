@@ -18,6 +18,7 @@ pub mod institutions;
 pub mod market;
 pub mod obligations;
 pub mod pools;
+pub mod records;
 pub mod session;
 pub mod subsystems;
 
@@ -28,6 +29,7 @@ pub use institutions::*;
 pub use market::*;
 pub use obligations::*;
 pub use pools::*;
+pub use records::*;
 pub use session::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +65,10 @@ pub struct SimState {
     pub procedure_archives: Vec<ProcedureArchive>,
     #[serde(default)]
     pub institution_records: Vec<InstitutionRecord>,
+    /// Consequential decisions remembered as one authoritative fact alongside
+    /// the official, dynasty, and affected-peoples' interpretations.
+    #[serde(default)]
+    pub decision_records: Vec<DecisionRecord>,
     pub legacy: LegacyTrack,
     pub contract: Option<ActiveContract>,
     /// A charter under consideration in port before launch (W4). Cleared when

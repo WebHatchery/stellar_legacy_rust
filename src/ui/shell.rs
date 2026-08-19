@@ -41,6 +41,9 @@ pub struct GameplayCtx<'a> {
     /// Smooth-scroll state for the CHRONICLE log, which accumulates across
     /// playthroughs and outlives any single save.
     pub chronicle_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    /// Chronicle sub-tab: `true` shows the current voyage's competing decision
+    /// records; `false` shows the cross-campaign mission archive.
+    pub chronicle_records_tab: &'a std::cell::Cell<bool>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list —
     /// a long charter passes through more captains than the panel holds.
     pub debrief_commanders_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,

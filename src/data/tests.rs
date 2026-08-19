@@ -12,6 +12,7 @@ mod economy;
 mod event_gates;
 mod parts;
 mod peoples;
+mod records;
 mod ship_systems;
 mod skeleton;
 mod voice;

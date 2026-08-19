@@ -136,6 +136,8 @@ pub struct Game {
     /// Smooth-scroll state for the CHRONICLE log, which grows across
     /// playthroughs and long ago outgrew the nine entries it used to show.
     chronicle_scroll: Cell<ScrollArea>,
+    /// CHRONICLE sub-tab: current voyage records or completed mission archive.
+    chronicle_records_tab: Cell<bool>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list:
     /// a century-long charter can pass through more captains than the panel
     /// holds, and the point of the list is that none of them is dropped.
@@ -225,6 +227,7 @@ impl Game {
             ship_scroll: Cell::new([ScrollArea::new(); 3]),
             roster_scroll: Cell::new(ScrollArea::new()),
             chronicle_scroll: Cell::new(ScrollArea::new()),
+            chronicle_records_tab: Cell::new(true),
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
             ship_modules_tab: Cell::new(false),
@@ -497,6 +500,7 @@ impl Game {
                     ship_scroll: &self.ship_scroll,
                     roster_scroll: &self.roster_scroll,
                     chronicle_scroll: &self.chronicle_scroll,
+                    chronicle_records_tab: &self.chronicle_records_tab,
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     ship_modules_tab: &self.ship_modules_tab,
