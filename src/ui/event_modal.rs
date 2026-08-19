@@ -304,11 +304,40 @@ fn known_effects(
             ));
         }
     }
+    for delta in &outcome.reputation_deltas {
+        if delta.delta.abs() > f32::EPSILON {
+            effects.push(format!(
+                "{} reputation {:+.0}%",
+                delta.id.replace('_', " "),
+                delta.delta * 100.0
+            ));
+        }
+    }
+    for delta in &outcome.subsystem_deltas {
+        let name = delta.id.replace('_', " ");
+        if delta.condition.abs() > f32::EPSILON {
+            effects.push(format!(
+                "{name} condition {:+.0}%",
+                delta.condition * 100.0
+            ));
+        }
+        if delta.knowledge.abs() > f32::EPSILON {
+            effects.push(format!(
+                "{name} knowledge {:+.0}%",
+                delta.knowledge * 100.0
+            ));
+        }
+    }
     if outcome.objective_progress_delta.abs() > f32::EPSILON {
-        effects.push(format!(
-            "objective {:+.0}%",
-            outcome.objective_progress_delta * 100.0
-        ));
+        let pct = outcome.objective_progress_delta * 100.0;
+        let amount = if pct.abs() < 0.1 {
+            format!("{pct:+.2}%")
+        } else if pct.abs() < 1.0 {
+            format!("{pct:+.1}%")
+        } else {
+            format!("{pct:+.0}%")
+        };
+        effects.push(format!("objective {amount}"));
     }
     if outcome.force_return {
         effects.push("forced return".to_owned());
@@ -319,7 +348,9 @@ fn known_effects(
     if outcome.designate_heir {
         effects.push("names the ready heir".to_owned());
     }
-    if !outcome.long_term_consequences.is_empty() || outcome.schedule_followup.is_some() {
+    if let Some(followup) = &outcome.schedule_followup {
+        effects.push(format!("follow-up in {}y", followup.delay_years));
+    } else if !outcome.long_term_consequences.is_empty() {
         effects.push("future consequence".to_owned());
     }
 
