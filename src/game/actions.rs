@@ -167,6 +167,9 @@ impl Game {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     gameplay.screen = screen;
                 }
+                if screen != crate::state::Screen::Subsystems {
+                    self.custody_picker = None;
+                }
                 None
             }
 
@@ -251,14 +254,36 @@ impl Game {
                 }
                 None
             }
-            UiAction::GrantDisciplineCustody(id) => {
+            UiAction::BeginDisciplineCustody(id) => {
+                self.custody_picker = Some(id);
+                None
+            }
+            UiAction::CancelDisciplineCustody => {
+                self.custody_picker = None;
+                None
+            }
+            UiAction::GrantDisciplineCustody {
+                subsystem_id,
+                faction_id,
+            } => {
+                let mut granted = false;
                 if let GameState::Gameplay(gameplay) = &mut self.state {
-                    match institutions::grant_custodianship(&mut gameplay.sim, &self.data, &id) {
-                        Ok(name) => self
-                            .notifications
-                            .success(format!("{name} granted custody.")),
+                    match institutions::grant_custodianship(
+                        &mut gameplay.sim,
+                        &self.data,
+                        &subsystem_id,
+                        &faction_id,
+                    ) {
+                        Ok(name) => {
+                            granted = true;
+                            self.notifications
+                                .success(format!("{name} granted custody."));
+                        }
                         Err(err) => self.notifications.warning(err),
                     }
+                }
+                if granted {
+                    self.custody_picker = None;
                 }
                 None
             }

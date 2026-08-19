@@ -27,6 +27,9 @@ pub struct GameplayCtx<'a> {
     /// random option (real-time loop §2). Only meaningful while a decision is
     /// pending; the modal renders it as a countdown.
     pub decision_remaining: f32,
+    /// Discipline whose custodianship picker is open, if any. Session-local UI
+    /// state; the completed grant alone enters the deterministic simulation.
+    pub custody_picker: Option<&'a str>,
     /// Smooth-scroll state for the charter board / PREP swap column (the list
     /// outgrows its panel). A `Cell` so this pure-view path can update the offset
     /// through the shared `&GameplayCtx` without threading `&mut` everywhere.

@@ -121,6 +121,9 @@ pub struct Game {
     /// Reset when the pending decision changes.
     decision_key: Option<String>,
     decision_started: f64,
+    /// Session-local institution picker. The resulting custody is persistent;
+    /// merely opening this overlay is not simulation state.
+    custody_picker: Option<String>,
     /// Smooth-scroll state for the drydock charter board / PREP swap column,
     /// which now outgrows its panel (grouped by objective, all tiers listed).
     /// A `Cell` so the pure-view draw path can update it through `&GameplayCtx`.
@@ -223,6 +226,7 @@ impl Game {
             month_accumulator: 0.0,
             decision_key: None,
             decision_started: 0.0,
+            custody_picker: None,
             charter_scroll: Cell::new(ScrollArea::new()),
             ship_scroll: Cell::new([ScrollArea::new(); 3]),
             roster_scroll: Cell::new(ScrollArea::new()),
@@ -496,6 +500,7 @@ impl Game {
                     log_reveal,
                     run_clock: self.run_clock_for(&gameplay.sim),
                     decision_remaining: self.decision_remaining(&gameplay.sim),
+                    custody_picker: self.custody_picker.as_deref(),
                     charter_scroll: &self.charter_scroll,
                     ship_scroll: &self.ship_scroll,
                     roster_scroll: &self.roster_scroll,

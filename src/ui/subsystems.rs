@@ -12,6 +12,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     const GAP: f32 = 12.0;
     let col_w = (area.w - GAP) / 2.0;
     let row_h = (area.h - 2.0 * GAP) / 3.0;
+    let mut blocked_actions = Vec::new();
     for (i, id) in GameData::sorted_ids(&ctx.data.subsystems)
         .into_iter()
         .enumerate()
@@ -24,7 +25,15 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
             col_w,
             row_h,
         );
-        draw_card(ctx, rect, &id, pointer, actions);
+        let action_sink = if ctx.custody_picker.is_some() {
+            &mut blocked_actions
+        } else {
+            &mut *actions
+        };
+        draw_card(ctx, rect, &id, pointer, action_sink);
+    }
+    if let Some(subsystem_id) = ctx.custody_picker {
+        draw_custody_picker(ctx, area, subsystem_id, pointer, actions);
     }
 }
 
@@ -61,11 +70,39 @@ fn draw_card(
         TextStyle::new(13.0, term::primary()).params(),
     );
     y += 16.0;
+    let school = ctx
+        .sim
+        .subsystem_schools
+        .iter()
+        .find(|school| school.subsystem_id == id);
+    let archived = ctx
+        .sim
+        .procedure_archives
+        .iter()
+        .any(|archive| archive.subsystem_id == id);
+    let detail = school.map_or_else(
+        || format!("TIER {pips}   ·   buffers {family}"),
+        |school| {
+            let support = if school.supported_until_year >= ctx.sim.year() {
+                format!("SCHOOL→Y{}", school.supported_until_year)
+            } else {
+                "SCHOOL LAPSED".to_owned()
+            };
+            let archive = if archived { "ARCHIVED" } else { "NO ARCHIVE" };
+            let custodian = school
+                .custodian_faction_id
+                .as_deref()
+                .and_then(|faction_id| ctx.data.factions.get(faction_id))
+                .map(|faction| faction.name.as_str())
+                .unwrap_or("NO CUSTODIAN");
+            format!("TIER {pips} · {support} · {archive} · {custodian}")
+        },
+    );
     draw_ui_text_ex(
-        &format!("TIER {pips}   ·   buffers {family}"),
+        &detail,
         content.x,
         y,
-        TextStyle::new(12.0, term::dim()).params(),
+        TextStyle::new(11.0, term::dim()).params(),
     );
     y += 22.0;
 
@@ -99,16 +136,6 @@ fn draw_card(
     // Institutional continuity stays attached to the discipline it protects.
     // The single focused verb advances from school, to archive, to faction
     // custody, then becomes the school's periodic recommitment.
-    let school = ctx
-        .sim
-        .subsystem_schools
-        .iter()
-        .find(|school| school.subsystem_id == id);
-    let archived = ctx
-        .sim
-        .procedure_archives
-        .iter()
-        .any(|archive| archive.subsystem_id == id);
     let (institution_label, institution_ok, institution_action) = match school {
         None => (
             format!("SCHOOL ({}cr)", cfg.crew.school_cost_credits),
@@ -123,7 +150,7 @@ fn draw_card(
         Some(school) if school.custodian_faction_id.is_none() => (
             format!("CUSTODY ({}inf)", cfg.crew.custody_influence_cost),
             ctx.sim.resources.influence >= cfg.crew.custody_influence_cost,
-            UiAction::GrantDisciplineCustody(id.to_owned()),
+            UiAction::BeginDisciplineCustody(id.to_owned()),
         ),
         Some(_) => (
             format!("RECOMMIT ({}cr)", cfg.crew.school_upkeep_credits),
@@ -134,7 +161,6 @@ fn draw_card(
     // --- Verbs: Repair / Upgrade (port) / Train ---
     let bw = (content.w - 3.0 * 8.0) / 4.0;
     let by = content.bottom() - 40.0;
-
     let ceiling = if in_port {
         1.0
     } else {
@@ -194,5 +220,137 @@ fn draw_card(
         pointer,
     ) {
         actions.push(institution_action);
+    }
+}
+
+fn draw_custody_picker(
+    ctx: &GameplayCtx<'_>,
+    area: Rect,
+    subsystem_id: &str,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let Some(subsystem) = ctx.data.subsystems.get(subsystem_id) else {
+        actions.push(UiAction::CancelDisciplineCustody);
+        return;
+    };
+    let candidates: Vec<_> = ctx
+        .sim
+        .factions
+        .iter()
+        .filter(|faction| faction.is_aboard())
+        .collect();
+    draw_rectangle(
+        area.x,
+        area.y,
+        area.w,
+        area.h,
+        Color::new(0.0, 0.0, 0.0, 0.82),
+    );
+    let height = 148.0 + candidates.len() as f32 * 82.0;
+    let modal = Rect::new(
+        area.x + (area.w - 760.0) * 0.5,
+        area.y + (area.h - height) * 0.5,
+        760.0,
+        height,
+    );
+    draw_surface(
+        modal,
+        &SurfaceStyle::new(term::panel())
+            .with_border(2.0, term::accent())
+            .with_header(48.0, term::panel_header())
+            .with_header_divider(1.0, term::accent()),
+    );
+    draw_text_centered_in_box_ex(
+        &format!("GRANT CUSTODY // {}", subsystem.name.to_uppercase()),
+        modal.x,
+        modal.y,
+        modal.w,
+        48.0,
+        TextStyle::new(15.0, term::accent()),
+    );
+    if term_button(
+        Rect::new(modal.right() - 110.0, modal.y + 2.0, 102.0, 44.0),
+        "CANCEL",
+        true,
+        pointer,
+    ) {
+        actions.push(UiAction::CancelDisciplineCustody);
+    }
+    let content = modal.inset(18.0);
+    draw_text_block(
+        &format!(
+            "Choose the people who will hold this discipline across successions. The grant costs {} influence and raises that people's approval by {:.0}%.",
+            ctx.data.config.crew.custody_influence_cost,
+            ctx.data.config.crew.custody_approval_gain * 100.0
+        ),
+        content.x,
+        content.y + 36.0,
+        content.w,
+        46.0,
+        12.0,
+        3.0,
+        term::dim(),
+    );
+    let mut y = content.y + 86.0;
+    for state in candidates {
+        let Some(faction) = ctx.data.factions.get(&state.faction_id) else {
+            continue;
+        };
+        let row = Rect::new(content.x, y, content.w, 72.0);
+        draw_surface(
+            row,
+            &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+        );
+        let native = faction.tended_subsystem == subsystem_id;
+        let craft = if native {
+            "NATIVE CRAFT".to_owned()
+        } else {
+            let tended = ctx
+                .data
+                .subsystems
+                .get(&faction.tended_subsystem)
+                .map(|definition| definition.name.as_str())
+                .unwrap_or("no named discipline");
+            format!("CROSS-DISCIPLINE · tends {tended}")
+        };
+        draw_ui_text_ex(
+            &faction.name,
+            row.x + 12.0,
+            row.y + 24.0,
+            TextStyle::new(
+                15.0,
+                if native {
+                    term::accent()
+                } else {
+                    term::primary()
+                },
+            )
+            .params(),
+        );
+        draw_ui_text_ex(
+            &format!(
+                "{} members · approval {:.0}% → {:.0}% · {craft}",
+                state.members,
+                state.approval * 100.0,
+                (state.approval + ctx.data.config.crew.custody_approval_gain).min(1.0) * 100.0
+            ),
+            row.x + 12.0,
+            row.y + 48.0,
+            TextStyle::new(11.0, term::dim()).params(),
+        );
+        let enabled = ctx.sim.resources.influence >= ctx.data.config.crew.custody_influence_cost;
+        if term_button(
+            Rect::new(row.right() - 212.0, row.y + 14.0, 198.0, 44.0),
+            "GRANT CUSTODY",
+            enabled,
+            pointer,
+        ) {
+            actions.push(UiAction::GrantDisciplineCustody {
+                subsystem_id: subsystem_id.to_owned(),
+                faction_id: state.faction_id.clone(),
+            });
+        }
+        y += 82.0;
     }
 }

@@ -158,14 +158,15 @@ pub fn grant_custodianship(
     sim: &mut SimState,
     data: &GameData,
     subsystem_id: &str,
+    faction_id: &str,
 ) -> Result<String, String> {
-    let faction_id = sim
+    let faction_aboard = sim
         .factions
         .iter()
-        .filter(|f| f.is_aboard())
-        .max_by_key(|f| f.members)
-        .map(|f| f.faction_id.clone())
-        .ok_or_else(|| "No people aboard can accept custody.".to_owned())?;
+        .any(|f| f.is_aboard() && f.faction_id == faction_id);
+    if !faction_aboard {
+        return Err("That people is no longer aboard to accept custody.".to_owned());
+    }
     let influence = data.config.crew.custody_influence_cost;
     if sim.resources.influence < influence {
         return Err("The council lacks the influence to grant custody.".to_owned());
@@ -178,7 +179,7 @@ pub fn grant_custodianship(
     if school.custodian_faction_id.is_some() {
         return Err("That discipline already has a custodian.".to_owned());
     }
-    school.custodian_faction_id = Some(faction_id.clone());
+    school.custodian_faction_id = Some(faction_id.to_owned());
     sim.resources.influence -= influence;
     if let Some(faction) = sim
         .factions
@@ -189,8 +190,8 @@ pub fn grant_custodianship(
     }
     let faction_name = data
         .factions
-        .get(&faction_id)
-        .map_or(faction_id.as_str(), |f| f.name.as_str())
+        .get(faction_id)
+        .map_or(faction_id, |f| f.name.as_str())
         .to_owned();
     sim.institution_records.push(InstitutionRecord {
         year: sim.year(),

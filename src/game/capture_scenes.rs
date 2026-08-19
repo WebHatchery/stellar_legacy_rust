@@ -17,6 +17,7 @@ impl Game {
         // deterministic regardless of any persisted preference.
         self.instant_reveal = true;
         self.capture_run_secs = None;
+        self.custody_picker = None;
         self.boot.finish();
         // The first-run welcome overlay would otherwise sit over every menu
         // scene; scenes opt into it explicitly (the "welcome" scene below).
@@ -235,6 +236,7 @@ impl Game {
                     &mut sim,
                     &self.data,
                     "agriculture",
+                    "hearth_union",
                 );
                 let _ = crate::simulation::institutions::establish_or_support_school(
                     &mut sim,
@@ -244,6 +246,30 @@ impl Game {
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Subsystems;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
+            }
+            "custody" => {
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                sim.resources.credits = 20_000;
+                sim.resources.influence = 100;
+                let _ = crate::simulation::institutions::establish_or_support_school(
+                    &mut sim,
+                    &self.data,
+                    "medical_bay",
+                );
+                let _ = crate::simulation::institutions::compile_archive(
+                    &mut sim,
+                    &self.data,
+                    "medical_bay",
+                );
+                let mut gameplay = GameplayState::new(sim);
+                gameplay.screen = Screen::Subsystems;
+                self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
+                self.custody_picker = Some("medical_bay".to_owned());
             }
             "market" => {
                 let mut sim = SimState::new_campaign(

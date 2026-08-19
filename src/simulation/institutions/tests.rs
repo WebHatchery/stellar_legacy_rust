@@ -82,6 +82,58 @@ fn school_support_slows_decay_and_the_benefit_ends_when_funding_lapses() {
 }
 
 #[test]
+fn council_can_grant_custody_to_a_non_dominant_people() {
+    let (data, mut sim) = campaign();
+    sim.resources.credits = 10_000;
+    sim.resources.influence = 100;
+    establish_or_support_school(&mut sim, &data, "engineering_bay").unwrap();
+    compile_archive(&mut sim, &data, "engineering_bay").unwrap();
+    let dominant = sim.dominant_faction_id().unwrap().to_owned();
+    let chosen = sim
+        .factions
+        .iter()
+        .find(|faction| faction.is_aboard() && faction.faction_id != dominant)
+        .unwrap()
+        .faction_id
+        .clone();
+    let approval_before = sim
+        .factions
+        .iter()
+        .find(|faction| faction.faction_id == chosen)
+        .unwrap()
+        .approval;
+
+    grant_custodianship(&mut sim, &data, "engineering_bay", &chosen).unwrap();
+
+    assert_eq!(
+        sim.subsystem_schools[0].custodian_faction_id.as_deref(),
+        Some(chosen.as_str())
+    );
+    assert!(
+        sim.factions
+            .iter()
+            .find(|faction| faction.faction_id == chosen)
+            .unwrap()
+            .approval
+            > approval_before
+    );
+}
+
+#[test]
+fn a_people_not_aboard_cannot_receive_custody() {
+    let (data, mut sim) = campaign();
+    sim.resources.credits = 10_000;
+    sim.resources.influence = 100;
+    establish_or_support_school(&mut sim, &data, "engineering_bay").unwrap();
+    compile_archive(&mut sim, &data, "engineering_bay").unwrap();
+    let influence_before = sim.resources.influence;
+
+    assert!(grant_custodianship(&mut sim, &data, "engineering_bay", "verdant_kin").is_err());
+    assert_eq!(sim.resources.influence, influence_before);
+    assert!(sim.subsystem_schools[0].custodian_faction_id.is_none());
+}
+
+#[test]
 fn apprentices_succeed_on_both_retirement_and_death_and_survive_a_save() {
     let (data, mut retirement) = campaign();
     retirement.resources.credits = 10_000;

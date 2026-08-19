@@ -237,7 +237,13 @@ pub enum UiAction {
     TrainSubsystemKnowledge(String),
     EstablishSchool(String),
     CompileProcedureArchive(String),
-    GrantDisciplineCustody(String),
+    /// Open the touch-driven people picker for this discipline.
+    BeginDisciplineCustody(String),
+    CancelDisciplineCustody,
+    GrantDisciplineCustody {
+        subsystem_id: String,
+        faction_id: String,
+    },
     Buy(TradeResource, i64),
     Sell(TradeResource, i64),
     ToggleDelegation(EventCategory),
