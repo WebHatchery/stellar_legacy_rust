@@ -22,6 +22,14 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, RectExt};
 const POST_STRIDE: f32 = 44.0;
 const POST_BUTTON_H: f32 = 44.0;
 
+fn priced_action_label(action: &str, cost: i64, credits: i64) -> String {
+    if credits >= cost {
+        format!("{action} ({cost} CR)")
+    } else {
+        format!("NEED {cost} CR")
+    }
+}
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let left = Rect::new(area.x, area.y, area.w * 0.55, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
@@ -345,7 +353,13 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                 if term_button(
                     Rect::new(content.right() - 302.0, y - 14.0, 144.0, POST_BUTTON_H),
                     &apprentice.map_or_else(
-                        || format!("APPRENTICE ({} CR)", crew_cfg.apprentice_cost_credits),
+                        || {
+                            priced_action_label(
+                                "APPRENTICE",
+                                crew_cfg.apprentice_cost_credits,
+                                ctx.sim.resources.credits,
+                            )
+                        },
                         |a| format!("SUCCESSOR · SK {}", a.skill),
                     ),
                     apprentice.is_none()
@@ -359,9 +373,13 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     &if maxed {
                         "MASTERED".to_owned()
                     } else {
-                        format!("TRAIN ({} CR)", crew_cfg.train_cost_credits)
+                        priced_action_label(
+                            "TRAIN",
+                            crew_cfg.train_cost_credits,
+                            ctx.sim.resources.credits,
+                        )
                     },
-                    !maxed,
+                    !maxed && ctx.sim.resources.credits >= crew_cfg.train_cost_credits,
                     pointer,
                 ) {
                     actions.push(UiAction::TrainCrew(archetype.id.clone()));
@@ -376,7 +394,11 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                 );
                 if term_button(
                     Rect::new(content.right() - 150.0, y - 14.0, 144.0, POST_BUTTON_H),
-                    &format!("RECRUIT ({} CR)", crew_cfg.recruit_cost_credits),
+                    &priced_action_label(
+                        "RECRUIT",
+                        crew_cfg.recruit_cost_credits,
+                        ctx.sim.resources.credits,
+                    ),
                     ctx.sim.resources.credits >= crew_cfg.recruit_cost_credits,
                     pointer,
                 ) {
@@ -387,6 +409,9 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
         y += POST_STRIDE;
     }
 }
+
+#[cfg(test)]
+mod tests;
 
 fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     term_panel(rect, Some("COUNCIL & DELEGATION"));

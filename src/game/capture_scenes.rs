@@ -193,7 +193,7 @@ impl Game {
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                sim.resources.credits = 10_000;
+                sim.resources.credits = if scene == "crew" { 100 } else { 10_000 };
                 if scene == "crew_recruitment" {
                     sim.factions.pop();
                 }
