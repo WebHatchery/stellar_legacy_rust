@@ -18,6 +18,30 @@ pub fn eligible_heir_exists(dynasty: &Dynasty, config: &GameConfig) -> bool {
         .any(|m| !m.is_leader && m.age >= config.heir_min_age && m.age <= config.heir_max_age)
 }
 
+/// The heir who would take the chair under an orderly handoff: the eligible
+/// council designate first, otherwise the strongest eligible dynast. This is
+/// the same plan `install_successor` follows before its emergency fallback.
+pub fn planned_heir<'a>(dynasty: &'a Dynasty, config: &GameConfig) -> Option<&'a DynastyMember> {
+    let eligible = |member: &&DynastyMember| {
+        !member.is_leader && member.age >= config.heir_min_age && member.age <= config.heir_max_age
+    };
+    dynasty
+        .designated_heir
+        .and_then(|id| {
+            dynasty
+                .members
+                .iter()
+                .find(|member| member.id == id && eligible(member))
+        })
+        .or_else(|| {
+            dynasty
+                .members
+                .iter()
+                .filter(eligible)
+                .max_by_key(|member| (member.leadership, member.id))
+        })
+}
+
 /// Install a new leader (GDD §4 Select Heir): clear the current leader, then take
 /// the council-designated heir if one is living and age-eligible, otherwise the
 /// highest-leadership member in the ideal heir band, and failing that the best of
@@ -30,6 +54,7 @@ pub fn install_successor(
     config: &GameConfig,
     year: u32,
 ) -> (Option<String>, bool) {
+    let planned_id = planned_heir(dynasty, config).map(|member| member.id);
     // A handoff starts a new reign (content-depth campaign skeleton round 19).
     dynasty.leader_reign_years = 0;
     // Close the outgoing captaincy before the seat is cleared — after the loop
@@ -39,16 +64,6 @@ pub fn install_successor(
     for member in &mut dynasty.members {
         member.is_leader = false;
     }
-    let eligible = |m: &DynastyMember| m.age >= config.heir_min_age && m.age <= config.heir_max_age;
-    let best_in_band = || {
-        dynasty
-            .members
-            .iter()
-            .enumerate()
-            .filter(|(_, m)| eligible(m))
-            .max_by_key(|(_, m)| m.leadership)
-            .map(|(i, _)| i)
-    };
     // Fallback when no one sits in the ideal band: the strongest survivor still
     // leads — an unusually young or old captain, but a captain. Ties break on id
     // so a given roster is deterministic.
@@ -60,15 +75,8 @@ pub fn install_successor(
             .max_by_key(|(_, m)| (m.leadership, m.id))
             .map(|(i, _)| i)
     };
-    let heir_index = dynasty
-        .designated_heir
-        .and_then(|id| {
-            dynasty
-                .members
-                .iter()
-                .position(|m| m.id == id && eligible(m))
-        })
-        .or_else(best_in_band)
+    let heir_index = planned_id
+        .and_then(|id| dynasty.members.iter().position(|member| member.id == id))
         .or_else(best_any);
     dynasty.designated_heir = None;
     match heir_index {

@@ -25,6 +25,26 @@ fn a_vacated_seat_hands_off_to_the_best_eligible_heir() {
 }
 
 #[test]
+fn an_orderly_handoff_cannot_reinstall_the_outgoing_captain() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        2,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let outgoing = sim.dynasty.leader().unwrap().id;
+    assert!(planned_heir(&sim.dynasty, &data.config).is_some());
+
+    let year = sim.year();
+    let (new_leader, extinct) = install_successor(&mut sim.dynasty, &data.config, year);
+
+    assert!(!extinct);
+    assert!(new_leader.is_some());
+    assert_ne!(sim.dynasty.leader().unwrap().id, outgoing);
+}
+
+#[test]
 fn designated_heir_takes_precedence_over_best_leadership() {
     let data = GameData::load().unwrap();
     let mut sim = SimState::new_campaign(
@@ -51,6 +71,12 @@ fn designated_heir_takes_precedence_over_best_leadership() {
         .expect("founding dynasty has eligible members");
     sim.dynasty.designated_heir = Some(weakest);
 
+    assert_eq!(
+        planned_heir(&sim.dynasty, &data.config).map(|member| member.id),
+        Some(weakest),
+        "the visible orderly plan matches the handoff"
+    );
+
     let year = sim.year();
     let (new_leader, _) = install_successor(&mut sim.dynasty, &data.config, year);
     assert!(new_leader.is_some());
@@ -60,6 +86,32 @@ fn designated_heir_takes_precedence_over_best_leadership() {
         "the designated heir must inherit even with lower leadership"
     );
     assert!(sim.dynasty.designated_heir.is_none(), "consumed on use");
+}
+
+#[test]
+fn an_ineligible_designate_does_not_hide_the_ready_heir() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        13,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let too_young_id = {
+        let too_young = sim
+            .dynasty
+            .members
+            .iter_mut()
+            .find(|member| !member.is_leader)
+            .unwrap();
+        too_young.age = data.config.heir_min_age.saturating_sub(1);
+        too_young.id
+    };
+    sim.dynasty.designated_heir = Some(too_young_id);
+
+    let planned = planned_heir(&sim.dynasty, &data.config).expect("another heir is eligible");
+    assert_ne!(planned.id, too_young_id);
+    assert!(planned.age >= data.config.heir_min_age);
 }
 
 #[test]

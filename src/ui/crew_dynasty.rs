@@ -4,6 +4,7 @@
 use crate::data::events::EventCategory;
 use crate::simulation::crew::post_holder;
 use crate::simulation::legacy::failure_risk;
+use crate::simulation::succession::planned_heir;
 use crate::ui::{stat_line, term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -238,14 +239,26 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
     for archetype in &ctx.data.crew_archetypes {
         match post_holder(ctx.sim, &archetype.id) {
             Some(holder) => {
+                let years_left = crew_cfg
+                    .retirement_age
+                    .saturating_sub(holder.age)
+                    .saturating_add(1);
                 draw_ui_text_ex(
                     &format!(
-                        "{} — {} ({}) · SK {}",
-                        archetype.name, holder.name, holder.age, holder.skill
+                        "{} — {} ({} · {}Y LEFT) · SK {}",
+                        archetype.name, holder.name, holder.age, years_left, holder.skill
                     ),
                     content.x,
                     y,
-                    TextStyle::new(13.0, term::accent()).params(),
+                    TextStyle::new(
+                        13.0,
+                        if years_left <= 5 {
+                            term::alert()
+                        } else {
+                            term::accent()
+                        },
+                    )
+                    .params(),
                 );
                 let maxed = holder.skill >= archetype.skill_max;
                 let apprentice = ctx
@@ -323,6 +336,54 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
         "NEXT GENERATION IN",
         &format!("{next_gen} yr"),
         term::primary(),
+    );
+    y += 34.0;
+
+    let planned = planned_heir(&ctx.sim.dynasty, &ctx.data.config);
+    let succession = planned.map_or_else(
+        || "NO ELIGIBLE HEIR".to_owned(),
+        |member| {
+            if ctx.sim.dynasty.designated_heir == Some(member.id) {
+                format!("DESIGNATED · {} · LD {}", member.name, member.leadership)
+            } else {
+                format!("READY · {} · LD {}", member.name, member.leadership)
+            }
+        },
+    );
+    stat_line(
+        content.x,
+        y,
+        "HEIR",
+        &succession,
+        if planned.is_some() {
+            term::accent()
+        } else {
+            term::alert()
+        },
+    );
+    y += 24.0;
+    let vacant_posts = ctx
+        .data
+        .crew_archetypes
+        .iter()
+        .filter(|post| post_holder(ctx.sim, &post.id).is_none())
+        .count();
+    let apprentices = ctx.sim.apprenticeships.len();
+    let apprentice_label = if apprentices == 1 {
+        "1 APPRENTICE".to_owned()
+    } else {
+        format!("{apprentices} APPRENTICES")
+    };
+    stat_line(
+        content.x,
+        y,
+        "POSTS",
+        &format!("{apprentice_label} · {vacant_posts} VACANT",),
+        if vacant_posts > 0 {
+            term::alert()
+        } else {
+            term::primary()
+        },
     );
     y += 34.0;
 
