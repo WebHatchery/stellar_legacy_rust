@@ -264,9 +264,19 @@ pub fn buy_parts(sim: &mut SimState, config: &GameConfig, amount: i64) -> Result
 /// whole and top the spare-parts stores back up, for credits + minerals. Only
 /// available between missions (`contract == None`) — the drydock the field kit
 /// can't stand in for.
+pub fn full_repair_needed(sim: &SimState, config: &GameConfig) -> bool {
+    sim.ship.hull_integrity < 1.0
+        || sim.ship.life_support < 1.0
+        || sim.ship.fuel < 1.0
+        || sim.ship.spare_parts < config.repair.full_parts_restock
+}
+
 pub fn full_repair(sim: &mut SimState, config: &GameConfig) -> Result<(), String> {
     if sim.contract.is_some() {
         return Err("A full refit can only be done in port, between missions.".to_owned());
+    }
+    if !full_repair_needed(sim, config) {
+        return Err("The ship is already fully refitted.".to_owned());
     }
     let cfg = &config.repair;
     let cost = ResourceDelta {

@@ -347,3 +347,30 @@ fn refuel_is_port_only_and_charges_by_the_missing_fraction() {
     // Already full: refused.
     assert!(refuel(&mut sim, &data.config).is_err());
 }
+
+#[test]
+fn a_complete_refit_cannot_charge_for_no_work() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        52,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    sim.ship.hull_integrity = 1.0;
+    sim.ship.life_support = 1.0;
+    sim.ship.fuel = 1.0;
+    sim.ship.spare_parts = data.config.repair.full_parts_restock;
+    sim.resources.credits = 100_000;
+    sim.resources.minerals = 100_000;
+    assert!(!full_repair_needed(&sim, &data.config));
+    let before = sim.resources;
+    assert!(full_repair(&mut sim, &data.config).is_err());
+    assert_eq!(sim.resources.credits, before.credits);
+    assert_eq!(sim.resources.minerals, before.minerals);
+
+    sim.ship.fuel = 0.99;
+    assert!(full_repair_needed(&sim, &data.config));
+    full_repair(&mut sim, &data.config).unwrap();
+    assert_eq!(sim.ship.fuel, 1.0);
+}

@@ -2,7 +2,7 @@
 
 use crate::data::ship_components::ComponentKind;
 use crate::data::{GameConfig, GameData};
-use crate::simulation::ship::{field_repair_target, RepairKind};
+use crate::simulation::ship::{field_repair_target, full_repair_needed, RepairKind};
 use crate::state::sim::{GameSpeed, PopulationState, SimState};
 use crate::state::Screen;
 use crate::ui::{
@@ -225,15 +225,26 @@ fn draw_ship_panel(
         actions.push(UiAction::FieldRepair(RepairKind::LifeSupport));
     }
     y += REPAIR_H + REPAIR_GAP;
-    let full_label = if in_port {
+    let refit_needed = full_repair_needed(sim, &ctx.data.config);
+    let full_label = if !in_port {
+        "FULL REFIT — PORT ONLY".to_owned()
+    } else if !refit_needed {
+        "REFIT COMPLETE".to_owned()
+    } else if sim.resources.credits < repair.full_credits_cost
+        || sim.resources.minerals < repair.full_minerals_cost
+    {
+        format!(
+            "NEED {}cr·{}min",
+            repair.full_credits_cost, repair.full_minerals_cost
+        )
+    } else {
         format!(
             "FULL REFIT ({}cr·{}min)",
             repair.full_credits_cost, repair.full_minerals_cost
         )
-    } else {
-        "FULL REFIT — PORT ONLY".to_owned()
     };
     let full_ok = in_port
+        && refit_needed
         && sim.resources.credits >= repair.full_credits_cost
         && sim.resources.minerals >= repair.full_minerals_cost;
     if term_button(
