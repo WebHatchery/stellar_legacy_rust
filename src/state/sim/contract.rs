@@ -274,6 +274,50 @@ impl ActiveContract {
         self.target_duration_years * 12
     }
 
+    /// Mission-clock time still to fly. Calendar time can be longer when the
+    /// drive is stalled for fuel, so UI copy must keep this distinct from a
+    /// campaign-year promise.
+    pub fn mission_months_remaining(&self) -> u32 {
+        self.total_months().saturating_sub(self.months_elapsed)
+    }
+
+    /// The next authored leg and the mission months until it begins. Segment
+    /// boundaries follow `phase_at`: a segment ending at month 12 remains the
+    /// active phase for month 12, then the next begins on month 13.
+    pub fn next_phase_eta(&self) -> Option<(crate::data::contracts::ContractPhase, u32)> {
+        use crate::data::contracts::ContractPhase;
+        if self.phase == ContractPhase::Completion {
+            return None;
+        }
+        if self.phase == ContractPhase::Preparation {
+            return self.phases.first().map(|segment| (segment.kind, 1));
+        }
+        let next = self.phases.get(self.phase_index + 1)?;
+        let current_end: u32 = self.phases[..=self.phase_index]
+            .iter()
+            .map(|segment| segment.years * 12)
+            .sum();
+        Some((
+            next.kind,
+            current_end
+                .saturating_add(1)
+                .saturating_sub(self.months_elapsed),
+        ))
+    }
+
+    /// The first unreached milestone and its mission-clock ETA. Milestones are
+    /// tested after each monthly increment, so fractional thresholds round up
+    /// to the first whole month that can actually reach them.
+    pub fn next_milestone_eta(&self) -> Option<(&MilestoneState, u32)> {
+        let milestone = self
+            .milestones
+            .iter()
+            .find(|milestone| !milestone.reached)?;
+        let target_month =
+            (self.total_months() as f32 * milestone.progress_threshold).ceil() as u32;
+        Some((milestone, target_month.saturating_sub(self.months_elapsed)))
+    }
+
     /// Timeline position as a 0-1 fraction (milestones + the UI bar).
     pub fn progress(&self) -> f32 {
         let total = self.total_months();

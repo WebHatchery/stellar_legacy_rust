@@ -99,3 +99,33 @@ fn an_unread_homecoming_survives_a_save_and_load() {
     let back: SimState = serde_json::from_str(&json).unwrap();
     assert!(back.debrief.is_none());
 }
+
+#[test]
+fn active_contract_forecasts_follow_mission_month_boundaries() {
+    let data = GameData::load().unwrap();
+    let sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        13,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let template = data.contracts.get("founding_colony").unwrap();
+    let mut active = crate::simulation::contract::start_contract(template, &sim);
+
+    assert_eq!(active.mission_months_remaining(), active.total_months());
+    assert_eq!(active.next_phase_eta(), Some((active.phases[0].kind, 1)));
+
+    active.months_elapsed = 1;
+    (active.phase_index, active.phase) = active.phase_at(active.months_elapsed);
+    assert_eq!(
+        active.next_phase_eta(),
+        Some((active.phases[1].kind, active.phases[0].years * 12))
+    );
+
+    let (milestone, eta) = active.next_milestone_eta().unwrap();
+    let target_month = (active.total_months() as f32 * milestone.progress_threshold).ceil() as u32;
+    assert_eq!(eta, target_month - active.months_elapsed);
+
+    active.months_elapsed = active.total_months() + 6;
+    assert_eq!(active.mission_months_remaining(), 0);
+}

@@ -31,6 +31,17 @@ fn reward_hint(reward: &ResourceDelta) -> String {
     }
 }
 
+/// Compact mission-clock duration. This deliberately avoids "calendar" or a
+/// campaign year: a ship without fuel can spend longer in-world than this ETA.
+fn mission_time(months: u32) -> String {
+    match (months / 12, months % 12) {
+        (0, 0) => "NOW".to_owned(),
+        (0, months) => format!("{months}m"),
+        (years, 0) => format!("{years}y"),
+        (years, months) => format!("{years}y {months}m"),
+    }
+}
+
 /// The DRYDOCK tab (docked only, real-time loop §5): the PREP screen when a
 /// charter is under consideration, else the available-charter board. Never shows
 /// under way — the CONTRACT tab replaces it there.
@@ -238,15 +249,30 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
                 .map(|s| s.name.as_str())
         })
         .unwrap_or(&contract.objective_subsystem);
+    let next_phase = contract
+        .next_phase_eta()
+        .map(|(phase, eta)| {
+            format!(
+                "{} — in {}",
+                phase.label(),
+                mission_time(eta).to_lowercase()
+            )
+        })
+        .unwrap_or_else(|| "Final leg — no further change".to_owned());
     let next_milestone = contract
-        .milestones
-        .iter()
-        .find(|milestone| !milestone.reached)
-        .map(|milestone| milestone.name.as_str())
-        .unwrap_or("All authored milestones reached");
+        .next_milestone_eta()
+        .map(|(milestone, eta)| {
+            format!(
+                "{} — in {}",
+                milestone.name,
+                mission_time(eta).to_lowercase()
+            )
+        })
+        .unwrap_or_else(|| "All authored milestones reached".to_owned());
     let phase = contract.phase.label().to_uppercase();
     let route = format!(
-        "ORIGIN\nHome Berth — departed\n\nOPERATION SITE\n{operation}\n\nRETURN BERTH\nHome Berth\n\nOBJECTIVE SYSTEM\n{objective_system}\n\nCURRENT PHASE\n{phase}\n\nNEXT MILESTONE\n{next_milestone}"
+        "ORIGIN\nHome Berth — departed\n\nOPERATION SITE\n{operation}\n\nOBJECTIVE SYSTEM\n{objective_system}\n\nCURRENT PHASE\n{phase}\n\nNEXT PHASE · MISSION CLOCK\n{next_phase}\n\nNEXT MILESTONE · MISSION CLOCK\n{next_milestone}\n\nHOME BERTH · MISSION CLOCK\n{} remaining\nFuel stalls extend calendar time.",
+        mission_time(contract.mission_months_remaining()).to_lowercase()
     );
     draw_text_block(
         &route,
