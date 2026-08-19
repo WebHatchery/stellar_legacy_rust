@@ -46,15 +46,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
 /// Factions aboard (W7): name, members, share, status. Lost factions dim out.
 /// In drydock, when short of the founding count, offers to recruit a new people.
 fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let polity_title = format!(
-        "PEOPLES ABOARD · SHIP APPROVAL {:.0}%",
-        ctx.sim.aboard_approval_mean() * 100.0
-    );
-    term_panel(rect, Some(&polity_title));
-    let content = rect.inset(16.0);
-    let mut y = content.y + 34.0;
     let sim = ctx.sim;
-
     let total_aboard: u32 = sim
         .factions
         .iter()
@@ -69,6 +61,53 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
             .map(|d| d.name.clone())
             .unwrap_or_else(|| id.to_owned())
     };
+    let cfg = &ctx.data.config.factions;
+    let recruiting = sim.contract.is_none() && sim.aboard_faction_count() < cfg.starting_count;
+    let polity_title = if recruiting {
+        format!(
+            "RECRUIT A PEOPLE · {} / {} ABOARD · {}CR EACH",
+            sim.aboard_faction_count(),
+            cfg.starting_count,
+            cfg.recruit_group_cost_credits
+        )
+    } else {
+        format!(
+            "PEOPLES ABOARD · SHIP APPROVAL {:.0}%",
+            sim.aboard_approval_mean() * 100.0
+        )
+    };
+    term_panel(rect, Some(&polity_title));
+    let content = rect.inset(16.0);
+
+    // When a berth is open, recruitment is the whole panel's job. The old
+    // stacked 24px controls fit only one or two candidates into the panel and
+    // left the rest unreachable; one horizontal row gives every known people
+    // a simultaneous 44px touch target.
+    if recruiting {
+        let candidates = sim.recruitable_faction_ids(ctx.data);
+        let gap = 6.0;
+        let width = (content.w - gap * candidates.len().saturating_sub(1) as f32)
+            / candidates.len().max(1) as f32;
+        for (index, id) in candidates.iter().enumerate() {
+            let name = short_people_name(&faction_name(id));
+            if term_button(
+                Rect::new(
+                    content.x + index as f32 * (width + gap),
+                    content.y + 30.0,
+                    width,
+                    44.0,
+                ),
+                &format!("RECRUIT {name}"),
+                sim.resources.credits >= cfg.recruit_group_cost_credits,
+                pointer,
+            ) {
+                actions.push(UiAction::RecruitFactionGroup(id.clone()));
+            }
+        }
+        return;
+    }
+
+    let mut y = content.y + 34.0;
     let short_name = |id: &str| {
         let name = ctx
             .data
@@ -139,30 +178,6 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
         y += 22.0;
     }
 
-    // Recruit a fresh people in drydock when the ship is short (W7) — the verb
-    // outranks the memorial rows below when space runs out.
-    let cfg = &ctx.data.config.factions;
-    if sim.contract.is_none() && sim.aboard_faction_count() < cfg.starting_count {
-        for id in sim.recruitable_faction_ids(ctx.data) {
-            if y > content.bottom() - 26.0 {
-                break;
-            }
-            if term_button(
-                Rect::new(content.x, y + 2.0, content.w, 24.0),
-                &format!(
-                    "RECRUIT {} ({} CR)",
-                    faction_name(&id),
-                    cfg.recruit_group_cost_credits
-                ),
-                sim.resources.credits >= cfg.recruit_group_cost_credits,
-                pointer,
-            ) {
-                actions.push(UiAction::RecruitFactionGroup(id.clone()));
-            }
-            y += 28.0;
-        }
-    }
-
     // Lost peoples dim out below, clamped to the panel — they must never spill
     // into whatever sits underneath.
     for fs in sim.factions.iter().filter(|f| !f.is_aboard()) {
@@ -177,6 +192,13 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
         );
         y += 20.0;
     }
+}
+
+fn short_people_name(name: &str) -> String {
+    name.split_whitespace()
+        .find(|word| !matches!(word.to_ascii_lowercase().as_str(), "the" | "of" | "first"))
+        .unwrap_or(name)
+        .to_uppercase()
 }
 
 /// Vertical stride of one roster row.

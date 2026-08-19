@@ -186,7 +186,7 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "crew" => {
+            "crew" | "crew_recruitment" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
@@ -194,6 +194,9 @@ impl Game {
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
                 sim.resources.credits = 10_000;
+                if scene == "crew_recruitment" {
+                    sim.factions.pop();
+                }
                 for (id, approval) in [
                     ("ascension_circle", 0.22),
                     ("first_flame", 0.52),
