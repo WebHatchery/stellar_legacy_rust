@@ -374,3 +374,85 @@ fn a_devoted_people_keeps_its_domain_sharper_than_a_resentful_one() {
              (resentful {resentful} vs devoted {devoted})"
     );
 }
+
+#[test]
+fn a_supported_school_places_decay_in_its_chosen_custodians_hands() {
+    use crate::state::sim::factions::{FactionState, FactionStatus};
+    use crate::state::sim::SubsystemSchool;
+
+    let data = GameData::load().unwrap();
+    let wear_farm = |custodian_approval: f32| -> f32 {
+        let (_, mut sim) = campaign(81);
+        sim.factions = vec![
+            FactionState {
+                faction_id: "verdant_kin".to_owned(),
+                members: 500,
+                status: FactionStatus::Aboard,
+                approval: 0.95,
+                mood_band: 0,
+            },
+            FactionState {
+                faction_id: "ascension_circle".to_owned(),
+                members: 500,
+                status: FactionStatus::Aboard,
+                approval: custodian_approval,
+                mood_band: 0,
+            },
+        ];
+        sim.subsystem_schools.push(SubsystemSchool {
+            subsystem_id: "agriculture".to_owned(),
+            founded_year: sim.year(),
+            supported_until_year: sim.year() + 1,
+            custodian_faction_id: Some("ascension_circle".to_owned()),
+        });
+        sim.subsystems.get_mut("agriculture").unwrap().condition = 0.8;
+        sim.subsystems.get_mut("engineering_bay").unwrap().condition = 0.5;
+        decay_subsystems(&mut sim, &data, 1.0);
+        0.8 - sim.subsystems["agriculture"].condition
+    };
+
+    let devoted_custodian = wear_farm(0.95);
+    let resentful_custodian = wear_farm(0.05);
+    assert!(
+        resentful_custodian > devoted_custodian,
+        "the selected custodian's approval should govern care ({resentful_custodian} vs {devoted_custodian})"
+    );
+}
+
+#[test]
+fn a_lapsed_school_returns_care_to_the_native_tender() {
+    use crate::state::sim::factions::{FactionState, FactionStatus};
+    use crate::state::sim::SubsystemSchool;
+
+    let data = GameData::load().unwrap();
+    let (_, mut sim) = campaign(82);
+    sim.month_clock = 12;
+    sim.factions = vec![
+        FactionState {
+            faction_id: "verdant_kin".to_owned(),
+            members: 500,
+            status: FactionStatus::Aboard,
+            approval: 0.9,
+            mood_band: 0,
+        },
+        FactionState {
+            faction_id: "ascension_circle".to_owned(),
+            members: 500,
+            status: FactionStatus::Aboard,
+            approval: 0.1,
+            mood_band: 0,
+        },
+    ];
+    sim.subsystem_schools.push(SubsystemSchool {
+        subsystem_id: "agriculture".to_owned(),
+        founded_year: 0,
+        supported_until_year: 0,
+        custodian_faction_id: Some("ascension_circle".to_owned()),
+    });
+
+    assert_eq!(
+        sim.discipline_steward_approval(&data, "agriculture"),
+        Some(0.9),
+        "unsupported institutions cannot displace living native craft"
+    );
+}

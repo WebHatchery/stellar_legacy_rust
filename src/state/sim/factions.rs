@@ -35,6 +35,15 @@ impl FactionStatus {
     }
 }
 
+/// The share of ordinary subsystem decay left after a discipline steward's
+/// approval is applied. Approval above the neutral midpoint means attentive
+/// care; approval below it means neglect. Kept here so simulation and UI quote
+/// the same rule.
+pub fn steward_decay_factor(data: &GameData, approval: f32) -> f32 {
+    let scale = data.config.subsystems.tender_approval_decay_scale;
+    (1.0 + scale * (0.5 - approval)).max(0.0)
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FactionState {
     pub faction_id: String,
@@ -248,5 +257,29 @@ impl SimState {
             let def = data.factions.get(&fstate.faction_id)?;
             (def.tended_subsystem == subsystem_id).then_some(fstate.approval)
         })
+    }
+
+    /// Approval that governs the day-to-day care of a discipline. A supported
+    /// school's named custodian takes responsibility while aboard; otherwise
+    /// the faction whose native craft this is remains the tender.
+    pub fn discipline_steward_approval(&self, data: &GameData, subsystem_id: &str) -> Option<f32> {
+        let custodian_id = self
+            .subsystem_schools
+            .iter()
+            .find(|school| {
+                school.subsystem_id == subsystem_id && school.supported_until_year >= self.year()
+            })
+            .and_then(|school| school.custodian_faction_id.as_deref());
+        if let Some(custodian_id) = custodian_id {
+            if let Some(approval) = self
+                .factions
+                .iter()
+                .find(|fstate| fstate.is_aboard() && fstate.faction_id == custodian_id)
+                .map(|fstate| fstate.approval)
+            {
+                return Some(approval);
+            }
+        }
+        self.tender_approval(data, subsystem_id)
     }
 }

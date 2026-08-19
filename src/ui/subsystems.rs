@@ -3,6 +3,7 @@
 //! Train verbs. Pure view: it reads `&SimState` and emits `UiAction` only.
 
 use crate::data::GameData;
+use crate::state::sim::factions::steward_decay_factor;
 use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -280,7 +281,7 @@ fn draw_custody_picker(
     let content = modal.inset(18.0);
     draw_text_block(
         &format!(
-            "Choose the people who will hold this discipline across successions. The grant costs {} influence and raises that people's approval by {:.0}%.",
+            "Choose the people who will hold this discipline across successions. The grant costs {} influence and raises that people's approval by {:.0}%. CARE below ×1.00 slows annual wear while the school is supported.",
             ctx.data.config.crew.custody_influence_cost,
             ctx.data.config.crew.custody_approval_gain * 100.0
         ),
@@ -303,6 +304,8 @@ fn draw_custody_picker(
             &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
         );
         let native = faction.tended_subsystem == subsystem_id;
+        let approval_after = (state.approval + ctx.data.config.crew.custody_approval_gain).min(1.0);
+        let care_factor = steward_decay_factor(ctx.data, approval_after);
         let craft = if native {
             "NATIVE CRAFT".to_owned()
         } else {
@@ -330,10 +333,10 @@ fn draw_custody_picker(
         );
         draw_ui_text_ex(
             &format!(
-                "{} members · approval {:.0}% → {:.0}% · {craft}",
+                "{} members · approval {:.0}% → {:.0}% · CARE ×{care_factor:.2} · {craft}",
                 state.members,
                 state.approval * 100.0,
-                (state.approval + ctx.data.config.crew.custody_approval_gain).min(1.0) * 100.0
+                approval_after * 100.0
             ),
             row.x + 12.0,
             row.y + 48.0,

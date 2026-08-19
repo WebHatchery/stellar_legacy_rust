@@ -2,6 +2,7 @@
 //! handed down, and every factor a module's condition bends.
 
 use crate::data::GameData;
+use crate::state::sim::factions::steward_decay_factor;
 use crate::state::sim::SimState;
 use crate::state::sim::{InstitutionRecord, InstitutionRecordKind};
 
@@ -20,9 +21,9 @@ pub fn decay_subsystems(sim: &mut SimState, data: &GameData, wear: f32) {
         .map_or(0.5, |s| s.condition);
     let keystone_mult = (1.0 + swing * (0.5 - eng_condition)).max(0.0);
 
-    // Tender-approval coupling (content-depth factions round 12): the aboard people
-    // that tends a module modulates its decay by their mood — devotion keeps it
-    // sharp, resentment lets it slide — closing the neglect → sour → rot spiral.
+    // Steward-approval coupling: a supported school's selected custodian owns the
+    // daily care; without one, the native tender still owns it. Devotion keeps a
+    // module sharp and resentment lets it slide, so custody is a mechanical choice.
     let tender_scale = data.config.subsystems.tender_approval_decay_scale;
     // Knowledge-upkeep coupling (content-depth subsystems round 33): a module the crew has
     // mastered decays slower, its faults caught early and patched cleverly.
@@ -40,8 +41,8 @@ pub fn decay_subsystems(sim: &mut SimState, data: &GameData, wear: f32) {
             keystone_mult
         };
         if tender_scale != 0.0 {
-            if let Some(approval) = sim.tender_approval(data, &id) {
-                mult *= (1.0 + tender_scale * (0.5 - approval)).max(0.0);
+            if let Some(approval) = sim.discipline_steward_approval(data, &id) {
+                mult *= steward_decay_factor(data, approval);
             }
         }
         // The crew's craft with the machine itself slows its rot — scaled by the module's own
