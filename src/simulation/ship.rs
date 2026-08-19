@@ -123,6 +123,12 @@ impl RepairKind {
     }
 }
 
+/// Condition one field repair will deliver from `current`. Shared by the verb
+/// and Dashboard quote so the promised result cannot drift from the applied one.
+pub fn field_repair_target(current: f32, config: &GameConfig) -> f32 {
+    (current + config.repair.field_gain).min(config.repair.field_ceiling)
+}
+
 /// Field repair (underway, PLAN M4.3): patch a subsystem from carried
 /// consumables — spare parts + minerals — by `field_gain`, but only up to
 /// `field_ceiling` (a ship can never be made pristine in the black; that is
@@ -154,11 +160,10 @@ pub fn field_repair(
     sim.ship.spare_parts -= cfg.field_parts_cost;
     match kind {
         RepairKind::Hull => {
-            sim.ship.hull_integrity =
-                (sim.ship.hull_integrity + cfg.field_gain).min(cfg.field_ceiling)
+            sim.ship.hull_integrity = field_repair_target(sim.ship.hull_integrity, config)
         }
         RepairKind::LifeSupport => {
-            sim.ship.life_support = (sim.ship.life_support + cfg.field_gain).min(cfg.field_ceiling)
+            sim.ship.life_support = field_repair_target(sim.ship.life_support, config)
         }
     }
     sim.push_log(format!(

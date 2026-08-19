@@ -2,7 +2,7 @@
 
 use crate::data::ship_components::ComponentKind;
 use crate::data::GameConfig;
-use crate::simulation::ship::RepairKind;
+use crate::simulation::ship::{field_repair_target, RepairKind};
 use crate::state::sim::{GameSpeed, PopulationState, SimState};
 use crate::state::Screen;
 use crate::ui::{
@@ -194,9 +194,23 @@ fn draw_ship_panel(
     const REPAIR_H: f32 = 44.0;
     const REPAIR_GAP: f32 = 10.0;
     let half_w = (content.w - REPAIR_GAP) * 0.5;
+    let repair_label = |name: &str, stat: f32| {
+        if stat >= repair.field_ceiling {
+            format!("{name} · DRYDOCK")
+        } else if sim.ship.spare_parts < repair.field_parts_cost
+            || sim.resources.minerals < repair.field_minerals_cost
+        {
+            format!("{name} · NEED STORES")
+        } else {
+            format!(
+                "{name} TO {:.0}%",
+                field_repair_target(stat, &ctx.data.config) * 100.0
+            )
+        }
+    };
     if term_button(
         Rect::new(content.x, y, half_w, REPAIR_H),
-        "REPAIR HULL",
+        &repair_label("HULL", sim.ship.hull_integrity),
         field_affordable(sim.ship.hull_integrity),
         pointer,
     ) {
@@ -204,7 +218,7 @@ fn draw_ship_panel(
     }
     if term_button(
         Rect::new(content.x + half_w + REPAIR_GAP, y, half_w, REPAIR_H),
-        "REPAIR LIFE SPT",
+        &repair_label("LIFE SPT", sim.ship.life_support),
         field_affordable(sim.ship.life_support),
         pointer,
     ) {

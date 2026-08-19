@@ -43,6 +43,25 @@ fn field_repair_patches_but_never_reaches_pristine() {
 }
 
 #[test]
+fn field_repair_delivers_the_condition_it_projects() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        17,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    sim.ship.hull_integrity = 0.41;
+    sim.ship.spare_parts = 100;
+    sim.resources.minerals = 100_000;
+    let target = field_repair_target(sim.ship.hull_integrity, &data.config);
+
+    field_repair(&mut sim, &data.config, RepairKind::Hull).unwrap();
+
+    assert_eq!(sim.ship.hull_integrity, target);
+}
+
+#[test]
 fn field_repair_refused_without_parts() {
     let data = GameData::load().unwrap();
     let mut sim = SimState::new_campaign(
