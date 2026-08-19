@@ -599,7 +599,7 @@ fn draw_obligation_history(
 fn draw_mission_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("COMPLETED CHARTERS"));
     let content = area.inset(24.0);
-    let y = content.y + 46.0;
+    let y = content.y + 112.0;
 
     if ctx.chronicle.entries.is_empty() {
         draw_text_block(
@@ -614,6 +614,49 @@ fn draw_mission_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
         );
         return;
     }
+
+    let stats = ctx.chronicle.stats();
+    let heritage = crate::heritage::derive(ctx.chronicle, &ctx.data.config.heritage);
+    draw_ui_text_ex(
+        &format!(
+            "HERITAGE: {} · {} RENOWN",
+            heritage.tier_name.to_uppercase(),
+            heritage.renown
+        ),
+        content.x,
+        content.y + 42.0,
+        TextStyle::new(14.0, term::accent()).params(),
+    );
+    let next = crate::heritage::next_tier(heritage.renown, &ctx.data.config.heritage)
+        .map(|tier| {
+            format!(
+                "NEXT {} IN {} · +{} CR / +{} INF / +{} TRAD",
+                tier.name.to_uppercase(),
+                tier.min_renown - heritage.renown,
+                tier.credits,
+                tier.influence,
+                tier.tradition
+            )
+        })
+        .unwrap_or_else(|| "HIGHEST HERITAGE REACHED".to_owned());
+    draw_ui_text_ex(
+        &next,
+        content.x,
+        content.y + 61.0,
+        TextStyle::new(12.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &format!(
+            "{} VOYAGES · {} COMPLETE · {} YEARS · AVG {:.0}%",
+            stats.voyages,
+            stats.completed,
+            stats.years_flown,
+            stats.average_score * 100.0
+        ),
+        content.x,
+        content.y + 82.0,
+        TextStyle::new(12.0, term::dim()).params(),
+    );
 
     // The Chronicle outlives any single save, so it only ever grows — and it
     // used to show its newest nine and drop the rest without saying so, which

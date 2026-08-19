@@ -30,6 +30,14 @@ pub struct ChronicleStore {
     pub entries: Vec<ChronicleEntry>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ChronicleStats {
+    pub voyages: usize,
+    pub completed: usize,
+    pub years_flown: u32,
+    pub average_score: f32,
+}
+
 impl ChronicleStore {
     pub fn load(game_name: &str, slot: &str, version: &str) -> Self {
         if !slot_exists(game_name, slot) {
@@ -49,4 +57,26 @@ impl ChronicleStore {
     pub fn record(&mut self, entry: ChronicleEntry) {
         self.entries.push(entry);
     }
+
+    pub fn stats(&self) -> ChronicleStats {
+        let voyages = self.entries.len();
+        let total_score: f32 = self.entries.iter().map(|entry| entry.score).sum();
+        ChronicleStats {
+            voyages,
+            completed: self
+                .entries
+                .iter()
+                .filter(|entry| entry.outcome.eq_ignore_ascii_case("complete"))
+                .count(),
+            years_flown: self.entries.iter().map(|entry| entry.duration_years).sum(),
+            average_score: if voyages == 0 {
+                0.0
+            } else {
+                total_score / voyages as f32
+            },
+        }
+    }
 }
+
+#[cfg(test)]
+mod tests;

@@ -462,7 +462,7 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "chronicle" | "obligation_history" | "obligation_archive" => {
+            "chronicle" | "mission_archive" | "obligation_history" | "obligation_archive" => {
                 // Seed a storied Chronicle and unlock the matching milestones.
                 self.achievements =
                     Achievements::from_definitions(crate::achievements::definitions());
@@ -534,7 +534,8 @@ impl Game {
                 // More entries than the panel can hold, so the capture shows the
                 // state the log's scroll exists for rather than a short list that
                 // never reaches it.
-                for i in 0..14 {
+                let archive_entries = if scene == "mission_archive" { 6 } else { 14 };
+                for i in 0..archive_entries {
                     self.chronicle.record(crate::chronicle::ChronicleEntry {
                         completed_year: 40 + i * 20,
                         contract_name: "Deep Vein Survey: Karst Belt".to_owned(),
@@ -552,6 +553,9 @@ impl Game {
                 }
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Chronicle;
+                if scene == "mission_archive" {
+                    self.chronicle_records_tab.set(false);
+                }
                 if scene == "obligation_history" {
                     self.obligation_detail = gameplay
                         .sim

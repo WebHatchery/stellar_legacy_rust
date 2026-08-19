@@ -61,6 +61,13 @@ fn renown_accumulates_and_selects_highest_cleared_tier() {
 }
 
 #[test]
+fn next_tier_finds_the_nearest_threshold_and_ends_at_the_ceiling() {
+    assert_eq!(next_tier(99, &tiers()).unwrap().name, "Remembered");
+    assert_eq!(next_tier(100, &tiers()).unwrap().name, "Storied");
+    assert!(next_tier(250, &tiers()).is_none());
+}
+
+#[test]
 fn apply_grants_the_bonus() {
     let data = crate::data::GameData::load().unwrap();
     let mut sim = SimState::new_campaign(

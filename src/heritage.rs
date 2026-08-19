@@ -64,6 +64,15 @@ pub fn derive(chronicle: &ChronicleStore, tiers: &[HeritageTier]) -> Heritage {
     }
 }
 
+/// The first configured tier above the current renown, independent of input
+/// ordering. `None` means the Chronicle has reached the highest inheritance.
+pub fn next_tier(renown: i64, tiers: &[HeritageTier]) -> Option<&HeritageTier> {
+    tiers
+        .iter()
+        .filter(|tier| tier.min_renown > renown)
+        .min_by_key(|tier| tier.min_renown)
+}
+
 /// Grant the heritage bonus to a freshly created campaign.
 pub fn apply(sim: &mut SimState, heritage: &Heritage) {
     sim.resources.apply(&ResourceDelta {
