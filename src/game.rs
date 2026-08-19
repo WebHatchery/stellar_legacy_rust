@@ -146,6 +146,8 @@ pub struct Game {
     /// Smooth-scroll state for active duties. Obligations accumulate independently
     /// of the record/archive sub-tab and must remain reachable on long voyages.
     obligations_scroll: Cell<ScrollArea>,
+    /// Obligation ledger sub-tab: active duties or resolved archive.
+    obligation_resolved_tab: Cell<bool>,
     /// Scroll state inside the selected obligation's history overlay.
     obligation_history_scroll: Cell<ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list:
@@ -241,6 +243,7 @@ impl Game {
             chronicle_scroll: Cell::new(ScrollArea::new()),
             chronicle_records_tab: Cell::new(true),
             obligations_scroll: Cell::new(ScrollArea::new()),
+            obligation_resolved_tab: Cell::new(false),
             obligation_history_scroll: Cell::new(ScrollArea::new()),
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
@@ -518,6 +521,7 @@ impl Game {
                     chronicle_scroll: &self.chronicle_scroll,
                     chronicle_records_tab: &self.chronicle_records_tab,
                     obligations_scroll: &self.obligations_scroll,
+                    obligation_resolved_tab: &self.obligation_resolved_tab,
                     obligation_history_scroll: &self.obligation_history_scroll,
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,

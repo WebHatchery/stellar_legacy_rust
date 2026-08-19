@@ -7,6 +7,7 @@ use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{
     draw_ui_text_ex, is_fully_visible, note_neighbour, note_target, touch_area, RectExt,
 };
+use std::cmp::Reverse;
 
 /// Vertical stride of one Chronicle entry, and the height of the entry itself.
 const ENTRY_STRIDE: f32 = 46.0;
@@ -201,11 +202,59 @@ fn draw_obligations(
 ) {
     term_panel(area, Some("OBLIGATIONS LEDGER"));
     let content = area.inset(18.0);
-    let mut obligations: Vec<_> = ctx.sim.active_obligations().collect();
+    let show_resolved = ctx.obligation_resolved_tab.get();
+    let active_count = ctx.sim.active_obligations().count();
+    let resolved_count = ctx.sim.obligations.len() - active_count;
+    let tab_gap = 8.0;
+    let tab_w = (content.w - tab_gap) * 0.5;
+    for (index, (label, count)) in [("ACTIVE", active_count), ("RESOLVED", resolved_count)]
+        .into_iter()
+        .enumerate()
+    {
+        let selected = (index == 1) == show_resolved;
+        let tab = Rect::new(
+            content.x + index as f32 * (tab_w + tab_gap),
+            content.y + 18.0,
+            tab_w,
+            44.0,
+        );
+        if term_button(
+            tab,
+            &if selected {
+                format!("[ {label} {count} ]")
+            } else {
+                format!("{label} {count}")
+            },
+            true,
+            pointer,
+        ) && !selected
+        {
+            ctx.obligation_resolved_tab.set(index == 1);
+            ctx.obligations_scroll
+                .set(macroquad_toolkit::ui::ScrollArea::new());
+        }
+    }
+
+    let mut obligations: Vec<_> = ctx
+        .sim
+        .obligations
+        .iter()
+        .filter(|obligation| obligation.status.is_active() != show_resolved)
+        .collect();
     if obligations.is_empty() {
         draw_text_block(
-            "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided.",
-            content.x, content.y + 38.0, content.w, 90.0, 13.0, 4.0, term::dim(),
+            if show_resolved {
+                "No resolved duties yet. Fulfilled, defaulted, and voided promises will remain here with their complete histories."
+            } else {
+                "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided."
+            },
+            content.x,
+            content.y + 82.0,
+            content.w,
+            90.0,
+            13.0,
+            4.0,
+            term::dim(),
         );
         return;
     }
@@ -219,29 +268,68 @@ fn draw_obligations(
         .collect();
     let is_overdue =
         |obligation: &crate::state::sim::Obligation| overdue_ids.contains(&obligation.id.as_str());
-    obligations.sort_by_key(|obligation| {
-        (
-            !is_overdue(obligation),
-            obligation.due_year.unwrap_or(u32::MAX),
-            obligation.created_year,
-            obligation.id.as_str(),
-        )
-    });
+    if show_resolved {
+        obligations.sort_by_key(|obligation| {
+            Reverse((
+                obligation
+                    .history
+                    .last()
+                    .map_or(obligation.created_year, |entry| entry.year),
+                obligation.created_year,
+                obligation.id.as_str(),
+            ))
+        });
+    } else {
+        obligations.sort_by_key(|obligation| {
+            (
+                !is_overdue(obligation),
+                obligation.due_year.unwrap_or(u32::MAX),
+                obligation.created_year,
+                obligation.id.as_str(),
+            )
+        });
+    }
     let overdue_count = obligations
         .iter()
         .filter(|obligation| is_overdue(obligation))
         .count();
+    let (status_summary, summary_warning) = if show_resolved {
+        let fulfilled = obligations
+            .iter()
+            .filter(|obligation| {
+                obligation.status == crate::state::sim::ObligationStatus::Fulfilled
+            })
+            .count();
+        let defaulted = obligations
+            .iter()
+            .filter(|obligation| {
+                obligation.status == crate::state::sim::ObligationStatus::Defaulted
+            })
+            .count();
+        (
+            format!(
+                "{} RESOLVED · {fulfilled} KEPT · {defaulted} DEFAULTED",
+                obligations.len()
+            ),
+            defaulted > 0,
+        )
+    } else {
+        (
+            format!(
+                "{} ACTIVE · {} DUE NOW · YEAR {year:03}",
+                obligations.len(),
+                overdue_count
+            ),
+            overdue_count > 0,
+        )
+    };
     draw_ui_text_ex(
-        &format!(
-            "{} ACTIVE · {} DUE NOW · YEAR {year:03}",
-            obligations.len(),
-            overdue_count
-        ),
+        &status_summary,
         content.x,
-        content.y + 38.0,
+        content.y + 82.0,
         TextStyle::new(
             12.0,
-            if overdue_count > 0 {
+            if summary_warning {
                 term::alert()
             } else {
                 term::accent()
@@ -254,9 +342,9 @@ fn draw_obligations(
     const ROW_GAP: f32 = 8.0;
     let view = Rect::new(
         content.x,
-        content.y + 52.0,
+        content.y + 96.0,
         content.w,
-        content.bottom() - content.y - 52.0,
+        content.bottom() - content.y - 96.0,
     );
     let content_h = obligations.len() as f32 * (ROW_H + ROW_GAP) - ROW_GAP;
     let mut scroll = ctx.obligations_scroll.get();
@@ -282,16 +370,24 @@ fn draw_obligations(
                 term::faint()
             },
         );
-        let due = obligation
-            .due_year
-            .map(|due_year| {
-                if due_year <= year {
-                    format!("Y{due_year:03} · {}Y OVERDUE", year - due_year)
-                } else {
-                    format!("Y{due_year:03} · IN {}Y", due_year - year)
-                }
-            })
-            .unwrap_or_else(|| "OPEN".to_owned());
+        let timing = if show_resolved {
+            let closed = obligation
+                .history
+                .last()
+                .map_or(obligation.created_year, |entry| entry.year);
+            format!("CLOSED Y{closed:03}")
+        } else {
+            obligation
+                .due_year
+                .map(|due_year| {
+                    if due_year <= year {
+                        format!("DUE Y{due_year:03} · {}Y OVERDUE", year - due_year)
+                    } else {
+                        format!("DUE Y{due_year:03} · IN {}Y", due_year - year)
+                    }
+                })
+                .unwrap_or_else(|| "DUE OPEN".to_owned())
+        };
         let inherited = if obligation.successions_crossed > 0 {
             " · INHERITED"
         } else {
@@ -331,7 +427,7 @@ fn draw_obligations(
         let mut line_y = row.y + 36.0;
         for line in [
             format!("TO: {}", obligation.beneficiary),
-            format!("OWNER: {} · DUE {due}", obligation.responsible),
+            format!("OWNER: {} · {timing}", obligation.responsible),
             format!("MATERIAL: {}", obligation.stakes.material),
             format!(
                 "NAME: {} · {}",

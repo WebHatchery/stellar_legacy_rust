@@ -51,6 +51,8 @@ pub struct GameplayCtx<'a> {
     pub chronicle_records_tab: &'a std::cell::Cell<bool>,
     /// Smooth-scroll state for the active obligations ledger.
     pub obligations_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    /// Obligation ledger sub-tab: `false` active, `true` resolved.
+    pub obligation_resolved_tab: &'a std::cell::Cell<bool>,
     /// Smooth-scroll state for the selected obligation's history.
     pub obligation_history_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list —

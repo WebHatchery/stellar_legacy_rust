@@ -19,6 +19,7 @@ impl Game {
         self.capture_run_secs = None;
         self.custody_picker = None;
         self.obligation_detail = None;
+        self.obligation_resolved_tab.set(false);
         self.boot.finish();
         // The first-run welcome overlay would otherwise sit over every menu
         // scene; scenes opt into it explicitly (the "welcome" scene below).
@@ -440,7 +441,7 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "chronicle" | "obligation_history" => {
+            "chronicle" | "obligation_history" | "obligation_archive" => {
                 // Seed a storied Chronicle and unlock the matching milestones.
                 self.achievements =
                     Achievements::from_definitions(crate::achievements::definitions());
@@ -493,6 +494,21 @@ impl Game {
                     }
                     sim.dynasty.begin_reign(sim.year());
                     sim.inherit_obligations();
+                }
+                if scene == "obligation_archive" {
+                    sim.apply_obligation_operation(
+                        &crate::state::sim::ObligationOperation::Fulfil {
+                            authored_id: "sanctuary_berths".to_owned(),
+                            note: "Every promised family crossed the ramp.".to_owned(),
+                        },
+                    );
+                    sim.apply_obligation_operation(
+                        &crate::state::sim::ObligationOperation::Default {
+                            authored_id: "station_aid".to_owned(),
+                            note: "The promised return survey was abandoned.".to_owned(),
+                        },
+                    );
+                    self.obligation_resolved_tab.set(true);
                 }
                 // More entries than the panel can hold, so the capture shows the
                 // state the log's scroll exists for rather than a short list that
