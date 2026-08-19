@@ -456,6 +456,7 @@ impl Game {
                 }
                 sim.pending_event = None;
                 sim.pending_dilemma = None;
+                sim.ship.fuel = 0.0;
                 self.capture_run_secs = Some(1140.0); // 19m into the run (live timer)
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Contract;

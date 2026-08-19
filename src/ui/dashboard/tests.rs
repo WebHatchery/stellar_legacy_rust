@@ -41,10 +41,7 @@ fn weakest_module_readout_does_not_invent_a_decline() {
     let (data, mut sim) = campaign();
     assert_eq!(weakest_module_readout(&sim, &data), "ALL MODULES SOUND");
 
-    let subsystem = sim
-        .subsystems
-        .get_mut("life_support_habitat")
-        .unwrap();
+    let subsystem = sim.subsystems.get_mut("life_support_habitat").unwrap();
     subsystem.condition = 0.42;
     let readout = weakest_module_readout(&sim, &data);
     assert!(readout.contains("42%"));
