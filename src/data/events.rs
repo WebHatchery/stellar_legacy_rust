@@ -227,6 +227,10 @@ pub struct EventOutcome {
     /// resolves duties without chain-specific simulation branches.
     #[serde(default)]
     pub obligation_operations: Vec<crate::state::sim::ObligationOperation>,
+    /// Name the best currently eligible dynast as heir designate. The choice
+    /// remains data-driven while the identity is resolved from the live roster.
+    #[serde(default)]
+    pub designate_heir: bool,
     /// Nudges to the ship's graded reputation traits (content-depth event families
     /// round 16): where `long_term_consequences` records a discrete deed, these move
     /// a *tendency* — so a hundred small choices add up to the character the ship

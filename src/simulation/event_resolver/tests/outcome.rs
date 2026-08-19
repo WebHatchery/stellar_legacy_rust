@@ -87,6 +87,30 @@ fn apply_outcome_clears_pending_and_records_consequences() {
 }
 
 #[test]
+fn an_authored_succession_choice_names_the_live_best_heir() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        52,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let event = data.events.get("the_only_captain_they_know").unwrap();
+    let outcome_index = event
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "prepare_the_succession")
+        .unwrap();
+    let expected = crate::simulation::succession::planned_heir(&sim.dynasty, &data.config)
+        .unwrap()
+        .id;
+
+    apply_outcome(&mut sim, &data, event, outcome_index);
+
+    assert_eq!(sim.dynasty.designated_heir, Some(expected));
+}
+
+#[test]
 fn a_full_payment_choice_cannot_resolve_on_clamped_scraps() {
     let data = GameData::load().unwrap();
     let picks = crate::state::sim::founding_faction_ids(&data);

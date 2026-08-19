@@ -130,16 +130,22 @@ impl Game {
                 }
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "event" => {
+            "event" | "event_succession" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                sim.subsystems.get_mut("engineering_bay").unwrap().knowledge = 0.2;
+                let template_id = if scene == "event_succession" {
+                    sim.dynasty.generation = 3;
+                    "the_only_captain_they_know"
+                } else {
+                    sim.subsystems.get_mut("engineering_bay").unwrap().knowledge = 0.2;
+                    "the_last_engineer"
+                };
                 sim.pending_event = Some(crate::state::sim::PendingEvent {
-                    template_id: "the_last_engineer".to_owned(),
+                    template_id: template_id.to_owned(),
                     rolled_month_clock: 0,
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));

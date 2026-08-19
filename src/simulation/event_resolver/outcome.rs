@@ -75,6 +75,7 @@ pub fn score_outcome(outcome: &EventOutcome, sim: &SimState, config: &GameConfig
         } else {
             0.0
         }
+        + if outcome.designate_heir { 250.0 } else { 0.0 }
         - 100.0 * outcome.long_term_consequences.len() as f32
         - irreversible_cost
 }
@@ -124,6 +125,14 @@ pub fn apply_outcome(
         .extend(outcome.long_term_consequences.iter().cloned());
     for operation in &outcome.obligation_operations {
         sim.apply_obligation_operation(operation);
+    }
+    if outcome.designate_heir {
+        if let Some(heir_id) =
+            crate::simulation::succession::planned_heir(&sim.dynasty, &data.config)
+                .map(|member| member.id)
+        {
+            sim.dynasty.designated_heir = Some(heir_id);
+        }
     }
     // …and nudge the ship's cumulative character (content-depth round 16): many
     // small reputation moves across a campaign build a lasting tendency.

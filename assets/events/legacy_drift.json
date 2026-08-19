@@ -2280,6 +2280,7 @@
     "id": "make_room_for_the_young",
     "label": "Make room for the young",
     "description": "Have the captain share the chair — apprentice the heirs, loosen the grip before the grip becomes the ship.",
+    "designate_heir": true,
     "population_delta": {
      "morale": 0.03,
      "adaptation": 0.05,
@@ -2302,6 +2303,7 @@
     "id": "prepare_the_succession",
     "label": "Prepare the succession now",
     "description": "Name and season an heir while the captain still lives to teach them, so the handoff is a plan and not a scramble.",
+    "designate_heir": true,
     "resource_delta": {
      "influence": -15
     },

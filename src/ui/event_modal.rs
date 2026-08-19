@@ -304,6 +304,9 @@ fn known_effects(
     if outcome.faction_loss.is_some() {
         effects.push("faction may leave".to_owned());
     }
+    if outcome.designate_heir {
+        effects.push("names the ready heir".to_owned());
+    }
     if !outcome.long_term_consequences.is_empty() || outcome.schedule_followup.is_some() {
         effects.push("future consequence".to_owned());
     }
