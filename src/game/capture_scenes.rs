@@ -109,6 +109,27 @@ impl Game {
                 }
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
+            "obligation_watch" => {
+                // A decade-out duty stays visible in the instrument strip while
+                // its one-shot watch entry arrives in the ordinary ship's log.
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                if let Some(event) = self.data.events.get("seed_vault_covenant_offer") {
+                    crate::simulation::event_resolver::apply_outcome(
+                        &mut sim, &self.data, event, 0,
+                    );
+                }
+                sim.month_clock = 26 * 12;
+                sim.record_obligation_watch();
+                if let Some(template) = self.data.contracts.get("founding_colony") {
+                    sim.contract = Some(contract::start_contract(template, &sim));
+                }
+                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+            }
             "event" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,

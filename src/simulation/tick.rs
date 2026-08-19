@@ -64,6 +64,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         // is untouched; only its cadence is now driven by the month clock.
         if sim.month_clock.is_multiple_of(12) {
             economy::year_boundary_tick(sim, data, &mut report);
+            sim.record_obligation_watch();
         }
 
         // Monthly contract progress (W2): objective accrual on-station, the

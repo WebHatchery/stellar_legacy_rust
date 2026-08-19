@@ -434,6 +434,17 @@ fn short_faction(name: &str) -> String {
         .to_uppercase()
 }
 
+/// Keep an obligation identifiable inside the narrow instrument tile.
+fn short_duty(title: &str) -> String {
+    title
+        .split_whitespace()
+        .filter(|word| !word.eq_ignore_ascii_case("the"))
+        .take(2)
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_uppercase()
+}
+
 /// The bottom command strip complements (rather than duplicates) the primary
 /// vital meters: mission state, the next interruption, the most urgent risk,
 /// a causal maintenance label, and the live clock posture.
@@ -458,7 +469,7 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             )
         })
         .unwrap_or_else(|| ("DRYDOCK".to_owned(), "SELECT A WRIT".to_owned()));
-    let next_decision = sim
+    let pending_decision = sim
         .pending_event
         .as_ref()
         .and_then(|pending| ctx.data.events.get(&pending.template_id))
@@ -467,14 +478,39 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             sim.pending_dilemma
                 .as_ref()
                 .map(|_| "LEGACY DILEMMA".to_owned())
-        })
-        .unwrap_or_else(|| {
+        });
+    let (decision_label, next_decision, decision_tone) = if let Some(title) = pending_decision {
+        ("NEXT DECISION", title, term::alert())
+    } else if let Some(obligation) = sim.next_timed_obligation() {
+        let due_year = obligation.due_year.unwrap_or(sim.year());
+        let remaining = due_year.saturating_sub(sim.year());
+        let timing = if remaining == 0 {
+            "DUE NOW".to_owned()
+        } else {
+            format!("IN {remaining}Y")
+        };
+        (
+            "NEXT DUTY",
+            format!("{timing} · {}", short_duty(&obligation.title)),
+            if remaining <= 1 {
+                term::alert()
+            } else if remaining <= 10 {
+                term::accent()
+            } else {
+                term::primary()
+            },
+        )
+    } else {
+        (
+            "NEXT DECISION",
             if contract.is_some() {
                 "CLOCK RUNNING".to_owned()
             } else {
                 "NO ACTIVE COUNCIL".to_owned()
-            }
-        });
+            },
+            term::primary(),
+        )
+    };
     let risks = [
         (sim.ship.hull_integrity, "HULL WEAR"),
         (sim.ship.life_support, "AIR PLANT"),
@@ -510,13 +546,9 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
         (GaugeIcon::Maint, "OBJECTIVE", objective, term::accent()),
         (
             GaugeIcon::Alert,
-            "NEXT DECISION",
+            decision_label,
             next_decision,
-            if sim.has_pending_decision() {
-                term::alert()
-            } else {
-                term::primary()
-            },
+            decision_tone,
         ),
         (
             GaugeIcon::Life,
@@ -636,9 +668,15 @@ fn log_tone(text: &str) -> (&'static str, Color) {
     .any(|needle| text.contains(needle))
     {
         ("!", term::alert())
-    } else if ["council", "votes", "decision", "heir designate"]
-        .iter()
-        .any(|needle| text.contains(needle))
+    } else if [
+        "council",
+        "votes",
+        "decision",
+        "heir designate",
+        "ledger watch",
+    ]
+    .iter()
+    .any(|needle| text.contains(needle))
     {
         (">", term::primary())
     } else if [

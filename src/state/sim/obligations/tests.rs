@@ -87,3 +87,62 @@ fn succession_transfers_owner_and_records_inheritance() {
     assert_eq!(sim.obligations[0].successions_crossed, 1);
     assert_eq!(sim.obligations[0].history.len(), 2);
 }
+
+#[test]
+fn watch_reminders_are_persistent_non_repeating_and_follow_a_new_deadline() {
+    let mut sim = sim();
+    sim.apply_obligation_operation(&create());
+
+    sim.month_clock = 10 * 12;
+    sim.record_obligation_watch();
+    sim.record_obligation_watch();
+    assert_eq!(sim.obligations[0].history.len(), 2);
+    assert!(sim
+        .log
+        .last()
+        .unwrap()
+        .text
+        .contains("due to The Kestrel refugees in 10 years"));
+
+    sim.month_clock = 19 * 12;
+    sim.record_obligation_watch();
+    assert_eq!(sim.obligations[0].history.len(), 3);
+    assert!(sim.log.last().unwrap().text.contains("in 1 year"));
+
+    sim.apply_obligation_operation(&ObligationOperation::Renegotiate {
+        authored_id: "sanctuary".to_owned(),
+        due_in_years: Some(10),
+        note: "The first convoy bought a new term.".to_owned(),
+    });
+    sim.record_obligation_watch();
+    assert_eq!(sim.obligations[0].history.len(), 5);
+    assert!(sim.obligations[0]
+        .history
+        .last()
+        .unwrap()
+        .note
+        .contains("Year 29"));
+}
+
+#[test]
+fn next_timed_obligation_ignores_open_and_resolved_promises() {
+    let mut sim = sim();
+    sim.apply_obligation_operation(&create());
+    let mut open = create();
+    let ObligationOperation::Create(spec) = &mut open else {
+        unreachable!();
+    };
+    spec.authored_id = "open-ended".to_owned();
+    spec.due_in_years = None;
+    sim.apply_obligation_operation(&open);
+
+    assert_eq!(
+        sim.next_timed_obligation().unwrap().authored_id,
+        "sanctuary"
+    );
+    sim.apply_obligation_operation(&ObligationOperation::Fulfil {
+        authored_id: "sanctuary".to_owned(),
+        note: "The berth opened early.".to_owned(),
+    });
+    assert!(sim.next_timed_obligation().is_none());
+}

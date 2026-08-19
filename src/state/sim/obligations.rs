@@ -134,6 +134,72 @@ impl SimState {
         due
     }
 
+    /// The active timed duty that will demand attention first. Untimed promises
+    /// remain in the Chronicle, but cannot drive a useful countdown.
+    pub fn next_timed_obligation(&self) -> Option<&Obligation> {
+        self.active_obligations()
+            .filter(|obligation| obligation.due_year.is_some())
+            .min_by_key(|obligation| {
+                (
+                    obligation.due_year,
+                    obligation.created_year,
+                    obligation.id.as_str(),
+                )
+            })
+    }
+
+    /// Enter watch reminders ten years and one year before a timed duty falls
+    /// due. The due year is part of the history note, so calling this more than
+    /// once at a boundary is harmless while a renegotiated deadline can earn a
+    /// fresh warning on its new schedule.
+    pub fn record_obligation_watch(&mut self) {
+        const HORIZONS: [u32; 2] = [10, 1];
+
+        let year = self.year();
+        let captain = self
+            .dynasty
+            .leader()
+            .map(|leader| leader.name.clone())
+            .unwrap_or_else(|| "The vacant office".to_owned());
+        let mut logs = Vec::new();
+
+        for obligation in self
+            .obligations
+            .iter_mut()
+            .filter(|obligation| obligation.status.is_active())
+        {
+            let Some(due_year) = obligation.due_year else {
+                continue;
+            };
+            let remaining = due_year.saturating_sub(year);
+            if !HORIZONS.contains(&remaining) || due_year <= year {
+                continue;
+            }
+
+            let unit = if remaining == 1 { "year" } else { "years" };
+            let note =
+                format!("Watch reminder entered: due in {remaining} {unit} (Year {due_year}).");
+            if obligation.history.iter().any(|entry| entry.note == note) {
+                continue;
+            }
+
+            obligation.history.push(ObligationHistoryEntry {
+                year,
+                captain: captain.clone(),
+                status: obligation.status,
+                note,
+            });
+            logs.push(format!(
+                "LEDGER WATCH — {} is due to {} in {remaining} {unit} (Year {due_year}).",
+                obligation.title, obligation.beneficiary
+            ));
+        }
+
+        for line in logs {
+            self.push_log(line);
+        }
+    }
+
     pub fn apply_obligation_operation(&mut self, operation: &ObligationOperation) {
         let year = self.year();
         let captain = self

@@ -25,6 +25,37 @@ fn identical_seeds_produce_identical_decades() {
 }
 
 #[test]
+fn yearly_boundary_enters_the_ten_year_obligation_watch() {
+    let (data, mut sim) = fresh(78);
+    sim.apply_obligation_operation(&crate::state::sim::ObligationOperation::Create(
+        crate::state::sim::ObligationCreate {
+            authored_id: "watch-test".to_owned(),
+            title: "The Open Berth".to_owned(),
+            source: "test".to_owned(),
+            beneficiary: "The Kestrel refugees".to_owned(),
+            due_in_years: Some(20),
+            resolution_event: String::new(),
+            visibility: crate::state::sim::ObligationVisibility::Public,
+            material_stakes: "500 food".to_owned(),
+            reputation_stakes: "Refugee trust".to_owned(),
+        },
+    ));
+    sim.month_clock = 10 * 12 - 1;
+
+    let report = advance_months(&mut sim, &data, 1);
+
+    assert_eq!(report.months_advanced, 1);
+    assert!(sim.obligations[0]
+        .history
+        .iter()
+        .any(|entry| entry.note.contains("due in 10 years")));
+    assert!(sim
+        .log
+        .iter()
+        .any(|entry| entry.text.contains("LEDGER WATCH")));
+}
+
+#[test]
 fn a_ten_year_advance_matches_ten_one_year_advances() {
     // Events off isolates the deterministic economic path so the two
     // cadences must land byte-for-byte on the same state.
