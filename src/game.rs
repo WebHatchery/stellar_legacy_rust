@@ -124,6 +124,8 @@ pub struct Game {
     /// Session-local institution picker. The resulting custody is persistent;
     /// merely opening this overlay is not simulation state.
     custody_picker: Option<String>,
+    /// Session-local obligation whose full ledger history is open.
+    obligation_detail: Option<String>,
     /// Smooth-scroll state for the drydock charter board / PREP swap column,
     /// which now outgrows its panel (grouped by objective, all tiers listed).
     /// A `Cell` so the pure-view draw path can update it through `&GameplayCtx`.
@@ -144,6 +146,8 @@ pub struct Game {
     /// Smooth-scroll state for active duties. Obligations accumulate independently
     /// of the record/archive sub-tab and must remain reachable on long voyages.
     obligations_scroll: Cell<ScrollArea>,
+    /// Scroll state inside the selected obligation's history overlay.
+    obligation_history_scroll: Cell<ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list:
     /// a century-long charter can pass through more captains than the panel
     /// holds, and the point of the list is that none of them is dropped.
@@ -230,12 +234,14 @@ impl Game {
             decision_key: None,
             decision_started: 0.0,
             custody_picker: None,
+            obligation_detail: None,
             charter_scroll: Cell::new(ScrollArea::new()),
             ship_scroll: Cell::new([ScrollArea::new(); 3]),
             roster_scroll: Cell::new(ScrollArea::new()),
             chronicle_scroll: Cell::new(ScrollArea::new()),
             chronicle_records_tab: Cell::new(true),
             obligations_scroll: Cell::new(ScrollArea::new()),
+            obligation_history_scroll: Cell::new(ScrollArea::new()),
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
             ship_modules_tab: Cell::new(false),
@@ -505,12 +511,14 @@ impl Game {
                     run_clock: self.run_clock_for(&gameplay.sim),
                     decision_remaining: self.decision_remaining(&gameplay.sim),
                     custody_picker: self.custody_picker.as_deref(),
+                    obligation_detail: self.obligation_detail.as_deref(),
                     charter_scroll: &self.charter_scroll,
                     ship_scroll: &self.ship_scroll,
                     roster_scroll: &self.roster_scroll,
                     chronicle_scroll: &self.chronicle_scroll,
                     chronicle_records_tab: &self.chronicle_records_tab,
                     obligations_scroll: &self.obligations_scroll,
+                    obligation_history_scroll: &self.obligation_history_scroll,
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     ship_modules_tab: &self.ship_modules_tab,

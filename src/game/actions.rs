@@ -170,6 +170,9 @@ impl Game {
                 if screen != crate::state::Screen::Subsystems {
                     self.custody_picker = None;
                 }
+                if screen != crate::state::Screen::Chronicle {
+                    self.obligation_detail = None;
+                }
                 None
             }
 
@@ -285,6 +288,16 @@ impl Game {
                 if granted {
                     self.custody_picker = None;
                 }
+                None
+            }
+            UiAction::OpenObligationHistory(id) => {
+                self.obligation_detail = Some(id);
+                self.obligation_history_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
+                None
+            }
+            UiAction::CloseObligationHistory => {
+                self.obligation_detail = None;
                 None
             }
             UiAction::ResolveEvent(index) => {

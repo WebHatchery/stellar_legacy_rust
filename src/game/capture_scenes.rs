@@ -18,6 +18,7 @@ impl Game {
         self.instant_reveal = true;
         self.capture_run_secs = None;
         self.custody_picker = None;
+        self.obligation_detail = None;
         self.boot.finish();
         // The first-run welcome overlay would otherwise sit over every menu
         // scene; scenes opt into it explicitly (the "welcome" scene below).
@@ -435,7 +436,7 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "chronicle" => {
+            "chronicle" | "obligation_history" => {
                 // Seed a storied Chronicle and unlock the matching milestones.
                 self.achievements =
                     Achievements::from_definitions(crate::achievements::definitions());
@@ -510,6 +511,13 @@ impl Game {
                 }
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Chronicle;
+                if scene == "obligation_history" {
+                    self.obligation_detail = gameplay
+                        .sim
+                        .obligations
+                        .first()
+                        .map(|obligation| obligation.id.clone());
+                }
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
             "gameover" => {

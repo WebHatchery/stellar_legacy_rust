@@ -244,6 +244,8 @@ pub enum UiAction {
         subsystem_id: String,
         faction_id: String,
     },
+    OpenObligationHistory(String),
+    CloseObligationHistory,
     Buy(TradeResource, i64),
     Sell(TradeResource, i64),
     ToggleDelegation(EventCategory),

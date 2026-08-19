@@ -30,6 +30,8 @@ pub struct GameplayCtx<'a> {
     /// Discipline whose custodianship picker is open, if any. Session-local UI
     /// state; the completed grant alone enters the deterministic simulation.
     pub custody_picker: Option<&'a str>,
+    /// Obligation whose full persistent history is open, if any.
+    pub obligation_detail: Option<&'a str>,
     /// Smooth-scroll state for the charter board / PREP swap column (the list
     /// outgrows its panel). A `Cell` so this pure-view path can update the offset
     /// through the shared `&GameplayCtx` without threading `&mut` everywhere.
@@ -49,6 +51,8 @@ pub struct GameplayCtx<'a> {
     pub chronicle_records_tab: &'a std::cell::Cell<bool>,
     /// Smooth-scroll state for the active obligations ledger.
     pub obligations_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    /// Smooth-scroll state for the selected obligation's history.
+    pub obligation_history_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list —
     /// a long charter passes through more captains than the panel holds.
     pub debrief_commanders_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,

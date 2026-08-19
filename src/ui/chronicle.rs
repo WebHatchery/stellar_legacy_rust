@@ -1,7 +1,7 @@
 //! Chronicle: completed contracts across playthroughs, plus the achievement
 //! roster (GDD §7, §10).
 
-use crate::ui::{term, term_panel, GameplayCtx, UiAction};
+use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{
@@ -15,7 +15,7 @@ const ENTRY_H: f32 = 40.0;
 const GUTTER: f32 = 12.0;
 const TAB_H: f32 = 44.0;
 
-pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, _actions: &mut Vec<UiAction>) {
+pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let left = Rect::new(area.x, area.y, area.w * 0.42, area.h);
     let ledger = Rect::new(left.right() + 12.0, area.y, area.w * 0.34, area.h);
     let right = Rect::new(
@@ -24,9 +24,17 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, _actions: &mut 
         area.right() - ledger.right() - 12.0,
         area.h,
     );
-    draw_archive(ctx, left, pointer);
-    draw_obligations(ctx, ledger, pointer);
+    let base_pointer = if ctx.obligation_detail.is_some() {
+        pointer.suppressed()
+    } else {
+        pointer
+    };
+    draw_archive(ctx, left, base_pointer);
+    draw_obligations(ctx, ledger, base_pointer, actions);
     draw_milestones(ctx, right);
+    if let Some(obligation_id) = ctx.obligation_detail {
+        draw_obligation_history(ctx, area, obligation_id, pointer, actions);
+    }
 }
 
 fn draw_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
@@ -185,7 +193,12 @@ fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     ctx.chronicle_scroll.set(scroll);
 }
 
-fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
+fn draw_obligations(
+    ctx: &GameplayCtx<'_>,
+    area: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     term_panel(area, Some("OBLIGATIONS LEDGER"));
     let content = area.inset(18.0);
     let mut obligations: Vec<_> = ctx.sim.active_obligations().collect();
@@ -284,7 +297,7 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
         } else {
             ""
         };
-        draw_ui_text_ex(
+        draw_text_block(
             &format!(
                 "{} [{}{}]",
                 obligation.title,
@@ -296,17 +309,25 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
                 inherited
             ),
             row.x + 10.0,
-            row.y + 18.0,
-            TextStyle::new(
-                14.0,
-                if overdue {
-                    term::alert()
-                } else {
-                    term::primary()
-                },
-            )
-            .params(),
+            row.y + 7.0,
+            row.w - 132.0,
+            38.0,
+            12.0,
+            2.0,
+            if overdue {
+                term::alert()
+            } else {
+                term::primary()
+            },
         );
+        if term_button(
+            Rect::new(row.right() - 112.0, row.y + 4.0, 104.0, 44.0),
+            "HISTORY",
+            true,
+            pointer,
+        ) {
+            actions.push(UiAction::OpenObligationHistory(obligation.id.clone()));
+        }
         let mut line_y = row.y + 36.0;
         for line in [
             format!("TO: {}", obligation.beneficiary),
@@ -339,6 +360,144 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
         term::primary(),
     );
     ctx.obligations_scroll.set(scroll);
+}
+
+fn draw_obligation_history(
+    ctx: &GameplayCtx<'_>,
+    area: Rect,
+    obligation_id: &str,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let Some(obligation) = ctx
+        .sim
+        .obligations
+        .iter()
+        .find(|obligation| obligation.id == obligation_id)
+    else {
+        actions.push(UiAction::CloseObligationHistory);
+        return;
+    };
+
+    draw_rectangle(
+        area.x,
+        area.y,
+        area.w,
+        area.h,
+        Color::new(0.0, 0.0, 0.0, 0.84),
+    );
+    let modal = Rect::new(area.x + 190.0, area.y + 20.0, area.w - 380.0, area.h - 40.0);
+    draw_surface(
+        modal,
+        &SurfaceStyle::new(term::panel())
+            .with_border(2.0, term::accent())
+            .with_header(50.0, term::panel_header())
+            .with_header_divider(1.0, term::accent()),
+    );
+    draw_text_centered_in_box_ex(
+        "OBLIGATION HISTORY",
+        modal.x,
+        modal.y,
+        modal.w,
+        50.0,
+        TextStyle::new(15.0, term::accent()),
+    );
+    if term_button(
+        Rect::new(modal.right() - 110.0, modal.y + 3.0, 102.0, 44.0),
+        "CLOSE",
+        true,
+        pointer,
+    ) {
+        actions.push(UiAction::CloseObligationHistory);
+    }
+
+    let content = modal.inset(22.0);
+    draw_ui_text_ex(
+        &obligation.title,
+        content.x,
+        content.y + 48.0,
+        TextStyle::new(18.0, term::primary()).params(),
+    );
+    let due = obligation
+        .due_year
+        .map(|year| format!("Y{year:03}"))
+        .unwrap_or_else(|| "OPEN".to_owned());
+    draw_ui_text_ex(
+        &format!(
+            "{} · CREATED Y{:03} · DUE {due} · {} · {} SUCCESSIONS",
+            obligation.status.label().to_uppercase(),
+            obligation.created_year,
+            obligation.visibility.label().to_uppercase(),
+            obligation.successions_crossed
+        ),
+        content.x,
+        content.y + 72.0,
+        TextStyle::new(12.0, term::accent()).params(),
+    );
+    draw_text_block(
+        &format!(
+            "TO: {}\nMATERIAL: {}\nNAME: {}",
+            obligation.beneficiary, obligation.stakes.material, obligation.stakes.reputation
+        ),
+        content.x,
+        content.y + 78.0,
+        content.w,
+        70.0,
+        12.0,
+        3.0,
+        term::dim(),
+    );
+
+    let view = Rect::new(
+        content.x,
+        content.y + 158.0,
+        content.w,
+        content.bottom() - content.y - 158.0,
+    );
+    const HISTORY_H: f32 = 76.0;
+    const HISTORY_GAP: f32 = 8.0;
+    let content_h = obligation.history.len() as f32 * (HISTORY_H + HISTORY_GAP) - HISTORY_GAP;
+    let mut scroll = ctx.obligation_history_scroll.get();
+    scroll.update_at(view, content_h, pointer.position);
+    let mut y = view.y - scroll.offset();
+    for entry in obligation.history.iter().rev() {
+        let row = Rect::new(view.x, y, view.w - GUTTER, HISTORY_H);
+        y += HISTORY_H + HISTORY_GAP;
+        if !is_fully_visible(row, view) {
+            continue;
+        }
+        draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
+        draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
+        draw_ui_text_ex(
+            &format!(
+                "Y{:03} · {} · {}",
+                entry.year,
+                entry.status.label().to_uppercase(),
+                entry.captain
+            ),
+            row.x + 12.0,
+            row.y + 20.0,
+            TextStyle::new(13.0, term::primary()).params(),
+        );
+        draw_text_block(
+            &entry.note,
+            row.x + 12.0,
+            row.y + 25.0,
+            row.w - 24.0,
+            42.0,
+            12.0,
+            3.0,
+            term::dim(),
+        );
+    }
+    scroll.draw_scrollbar_with(
+        view,
+        content_h,
+        term::surface_inset(),
+        term::dim(),
+        term::primary(),
+    );
+    ctx.obligation_history_scroll.set(scroll);
 }
 
 fn draw_mission_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
