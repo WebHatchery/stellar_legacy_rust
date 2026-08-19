@@ -3,8 +3,8 @@
 //! Factions are groups of people *aboard* — orthogonal to the campaign-level
 //! legacy (preservers/adaptors/wanderers), which is unchanged. Structure plus
 //! roster change (loss/merger/recruit), log/event coloring, and a one-time
-//! recruitment dowry per people (content-depth round 7). No *ongoing* approval
-//! meters yet — those layer on later.
+//! recruitment dowry per people (content-depth round 7), ongoing approval,
+//! political relationships, and their effects on the ship's shared life.
 
 use serde::{Deserialize, Serialize};
 
@@ -80,6 +80,16 @@ pub fn mood_band_for(approval: f32) -> i8 {
         1
     } else {
         0
+    }
+}
+
+/// Player-facing name for the same approval bands used by faction mood
+/// announcements and withdrawal danger.
+pub fn approval_band_label(approval: f32) -> &'static str {
+    match mood_band_for(approval) {
+        -1 => "RESTLESS",
+        1 => "DEVOTED",
+        _ => "NEUTRAL",
     }
 }
 

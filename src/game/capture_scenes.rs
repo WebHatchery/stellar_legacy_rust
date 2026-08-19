@@ -192,6 +192,15 @@ impl Game {
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
                 sim.resources.credits = 10_000;
+                for (id, approval) in [
+                    ("ascension_circle", 0.22),
+                    ("first_flame", 0.52),
+                    ("hearth_union", 0.82),
+                ] {
+                    if let Some(faction) = sim.factions.iter_mut().find(|f| f.faction_id == id) {
+                        faction.approval = approval;
+                    }
+                }
                 let _ = crate::simulation::institutions::designate_apprentice(
                     &mut sim, &self.data, "engineer",
                 );

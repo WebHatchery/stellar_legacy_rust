@@ -4,6 +4,14 @@
 use super::*;
 
 #[test]
+fn approval_labels_share_the_simulations_mood_boundaries() {
+    assert_eq!(approval_band_label(0.3), "RESTLESS");
+    assert_eq!(approval_band_label(0.31), "NEUTRAL");
+    assert_eq!(approval_band_label(0.69), "NEUTRAL");
+    assert_eq!(approval_band_label(0.7), "DEVOTED");
+}
+
+#[test]
 fn founding_splits_population_and_is_deterministic() {
     let (data, sim, picks) = armed(7);
     let sum: u32 = sim.factions.iter().map(|f| f.members).sum();

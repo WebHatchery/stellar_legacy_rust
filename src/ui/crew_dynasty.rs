@@ -5,6 +5,7 @@ use crate::data::events::EventCategory;
 use crate::simulation::crew::post_holder;
 use crate::simulation::legacy::failure_risk;
 use crate::simulation::succession::planned_heir;
+use crate::state::sim::factions::{approval_band_label, mood_band_for};
 use crate::ui::{stat_line, term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -45,7 +46,11 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
 /// Factions aboard (W7): name, members, share, status. Lost factions dim out.
 /// In drydock, when short of the founding count, offers to recruit a new people.
 fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    term_panel(rect, Some("PEOPLES ABOARD"));
+    let polity_title = format!(
+        "PEOPLES ABOARD · SHIP APPROVAL {:.0}%",
+        ctx.sim.aboard_approval_mean() * 100.0
+    );
+    term_panel(rect, Some(&polity_title));
     let content = rect.inset(16.0);
     let mut y = content.y + 34.0;
     let sim = ctx.sim;
@@ -64,6 +69,18 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
             .map(|d| d.name.clone())
             .unwrap_or_else(|| id.to_owned())
     };
+    let short_name = |id: &str| {
+        let name = ctx
+            .data
+            .factions
+            .get(id)
+            .map(|definition| definition.name.as_str())
+            .unwrap_or(id);
+        name.strip_prefix("The ")
+            .or_else(|| name.strip_prefix("Keepers of the "))
+            .unwrap_or(name)
+            .to_owned()
+    };
 
     // The peoples still aboard come first — they are the living ship.
     for fs in sim.factions.iter().filter(|f| f.is_aboard()) {
@@ -72,15 +89,52 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
         } else {
             0.0
         };
+        let definition = ctx.data.factions.get(&fs.faction_id);
+        let tended = definition
+            .and_then(|definition| ctx.data.subsystems.get(&definition.tended_subsystem))
+            .map(|subsystem| subsystem.name.as_str())
+            .unwrap_or("no named discipline");
+        let rivals: Vec<_> = definition
+            .into_iter()
+            .flat_map(|definition| &definition.rivals)
+            .filter(|id| sim.is_faction_aboard(id))
+            .map(|id| short_name(id))
+            .collect();
+        let allies: Vec<_> = definition
+            .into_iter()
+            .flat_map(|definition| &definition.allies)
+            .filter(|id| sim.is_faction_aboard(id))
+            .map(|id| short_name(id))
+            .collect();
+        let mut ties = String::new();
+        if !rivals.is_empty() {
+            ties.push_str(&format!(" · RIVAL {}", rivals.join(", ")));
+        }
+        if !allies.is_empty() {
+            ties.push_str(&format!(" · ALLY {}", allies.join(", ")));
+        }
+        let mood = mood_band_for(fs.approval);
         draw_ui_text_ex(
             &format!(
-                "{} — {} ({share:.0}%)",
+                "{} · {} ({share:.0}%) · {} {:.0}% · CARE {}{}",
                 faction_name(&fs.faction_id),
-                fs.members
+                fs.members,
+                approval_band_label(fs.approval),
+                fs.approval * 100.0,
+                tended,
+                ties
             ),
             content.x,
             y,
-            TextStyle::new(13.0, term::primary()).params(),
+            TextStyle::new(
+                11.0,
+                match mood {
+                    -1 => term::alert(),
+                    1 => term::accent(),
+                    _ => term::primary(),
+                },
+            )
+            .params(),
         );
         y += 22.0;
     }
