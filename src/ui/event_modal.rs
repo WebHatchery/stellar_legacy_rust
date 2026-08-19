@@ -106,6 +106,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             ctx.sim, ctx.data, template, i,
         );
         let (effects, effects_color) = known_effects(outcome, population_range);
+        let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
+        let effects = if affordable {
+            effects
+        } else {
+            format!("{effects} · INSUFFICIENT STORES")
+        };
         draw_text_block(
             &effects,
             card.x + 14.0,
@@ -114,12 +120,16 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             26.0,
             11.0,
             2.0,
-            effects_color,
+            if affordable {
+                effects_color
+            } else {
+                term::alert()
+            },
         );
         if term_button(
             Rect::new(card.right() - 244.0, card.y + 18.0, 230.0, 56.0),
             &format!("[{}] {}", shown + 1, outcome.label.to_uppercase()),
-            true,
+            affordable,
             pointer,
         ) {
             actions.push(UiAction::ResolveEvent(i));

@@ -135,7 +135,7 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "event_obligation_due" => {
+            "event_obligation_due" | "event_obligation_unaffordable" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
@@ -146,6 +146,10 @@ impl Game {
                     crate::simulation::event_resolver::apply_outcome(&mut sim, &self.data, seed, 0);
                 }
                 sim.month_clock = 36 * 12;
+                if scene == "event_obligation_unaffordable" {
+                    sim.resources.food = 100;
+                    sim.resources.minerals = 0;
+                }
                 sim.pending_event = Some(crate::state::sim::PendingEvent {
                     template_id: "seed_vault_covenant_due".to_owned(),
                     rolled_month_clock: sim.month_clock,

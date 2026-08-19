@@ -6,8 +6,8 @@ use crate::data::{GameConfig, GameData};
 use crate::simulation::subsystems;
 use crate::state::sim::SimState;
 
-use super::active_complication;
 use super::rolled_pop_count;
+use super::{active_complication, outcome_affordable, outcome_available};
 
 /// Score an outcome for auto-resolution (GDD §5.4). Higher is better.
 pub fn score_outcome(outcome: &EventOutcome, sim: &SimState, config: &GameConfig) -> f32 {
@@ -89,13 +89,16 @@ pub fn apply_outcome(
     let Some(outcome) = template.outcomes.get(outcome_index) else {
         return;
     };
+    if !outcome_available(sim, outcome) || !outcome_affordable(sim, outcome) {
+        return;
+    }
     // Snapshot the riding complication (content-depth round 6) from the state as
     // it stood *before* this outcome — the same state the player saw the twist
     // in — so the outcome's own deltas can't move the gate out from under it.
     let complication = active_complication(sim, template).cloned();
     // A subsystem buffering this event's family softens its harm (W5): every
     // negative delta is scaled down; the boons land in full.
-    let (resource_delta, ship_delta, mut population_delta) = subsystems::buffered_deltas(
+    let (mut resource_delta, ship_delta, mut population_delta) = subsystems::buffered_deltas(
         sim,
         data,
         &template.family,
@@ -103,6 +106,9 @@ pub fn apply_outcome(
         outcome.ship_delta,
         outcome.population_delta,
     );
+    if outcome.requires_full_payment {
+        resource_delta = outcome.resource_delta;
+    }
     // The population toll is uncertain within its shown band (real-time loop §3):
     // roll the actual head-count delta the range promised, through the seeded RNG.
     population_delta.count =
@@ -305,6 +311,7 @@ pub fn auto_resolve(sim: &mut SimState, data: &GameData, template: &EventTemplat
         .outcomes
         .iter()
         .enumerate()
+        .filter(|(_, outcome)| outcome_available(sim, outcome) && outcome_affordable(sim, outcome))
         .max_by(|(_, a), (_, b)| {
             score_outcome(a, sim, &data.config).total_cmp(&score_outcome(b, sim, &data.config))
         })

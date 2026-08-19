@@ -124,6 +124,12 @@ fn new_obligation_arcs_are_single_hearings_with_competing_records() {
         }
 
         let due = data.events.get(due_id).unwrap();
+        assert!(
+            due.outcomes.iter().any(|outcome| {
+                !outcome.requires_full_payment && outcome.requires.is_unconditional()
+            }),
+            "{due_id} must retain an unconditional fallback when stores are bare"
+        );
         for outcome in &due.outcomes {
             let record = outcome
                 .record

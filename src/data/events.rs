@@ -209,6 +209,11 @@ pub struct EventOutcome {
     pub requires: OutcomeRequirement,
     #[serde(default)]
     pub resource_delta: ResourceDelta,
+    /// A voluntary bargain whose negative resource components must be paid in
+    /// full. Unlike incidental event harm, these costs are not softened by a
+    /// buffering subsystem and the outcome cannot resolve while unaffordable.
+    #[serde(default)]
+    pub requires_full_payment: bool,
     #[serde(default)]
     pub ship_delta: ShipDelta,
     #[serde(default)]

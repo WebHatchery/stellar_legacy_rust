@@ -33,9 +33,9 @@ pub struct MissionOutcome {
 /// Fly `contract_id` to its conclusion (or `max_years`, whichever comes first)
 /// under a fixed policy, asserting every per-year invariant along the way.
 ///
-/// Policy: refit and service affordable systems in port; resolve any pending
-/// dilemma/event by first choice (index 0); field-repair the hull whenever it
-/// drops below half and the parts/minerals are there; buy a batch of food when
+/// Policy: refit and service affordable systems in port; resolve a pending
+/// event by its first visible, affordable choice and a dilemma by its first
+/// choice; field-repair the hull whenever it drops below half; buy food when
 /// stores fall under the crisis threshold. Deterministic for a given
 /// (sim, contract) pair — all randomness flows through `sim.rng`.
 pub fn play_mission(
@@ -120,7 +120,15 @@ pub fn play_mission(
         }
         if let Some(pending) = sim.pending_event.clone() {
             match data.events.get(&pending.template_id).cloned() {
-                Some(t) => event_resolver::apply_outcome(sim, data, &t, 0),
+                Some(template) => {
+                    let choice = event_resolver::available_outcome_indices(sim, &template)
+                        .into_iter()
+                        .find(|&index| {
+                            event_resolver::outcome_affordable(sim, &template.outcomes[index])
+                        })
+                        .expect("every event needs an affordable fallback");
+                    event_resolver::apply_outcome(sim, data, &template, choice);
+                }
                 None => sim.pending_event = None,
             }
         }

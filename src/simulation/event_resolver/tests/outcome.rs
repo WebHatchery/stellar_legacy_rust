@@ -87,6 +87,65 @@ fn apply_outcome_clears_pending_and_records_consequences() {
 }
 
 #[test]
+fn a_full_payment_choice_cannot_resolve_on_clamped_scraps() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let mut sim = SimState::new_campaign(&data, "preservers", 92, &picks);
+    let seed = data.events.get("seed_vault_covenant_offer").unwrap();
+    apply_outcome(&mut sim, &data, seed, 0);
+    let due = data.events.get("seed_vault_covenant_due").unwrap();
+    sim.pending_event = Some(crate::state::sim::PendingEvent {
+        template_id: due.id.clone(),
+        rolled_month_clock: sim.month_clock,
+    });
+    sim.resources.food = 50;
+    sim.resources.minerals = 20;
+    let knowledge_before = sim.subsystems["agriculture"].knowledge;
+
+    apply_outcome(&mut sim, &data, due, 0);
+
+    assert!(sim.pending_event.is_some(), "the decision must remain open");
+    assert_eq!(
+        sim.obligations[0].status,
+        crate::state::sim::ObligationStatus::Pending
+    );
+    assert_eq!(sim.resources.food, 50);
+    assert_eq!(sim.resources.minerals, 20);
+    assert_eq!(sim.subsystems["agriculture"].knowledge, knowledge_before);
+
+    sim.resources.food = 1200;
+    sim.resources.minerals = 300;
+    apply_outcome(&mut sim, &data, due, 0);
+    assert!(sim.pending_event.is_none());
+    assert_eq!(sim.resources.food, 0);
+    assert_eq!(sim.resources.minerals, 0);
+    assert_eq!(
+        sim.obligations[0].status,
+        crate::state::sim::ObligationStatus::Fulfilled
+    );
+}
+
+#[test]
+fn auto_resolve_skips_unaffordable_bargains_and_takes_the_fallback() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let mut sim = SimState::new_campaign(&data, "preservers", 93, &picks);
+    let seed = data.events.get("seed_vault_covenant_offer").unwrap();
+    apply_outcome(&mut sim, &data, seed, 0);
+    sim.resources.food = 0;
+    sim.resources.minerals = 0;
+    let due = data.events.get("seed_vault_covenant_due").unwrap();
+
+    let chosen = auto_resolve(&mut sim, &data, due);
+
+    assert_eq!(chosen, "Keep the adapted crops");
+    assert_eq!(
+        sim.obligations[0].status,
+        crate::state::sim::ObligationStatus::Defaulted
+    );
+}
+
+#[test]
 fn interpreted_outcome_records_one_fact_and_several_accounts() {
     let data = GameData::load().unwrap();
     let mut sim = SimState::new_campaign(

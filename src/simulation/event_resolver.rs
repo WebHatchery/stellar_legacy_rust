@@ -116,6 +116,13 @@ pub fn available_outcome_indices(sim: &SimState, template: &EventTemplate) -> Ve
         .collect()
 }
 
+/// Whether the ship can make an outcome's explicitly required full payment.
+/// Incidental event losses still clamp safely at zero; only authored voluntary
+/// bargains opt into this gate.
+pub fn outcome_affordable(sim: &SimState, outcome: &EventOutcome) -> bool {
+    !outcome.requires_full_payment || sim.resources.can_afford(&outcome.resource_delta)
+}
+
 /// The band of population impact an outcome may land (real-time loop §3), as a
 /// signed `(low, high)` head-count delta — negative for lives lost, positive for
 /// arrivals/births. Derived from the outcome's *buffered* `population_delta.count`
