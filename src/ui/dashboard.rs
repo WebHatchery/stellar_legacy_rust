@@ -1,7 +1,7 @@
 //! Dashboard: ship vitals, population, advance-time control, ship's log.
 
 use crate::data::ship_components::ComponentKind;
-use crate::data::GameConfig;
+use crate::data::{GameConfig, GameData};
 use crate::simulation::ship::{field_repair_target, RepairKind};
 use crate::state::sim::{GameSpeed, PopulationState, SimState};
 use crate::state::Screen;
@@ -520,21 +520,7 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
         )
     };
     let (risk_label, risk_value) = primary_risk(sim, &ctx.data.config);
-    let weakest = sim
-        .subsystems
-        .iter()
-        .min_by(|a, b| a.1.condition.total_cmp(&b.1.condition))
-        .and_then(|(id, state)| {
-            ctx.data.subsystems.get(id).map(|definition| {
-                let short = definition
-                    .name
-                    .split(" & ")
-                    .next()
-                    .unwrap_or(&definition.name);
-                format!("{short} ↓ {:.0}%", state.condition * 100.0)
-            })
-        })
-        .unwrap_or_else(|| "SYSTEMS NOMINAL".to_owned());
+    let weakest = weakest_module_readout(sim, ctx.data);
     let pace = if contract.is_some() {
         sim.speed.label().to_uppercase()
     } else {
@@ -559,7 +545,7 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
                 term::accent()
             },
         ),
-        (GaugeIcon::Hull, "CHANGE DRIVER", weakest, term::dim()),
+        (GaugeIcon::Hull, "WEAKEST MODULE", weakest, term::dim()),
         (GaugeIcon::People, "TIME CONTROL", pace, term::accent()),
     ];
     let n = cells.len();
@@ -578,6 +564,29 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             );
         }
     }
+}
+
+/// Honest subsystem triage for the instrument strip. Condition alone cannot
+/// establish that a module is declining, so the dashboard names the weakest
+/// module without a trend arrow and stays quiet while every module is sound.
+fn weakest_module_readout(sim: &SimState, data: &GameData) -> String {
+    sim.subsystems
+        .iter()
+        .min_by(|a, b| a.1.condition.total_cmp(&b.1.condition))
+        .and_then(|(id, state)| {
+            if state.condition >= 0.85 {
+                return Some("ALL MODULES SOUND".to_owned());
+            }
+            data.subsystems.get(id).map(|definition| {
+                let short = definition
+                    .name
+                    .split(" & ")
+                    .next()
+                    .unwrap_or(&definition.name);
+                format!("{short} {:.0}%", state.condition * 100.0)
+            })
+        })
+        .unwrap_or_else(|| "ALL MODULES SOUND".to_owned())
 }
 
 /// Exact weakest survival reserve for the Dashboard instrument strip. Scores

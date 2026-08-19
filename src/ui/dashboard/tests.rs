@@ -35,3 +35,18 @@ fn primary_risk_names_the_exact_weakest_reserve_and_stays_quiet_when_sound() {
     assert_eq!(label, "FOOD 0.0Y");
     assert_eq!(score, 0.0);
 }
+
+#[test]
+fn weakest_module_readout_does_not_invent_a_decline() {
+    let (data, mut sim) = campaign();
+    assert_eq!(weakest_module_readout(&sim, &data), "ALL MODULES SOUND");
+
+    let subsystem = sim
+        .subsystems
+        .get_mut("life_support_habitat")
+        .unwrap();
+    subsystem.condition = 0.42;
+    let readout = weakest_module_readout(&sim, &data);
+    assert!(readout.contains("42%"));
+    assert!(!readout.contains('↓'));
+}
