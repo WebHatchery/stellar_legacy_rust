@@ -18,6 +18,17 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 /// button is drawn.
 const PROVISION_STRIDE: f32 = 44.0;
 
+fn launch_commit_label(conflicts: usize, shortfalls: usize) -> String {
+    match (conflicts, shortfalls) {
+        (0, 0) => "[ LAUNCH ]".to_owned(),
+        (0, shortfalls) => format!("LAUNCH UNDERSTOCKED · {shortfalls}"),
+        (conflicts, 0) => format!("LAUNCH & DEFAULT {conflicts}"),
+        (conflicts, shortfalls) => {
+            format!("LAUNCH · {shortfalls} SHORT · DEFAULT {conflicts}")
+        }
+    }
+}
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let left = Rect::new(area.x, area.y, area.w * 0.55, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
@@ -356,11 +367,13 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
             as i64;
     let by = content.bottom() - 44.0;
     let bw = (content.w - 12.0) / 2.0;
-    let launch_label = if conflict_count > 0 {
-        format!("LAUNCH & DEFAULT {conflict_count}")
-    } else {
-        "[ LAUNCH ]".to_owned()
-    };
+    // Under-provisioning remains an allowed strategic risk, but the commit
+    // button must name that risk at the instant the player takes it. Promise
+    // conflicts remain independently counted because they create defaults.
+    let shortfall_count = usize::from(food_short > 0)
+        + usize::from(parts_short > 0)
+        + usize::from(refuel_missing > 0.001);
+    let launch_label = launch_commit_label(conflict_count, shortfall_count);
     if term_button(
         Rect::new(content.x, by, bw, 44.0),
         &launch_label,
@@ -369,7 +382,9 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     ) {
         actions.push(UiAction::Launch);
     }
-    let refuel_label = if refuel_missing > 0.0 {
+    let refuel_label = if refuel_missing > 0.0 && sim.resources.credits < refuel_cost {
+        format!("NEED {refuel_cost} CR")
+    } else if refuel_missing > 0.0 {
         format!("REFUEL ({refuel_cost} CR)")
     } else {
         "TANKS FULL".to_owned()
@@ -383,3 +398,6 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         actions.push(UiAction::Refuel);
     }
 }
+
+#[cfg(test)]
+mod tests;
