@@ -354,6 +354,25 @@ fn draw_legend(frame: Rect) {
         );
         x += 42.0;
     }
+
+    // The same code and pictogram vocabulary appears inside every module box.
+    // Keep the key compact and in the existing upper-left whitespace so it can
+    // explain all nine marks without competing with the hull drawing.
+    let pictograms = [
+        [("AGR", "GROW"), ("EDU", "ARCHIVE"), ("ENG", "ENGINE")],
+        [("LSH", "AIR"), ("MED", "MEDIC"), ("SEC", "WATCH")],
+        [("CMD", "BRIDGE"), ("DRV", "DRIVE"), ("WPN", "WEAPON")],
+    ];
+    for (row, entries) in pictograms.iter().enumerate() {
+        for (col, (code, name)) in entries.iter().enumerate() {
+            draw_ui_text_ex(
+                &format!("{code} {name}"),
+                frame.x + col as f32 * 88.0,
+                frame.y + 48.0 + row as f32 * 14.0,
+                TextStyle::new(10.0, term::dim()).params(),
+            );
+        }
+    }
 }
 
 /// The left-rail overview: which ship this is, who it carries, and the loadout

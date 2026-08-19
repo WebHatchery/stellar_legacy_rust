@@ -6,6 +6,8 @@
 
 use super::*;
 
+const PICTOGRAM_STROKE: f32 = 1.8;
+
 /// Highlight tone by condition, matching the meter convention: healthy reads
 /// bright accent, worn dims, failing goes alert-red.
 fn condition_tone(c: f32) -> Color {
@@ -22,7 +24,7 @@ fn condition_tone(c: f32) -> Color {
 /// half-extent `s` in `color`. Keyed by subsystem id (or component kind), so a
 /// room shows the same glyph on every hull — the schematic's icon vocabulary.
 fn draw_icon(glyph: &ModuleGlyph, c: Vec2, s: f32, color: Color) {
-    let stroke = 1.2;
+    let stroke = PICTOGRAM_STROKE;
     let line = |a: Vec2, b: Vec2| draw_line(a.x, a.y, b.x, b.y, stroke, color);
     let poly = |pts: &[Vec2]| {
         for i in 0..pts.len() {
@@ -44,8 +46,8 @@ fn draw_icon(glyph: &ModuleGlyph, c: Vec2, s: f32, color: Color) {
         }
         // The medical cross.
         "medical_bay" => {
-            draw_line(c.x, c.y - s, c.x, c.y + s, 2.2, color);
-            draw_line(c.x - s, c.y, c.x + s, c.y, 2.2, color);
+            draw_line(c.x, c.y - s, c.x, c.y + s, stroke, color);
+            draw_line(c.x - s, c.y, c.x + s, c.y, stroke, color);
         }
         // A gear: hub ring with radial teeth.
         "engineering_bay" => {
@@ -109,8 +111,8 @@ fn draw_icon(glyph: &ModuleGlyph, c: Vec2, s: f32, color: Color) {
         // A weapon crosshair.
         "weapon" => {
             draw_circle_lines(c.x, c.y, s * 0.7, stroke, color);
-            draw_line(c.x - s, c.y, c.x + s, c.y, 1.0, color);
-            draw_line(c.x, c.y - s, c.x, c.y + s, 1.0, color);
+            draw_line(c.x - s, c.y, c.x + s, c.y, stroke, color);
+            draw_line(c.x, c.y - s, c.x, c.y + s, stroke, color);
         }
         _ => {
             draw_circle_lines(c.x, c.y, s * 0.6, stroke, color);

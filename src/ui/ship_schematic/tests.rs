@@ -130,7 +130,29 @@ fn every_subsystem_carries_a_three_letter_code() {
 
 #[test]
 fn deck_range_is_stable_and_ordered() {
-    let (lo, hi) = deck_range("agriculture");
-    assert_eq!((lo, hi), deck_range("agriculture"));
+    let (lo, hi) = deck_range_for_slot(true, 1, 3);
+    assert_eq!((lo, hi), deck_range_for_slot(true, 1, 3));
     assert!(hi > lo);
+}
+
+#[test]
+fn deck_ranges_follow_the_drawn_row_and_column() {
+    assert_eq!(deck_range_for_slot(true, 0, 3), (1, 2));
+    assert_eq!(deck_range_for_slot(true, 2, 3), (5, 6));
+    assert_eq!(deck_range_for_slot(false, 0, 3), (7, 8));
+    assert_eq!(deck_range_for_slot(false, 2, 3), (11, 12));
+}
+
+#[test]
+fn barge_and_ark_profiles_have_different_architecture() {
+    let data = GameData::load().unwrap();
+    let mut barge = sim(&data);
+    let barge_schematic = build(&barge, &data, frame());
+
+    barge.ship.hull = "generation_ark".to_owned();
+    let ark_schematic = build(&barge, &data, frame());
+
+    assert!(ark_schematic.outline.len() > barge_schematic.outline.len());
+    assert_ne!(ark_schematic.outline, barge_schematic.outline);
+    assert!(ark_schematic.ring.is_some());
 }

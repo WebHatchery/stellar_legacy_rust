@@ -51,8 +51,9 @@ pub struct ModuleGlyph {
     pub tier: u32,
     /// A matching crew post is aboard.
     pub manned: bool,
-    /// Cosmetic deck range for the caption, e.g. `DECKS 3-6`. Deterministic,
-    /// never read by the sim.
+    /// Schematic deck range for the caption, e.g. `DECKS 3-4`. Deterministic,
+    /// derived from the module's placed row and longitudinal section, and never
+    /// read by the sim.
     pub deck_lo: u8,
     pub deck_hi: u8,
 }
@@ -139,22 +140,31 @@ fn any_post_aboard(sim: &SimState, posts: &[&str]) -> bool {
         .any(|c| posts.contains(&c.archetype_id.as_str()))
 }
 
-/// FNV-1a over the id bytes: a stable per-module number for cosmetic deck labels
-/// and greeble linework. Deterministic — same id, same value, every run.
-fn hash_id(s: &str) -> u64 {
-    let mut h: u64 = 0xcbf29ce484222325;
-    for b in s.bytes() {
-        h ^= b as u64;
-        h = h.wrapping_mul(0x100000001b3);
-    }
-    h
+/// The schematic has six longitudinal deck sections on each side of its
+/// corridor. Number a compartment from the row and column where it is actually
+/// drawn, rather than assigning a flavour number from its id.
+fn deck_range_for_slot(upper: bool, col: usize, cols: usize) -> (u8, u8) {
+    let cols = cols.max(1);
+    let section = (col.saturating_mul(6) / cols).min(5) as u8;
+    let row_start = if upper { 1 } else { 7 };
+    let lo = row_start + section;
+    (lo, lo + 1)
 }
 
-fn deck_range(id: &str) -> (u8, u8) {
-    let h = hash_id(id);
-    let lo = (h % 8) as u8 + 1;
-    let span = ((h >> 8) % 5) as u8 + 1;
-    (lo, lo + span)
+fn component_deck_range(kind: ModuleKind) -> (u8, u8) {
+    match kind {
+        ModuleKind::Bridge => (1, 2),
+        ModuleKind::Weapon => (6, 7),
+        ModuleKind::Engine => (11, 12),
+        ModuleKind::Subsystem => (1, 2),
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Silhouette {
+    Standard,
+    Barge,
+    Ark,
 }
 
 /// Hull silhouette parameters, chosen by hull id so each ship reads distinct.
@@ -176,6 +186,9 @@ struct Profile {
     height: f32,
     /// Carries a central spun-gravity ring.
     ring: bool,
+    /// Selects the hull's readable construction language where the generic
+    /// profile would make the barge and ark look alike.
+    silhouette: Silhouette,
 }
 
 fn hull_profile(hull_id: &str) -> Profile {
@@ -187,6 +200,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 0.94,
             height: 1.12,
             ring: false,
+            silhouette: Silhouette::Barge,
         },
         "light_corvette" => Profile {
             nose: 0.95,
@@ -195,6 +209,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 0.72,
             height: 0.98,
             ring: false,
+            silhouette: Silhouette::Standard,
         },
         "generation_ark" => Profile {
             nose: 0.3,
@@ -203,6 +218,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 1.0,
             height: 1.2,
             ring: true,
+            silhouette: Silhouette::Ark,
         },
         "habitat_ring" => Profile {
             nose: 0.45,
@@ -211,6 +227,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 0.9,
             height: 1.16,
             ring: true,
+            silhouette: Silhouette::Standard,
         },
         "armored_prow" => Profile {
             nose: 1.0,
@@ -219,6 +236,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 0.84,
             height: 1.0,
             ring: false,
+            silhouette: Silhouette::Standard,
         },
         _ => Profile {
             nose: 0.5,
@@ -227,6 +245,7 @@ fn hull_profile(hull_id: &str) -> Profile {
             length: 0.88,
             height: 1.05,
             ring: false,
+            silhouette: Silhouette::Standard,
         },
     }
 }
@@ -261,20 +280,45 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
     let x_at = |t: f32| sx0 + t * (sx1 - sx0);
 
     // Control stations (t, height-fraction) mirrored top/bottom into a closed
-    // outline. Mid is full (encloses rooms); the shoulders stay high enough to
-    // wrap the room columns; only the bow and stern taper by nose/tail.
+    // outline. The barge keeps a long, flat working body and a squared stern;
+    // the ark raises a stepped central habitat block so its architecture reads
+    // before the spun-gravity ring is even noticed. Other hulls use the shared
+    // tapered profile.
     let shoulder = 0.82 + profile.bulge * 0.13;
     let bow = 0.12 + (1.0 - profile.nose) * 0.26;
     let tail = 0.22 + profile.tail * 0.30;
-    let stations = [
-        (0.00, bow),
-        (0.12, (bow + shoulder) * 0.5),
-        (0.30, shoulder),
-        (0.50, 1.0),
-        (0.70, shoulder),
-        (0.88, (tail + shoulder) * 0.5),
-        (1.00, tail),
-    ];
+    let stations: Vec<(f32, f32)> = match profile.silhouette {
+        Silhouette::Barge => vec![
+            (0.00, 0.50),
+            (0.08, 0.74),
+            (0.18, 0.92),
+            (0.30, 0.96),
+            (0.76, 0.96),
+            (0.88, 0.90),
+            (1.00, 0.90),
+        ],
+        Silhouette::Ark => vec![
+            (0.00, 0.36),
+            (0.10, 0.62),
+            (0.22, 0.78),
+            (0.32, 0.78),
+            (0.38, 0.96),
+            (0.62, 0.96),
+            (0.68, 0.78),
+            (0.78, 0.78),
+            (0.90, 0.68),
+            (1.00, 0.68),
+        ],
+        Silhouette::Standard => vec![
+            (0.00, bow),
+            (0.12, (bow + shoulder) * 0.5),
+            (0.30, shoulder),
+            (0.50, 1.0),
+            (0.70, shoulder),
+            (0.88, (tail + shoulder) * 0.5),
+            (1.00, tail),
+        ],
+    };
     let mut outline: Vec<Vec2> = stations
         .iter()
         .map(|&(t, f)| vec2(x_at(t), cy - f * max_h))
@@ -364,7 +408,7 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
             cy + row_offset
         };
         let rect = Rect::new(x_at(t) - w * 0.5, band_y - h * 0.5, w, h);
-        let (deck_lo, deck_hi) = deck_range(id);
+        let (deck_lo, deck_hi) = deck_range_for_slot(upper, col, cols);
         modules.push(ModuleGlyph {
             id: id.clone(),
             label: subsystem_short(id).to_owned(),
@@ -405,7 +449,7 @@ fn component_glyph(
     condition: f32,
     manned: bool,
 ) -> ModuleGlyph {
-    let (deck_lo, deck_hi) = deck_range(id);
+    let (deck_lo, deck_hi) = component_deck_range(kind);
     ModuleGlyph {
         id: id.to_owned(),
         label: label.to_owned(),
