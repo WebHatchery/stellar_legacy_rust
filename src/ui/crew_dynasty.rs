@@ -30,6 +30,16 @@ fn priced_action_label(action: &str, cost: i64, credits: i64) -> String {
     }
 }
 
+fn training_label(skill: u32, maximum: u32, gain: u32, cost: i64, credits: i64) -> String {
+    if skill >= maximum {
+        "MASTERED".to_owned()
+    } else if credits < cost {
+        format!("NEED {cost} CR")
+    } else {
+        format!("TRAIN TO SK {} · {cost}CR", (skill + gain).min(maximum))
+    }
+}
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let left = Rect::new(area.x, area.y, area.w * 0.55, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
@@ -370,15 +380,13 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                 }
                 if term_button(
                     Rect::new(content.right() - 150.0, y - 14.0, 144.0, POST_BUTTON_H),
-                    &if maxed {
-                        "MASTERED".to_owned()
-                    } else {
-                        priced_action_label(
-                            "TRAIN",
-                            crew_cfg.train_cost_credits,
-                            ctx.sim.resources.credits,
-                        )
-                    },
+                    &training_label(
+                        holder.skill,
+                        archetype.skill_max,
+                        crew_cfg.train_skill_gain,
+                        crew_cfg.train_cost_credits,
+                        ctx.sim.resources.credits,
+                    ),
                     !maxed && ctx.sim.resources.credits >= crew_cfg.train_cost_credits,
                     pointer,
                 ) {
