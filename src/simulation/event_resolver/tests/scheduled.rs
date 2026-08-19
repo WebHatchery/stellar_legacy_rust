@@ -197,3 +197,55 @@ fn a_charted_dearth_arrives_on_its_date_softened_only_if_provisioned() {
         "trusting the slack lays in nothing"
     );
 }
+
+#[test]
+fn the_ark_sleeper_returns_on_the_promised_clock() {
+    use crate::data::contracts::ContractPhase;
+
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let mut sim = SimState::new_campaign(&data, "preservers", 104, &picks);
+    sim.month_clock = 20 * 12;
+    let ark = data.contracts.get("the_ark_run").unwrap();
+    let mut active = crate::simulation::contract::start_contract(ark, &sim);
+    active.phase = ContractPhase::Travel;
+    sim.contract = Some(active);
+
+    let voice = data.events.get("the_voice_under_glass").unwrap();
+    let reckoning = data.events.get("the_cradle_reckoning").unwrap();
+    assert!(passes_gate(&sim, voice), "the ark hears the waking voice");
+    assert!(reckoning.scheduled_only, "the reckoning cannot roll early");
+
+    let repair = voice
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "mend_the_bank_and_return_her_to_cold")
+        .unwrap();
+    let delay = voice.outcomes[repair]
+        .schedule_followup
+        .as_ref()
+        .unwrap()
+        .delay_years;
+    let promised_year = sim.year() + delay;
+    apply_outcome(&mut sim, &data, voice, repair);
+    let scheduled = sim
+        .scheduled_events
+        .iter()
+        .find(|event| event.template_id == "the_cradle_reckoning")
+        .expect("repairing the cradle promises a later reckoning");
+    assert_eq!(scheduled.fire_year, promised_year);
+    assert!(sim
+        .consequences
+        .contains(&"promised_the_voice_a_shore".to_string()));
+
+    let mut ordinary = SimState::new_campaign(&data, "preservers", 105, &picks);
+    ordinary.month_clock = 20 * 12;
+    let mining = data.contracts.get("deep_vein_survey").unwrap();
+    let mut active = crate::simulation::contract::start_contract(mining, &ordinary);
+    active.phase = ContractPhase::Travel;
+    ordinary.contract = Some(active);
+    assert!(
+        !passes_gate(&ordinary, voice),
+        "a mining charter has no ark sleepers"
+    );
+}

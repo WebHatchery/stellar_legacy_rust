@@ -1116,5 +1116,159 @@
     "log": "Under the Ascension Circle the ship did what no baseline crew could: it reached into its own germ line and rewrote the wasting out of existence, curing the sickness and, in the same stroke, stepping a measured pace further from the human stock the founders had sealed into the hull — a people who would not merely endure their afflictions but edit them, and become, each time, someone new."
    }
   ]
+ },
+ {
+  "id": "the_voice_under_glass",
+  "category": "mission_milestone",
+  "family": "biology_medical",
+  "title": "The Voice Under Glass",
+  "description": "One sleeper in the ark has begun to wake. Her cold-bank is failing by fractions, enough that her eyes move beneath their lids and her implant has found the ship's intercom. She does not know three centuries are meant to pass around her. She only knows that someone is there, beyond the glass, and keeps asking whether the ship can hear her.",
+  "requires_decision": true,
+  "requires_charter_tag": [
+   "cryo_ark"
+  ],
+  "phases": [
+   "travel",
+   "operation"
+  ],
+  "min_year": 20,
+  "outcomes": [
+   {
+    "id": "mend_the_bank_and_return_her_to_cold",
+    "label": "Mend the bank and answer her",
+    "description": "Spend power and fabrication stock on the failing cradle. Tell her the truth, promise that she will wake at the waiting shore, and lower her gently back into the cold.",
+    "requires_full_payment": true,
+    "resource_delta": {
+     "energy": -300,
+     "minerals": -120
+    },
+    "population_delta": {
+     "morale": 0.01,
+     "legacy_loyalty": 0.01
+    },
+    "long_term_consequences": [
+     "promised_the_voice_a_shore"
+    ],
+    "schedule_followup": {
+     "template_id": "the_cradle_reckoning",
+     "delay_years": 25
+    },
+    "record": {
+     "official": "The failing cold-bank was repaired and its occupant returned to suspension after being promised a waking on the destination shore.",
+     "dynasty": "We answered the woman under glass before we put her back to sleep. Twenty-five years later, her voice was still in the captain's dreams.",
+     "affected": [
+      {
+       "people": "The Ark Sleepers",
+       "account": "One of us woke among strangers, and the strangers spent what they had to keep faith with all of us."
+      }
+     ]
+    },
+    "log": "The ship answered the waking sleeper, told her how far there was still to go, and promised her a shore she would not see for generations. The engineers rebuilt her failing cradle while she listened. Her last words before the cold took her again were: I will hold you to it."
+   },
+   {
+    "id": "wake_her_into_the_crew",
+    "label": "Wake her into the crew",
+    "description": "The cradle cannot be trusted and a living person is not cargo. End her suspension, accept one less sleeper in the banks, and give the ark colonists one waking witness aboard.",
+    "objective_progress_delta": -0.0001,
+    "population_delta": {
+     "count": 1,
+     "unity": 0.02,
+     "cultural_drift": 0.02
+    },
+    "long_term_consequences": [
+     "woke_the_ark_witness"
+    ],
+    "reputation_deltas": [
+     {
+      "id": "mercy",
+      "delta": 0.02
+     }
+    ],
+    "record": {
+     "official": "One colonist was removed from suspension after a cold-bank failure and entered the ship's complement for the remainder of the passage.",
+     "dynasty": "We stopped calling her a unit in the manifest. She woke early, learned our names, and became the only passenger who could speak back.",
+     "affected": [
+      {
+       "people": "The Ark Sleepers",
+       "account": "She crossed the centuries awake for us, carrying news of the ship into the world we would inherit."
+      }
+     ]
+    },
+    "log": "The ship opened the cradle and woke the sleeper for good. She lost the world that was meant to greet her and gained a place among the crew, the only one of ten thousand passengers awake to ask what was being done in their name."
+   }
+  ]
+ },
+ {
+  "id": "the_cradle_reckoning",
+  "category": "mission_milestone",
+  "family": "biology_medical",
+  "title": "The Cradle Reckoning",
+  "description": "Twenty-five years after the voice under glass went quiet, the repaired bank fails again — not one cradle this time but the whole eighty-sleeper rack built around it. The old patch bought exactly the years it promised and no more. At the center, the woman who said she would hold the ship to its word is warming for the second time.",
+  "requires_decision": true,
+  "scheduled_only": true,
+  "outcomes": [
+   {
+    "id": "keep_the_promise_to_the_rack",
+    "label": "Keep the promise to all eighty",
+    "description": "Rebuild the rack properly, whatever it costs. The ship made one promise aloud, but every sleeper around her was carried under the same trust.",
+    "requires_full_payment": true,
+    "resource_delta": {
+     "credits": -500,
+     "energy": -500,
+     "minerals": -250
+    },
+    "objective_progress_delta": 0.008,
+    "population_delta": {
+     "morale": 0.03,
+     "legacy_loyalty": 0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "resolve",
+      "delta": 0.03
+     }
+    ],
+    "log": "The ship rebuilt all eighty cradles down to their bones and put every sleeper safely back below freezing. The woman at the center woke just long enough to hear that the shore was still ahead and the promise still held. This time she smiled before the glass frosted over."
+   },
+   {
+    "id": "save_the_voice_salvage_the_rack",
+    "label": "Save her; salvage the other cradles",
+    "description": "Keep the promise that was actually spoken and strip the other failing cradles for what the voyage needs. One life and a hard reserve are saved; seventy-nine passengers are written off.",
+    "resource_delta": {
+     "energy": 400,
+     "minerals": 180
+    },
+    "objective_progress_delta": -0.0079,
+    "population_delta": {
+     "morale": -0.03,
+     "unity": -0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "mercy",
+      "delta": -0.03
+     }
+    ],
+    "log": "The ship kept its promise in the narrowest possible sense. One cradle stayed cold; seventy-nine were opened for salvage and their occupants never reached the shore. The manifest called it triage. The woman under glass, when she finally woke, would call it something else."
+   },
+   {
+    "id": "wake_the_whole_rack",
+    "label": "Wake the rack into the crew",
+    "description": "If the ship cannot keep eighty cradles cold, let it keep eighty people alive. Wake them early, make room, and turn passengers into shipmates for the generations left to fly.",
+    "objective_progress_delta": -0.008,
+    "population_delta": {
+     "count": 80,
+     "unity": 0.03,
+     "cultural_drift": 0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "mercy",
+      "delta": 0.02
+     }
+    ],
+    "log": "Eighty sleepers woke generations early and found not a planet but a ship that had become a world while they slept. The ark delivered fewer colonists in cold storage thereafter, and carried eighty more living voices to argue over what delivery, home, and keeping faith ought to mean."
+   }
+  ]
  }
 ]
