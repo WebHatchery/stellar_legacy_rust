@@ -320,6 +320,8 @@ impl Game {
                     &self.data,
                     "medical_bay",
                 );
+                sim.resources.credits = 100;
+                sim.resources.influence = 5;
                 if let Some(template) = self.data.contracts.get("deep_vein_survey") {
                     sim.contract = Some(contract::start_contract(template, &sim));
                 }

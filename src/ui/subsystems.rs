@@ -10,6 +10,14 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
+fn priced_action_label(action: &str, cost: i64, available: i64, unit: &str) -> String {
+    if available >= cost {
+        format!("{action} ({cost}{unit})")
+    } else {
+        format!("NEED {cost}{unit}")
+    }
+}
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     const GAP: f32 = 12.0;
     let col_w = (area.w - GAP) / 2.0;
@@ -142,22 +150,42 @@ fn draw_card(
     // custody, then becomes the school's periodic recommitment.
     let (institution_label, institution_ok, institution_action) = match school {
         None => (
-            format!("SCHOOL ({}cr)", cfg.crew.school_cost_credits),
+            priced_action_label(
+                "SCHOOL",
+                cfg.crew.school_cost_credits,
+                ctx.sim.resources.credits,
+                "cr",
+            ),
             ctx.sim.resources.credits >= cfg.crew.school_cost_credits,
             UiAction::EstablishSchool(id.to_owned()),
         ),
         Some(_) if !archived => (
-            format!("ARCHIVE ({}cr)", cfg.crew.archive_cost_credits),
+            priced_action_label(
+                "ARCHIVE",
+                cfg.crew.archive_cost_credits,
+                ctx.sim.resources.credits,
+                "cr",
+            ),
             ctx.sim.resources.credits >= cfg.crew.archive_cost_credits,
             UiAction::CompileProcedureArchive(id.to_owned()),
         ),
         Some(school) if school.custodian_faction_id.is_none() => (
-            format!("CUSTODY ({}inf)", cfg.crew.custody_influence_cost),
+            priced_action_label(
+                "CUSTODY",
+                cfg.crew.custody_influence_cost,
+                ctx.sim.resources.influence,
+                "inf",
+            ),
             ctx.sim.resources.influence >= cfg.crew.custody_influence_cost,
             UiAction::BeginDisciplineCustody(id.to_owned()),
         ),
         Some(_) => (
-            format!("RECOMMIT ({}cr)", cfg.crew.school_upkeep_credits),
+            priced_action_label(
+                "RECOMMIT",
+                cfg.crew.school_upkeep_credits,
+                ctx.sim.resources.credits,
+                "cr",
+            ),
             ctx.sim.resources.credits >= cfg.crew.school_upkeep_credits,
             UiAction::EstablishSchool(id.to_owned()),
         ),
@@ -203,6 +231,13 @@ fn draw_card(
     // Upgrade: port-only, pays the next fitting's cost, caps at the top version.
     let next = def.next_fitting(state.tier);
     let upgrade_label = match next {
+        Some(t)
+            if in_port
+                && (ctx.sim.resources.credits < t.cost.credits
+                    || ctx.sim.resources.minerals < t.cost.minerals) =>
+        {
+            format!("NEED {}cr·{}min", t.cost.credits, t.cost.minerals)
+        }
         Some(t) if in_port => format!("UPGRADE ({}cr)", t.cost.credits),
         Some(_) => "UPGRADE · PORT".to_owned(),
         None => "MAX TIER".to_owned(),
@@ -225,7 +260,12 @@ fn draw_card(
     let train_ok = ctx.sim.resources.credits >= cfg.subsystems.train_cost_credits;
     if term_button(
         Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 40.0),
-        &format!("TRAIN ({}cr)", cfg.subsystems.train_cost_credits),
+        &priced_action_label(
+            "TRAIN",
+            cfg.subsystems.train_cost_credits,
+            ctx.sim.resources.credits,
+            "cr",
+        ),
         train_ok,
         pointer,
     ) {
@@ -240,6 +280,9 @@ fn draw_card(
         actions.push(institution_action);
     }
 }
+
+#[cfg(test)]
+mod tests;
 
 fn draw_custody_picker(
     ctx: &GameplayCtx<'_>,
