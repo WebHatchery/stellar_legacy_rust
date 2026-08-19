@@ -1,8 +1,9 @@
 //! Dashboard: ship vitals, population, advance-time control, ship's log.
 
 use crate::data::ship_components::ComponentKind;
+use crate::data::GameConfig;
 use crate::simulation::ship::RepairKind;
-use crate::state::sim::{GameSpeed, PopulationState};
+use crate::state::sim::{GameSpeed, PopulationState, SimState};
 use crate::state::Screen;
 use crate::ui::{
     spec_line, stat_line, status_badge, term, term_button, term_meter, term_meter_toned,
@@ -453,13 +454,6 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
     let sim = ctx.sim;
     let inner = rect.inset(10.0);
 
-    let food_per_year =
-        ctx.data.config.food_per_person_per_year * sim.population.count.max(1) as f32;
-    let food_years = if food_per_year > 0.0 {
-        sim.resources.food as f32 / food_per_year
-    } else {
-        0.0
-    };
     let contract = sim.contract.as_ref();
     let (phase, objective) = contract
         .map(|contract| {
@@ -511,16 +505,7 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             term::primary(),
         )
     };
-    let risks = [
-        (sim.ship.hull_integrity, "HULL WEAR"),
-        (sim.ship.life_support, "AIR PLANT"),
-        (sim.ship.fuel, "FUEL MARGIN"),
-        ((food_years / 10.0).clamp(0.0, 1.0), "FOOD COVER"),
-    ];
-    let (risk_value, risk_label) = risks
-        .into_iter()
-        .min_by(|a, b| a.0.total_cmp(&b.0))
-        .unwrap();
+    let (risk_label, risk_value) = primary_risk(sim, &ctx.data.config);
     let weakest = sim
         .subsystems
         .iter()
@@ -553,7 +538,7 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
         (
             GaugeIcon::Life,
             "PRIMARY RISK",
-            risk_label.to_owned(),
+            risk_label,
             if risk_value < 0.35 {
                 term::alert()
             } else {
@@ -578,6 +563,54 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
                 term::faint(),
             );
         }
+    }
+}
+
+/// Exact weakest survival reserve for the Dashboard instrument strip. Scores
+/// share a 0-1 safety scale; once all are comfortably above danger, the readout
+/// stops inventing a problem and reports the ship sound.
+fn primary_risk(sim: &SimState, config: &GameConfig) -> (String, f32) {
+    let yearly_food = config.food_per_person_per_year * sim.population.count.max(1) as f32;
+    let food_years = if yearly_food > 0.0 {
+        sim.resources.food as f32 / yearly_food
+    } else {
+        10.0
+    };
+    let energy_score = if config.low_energy_threshold > 0 {
+        sim.resources.energy as f32 / config.low_energy_threshold as f32
+    } else {
+        1.0
+    };
+    let risks = [
+        (
+            sim.ship.hull_integrity,
+            format!("HULL {:.0}%", sim.ship.hull_integrity * 100.0),
+        ),
+        (
+            sim.ship.life_support,
+            format!("AIR {:.0}%", sim.ship.life_support * 100.0),
+        ),
+        (sim.ship.fuel, format!("FUEL {:.0}%", sim.ship.fuel * 100.0)),
+        (
+            (food_years / 10.0).clamp(0.0, 1.0),
+            format!("FOOD {food_years:.1}Y"),
+        ),
+        (
+            energy_score.clamp(0.0, 1.0),
+            format!(
+                "ENERGY {}/{}",
+                sim.resources.energy, config.low_energy_threshold
+            ),
+        ),
+    ];
+    let (score, label) = risks
+        .into_iter()
+        .min_by(|a, b| a.0.total_cmp(&b.0))
+        .unwrap();
+    if score >= 0.75 {
+        ("ALL SYSTEMS SOUND".to_owned(), score)
+    } else {
+        (label, score)
     }
 }
 
@@ -697,3 +730,6 @@ fn log_tone(text: &str) -> (&'static str, Color) {
         ("·", term::dim())
     }
 }
+
+#[cfg(test)]
+mod tests;

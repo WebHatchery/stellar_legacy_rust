@@ -602,6 +602,19 @@ impl Game {
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
             "debrief" => self.fly_to_homecoming("founding_colony"),
+            "dashboard_risk" => {
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                sim.resources.energy = self.data.config.low_energy_threshold / 5;
+                if let Some(template) = self.data.contracts.get("founding_colony") {
+                    sim.contract = Some(contract::start_contract(template, &sim));
+                }
+                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+            }
             // "gameplay" and anything else: a fresh campaign on the dashboard.
             _ => {
                 let mut sim = SimState::new_campaign(
