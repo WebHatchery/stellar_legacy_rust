@@ -4,8 +4,6 @@
 //! [ LAUNCH ] button. Pure view — it emits `SelectCharter` / `Launch` /
 //! `Refuel` / `Buy` / `BuyParts` only.
 
-use crate::data::contracts::ContractPhase;
-use crate::simulation::crew::production_multipliers;
 use crate::state::sim::TradeResource;
 use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
@@ -63,6 +61,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         return;
     };
     let config = &ctx.data.config;
+    let forecast = crate::simulation::contract::forecast::for_departure(sim, ctx.data, template);
 
     term_panel(rect, Some("PREP // DEPARTURE"));
     let content = rect.inset(18.0);
@@ -140,16 +139,35 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     }
     y += 36.0;
 
+    draw_ui_text_ex(
+        &format!(
+            "ROUTE LOAD · crisis weight +{:.2} · hull {:+.0}% · life support {:+.0}% over charter",
+            template.hazard,
+            forecast.route_hull_change * 100.0,
+            forecast.route_life_support_change * 100.0
+        ),
+        content.x,
+        y,
+        TextStyle::new(
+            12.0,
+            if template.hazard > 0.0 || !template.annual_toll.is_none() {
+                term::alert()
+            } else {
+                term::dim()
+            },
+        )
+        .params(),
+    );
+    y += 20.0;
+
     // --- Provisioning readout ---
     draw_ui_text_ex(
-        "PROVISIONING vs VOYAGE",
+        "BASELINE PROVISIONING FORECAST",
         content.x,
         y,
         TextStyle::new(14.0, term::primary()).params(),
     );
     y += 22.0;
-    let dur = template.target_duration_years as f32;
-
     // Each provisioning row carries its own stock-up button so filling the
     // stores never means leaving the PREP screen.
     // 36 tall on a PROVISION_STRIDE row: the 8px it leaves is what the touch
@@ -157,30 +175,36 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     // standard asks for. This screen had the room; the CREW posts column did not.
     let stock_btn = |y: f32| Rect::new(content.right() - 200.0, y - 22.0, 194.0, 36.0);
 
-    // Food: need over the whole voyage vs stores, plus the net yearly balance
-    // production offsets it by (crew-multiplied). The button buys the shortfall
-    // at market price, capped at what the treasury can afford.
-    let food_need = (sim.population.count as f32 * config.food_per_person_per_year * dur) as i64;
-    let food_mult = production_multipliers(sim, ctx.data).food;
-    let net_food = sim.production.food * food_mult
-        - sim.population.count as f32 * config.food_per_person_per_year;
+    // Food: a current-state projection that includes crew skill, agriculture
+    // tier/condition, consumption, and a standing route toll. This is a useful
+    // reserve rather than gross centuries of consumption that onboard farms
+    // will replace. Events and future deterioration remain explicitly outside
+    // the baseline.
+    let food_need = forecast.recommended_food_store;
     provision_line(
         content.x,
         y,
         "FOOD ",
         sim.resources.food,
         food_need,
-        &format!("net {net_food:+.0}/yr from production"),
+        &format!(
+            "end {} · net {:+}/yr ({} made / {} eaten)",
+            forecast.projected_food_end,
+            forecast.annual_food_net,
+            forecast.annual_food_output,
+            forecast.annual_food_use
+        ),
     );
     let food_short = (food_need - sim.resources.food).max(0);
-    let food_price = crate::simulation::market::price_of(sim, TradeResource::Food);
-    let food_afford = if food_price > 0.0 {
-        (sim.resources.credits as f32 / food_price).floor() as i64
+    let unit_quote = crate::simulation::market::buy_quote(sim, TradeResource::Food, 1);
+    let food_afford = if unit_quote.effective_unit_price > 0.0 {
+        (sim.resources.credits as f32 / unit_quote.effective_unit_price).floor() as i64
     } else {
         0
     };
     let food_buy = food_short.min(food_afford);
-    let food_cost = (food_price * food_buy as f32).ceil() as i64;
+    let food_cost =
+        crate::simulation::market::buy_quote(sim, TradeResource::Food, food_buy).total_credits;
     let food_label = if food_short == 0 {
         "FOOD STOCKED".to_owned()
     } else if food_buy <= 0 {
@@ -195,7 +219,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
 
     // Spare parts: yearly upkeep across the voyage vs stores. The button stocks
     // the shortfall at the drydock part price, capped by the treasury.
-    let parts_need = config.parts_upkeep_per_year * template.target_duration_years as i64;
+    let parts_need = forecast.parts_upkeep;
     provision_line(
         content.x,
         y,
@@ -226,13 +250,6 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
 
     // Fuel: burned only across Travel months; the tank caps at 1.0 and the
     // engine regen tops it up underway, so need can exceed a single tank.
-    let travel_months: u32 = template
-        .phases
-        .iter()
-        .filter(|p| p.kind == ContractPhase::Travel)
-        .map(|p| p.years * 12)
-        .sum();
-    let fuel_need = config.provisioning.fuel_burn_per_travel_month * travel_months as f32;
     let fuel_color = if sim.ship.fuel < 1.0 {
         term::alert()
     } else {
@@ -240,10 +257,11 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     };
     draw_ui_text_ex(
         &format!(
-            "FUEL  — tank {:.0}%  ·  burn {:.2} over {} travel yrs (engine regen offsets)",
+            "FUEL  — tank {:.0}%  ·  burn {:.2} over {} travel yrs · regen up to {:.2}/yr",
             sim.ship.fuel * 100.0,
-            fuel_need,
-            travel_months / 12
+            forecast.fuel_burn,
+            forecast.travel_years,
+            forecast.fuel_regen_per_year
         ),
         content.x,
         y,

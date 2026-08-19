@@ -4,6 +4,8 @@ use crate::data::contracts::{ContractPhase, ContractTemplate, MetricKind};
 use crate::data::ResourceDelta;
 use crate::state::sim::{ActiveContract, MetricState, MilestoneState, SimState};
 
+pub mod forecast;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SuccessLevel {
     Complete,
