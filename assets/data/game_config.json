@@ -118,7 +118,7 @@
       {
         "id": "choose_charter",
         "label": "Choose a charter",
-        "tip": "Compare length and reward, then SELECT a charter to consider it. Nothing is committed until you press LAUNCH."
+        "tip": "Compare length and reward, then tap SELECT on a charter. Nothing is committed until you tap LAUNCH."
       },
       {
         "id": "stock_food",
@@ -156,10 +156,10 @@
       },
       {
         "heading": "COMMAND",
-        "body": "The council brings you decisions; each one pauses the clock until you answer, and there are no undo buttons — only consequences your heirs inherit. Press F2 any time for the controls, and F1 for display settings. When you're ready, dismiss this and choose your legacy."
+        "body": "The council brings you decisions; each one pauses the clock until you answer, and there are no undo buttons — only consequences your heirs inherit. Tap HELP any time for controls, and DISPLAY for settings. When you're ready, tap BEGIN and choose your legacy."
       }
     ],
-    "dismiss_label": "BEGIN [ press any key ]"
+    "dismiss_label": "BEGIN"
   },
   "subsystems": {
     "knowledge_start": 0.7,

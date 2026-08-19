@@ -2,8 +2,8 @@
 //! install (gated on a saved flag) over the new-game picker, greeting a new
 //! commander after they choose NEW GAME, before they pick a legacy and crew.
 //! Pure view — returns true on the frame the player
-//! dismisses it (button click); the game also treats any keypress as dismiss, to
-//! honor the "press any key" label. All text is data (`config.welcome`).
+//! dismisses it (button click); the game also treats any keypress as a
+//! supplemental shortcut. All text is data (`config.welcome`).
 
 use crate::data::WelcomeConfig;
 use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};

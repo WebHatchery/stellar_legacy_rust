@@ -29,7 +29,7 @@ const LINES: &[&str] = &[
     "",
     "ALL SYSTEMS NOMINAL.   MOUNTING FOUNDING CHARTER...",
     "",
-    ">> PRESS ANY KEY TO BEGIN <<",
+    ">> STANDBY — OPENING MAIN CONSOLE <<",
 ];
 
 /// One-shot boot animation. Held on `Game`; shown while it is not [`is_done`].

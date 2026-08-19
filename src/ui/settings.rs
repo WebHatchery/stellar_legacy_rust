@@ -177,7 +177,7 @@ pub fn draw(
         y += 48.0;
     }
     draw_ui_text_ex(
-        "F1 panel · F2 help · F10 CRT · ESC closes.",
+        "Tap DISPLAY for this panel · HELP for controls · CLOSE to return.",
         content.x,
         content.bottom() - 54.0,
         TextStyle::new(13.0, term::faint()).params(),
