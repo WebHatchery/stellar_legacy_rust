@@ -25,7 +25,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, _actions: &mut 
         area.h,
     );
     draw_archive(ctx, left, pointer);
-    draw_obligations(ctx, ledger);
+    draw_obligations(ctx, ledger, pointer);
     draw_milestones(ctx, right);
 }
 
@@ -185,27 +185,99 @@ fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     ctx.chronicle_scroll.set(scroll);
 }
 
-fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect) {
+fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("OBLIGATIONS LEDGER"));
     let content = area.inset(18.0);
-    let mut y = content.y + 38.0;
-    let obligations: Vec<_> = ctx.sim.active_obligations().collect();
+    let mut obligations: Vec<_> = ctx.sim.active_obligations().collect();
     if obligations.is_empty() {
         draw_text_block(
             "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided.",
-            content.x, y, content.w, 90.0, 13.0, 4.0, term::dim(),
+            content.x, content.y + 38.0, content.w, 90.0, 13.0, 4.0, term::dim(),
         );
         return;
     }
+
+    let year = ctx.sim.year();
+    let overdue_ids: Vec<_> = ctx
+        .sim
+        .due_obligations()
+        .into_iter()
+        .map(|obligation| obligation.id.as_str())
+        .collect();
+    let is_overdue =
+        |obligation: &crate::state::sim::Obligation| overdue_ids.contains(&obligation.id.as_str());
+    obligations.sort_by_key(|obligation| {
+        (
+            !is_overdue(obligation),
+            obligation.due_year.unwrap_or(u32::MAX),
+            obligation.created_year,
+            obligation.id.as_str(),
+        )
+    });
+    let overdue_count = obligations
+        .iter()
+        .filter(|obligation| is_overdue(obligation))
+        .count();
+    draw_ui_text_ex(
+        &format!(
+            "{} ACTIVE · {} DUE NOW · YEAR {year:03}",
+            obligations.len(),
+            overdue_count
+        ),
+        content.x,
+        content.y + 38.0,
+        TextStyle::new(
+            12.0,
+            if overdue_count > 0 {
+                term::alert()
+            } else {
+                term::accent()
+            },
+        )
+        .params(),
+    );
+
+    const ROW_H: f32 = 126.0;
+    const ROW_GAP: f32 = 8.0;
+    let view = Rect::new(
+        content.x,
+        content.y + 52.0,
+        content.w,
+        content.bottom() - content.y - 52.0,
+    );
+    let content_h = obligations.len() as f32 * (ROW_H + ROW_GAP) - ROW_GAP;
+    let mut scroll = ctx.obligations_scroll.get();
+    scroll.update_at(view, content_h, pointer.position);
+    let mut y = view.y - scroll.offset();
     for obligation in obligations {
-        let overdue = ctx
-            .sim
-            .due_obligations()
-            .iter()
-            .any(|due| due.id == obligation.id);
+        let overdue = is_overdue(obligation);
+        let row = Rect::new(view.x, y, view.w - GUTTER, ROW_H);
+        y += ROW_H + ROW_GAP;
+        if !is_fully_visible(row, view) {
+            continue;
+        }
+        draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
+        draw_rectangle_lines(
+            row.x,
+            row.y,
+            row.w,
+            row.h,
+            1.0,
+            if overdue {
+                term::alert()
+            } else {
+                term::faint()
+            },
+        );
         let due = obligation
             .due_year
-            .map(|year| format!("Y{year:03}"))
+            .map(|due_year| {
+                if due_year <= year {
+                    format!("Y{due_year:03} · {}Y OVERDUE", year - due_year)
+                } else {
+                    format!("Y{due_year:03} · IN {}Y", due_year - year)
+                }
+            })
             .unwrap_or_else(|| "OPEN".to_owned());
         let inherited = if obligation.successions_crossed > 0 {
             " · INHERITED"
@@ -223,8 +295,8 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect) {
                 },
                 inherited
             ),
-            content.x,
-            y,
+            row.x + 10.0,
+            row.y + 18.0,
             TextStyle::new(
                 14.0,
                 if overdue {
@@ -235,7 +307,7 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect) {
             )
             .params(),
         );
-        y += 18.0;
+        let mut line_y = row.y + 36.0;
         for line in [
             format!("TO: {}", obligation.beneficiary),
             format!("OWNER: {} · DUE {due}", obligation.responsible),
@@ -248,18 +320,25 @@ fn draw_obligations(ctx: &GameplayCtx<'_>, area: Rect) {
         ] {
             draw_text_block(
                 &line,
-                content.x + 8.0,
-                y,
-                content.w - 8.0,
+                row.x + 10.0,
+                line_y,
+                row.w - 20.0,
                 28.0,
                 11.0,
                 2.0,
                 term::dim(),
             );
-            y += 24.0;
+            line_y += 22.0;
         }
-        y += 12.0;
     }
+    scroll.draw_scrollbar_with(
+        view,
+        content_h,
+        term::surface_inset(),
+        term::dim(),
+        term::primary(),
+    );
+    ctx.obligations_scroll.set(scroll);
 }
 
 fn draw_mission_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {

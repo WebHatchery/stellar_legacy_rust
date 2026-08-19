@@ -141,6 +141,9 @@ pub struct Game {
     chronicle_scroll: Cell<ScrollArea>,
     /// CHRONICLE sub-tab: current voyage records or completed mission archive.
     chronicle_records_tab: Cell<bool>,
+    /// Smooth-scroll state for active duties. Obligations accumulate independently
+    /// of the record/archive sub-tab and must remain reachable on long voyages.
+    obligations_scroll: Cell<ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list:
     /// a century-long charter can pass through more captains than the panel
     /// holds, and the point of the list is that none of them is dropped.
@@ -232,6 +235,7 @@ impl Game {
             roster_scroll: Cell::new(ScrollArea::new()),
             chronicle_scroll: Cell::new(ScrollArea::new()),
             chronicle_records_tab: Cell::new(true),
+            obligations_scroll: Cell::new(ScrollArea::new()),
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
             ship_modules_tab: Cell::new(false),
@@ -506,6 +510,7 @@ impl Game {
                     roster_scroll: &self.roster_scroll,
                     chronicle_scroll: &self.chronicle_scroll,
                     chronicle_records_tab: &self.chronicle_records_tab,
+                    obligations_scroll: &self.obligations_scroll,
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     ship_modules_tab: &self.ship_modules_tab,

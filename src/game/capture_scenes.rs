@@ -428,6 +428,23 @@ impl Game {
                         );
                     }
                 }
+                // The ledger must prove that active duties beyond the visible
+                // rows remain reachable, including a mixture of timed and open
+                // promises. Capture-only copies avoid altering authored data.
+                let obligation_samples = sim.obligations.clone();
+                for (index, original) in obligation_samples.iter().cycle().take(3).enumerate() {
+                    let mut sample = original.clone();
+                    sample.id = format!("capture-obligation-{index}");
+                    sample.authored_id = format!("capture-duty-{index}");
+                    sample.title = [
+                        "The Cartographers' Passage",
+                        "Rain for the Glass Gardens",
+                        "Witnesses for the Far Compact",
+                    ][index]
+                        .to_owned();
+                    sample.due_year = (index != 1).then_some(116 + index as u32 * 18);
+                    sim.obligations.push(sample);
+                }
                 let heir = sim
                     .dynasty
                     .members

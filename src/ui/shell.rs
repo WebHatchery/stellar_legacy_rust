@@ -47,6 +47,8 @@ pub struct GameplayCtx<'a> {
     /// Chronicle sub-tab: `true` shows the current voyage's competing decision
     /// records; `false` shows the cross-campaign mission archive.
     pub chronicle_records_tab: &'a std::cell::Cell<bool>,
+    /// Smooth-scroll state for the active obligations ledger.
+    pub obligations_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's chain-of-command list —
     /// a long charter passes through more captains than the panel holds.
     pub debrief_commanders_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
