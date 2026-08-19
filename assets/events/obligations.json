@@ -164,5 +164,320 @@
       { "id": "revise_compact", "label": "Trade the seat for a veto", "description": "Rewrite the guarantee with the Hearth's consent.", "resource_delta": { "influence": -10 }, "population_delta": { "unity": 0.01 }, "obligation_operations": [{ "action": "renegotiate", "authored_id": "hearth_compact", "due_in_years": 15, "note": "The permanent seat became a limited veto, subject to review." }], "record": { "official": "By mutual consent, the permanent Hearth seat became a limited veto subject to review in fifteen years.", "dynasty": "We preserved the compact by letting the living alter its shape instead of worshipping its wording.", "affected": [{ "people": "The Hearth Union", "account": "We surrendered a chair no captain could ignore for a power no council could overrule, and kept a date to judge the bargain." }] }, "log": "The Hearth traded its permanent chair for a narrower power and a date to review it." },
       { "id": "break_compact", "label": "Strike the compact", "description": "Refuse inherited privileges and accept the internal breach.", "population_delta": { "unity": -0.07, "stability": -0.04 }, "obligation_operations": [{ "action": "default", "authored_id": "hearth_compact", "note": "The inherited compact was struck from the council book." }], "record": { "official": "The council voided the inherited Hearth Compact as an impermissible constraint on the present charter.", "dynasty": "Our predecessor mistook concession for law. We restored one council for one ship.", "affected": [{ "people": "The Hearth Union", "account": "One captain signed our place into the ship. The next taught us exactly how much a dynasty's seal was worth." }] }, "log": "The new reign struck out the old compact, and the Hearth remembered who had signed and who had broken it." }
     ]
+  },
+  {
+    "id": "seed_vault_covenant_offer",
+    "category": "generational_challenge",
+    "family": "biology_medical",
+    "title": "Seeds Against a Winter",
+    "description": "The failing seedship Morrow asks to bank its last viable crop lines in the ship-city's gardens and return a living collection to its descendants.",
+    "advisor_posts": ["agronomist", "medic"],
+    "requires_decision": true,
+    "forbidden_consequence": ["seed_vault_covenant_heard"],
+    "outcomes": [
+      {
+        "id": "bind_seed_covenant",
+        "label": "Bank the living lines",
+        "description": "Carry the collection for thirty-six years and return enough seed to restart Morrow's gardens.",
+        "long_term_consequences": ["seed_vault_covenant_heard"],
+        "obligation_operations": [{
+          "action": "create",
+          "authored_id": "morrow_seed_covenant",
+          "title": "Morrow's Living Vault",
+          "source": "event:seed_vault_covenant_offer",
+          "beneficiary": "The descendants of Morrow",
+          "due_in_years": 36,
+          "resolution_event": "seed_vault_covenant_due",
+          "visibility": "public",
+          "material_stakes": "1,200 food, minerals, and irreplaceable crop lines",
+          "reputation_stakes": "Trust in the ship as a keeper of living inheritance"
+        }],
+        "record": {
+          "official": "The council accepted Morrow's crop archive in trust and covenanted to return a viable founding stock after thirty-six years.",
+          "dynasty": "We took a spring we might never see and promised our heirs would not mistake it for their own.",
+          "affected": [{ "people": "The seedship Morrow", "account": "They closed our last green drawers inside their walls and signed that the living things still belonged to our children." }]
+        },
+        "log": "Morrow's seeds entered the grow-decks under a seal that named another generation as their owner."
+      },
+      {
+        "id": "decline_seed_covenant",
+        "label": "Share methods, not custody",
+        "description": "Teach emergency propagation now without taking ownership of another people's future harvest.",
+        "resource_delta": { "food": -250 },
+        "subsystem_deltas": [{ "id": "agriculture", "knowledge": 0.01 }],
+        "long_term_consequences": ["seed_vault_covenant_heard"],
+        "record": {
+          "official": "The council supplied emergency seed and propagation methods but declined long custodial title over Morrow's archive.",
+          "dynasty": "A promise cannot preserve what our own gardens may be forced to eat.",
+          "affected": [{ "people": "The seedship Morrow", "account": "They taught us how to stretch one winter farther and left our last spring in our own failing hands." }]
+        },
+        "log": "The agronomists shared a season's seed and every method they knew, but accepted no vault in trust."
+      }
+    ]
+  },
+  {
+    "id": "seed_vault_covenant_due",
+    "category": "mission_milestone",
+    "family": "biology_medical",
+    "title": "The Borrowed Spring",
+    "description": "Morrow's grandchildren have arrived with empty cold drawers. The crop lines in the ship-city's gardens are now productive, precious, and due to someone else.",
+    "advisor_posts": ["agronomist", "commander"],
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      {
+        "id": "return_morrow_vault",
+        "label": "Return a founding harvest",
+        "description": "Give the promised crop lines, growing medium, and a full first season's stores.",
+        "resource_delta": { "food": -1200, "minerals": -300 },
+        "subsystem_deltas": [{ "id": "agriculture", "knowledge": 0.05 }],
+        "population_delta": { "morale": 0.02, "unity": 0.02 },
+        "obligation_operations": [{ "action": "fulfil", "authored_id": "morrow_seed_covenant", "note": "A viable founding harvest and the complete living archive were returned." }],
+        "record": {
+          "official": "Morrow's Living Vault was returned in full with a founding harvest and complete propagation record.",
+          "dynasty": "We gave away plants our children had learned to call ours, because our seal remembered whose spring they were.",
+          "affected": [{ "people": "The descendants of Morrow", "account": "Every label still carried our dead ship's hand. They had kept even the names alive." }]
+        },
+        "log": "The vault doors opened outward, and Morrow's grandchildren carried a whole spring home."
+      },
+      {
+        "id": "divide_morrow_vault",
+        "label": "Divide the living archive",
+        "description": "Return hardy lines now and propagate the fragile remainder for twelve more years.",
+        "resource_delta": { "food": -450, "minerals": -100 },
+        "subsystem_deltas": [{ "id": "agriculture", "knowledge": 0.02 }],
+        "obligation_operations": [{ "action": "renegotiate", "authored_id": "morrow_seed_covenant", "due_in_years": 12, "note": "Hardy lines were returned; fragile cultures remained in propagation under a twelve-year extension." }],
+        "record": {
+          "official": "By consent, hardy crop lines transferred immediately while fragile cultures remained under a twelve-year propagation extension.",
+          "dynasty": "We divided the spring so neither garden would be ruined by keeping the letter of the bond in one day.",
+          "affected": [{ "people": "The descendants of Morrow", "account": "Half our inheritance crossed the ramp. For the other half they gave us another seal and another date." }]
+        },
+        "log": "Morrow received the crops that could travel; the fragile green remained behind beneath a renewed date."
+      },
+      {
+        "id": "retain_morrow_vault",
+        "label": "Keep the adapted crops",
+        "description": "Declare that generations of ship-city cultivation have made the living archive part of this population's survival.",
+        "population_delta": { "unity": -0.04, "morale": -0.03 },
+        "reputation_deltas": [{ "id": "resolve", "delta": -0.04 }],
+        "obligation_operations": [{ "action": "default", "authored_id": "morrow_seed_covenant", "note": "The adapted crop lines were retained as essential ship-city property." }],
+        "record": {
+          "official": "The council defaulted on the Living Vault covenant, ruling the adapted crops inseparable from ship-city subsistence.",
+          "dynasty": "The dead promised away the roots beneath the living. We refused to pull them up.",
+          "affected": [{ "people": "The descendants of Morrow", "account": "They showed us our names on every drawer, then explained why the plants under them no longer belonged to us." }]
+        },
+        "log": "The vault stayed shut, its old ownership outweighed by the mouths now fed from it."
+      }
+    ]
+  },
+  {
+    "id": "pilgrim_beacon_offer",
+    "category": "legacy_moment",
+    "family": "science_anomaly",
+    "title": "A Light Kept After Us",
+    "description": "The dying navigators of Lantern Pilgrim ask the ship to power their route beacon until the slow refugee craft behind them clears the black crossing.",
+    "advisor_posts": ["navigator", "engineer"],
+    "requires_decision": true,
+    "forbidden_consequence": ["pilgrim_beacon_heard"],
+    "outcomes": [
+      {
+        "id": "take_beacon_watch",
+        "label": "Take the beacon watch",
+        "description": "Bind thirty-two years of power cells, calibration, and navigational attention to a light for ships not yet visible.",
+        "long_term_consequences": ["pilgrim_beacon_heard"],
+        "obligation_operations": [{
+          "action": "create",
+          "authored_id": "pilgrim_beacon_watch",
+          "title": "The Lantern Watch",
+          "source": "event:pilgrim_beacon_offer",
+          "beneficiary": "The slow convoy behind Lantern Pilgrim",
+          "due_in_years": 32,
+          "resolution_event": "pilgrim_beacon_due",
+          "visibility": "private",
+          "material_stakes": "1,500 energy and a generation of navigation watch",
+          "reputation_stakes": "Whether an unseen convoy can trust a light whose keepers it never met"
+        }],
+        "record": {
+          "official": "The council assumed custodial watch over Lantern Pilgrim's beacon through the trailing convoy's crossing window.",
+          "dynasty": "We promised power to a point of light because people beyond our instruments had already trusted it with their lives.",
+          "affected": [{ "people": "Lantern Pilgrim", "account": "Our hands were failing. They put theirs around the light without asking to see who followed it." }]
+        },
+        "log": "The beacon's command key changed hands, and an unseen convoy gained thirty-two years of light."
+      },
+      {
+        "id": "publish_beacon_charts",
+        "label": "Publish the crossing chart",
+        "description": "Broadcast the safest route and decline a watch the ship may not be able to sustain.",
+        "subsystem_deltas": [{ "id": "education_culture", "knowledge": 0.01 }],
+        "long_term_consequences": ["pilgrim_beacon_heard"],
+        "record": {
+          "official": "The council published the complete crossing chart but declined custodial responsibility for Lantern Pilgrim's beacon.",
+          "dynasty": "We gave every number we trusted and made no promise that depended on power our descendants might need.",
+          "affected": [{ "people": "Lantern Pilgrim", "account": "They copied our sky perfectly and would not put their hand on the lamp." }]
+        },
+        "log": "The full crossing chart went into the dark, but no ship accepted custody of the lamp that marked it."
+      }
+    ]
+  },
+  {
+    "id": "pilgrim_beacon_due",
+    "category": "mission_milestone",
+    "family": "science_anomaly",
+    "title": "The Beacon's Last Cell",
+    "description": "The trailing convoy is entering the crossing as the beacon's original power stack fails. A promise made to unseen ships now has faces on the long-range plot.",
+    "advisor_posts": ["navigator", "engineer"],
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      {
+        "id": "relight_pilgrim_beacon",
+        "label": "Relight the whole crossing",
+        "description": "Commit a full replacement stack and guide every trailing craft through.",
+        "resource_delta": { "energy": -1500 },
+        "subsystem_deltas": [{ "id": "education_culture", "knowledge": 0.04 }],
+        "population_delta": { "morale": 0.03 },
+        "obligation_operations": [{ "action": "fulfil", "authored_id": "pilgrim_beacon_watch", "note": "A replacement power stack held the beacon until the final convoy cleared the crossing." }],
+        "record": {
+          "official": "The Lantern Watch concluded after a replacement stack guided all registered convoy craft through the crossing.",
+          "dynasty": "We spent power on strangers who had trusted our predecessor's light, and watched the last hull answer it.",
+          "affected": [{ "people": "The trailing convoy", "account": "The lamp had burned longer than some of our captains had lived. When it faltered, another ship made it dawn again." }]
+        },
+        "log": "A new cell turned night into a navigable line until the last slow hull crossed it."
+      },
+      {
+        "id": "narrow_pilgrim_window",
+        "label": "Pulse a narrow window",
+        "description": "Guide the convoy in timed groups and extend the watch twelve years for the stragglers.",
+        "resource_delta": { "energy": -500 },
+        "population_delta": { "stability": -0.01 },
+        "obligation_operations": [{ "action": "renegotiate", "authored_id": "pilgrim_beacon_watch", "due_in_years": 12, "note": "Most craft crossed under timed pulses; the watch was extended for slower stragglers." }],
+        "record": {
+          "official": "The convoy accepted a pulsed crossing schedule and a twelve-year extension for craft outside the first windows.",
+          "dynasty": "We made one failing cell serve many arrivals, but the slowest lights remain our charge.",
+          "affected": [{ "people": "The trailing convoy", "account": "The beacon blinked us through in groups. Those behind us received a timetable and the old promise written again." }]
+        },
+        "log": "The beacon became a measured heartbeat; most crossed, and the slowest inherited another watch."
+      },
+      {
+        "id": "extinguish_pilgrim_beacon",
+        "label": "Recover the remaining cells",
+        "description": "Save the ship-city's energy and transmit dead-reckoning corrections before the light goes out.",
+        "resource_delta": { "energy": 150 },
+        "population_delta": { "morale": -0.04 },
+        "reputation_deltas": [{ "id": "resolve", "delta": -0.05 }],
+        "obligation_operations": [{ "action": "default", "authored_id": "pilgrim_beacon_watch", "note": "The remaining cells were recovered before the trailing convoy cleared the crossing." }],
+        "record": {
+          "official": "The council terminated the Lantern Watch for ship-city energy security and issued final dead-reckoning corrections.",
+          "dynasty": "We would not black out inhabited decks for people whose instruments could still find another way.",
+          "affected": [{ "people": "The trailing convoy", "account": "Their last message contained excellent numbers. Then the light our grandparents had followed went dark." }]
+        },
+        "log": "The cells came home warm while the convoy entered the crossing by instruments alone."
+      }
+    ]
+  },
+  {
+    "id": "corridor_truce_offer",
+    "category": "generational_challenge",
+    "family": "diplomacy",
+    "title": "The Corridor Without Guns",
+    "description": "Three settlements ask the ship to guarantee a demilitarized passage through their disputed moons until a generation can grow up using it as ordinary space.",
+    "advisor_posts": ["security_chief", "commander"],
+    "requires_decision": true,
+    "forbidden_consequence": ["corridor_truce_heard"],
+    "outcomes": [
+      {
+        "id": "guarantee_corridor_truce",
+        "label": "Guarantee the corridor",
+        "description": "Put the ship's name behind twenty-eight years of inspections, escorts, and unarmed passage.",
+        "long_term_consequences": ["corridor_truce_heard"],
+        "obligation_operations": [{
+          "action": "create",
+          "authored_id": "three_moons_truce",
+          "title": "The Three Moons Truce",
+          "source": "event:corridor_truce_offer",
+          "beneficiary": "The settlements of the Three Moons",
+          "due_in_years": 28,
+          "resolution_event": "corridor_truce_due",
+          "visibility": "public",
+          "material_stakes": "1,800 credits, influence, and the peacekeeping watch",
+          "reputation_stakes": "The ship's standing as an impartial guarantor"
+        }],
+        "record": {
+          "official": "The council guaranteed twenty-eight years of inspected, demilitarized passage among the Three Moons.",
+          "dynasty": "We put our name between three batteries and asked our descendants to keep standing there.",
+          "affected": [{ "people": "The settlements of the Three Moons", "account": "Their hull crossed each firing line unarmed. For the first time, our freighters followed without counting guns." }]
+        },
+        "log": "The ship signed the empty corridor into being and took the first unarmed watch."
+      },
+      {
+        "id": "mediate_corridor_only",
+        "label": "Mediate without guarantee",
+        "description": "Draft inspection rules but leave enforcement to the settlements that must live beside them.",
+        "resource_delta": { "influence": -5 },
+        "population_delta": { "stability": 0.01 },
+        "long_term_consequences": ["corridor_truce_heard"],
+        "record": {
+          "official": "The council drafted a joint inspection code for the Three Moons while declining external enforcement responsibility.",
+          "dynasty": "We helped them write a peace the people living there would have to keep themselves.",
+          "affected": [{ "people": "The settlements of the Three Moons", "account": "They left us a careful law and no hull willing to stand in front of the first gun that ignored it." }]
+        },
+        "log": "The corridor received rules, observers, and no distant hull pledged to enforce either."
+      }
+    ]
+  },
+  {
+    "id": "corridor_truce_due",
+    "category": "mission_milestone",
+    "family": "diplomacy",
+    "title": "The Last Unarmed Passage",
+    "description": "The guarantee expires with two moon batteries tracking one disputed freighter. Every settlement waits to see whether the ship's old signature still occupies the corridor.",
+    "advisor_posts": ["security_chief", "commander"],
+    "requires_decision": true,
+    "scheduled_only": true,
+    "outcomes": [
+      {
+        "id": "renew_corridor_peace",
+        "label": "Escort the passage unarmed",
+        "description": "Pay the inspection and convoy cost, and finish the guarantee exactly as it began.",
+        "resource_delta": { "credits": -1800, "influence": -15 },
+        "subsystem_deltas": [{ "id": "security", "knowledge": 0.04 }],
+        "population_delta": { "stability": 0.03, "unity": 0.02 },
+        "obligation_operations": [{ "action": "fulfil", "authored_id": "three_moons_truce", "note": "The final disputed freighter crossed under an unarmed escort and local inspectors inherited the corridor." }],
+        "record": {
+          "official": "The Three Moons guarantee concluded with an unarmed final escort and transfer to a joint local inspectorate.",
+          "dynasty": "We ended the watch as it began: our hull between armed certainty and a freighter asking only to pass.",
+          "affected": [{ "people": "The settlements of the Three Moons", "account": "They came back without guns. When the freighter cleared, they gave us the watch they had taught us to keep." }]
+        },
+        "log": "The disputed freighter crossed in the ship's shadow, and the moons inherited a corridor older than their anger."
+      },
+      {
+        "id": "arm_corridor_inspectors",
+        "label": "Fund a local inspectorate",
+        "description": "Replace the ship's guarantee with a smaller armed authority answerable to all three settlements.",
+        "resource_delta": { "credits": -600, "influence": -8 },
+        "subsystem_deltas": [{ "id": "security", "knowledge": 0.01 }],
+        "obligation_operations": [{ "action": "renegotiate", "authored_id": "three_moons_truce", "due_in_years": 10, "note": "A joint armed inspectorate replaced the external guarantee under a ten-year review." }],
+        "record": {
+          "official": "The settlements consented to replace the external guarantee with a joint armed inspectorate under ten-year review.",
+          "dynasty": "Peace learned to carry a sidearm because our hull could not remain its body forever.",
+          "affected": [{ "people": "The settlements of the Three Moons", "account": "They gave each moon one key and none the whole lock. We accepted the guns because every hand was visible." }]
+        },
+        "log": "Local inspectors entered the corridor armed, jointly commanded, and bound to another review."
+      },
+      {
+        "id": "withdraw_corridor_name",
+        "label": "Withdraw the guarantee",
+        "description": "Keep the ship clear of a local war and declare the old signature expired.",
+        "population_delta": { "stability": -0.03, "unity": -0.02 },
+        "reputation_deltas": [{ "id": "resolve", "delta": -0.04 }],
+        "obligation_operations": [{ "action": "default", "authored_id": "three_moons_truce", "note": "The ship withdrew its name as batteries tracked the final disputed passage." }],
+        "record": {
+          "official": "The council declined further exposure in the Three Moons dispute and allowed the guarantee to expire without final escort.",
+          "dynasty": "Our predecessors rented out our descendants as a wall. We stepped away before the first shot chose its target.",
+          "affected": [{ "people": "The settlements of the Three Moons", "account": "The old seal expired one minute before the batteries acquired the freighter. Everyone learned exactly what a date can do." }]
+        },
+        "log": "The ship's name left the corridor before its last promised passage, and targeting tones filled the silence."
+      }
+    ]
   }
 ]

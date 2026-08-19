@@ -33,11 +33,11 @@ pub struct MissionOutcome {
 /// Fly `contract_id` to its conclusion (or `max_years`, whichever comes first)
 /// under a fixed policy, asserting every per-year invariant along the way.
 ///
-/// Policy: resolve any pending dilemma/event by first choice (index 0); field-
-/// repair the hull whenever it drops below half and the parts/minerals are
-/// there; buy a batch of food whenever the stores fall under the crisis
-/// threshold and credits allow. Deterministic for a given (sim, contract)
-/// pair — all randomness flows through `sim.rng`.
+/// Policy: refit and service affordable systems in port; resolve any pending
+/// dilemma/event by first choice (index 0); field-repair the hull whenever it
+/// drops below half and the parts/minerals are there; buy a batch of food when
+/// stores fall under the crisis threshold. Deterministic for a given
+/// (sim, contract) pair — all randomness flows through `sim.rng`.
 pub fn play_mission(
     sim: &mut SimState,
     data: &GameData,
@@ -49,6 +49,41 @@ pub fn play_mission(
         .get(contract_id)
         .expect("autoplay contract id must resolve to a charter")
         .clone();
+    // A maintenance-heavy policy uses the drydock window between charters.
+    // Without this, it could launch a fresh mission with a degraded engineering
+    // bay, burn more fuel than the nominal route budget, and coast for decades
+    // despite holding ample port resources. That is not the player policy this
+    // economy soak claims to represent.
+    if sim.ship.hull_integrity < 1.0
+        || sim.ship.life_support < 1.0
+        || sim.ship.spare_parts < data.config.repair.full_parts_restock
+    {
+        let _ = ship::full_repair(sim, &data.config);
+    }
+    for id in crate::data::GameData::sorted_ids(&data.subsystems) {
+        let required = data
+            .subsystems
+            .get(&id)
+            .map(|definition| definition.repair_knowledge_required)
+            .unwrap_or(1.0);
+        while sim
+            .subsystems
+            .get(&id)
+            .is_some_and(|state| state.knowledge < required)
+            && sim.resources.credits > 20_000
+        {
+            if subsystems::train_subsystem_knowledge(sim, data, &id).is_err() {
+                break;
+            }
+        }
+        if sim
+            .subsystems
+            .get(&id)
+            .is_some_and(|state| state.condition < 1.0)
+        {
+            let _ = subsystems::repair_subsystem(sim, data, &id);
+        }
+    }
     // Provision and launch explicitly (W4): top the tank in port, put the
     // charter under consideration, then commit — no silent contract start.
     sim.ship.fuel = 1.0;

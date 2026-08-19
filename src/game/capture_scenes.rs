@@ -121,6 +121,36 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
+            "event_obligation" => {
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                sim.pending_event = Some(crate::state::sim::PendingEvent {
+                    template_id: "seed_vault_covenant_offer".to_owned(),
+                    rolled_month_clock: 0,
+                });
+                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+            }
+            "event_obligation_due" => {
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                if let Some(seed) = self.data.events.get("seed_vault_covenant_offer") {
+                    crate::simulation::event_resolver::apply_outcome(&mut sim, &self.data, seed, 0);
+                }
+                sim.month_clock = 36 * 12;
+                sim.pending_event = Some(crate::state::sim::PendingEvent {
+                    template_id: "seed_vault_covenant_due".to_owned(),
+                    rolled_month_clock: sim.month_clock,
+                });
+                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+            }
             "crew" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,

@@ -4,7 +4,7 @@
 use super::*;
 
 #[test]
-fn all_three_obligation_chains_cross_a_succession_and_offer_three_endings() {
+fn every_obligation_chain_crosses_a_succession_and_offers_three_endings() {
     let data = GameData::load().unwrap();
     let picks = crate::state::sim::founding_faction_ids(&data);
     let chains = [
@@ -22,6 +22,21 @@ fn all_three_obligation_chains_cross_a_succession_and_offer_three_endings() {
             "aboard_compact_offer",
             "aboard_compact_due",
             "hearth_compact",
+        ),
+        (
+            "seed_vault_covenant_offer",
+            "seed_vault_covenant_due",
+            "morrow_seed_covenant",
+        ),
+        (
+            "pilgrim_beacon_offer",
+            "pilgrim_beacon_due",
+            "pilgrim_beacon_watch",
+        ),
+        (
+            "corridor_truce_offer",
+            "corridor_truce_due",
+            "three_moons_truce",
         ),
     ];
 
@@ -67,6 +82,56 @@ fn all_three_obligation_chains_cross_a_succession_and_offer_three_endings() {
             };
             apply_outcome(&mut sim, &data, due, outcome_index);
             assert_eq!(sim.obligations[0].status, expected, "{due_id}");
+        }
+    }
+}
+
+#[test]
+fn new_obligation_arcs_are_single_hearings_with_competing_records() {
+    let data = GameData::load().unwrap();
+    let arcs = [
+        (
+            "seed_vault_covenant_offer",
+            "seed_vault_covenant_due",
+            "seed_vault_covenant_heard",
+        ),
+        (
+            "pilgrim_beacon_offer",
+            "pilgrim_beacon_due",
+            "pilgrim_beacon_heard",
+        ),
+        (
+            "corridor_truce_offer",
+            "corridor_truce_due",
+            "corridor_truce_heard",
+        ),
+    ];
+
+    for (offer_id, due_id, heard_tag) in arcs {
+        let offer = data.events.get(offer_id).unwrap();
+        assert!(offer.forbidden_consequence.contains(&heard_tag.to_owned()));
+        for outcome in &offer.outcomes {
+            assert!(outcome
+                .long_term_consequences
+                .contains(&heard_tag.to_owned()));
+            let record = outcome
+                .record
+                .as_ref()
+                .unwrap_or_else(|| panic!("{offer_id} has an unrecorded choice"));
+            assert!(!record.official.trim().is_empty(), "{offer_id}");
+            assert!(!record.dynasty.trim().is_empty(), "{offer_id}");
+            assert!(!record.affected.is_empty(), "{offer_id}");
+        }
+
+        let due = data.events.get(due_id).unwrap();
+        for outcome in &due.outcomes {
+            let record = outcome
+                .record
+                .as_ref()
+                .unwrap_or_else(|| panic!("{due_id} has an unrecorded resolution"));
+            assert!(!record.official.trim().is_empty(), "{due_id}");
+            assert!(!record.dynasty.trim().is_empty(), "{due_id}");
+            assert!(!record.affected.is_empty(), "{due_id}");
         }
     }
 }
