@@ -373,9 +373,12 @@ fn a_scheduled_followup_fires_on_its_determined_year_not_before() {
     };
     while sim.year() < year0 + delay {
         assert_eq!(
-            sim.scheduled_events.len(),
+            sim.scheduled_events
+                .iter()
+                .filter(|scheduled| scheduled.template_id == payoff.id)
+                .count(),
             1,
-            "the capsule has not opened before its year (year {})",
+            "the capsule has not opened before its year (year {}); unrelated promises may coexist",
             sim.year()
         );
         advance_year(&mut sim, &data);
@@ -384,7 +387,9 @@ fn a_scheduled_followup_fires_on_its_determined_year_not_before() {
 
     // On/after the due year the payoff has fired and the queue has emptied.
     assert!(
-        sim.scheduled_events.is_empty(),
+        !sim.scheduled_events
+            .iter()
+            .any(|scheduled| scheduled.template_id == payoff.id),
         "the capsule opens on its determined year"
     );
     assert!(

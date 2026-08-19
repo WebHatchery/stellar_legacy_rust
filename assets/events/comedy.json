@@ -172,7 +172,114 @@
      "morale": 0.04,
      "unity": 0.02
     },
+    "long_term_consequences": [
+     "mascot_on_manifest"
+    ],
     "log": "The animal was entered on the manifest with the rank of Morale Officer. It has not reported for duty once, and morale has never been higher."
+   }
+  ]
+ },
+ {
+  "id": "the_mascot_succession",
+  "category": "generational_challenge",
+  "title": "The Morale Officer's Chair",
+  "description": "Many years after the ship put a nameless corridor animal on the manifest, the first Morale Officer has died peacefully in the commander's chair. Three decks have already presented alleged heirs, none visibly the same species. A petition from the night shift insists the office belongs to the crew, not the bloodline. The council must now decide whether a joke has become an institution.",
+  "requires_decision": true,
+  "family": "comedy",
+  "min_generation": 3,
+  "requires_consequence": [
+   "mascot_on_manifest"
+  ],
+  "requires_charter_tag": [
+   "long_haul"
+  ],
+  "faction_approval_above": [
+   {
+    "id": "hearth_union",
+    "at_least": 0.75
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "recognize_the_heir",
+    "label": "Recognize the smallest alleged heir",
+    "description": "The office began by accident; inheritance is at least a tradition. Seat the smallest claimant and let the line continue.",
+    "population_delta": {
+     "morale": 0.05,
+     "unity": 0.02
+    },
+    "long_term_consequences": [
+     "mascot_dynasty"
+    ],
+    "record": {
+     "official": "The council recognized a hereditary successor to the office of Morale Officer.",
+     "dynasty": "The command record says the chair passed by precedent, though no one proved the claimant was kin.",
+     "affected": [
+      {
+       "people": "The night shift",
+       "account": "They remember that the smallest animal climbed into the empty chair before the vote and consider the matter settled by acclamation."
+      }
+     ]
+    },
+    "log": "The smallest claimant was entered on the manifest as Morale Officer II. No lineage was proved, no duties were assigned, and the ship cheered the orderly succession of a dynasty nobody could identify by species."
+   },
+   {
+    "id": "hold_an_election",
+    "label": "Let every deck nominate a mascot",
+    "description": "Turn the joke into a shipwide election. Every deck gets a candidate; every person gets a vote; no candidate is required to understand the process.",
+    "population_delta": {
+     "morale": 0.04,
+     "unity": 0.04,
+     "stability": 0.02,
+     "adaptation": 0.02
+    },
+    "long_term_consequences": [
+     "mascot_elected"
+    ],
+    "faction_approval_deltas": [
+     {
+      "id": "meridian_accord",
+      "delta": 0.04
+     }
+    ],
+    "record": {
+     "official": "The office of Morale Officer became elective by a shipwide ballot.",
+     "dynasty": "The command record notes a turnout higher than the last three council confirmations combined.",
+     "affected": [
+      {
+       "people": "The candidate handlers",
+       "account": "They remember a clean campaign except for the seed theft, the ventilation incident, and one debate in which every candidate slept."
+      }
+     ]
+    },
+    "log": "Every deck nominated an animal and the ship held its most enthusiastic election in living memory. The winner was a maintenance lizard called Socket, who carried five decks and immediately vanished into a warm conduit."
+   },
+   {
+    "id": "retire_the_office",
+    "label": "Retire the office with honors",
+    "description": "One beloved accident need not become a constitution. Strike a small plaque, close the manifest entry, and let the chair belong to people again.",
+    "population_delta": {
+     "morale": -0.03,
+     "stability": 0.04,
+     "legacy_loyalty": 0.02
+    },
+    "faction_approval_deltas": [
+     {
+      "id": "ascension_circle",
+      "delta": 0.03
+     }
+    ],
+    "record": {
+     "official": "The council retired the office of Morale Officer after its first holder's death.",
+     "dynasty": "The command record calls the decision a necessary limit on accidental precedent.",
+     "affected": [
+      {
+       "people": "The bridge night shift",
+       "account": "They remember an empty chair, a tasteful plaque, and three claimant animals continuing to report for a post the council said no longer existed."
+      }
+     ]
+    },
+    "log": "The first Morale Officer was buried with honors and the office retired. A plaque went on the chair. For months afterward three hopeful animals still appeared at watch change, and morale suffered more from their disappointment than the council had budgeted."
    }
   ]
  },

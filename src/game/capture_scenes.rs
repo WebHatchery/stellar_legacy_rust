@@ -130,14 +130,16 @@ impl Game {
                 }
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "event" | "event_succession" => {
+            "event" | "event_succession" | "event_mascot_succession" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                let template_id = if scene == "event_succession" {
+                let template_id = if scene == "event_mascot_succession" {
+                    "the_mascot_succession"
+                } else if scene == "event_succession" {
                     sim.dynasty.generation = 3;
                     "the_only_captain_they_know"
                 } else {

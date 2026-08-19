@@ -305,3 +305,38 @@ fn the_stewards_arc_forks_and_both_branches_pay_off() {
         "the terminal beat is century-scale content and must be gated as such"
     );
 }
+
+#[test]
+fn the_morale_officer_leaves_an_institution_for_the_next_generation() {
+    let data = GameData::load().unwrap();
+    let mascot = data.events.get("the_mascot").expect("mascot seed event");
+    let adoption = &mascot.outcomes[0];
+    assert!(adoption
+        .long_term_consequences
+        .iter()
+        .any(|tag| tag == "mascot_on_manifest"));
+
+    let succession = data
+        .events
+        .get("the_mascot_succession")
+        .expect("mascot succession event");
+    assert!(!succession.scheduled_only);
+    assert!(succession.min_generation >= 3);
+    assert!(succession
+        .requires_consequence
+        .iter()
+        .any(|tag| tag == "mascot_on_manifest"));
+    assert!(succession
+        .requires_charter_tag
+        .iter()
+        .any(|tag| tag == "long_haul"));
+    assert!(succession
+        .faction_approval_above
+        .iter()
+        .any(|gate| gate.id == "hearth_union" && gate.at_least >= 0.75));
+    assert_eq!(succession.outcomes.len(), 3);
+    assert!(succession
+        .outcomes
+        .iter()
+        .all(|outcome| outcome.record.is_some()));
+}

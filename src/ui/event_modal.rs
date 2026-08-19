@@ -287,9 +287,21 @@ fn known_effects(
         ("morale", p.morale),
         ("unity", p.unity),
         ("stability", p.stability),
+        ("loyalty", p.legacy_loyalty),
+        ("adapt", p.adaptation),
+        ("drift", p.cultural_drift),
     ] {
         if value.abs() > f32::EPSILON {
             effects.push(format!("{label} {:+.0}%", value * 100.0));
+        }
+    }
+    for delta in &outcome.faction_approval_deltas {
+        if delta.delta.abs() > f32::EPSILON {
+            effects.push(format!(
+                "{} approval {:+.0}%",
+                delta.id.replace('_', " "),
+                delta.delta * 100.0
+            ));
         }
     }
     if outcome.objective_progress_delta.abs() > f32::EPSILON {
@@ -399,3 +411,6 @@ fn draw_typed_block(text: &str, x: f32, y: f32, w: f32, reveal: f32) {
         term::dim(),
     );
 }
+
+#[cfg(test)]
+mod tests;
