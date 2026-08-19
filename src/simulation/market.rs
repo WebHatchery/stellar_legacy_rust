@@ -3,6 +3,20 @@
 use crate::data::ResourceDelta;
 use crate::state::sim::{base_price, SimState, TradeResource};
 
+/// A price the exchange can show before the player commits. Keeping the
+/// modifier factors beside the total lets the UI explain why the effective
+/// price differs from the raw market ticker.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TradeQuote {
+    pub amount: i64,
+    pub market_unit_price: f32,
+    pub effective_unit_price: f32,
+    pub total_credits: i64,
+    pub reputation_factor: f32,
+    /// Buy-side desperation premium or sell-side distress discount.
+    pub pressure_factor: f32,
+}
+
 /// Yearly random walk on each tradeable's price, bounded to 0.5x-3x base.
 pub fn drift_prices(sim: &mut SimState) {
     for i in 0..sim.market.entries.len() {
@@ -84,11 +98,10 @@ fn desperation_factor(sim: &SimState, resource: TradeResource) -> f32 {
 }
 
 pub fn buy(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<(), String> {
-    let cost = (price_of(sim, resource)
-        * reputation_trade_factor(sim, true)
-        * desperation_factor(sim, resource)
-        * amount as f32)
-        .ceil() as i64;
+    if amount <= 0 {
+        return Err("Trade amount must be positive".to_owned());
+    }
+    let cost = buy_quote(sim, resource, amount).total_credits;
     let delta = trade_delta(resource, amount, -cost);
     if !sim.resources.can_afford(&delta) {
         return Err(format!("Need {cost} credits"));
@@ -120,12 +133,43 @@ fn distress_factor(sim: &SimState) -> f32 {
     }
 }
 
+/// Exact buy quote used by both the visible exchange and transaction service.
+pub fn buy_quote(sim: &SimState, resource: TradeResource, amount: i64) -> TradeQuote {
+    let market_unit_price = price_of(sim, resource);
+    let reputation_factor = reputation_trade_factor(sim, true);
+    let pressure_factor = desperation_factor(sim, resource);
+    let effective_unit_price = market_unit_price * reputation_factor * pressure_factor;
+    TradeQuote {
+        amount,
+        market_unit_price,
+        effective_unit_price,
+        total_credits: (effective_unit_price * amount as f32).ceil() as i64,
+        reputation_factor,
+        pressure_factor,
+    }
+}
+
+/// Exact sell quote used by both the visible exchange and transaction service.
+pub fn sell_quote(sim: &SimState, resource: TradeResource, amount: i64) -> TradeQuote {
+    let market_unit_price = price_of(sim, resource);
+    let reputation_factor = reputation_trade_factor(sim, false);
+    let pressure_factor = distress_factor(sim);
+    let effective_unit_price = market_unit_price * reputation_factor * pressure_factor;
+    TradeQuote {
+        amount,
+        market_unit_price,
+        effective_unit_price,
+        total_credits: (effective_unit_price * amount as f32).floor() as i64,
+        reputation_factor,
+        pressure_factor,
+    }
+}
+
 pub fn sell(sim: &mut SimState, resource: TradeResource, amount: i64) -> Result<(), String> {
-    let proceeds = (price_of(sim, resource)
-        * reputation_trade_factor(sim, false)
-        * distress_factor(sim)
-        * amount as f32)
-        .floor() as i64;
+    if amount <= 0 {
+        return Err("Trade amount must be positive".to_owned());
+    }
+    let proceeds = sell_quote(sim, resource, amount).total_credits;
     let delta = trade_delta(resource, -amount, proceeds);
     if !sim.resources.can_afford(&delta) {
         return Err(format!("Not enough {} to sell", resource.label()));

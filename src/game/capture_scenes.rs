@@ -246,12 +246,20 @@ impl Game {
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
             "market" => {
-                let sim = SimState::new_campaign(
+                let mut sim = SimState::new_campaign(
                     &self.data,
                     "wanderers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
+                // Exercise every quoted-term modifier in one deterministic frame:
+                // a well-regarded hull gets favorable name terms, critically low
+                // food/energy draws a need premium, and bare coffers draw a
+                // distress-sale discount.
+                sim.reputation.insert("mercy".to_owned(), 0.8);
+                sim.resources.credits = self.data.config.distress_credit_floor - 500;
+                sim.resources.food = (self.data.config.low_food_threshold - 100).max(0);
+                sim.resources.energy = (self.data.config.low_energy_threshold - 100).max(0);
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Market;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));

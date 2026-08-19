@@ -23,6 +23,69 @@ fn buy_and_sell_move_credits_and_goods() {
 }
 
 #[test]
+fn displayed_quotes_are_the_exact_transaction_totals() {
+    let data = GameData::load().unwrap();
+    let mut buyer = SimState::new_campaign(
+        &data,
+        "wanderers",
+        21,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    buyer.resources.food = 0;
+    buyer.resources.credits = 1_000_000;
+    buyer.reputation.insert("mercy".to_owned(), 0.8);
+    let quote = buy_quote(&buyer, TradeResource::Food, 137);
+    let credits_before = buyer.resources.credits;
+    buy(&mut buyer, TradeResource::Food, quote.amount).unwrap();
+    assert_eq!(
+        credits_before - buyer.resources.credits,
+        quote.total_credits
+    );
+    assert!(
+        quote.pressure_factor > 1.0,
+        "the visible quote includes need"
+    );
+    assert_ne!(
+        quote.reputation_factor, 1.0,
+        "the visible quote includes the ship's name"
+    );
+
+    let mut seller = SimState::new_campaign(
+        &data,
+        "wanderers",
+        22,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    seller.resources.credits = 0;
+    seller.resources.minerals = 1_000;
+    seller.reputation.insert("mercy".to_owned(), 0.2);
+    let quote = sell_quote(&seller, TradeResource::Minerals, 137);
+    let credits_before = seller.resources.credits;
+    sell(&mut seller, TradeResource::Minerals, quote.amount).unwrap();
+    assert_eq!(
+        seller.resources.credits - credits_before,
+        quote.total_credits
+    );
+    assert!(
+        quote.pressure_factor < 1.0,
+        "the visible quote includes distress"
+    );
+}
+
+#[test]
+fn zero_or_negative_trades_are_rejected() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "wanderers",
+        23,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    assert!(buy(&mut sim, TradeResource::Food, 0).is_err());
+    assert!(sell(&mut sim, TradeResource::Food, -10).is_err());
+}
+
+#[test]
 fn a_desperate_buy_of_a_survival_good_pays_a_premium() {
     // Content-depth provisioning round 32: the market reads the ship's need. Buying food with
     // the larder near famine costs a premium a comfortable buyer never pays — so buy early,
