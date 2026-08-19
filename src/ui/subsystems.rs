@@ -3,6 +3,7 @@
 //! Train verbs. Pure view: it reads `&SimState` and emits `UiAction` only.
 
 use crate::data::GameData;
+use crate::simulation::subsystems::repair_target_condition;
 use crate::state::sim::factions::steward_decay_factor;
 use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
@@ -81,8 +82,10 @@ fn draw_card(
         .procedure_archives
         .iter()
         .any(|archive| archive.subsystem_id == id);
+    let repair_target = repair_target_condition(ctx.sim, ctx.data, id).unwrap_or(state.condition);
+    let mend = format!("REPAIR TO {:.0}%", repair_target * 100.0);
     let detail = school.map_or_else(
-        || format!("TIER {pips}   ·   buffers {family}"),
+        || format!("TIER {pips} · buffers {family} · {mend}"),
         |school| {
             let support = if school.supported_until_year >= ctx.sim.year() {
                 format!("SCHOOL→Y{}", school.supported_until_year)
@@ -96,7 +99,7 @@ fn draw_card(
                 .and_then(|faction_id| ctx.data.factions.get(faction_id))
                 .map(|faction| faction.name.as_str())
                 .unwrap_or("NO CUSTODIAN");
-            format!("TIER {pips} · {support} · {archive} · {custodian}")
+            format!("TIER {pips} · {support} · {archive} · {custodian} · {mend}")
         },
     );
     draw_ui_text_ex(
@@ -171,12 +174,26 @@ fn draw_card(
         && state.condition < ceiling
         && ctx.sim.ship.spare_parts >= def.repair_parts_cost
         && ctx.sim.resources.minerals >= def.repair_minerals_cost;
-    if term_button(
-        Rect::new(content.x, by, bw, 40.0),
-        &format!(
+    let repair_label = if !can_mend {
+        format!("NEED {:.0}% KNOW", def.repair_knowledge_required * 100.0)
+    } else if state.condition >= ceiling {
+        "SOUND".to_owned()
+    } else if ctx.sim.ship.spare_parts < def.repair_parts_cost
+        || ctx.sim.resources.minerals < def.repair_minerals_cost
+    {
+        format!(
+            "NEED {}p·{}min",
+            def.repair_parts_cost, def.repair_minerals_cost
+        )
+    } else {
+        format!(
             "REPAIR ({}p·{}min)",
             def.repair_parts_cost, def.repair_minerals_cost
-        ),
+        )
+    };
+    if term_button(
+        Rect::new(content.x, by, bw, 40.0),
+        &repair_label,
         repair_ok,
         pointer,
     ) {

@@ -6,6 +6,31 @@ use crate::state::sim::SimState;
 
 use super::effects::education_training_factor;
 
+/// Condition a successful repair would leave behind right now. This is the
+/// single projection used by both the verb and the maintenance UI, including
+/// the field ceiling and the Engineering Bay's effect on underway work.
+pub fn repair_target_condition(sim: &SimState, data: &GameData, id: &str) -> Option<f32> {
+    let current = sim.subsystems.get(id)?.condition;
+    let ceiling = if sim.contract.is_none() {
+        1.0
+    } else {
+        data.config.repair.field_ceiling
+    };
+    if current >= ceiling {
+        return Some(current);
+    }
+    if sim.contract.is_none() {
+        return Some(ceiling);
+    }
+    let eng = sim
+        .subsystems
+        .get("engineering_bay")
+        .map_or(1.0, |state| state.condition);
+    let effectiveness =
+        (1.0 - data.config.subsystems.engineering_field_repair_penalty * (1.0 - eng)).max(0.0);
+    Some((current + data.config.repair.field_gain * effectiveness).min(ceiling))
+}
+
 /// Repair a subsystem (W5), underway or in port. Requires living expertise —
 /// knowledge >= the subsystem's threshold — then spends parts + minerals to
 /// restore condition (field ceiling underway, whole in port).
@@ -30,6 +55,9 @@ pub fn repair_subsystem(sim: &mut SimState, data: &GameData, id: &str) -> Result
     if current >= ceiling {
         return Err("It is already as sound as this can make it here.".to_owned());
     }
+    let name = def.name.clone();
+    let restored = repair_target_condition(sim, data, id)
+        .ok_or_else(|| format!("The {name} is not fitted aboard this ship."))?;
     let minerals = ResourceDelta {
         minerals: -def.repair_minerals_cost,
         ..Default::default()
@@ -39,21 +67,6 @@ pub fn repair_subsystem(sim: &mut SimState, data: &GameData, id: &str) -> Result
     }
     sim.resources.apply(&minerals);
     sim.ship.spare_parts -= def.repair_parts_cost;
-    let restored = if in_port {
-        1.0
-    } else {
-        // A field repair is only as good as the bay it is made with (content-depth subsystems round
-        // 34): the engineering bay's condition scales the underway gain, so a failing bay can only
-        // patch. Dock repairs (above) go whole regardless — full facilities in port.
-        let eng = sim
-            .subsystems
-            .get("engineering_bay")
-            .map_or(1.0, |s| s.condition);
-        let effectiveness =
-            (1.0 - data.config.subsystems.engineering_field_repair_penalty * (1.0 - eng)).max(0.0);
-        (current + data.config.repair.field_gain * effectiveness).min(ceiling)
-    };
-    let name = def.name.clone();
     if let Some(state) = sim.subsystems.get_mut(id) {
         state.condition = restored;
     }

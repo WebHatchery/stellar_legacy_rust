@@ -263,8 +263,8 @@ impl Game {
                 self.state = self.underway_blueprint_state(Some("habitat_ring"))
             }
             "subsystems" => {
-                // The subsystems screen (W5) with mixed tiers, worn condition,
-                // and a knowledge stat dipping below a repair threshold.
+                // The underway subsystems screen (W5) with mixed tiers, worn
+                // condition, and knowledge dipping below a repair threshold.
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
@@ -306,6 +306,9 @@ impl Game {
                     &self.data,
                     "medical_bay",
                 );
+                if let Some(template) = self.data.contracts.get("deep_vein_survey") {
+                    sim.contract = Some(contract::start_contract(template, &sim));
+                }
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Subsystems;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));

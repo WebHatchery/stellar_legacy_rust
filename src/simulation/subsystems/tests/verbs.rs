@@ -95,6 +95,24 @@ fn a_sound_engineering_bay_makes_a_better_field_repair() {
 }
 
 #[test]
+fn the_repair_projection_matches_the_condition_the_verb_delivers() {
+    let (data, mut sim) = campaign(16);
+    let template = data.contracts.get("deep_vein_survey").unwrap().clone();
+    sim.contract = Some(crate::simulation::contract::start_contract(&template, &sim));
+    sim.resources.minerals = 100_000;
+    sim.ship.spare_parts = 100;
+    sim.subsystems.get_mut("medical_bay").unwrap().condition = 0.31;
+    sim.subsystems.get_mut("medical_bay").unwrap().knowledge = 0.9;
+    sim.subsystems.get_mut("engineering_bay").unwrap().condition = 0.42;
+
+    let projected = repair_target_condition(&sim, &data, "medical_bay").unwrap();
+    repair_subsystem(&mut sim, &data, "medical_bay").unwrap();
+
+    assert_eq!(sim.subsystems["medical_bay"].condition, projected);
+    assert!(projected < data.config.repair.field_ceiling);
+}
+
+#[test]
 fn a_stronger_medical_bay_softens_biology_damage() {
     let (data, mut sim) = campaign(3);
 
