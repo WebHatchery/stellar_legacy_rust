@@ -9,6 +9,8 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, measure_ui_text, RectExt};
 
+pub(crate) mod outlook;
+
 /// A compact ` → +N res` suffix for a milestone's one-time reward (empty when
 /// there is none).
 fn reward_hint(reward: &ResourceDelta) -> String {
@@ -31,17 +33,6 @@ fn reward_hint(reward: &ResourceDelta) -> String {
     }
 }
 
-/// Compact mission-clock duration. This deliberately avoids "calendar" or a
-/// campaign year: a ship without fuel can spend longer in-world than this ETA.
-fn mission_time(months: u32) -> String {
-    match (months / 12, months % 12) {
-        (0, 0) => "NOW".to_owned(),
-        (0, months) => format!("{months}m"),
-        (years, 0) => format!("{years}y"),
-        (years, months) => format!("{years}y {months}m"),
-    }
-}
-
 /// Whether the contract clock can advance through its next month. Travel burns
 /// fuel before progress is credited, while work on station and the return leg
 /// do not; mirroring that rule here keeps the warning exact rather than treating
@@ -55,7 +46,8 @@ fn mission_clock_status(sim: &SimState, data: &GameData) -> (String, bool) {
         return ("RUNNING · CURRENT LEG NEEDS NO FUEL".to_owned(), false);
     }
     let burn = data.config.provisioning.fuel_burn_per_travel_month
-        * crate::simulation::subsystems::engineering_fuel_burn_factor(sim, data);
+        * crate::simulation::subsystems::engineering_fuel_burn_factor(sim, data)
+        * crate::simulation::command::fuel_burn_factor(sim.command_posture);
     if sim.ship.fuel < burn {
         (
             format!("STALLED · NEED {:.1}% FUEL TO ADVANCE", burn * 100.0),
@@ -259,79 +251,7 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         term_button(abort, "— HOMEBOUND —", false, pointer);
     }
 
-    term_panel(right, Some("ROUTE & MISSION"));
-    let rcontent = right.inset(20.0);
-    let template = ctx.data.contracts.get(&contract.template_id);
-    let operation = template
-        .map(|t| t.operation_site())
-        .unwrap_or_else(|| contract.name.clone());
-    let objective_system = contract
-        .objective_subsystem
-        .is_empty()
-        .then_some("No single subsystem")
-        .or_else(|| {
-            ctx.data
-                .subsystems
-                .get(&contract.objective_subsystem)
-                .map(|s| s.name.as_str())
-        })
-        .unwrap_or(&contract.objective_subsystem);
-    let next_phase = contract
-        .next_phase_eta()
-        .map(|(phase, eta)| {
-            format!(
-                "{} — in {}",
-                phase.label(),
-                mission_time(eta).to_lowercase()
-            )
-        })
-        .unwrap_or_else(|| "Final leg — no further change".to_owned());
-    let next_milestone = contract
-        .next_milestone_eta()
-        .map(|(milestone, eta)| {
-            format!(
-                "{} — in {}",
-                milestone.name,
-                mission_time(eta).to_lowercase()
-            )
-        })
-        .unwrap_or_else(|| "All authored milestones reached".to_owned());
-    let phase = contract.phase.label().to_uppercase();
-    let (clock_status, clock_stalled) = mission_clock_status(ctx.sim, ctx.data);
-    draw_ui_text_ex(
-        "MISSION CLOCK STATUS",
-        rcontent.x,
-        rcontent.y + 40.0,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    draw_ui_text_ex(
-        &clock_status,
-        rcontent.x,
-        rcontent.y + 61.0,
-        TextStyle::new(
-            14.0,
-            if clock_stalled {
-                term::alert()
-            } else {
-                term::accent()
-            },
-        )
-        .params(),
-    );
-    let route = format!(
-        "ORIGIN\nHome Berth — departed\n\nOPERATION SITE\n{operation}\n\nOBJECTIVE SYSTEM\n{objective_system}\n\nCURRENT PHASE\n{phase}\n\nNEXT PHASE · MISSION CLOCK\n{next_phase}\n\nNEXT MILESTONE · MISSION CLOCK\n{next_milestone}\n\nHOME BERTH · MISSION CLOCK\n{} remaining\nFuel stalls extend calendar time.",
-        mission_time(contract.mission_months_remaining()).to_lowercase()
-    );
-    draw_text_block(
-        &route,
-        rcontent.x,
-        rcontent.y + 91.0,
-        rcontent.w,
-        rcontent.h - 111.0,
-        14.0,
-        4.0,
-        term::dim(),
-    );
+    outlook::draw(ctx, right, pointer, actions);
 }
 
 fn draw_available(

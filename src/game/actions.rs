@@ -183,6 +183,28 @@ impl Game {
                 }
                 None
             }
+            UiAction::SetPosture(posture) => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    if !crate::simulation::command::posture_change_allowed(&gameplay.sim) {
+                        let months = gameplay
+                            .sim
+                            .command_posture_locked_until
+                            .saturating_sub(gameplay.sim.month_clock);
+                        self.notifications
+                            .warning(format!("Command review locked for {months} more months."));
+                    } else if gameplay.sim.command_posture != posture {
+                        gameplay.sim.command_posture = posture;
+                        gameplay.sim.command_posture_locked_until =
+                            crate::simulation::command::next_review_month(&gameplay.sim);
+                        gameplay
+                            .sim
+                            .push_log(format!("Command posture set to {}.", posture.label()));
+                        self.notifications
+                            .success(format!("Posture: {}", posture.label()));
+                    }
+                }
+                None
+            }
             UiAction::AbortMission => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;

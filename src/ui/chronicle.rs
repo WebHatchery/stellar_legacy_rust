@@ -692,11 +692,12 @@ fn draw_mission_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
         );
         draw_ui_text_ex(
             &format!(
-                "   {} charter · {} yr · gen {} · under {} · score {:.2}",
+                "   {} charter · {} yr · gen {} · under {} · {} · score {:.2}",
                 entry.objective,
                 entry.duration_years,
                 entry.generation,
                 entry.leader_name,
+                entry.command_posture.label(),
                 entry.score
             ),
             row.x,

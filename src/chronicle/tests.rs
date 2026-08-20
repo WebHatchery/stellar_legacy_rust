@@ -11,6 +11,7 @@ fn entry(outcome: &str, score: f32, years: u32) -> ChronicleEntry {
         score,
         outcome: outcome.to_owned(),
         duration_years: years,
+        command_posture: crate::state::sim::CommandPosture::Steady,
     }
 }
 
@@ -41,5 +42,34 @@ fn an_empty_chronicle_has_zeroed_stats() {
             years_flown: 0,
             average_score: 0.0,
         }
+    );
+}
+
+#[test]
+fn old_chronicle_entries_default_to_steady_and_new_ones_keep_their_posture() {
+    let old_json = r#"{
+        "completed_year": 40,
+        "contract_name": "Old Writ",
+        "objective": "Survey",
+        "legacy_id": "preservers",
+        "leader_name": "Old Captain",
+        "generation": 1,
+        "score": 0.8,
+        "outcome": "Partial",
+        "duration_years": 40
+    }"#;
+    let old: ChronicleEntry = serde_json::from_str(old_json).unwrap();
+    assert_eq!(
+        old.command_posture,
+        crate::state::sim::CommandPosture::Steady
+    );
+
+    let mut civic = entry("Complete", 0.9, 60);
+    civic.command_posture = crate::state::sim::CommandPosture::Civic;
+    let encoded = serde_json::to_string(&civic).unwrap();
+    let decoded: ChronicleEntry = serde_json::from_str(&encoded).unwrap();
+    assert_eq!(
+        decoded.command_posture,
+        crate::state::sim::CommandPosture::Civic
     );
 }

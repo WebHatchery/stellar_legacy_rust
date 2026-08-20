@@ -532,10 +532,10 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
     };
     let (risk_label, risk_value) = primary_risk(sim, &ctx.data.config);
     let weakest = weakest_module_readout(sim, ctx.data);
-    let pace = if contract.is_some() {
-        sim.speed.label().to_uppercase()
+    let posture = if contract.is_some() {
+        sim.command_posture.label().to_owned()
     } else {
-        "FROZEN".to_owned()
+        "NO VOYAGE".to_owned()
     };
     let cells: [(GaugeIcon, &str, String, Color); 6] = [
         (GaugeIcon::Fuel, "MISSION PHASE", phase, term::primary()),
@@ -557,7 +557,12 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             },
         ),
         (GaugeIcon::Hull, "WEAKEST MODULE", weakest, term::dim()),
-        (GaugeIcon::People, "TIME CONTROL", pace, term::accent()),
+        (
+            GaugeIcon::People,
+            "COMMAND POSTURE",
+            posture,
+            term::accent(),
+        ),
     ];
     let n = cells.len();
     let cw = inner.w / n as f32;

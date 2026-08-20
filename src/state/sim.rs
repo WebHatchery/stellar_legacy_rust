@@ -47,6 +47,15 @@ pub struct SimState {
     /// game-loop driver + the dashboard selector; never touched by the tick.
     #[serde(default)]
     pub speed: GameSpeed,
+    /// Voyage-wide command posture. Defaulted so saves from before the command
+    /// layer continue with the neutral STEADY policy.
+    #[serde(default)]
+    pub command_posture: CommandPosture,
+    /// Month-clock at which the next underway posture review may be called.
+    /// The review lock keeps a posture from being swapped every month to farm
+    /// whichever single modifier is best for that moment.
+    #[serde(default)]
+    pub command_posture_locked_until: u32,
     pub resources: ResourcePool,
     pub production: ProductionRates,
     pub ship: ShipState,

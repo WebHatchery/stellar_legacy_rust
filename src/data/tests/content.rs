@@ -267,3 +267,40 @@ fn every_objective_family_has_operation_content_that_moves_the_tally() {
         );
     }
 }
+
+#[test]
+fn late_legacy_events_offer_distinct_reckonings_after_the_early_voyage() {
+    use crate::data::contracts::ContractPhase;
+    let data = GameData::load().unwrap();
+
+    let unnamed_year = data.events.get("the_year_without_a_name").unwrap();
+    assert_eq!(unnamed_year.min_generation, 3);
+    assert_eq!(unnamed_year.outcomes.len(), 2);
+    assert!(unnamed_year
+        .outcomes
+        .iter()
+        .any(|outcome| outcome.population_delta.cultural_drift < 0.0));
+
+    let founders_gone = data
+        .events
+        .get("the_first_council_without_founders")
+        .unwrap();
+    assert_eq!(founders_gone.max_legacy_loyalty, 0.75);
+    assert!(founders_gone
+        .outcomes
+        .iter()
+        .any(|outcome| outcome.subsystem_deltas.iter().any(|delta| {
+            delta.id == "education_culture" && delta.knowledge > 0.0
+        })));
+
+    let work_beneath = data.events.get("the_work_beneath_the_work").unwrap();
+    assert!(work_beneath.phases.contains(&ContractPhase::Operation));
+    assert!(work_beneath
+        .outcomes
+        .iter()
+        .any(|outcome| outcome.objective_progress_delta < 0.0));
+    assert!(work_beneath
+        .outcomes
+        .iter()
+        .any(|outcome| outcome.objective_progress_delta > 0.0));
+}

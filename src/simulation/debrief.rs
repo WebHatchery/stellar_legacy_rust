@@ -83,6 +83,7 @@ pub fn seal(
             .dynasty
             .generation
             .saturating_sub(contract.began_generation),
+        command_posture: sim.command_posture,
         payout,
         metrics: contract
             .metrics

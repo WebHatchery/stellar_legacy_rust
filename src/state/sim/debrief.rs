@@ -11,7 +11,7 @@
 //! it).
 
 use crate::data::ResourceDelta;
-use crate::state::sim::{dynasty::Reign, InstitutionRecord, Obligation};
+use crate::state::sim::{dynasty::Reign, CommandPosture, InstitutionRecord, Obligation};
 use serde::{Deserialize, Serialize};
 
 /// What kind of beat a highlight records — the debrief tags each line with
@@ -100,6 +100,9 @@ pub struct VoyageDebrief {
     pub duration_years: u32,
     /// Dynasty generations that turned over between launch and homecoming.
     pub generations: u32,
+    /// The operating philosophy the council carried when this report closed.
+    #[serde(default)]
+    pub command_posture: CommandPosture,
     /// What the charter actually paid, after the objective proration and the
     /// ship's reputation multiplier — the number the player can check against
     /// the writ they accepted.
@@ -135,6 +138,7 @@ impl Default for VoyageDebrief {
             ended_year: 0,
             duration_years: 0,
             generations: 0,
+            command_posture: CommandPosture::default(),
             payout: ResourceDelta::default(),
             metrics: Vec::new(),
             milestones: Vec::new(),

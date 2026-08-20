@@ -6,7 +6,7 @@
 
 use crate::data::contracts::{ContractPhase, ContractTemplate};
 use crate::data::GameData;
-use crate::simulation::{crew, ship, subsystems};
+use crate::simulation::{command, crew, ship, subsystems};
 use crate::state::sim::SimState;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -64,7 +64,8 @@ pub fn for_departure(
     let engineering_burn = subsystems::engineering_fuel_burn_factor(sim, data);
     let fuel_burn = data.config.provisioning.fuel_burn_per_travel_month
         * (travel_years * 12) as f32
-        * engineering_burn;
+        * engineering_burn
+        * command::fuel_burn_factor(sim.command_posture);
     let stats = ship::loadout_stats(sim, data);
     let fuel_regen_per_year = stats.fuel_regen.max(0) as f32
         * data.config.ship.fuel_regen_per_point

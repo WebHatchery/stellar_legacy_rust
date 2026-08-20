@@ -345,7 +345,10 @@ pub fn roll_event(sim: &mut SimState, data: &GameData) -> Option<PendingEvent> {
     // resulting yearly chance to a per-month roll so expected events per year
     // is preserved while events can now fire (and be dated) any month (W3).
     let years_since = sim.month_clock.saturating_sub(sim.last_event_month_clock) / 12;
-    let monthly_chance = event_chance(&data.config, years_since, progress) / 12.0;
+    let monthly_chance = (event_chance(&data.config, years_since, progress)
+        * crate::simulation::command::event_chance_factor(sim.command_posture)
+        / 12.0)
+        .min(1.0);
     if !sim.rng.chance(monthly_chance) {
         return None;
     }

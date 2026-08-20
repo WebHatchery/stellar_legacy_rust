@@ -39,7 +39,13 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     // Cards start below the panel's header band so they never overlap its title.
     term_panel(right, Some("CHOOSE / SWAP CHARTER"));
     let inner = right.inset(18.0);
-    let cards = Rect::new(inner.x, inner.y + 28.0, inner.w, inner.h - 28.0);
+    crate::ui::contract_systems::outlook::draw_posture(
+        ctx,
+        Rect::new(inner.x, inner.y + 28.0, inner.w, 132.0),
+        pointer,
+        actions,
+    );
+    let cards = Rect::new(inner.x, inner.y + 170.0, inner.w, inner.h - 170.0);
     crate::ui::contract_systems::draw_charter_cards(ctx, cards, pointer, actions);
 }
 

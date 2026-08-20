@@ -425,6 +425,10 @@ pub fn advance_contract(
     // and united. Read before the mutable contract borrow.
     let unity_factor =
         (1.0 + config.ship.unity_objective_swing * (sim.population.unity - 0.5)).max(0.2);
+    // The command posture is the council's one voyage-wide lever: expeditionary
+    // ships work faster, civic ships deliberately reserve capacity for their
+    // people, and steady ships leave the charter's authored rate untouched.
+    let posture_factor = crate::simulation::command::objective_factor(sim.command_posture);
 
     let mut out = ContractProgress::default();
     // The objective subsystem an Operation month trained (content-depth charters round 33), set
@@ -492,7 +496,8 @@ pub fn advance_contract(
                 * combat_factor
                 * cargo_factor
                 * morale_factor
-                * unity_factor;
+                * unity_factor
+                * posture_factor;
             // …and the work itself sharpens the craft it leans on (content-depth charters round 33):
             // the reverse of the round-14 coupling, where the subsystem's condition speeds the
             // mission — here a month of on-station work builds the objective subsystem's *knowledge*

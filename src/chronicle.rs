@@ -5,6 +5,7 @@
 //! bonuses for a new dynasty derived from past entries) are the next step —
 //! see PLAN.md M2/M3.
 
+use crate::state::sim::CommandPosture;
 use macroquad_toolkit::persistence::{
     load_from_slot_with_migration, save_to_slot_with_version, slot_exists,
 };
@@ -23,6 +24,10 @@ pub struct ChronicleEntry {
     /// In-game years the mission ran (PLAN M4.7). Serde-default for old logs.
     #[serde(default)]
     pub duration_years: u32,
+    /// The operating philosophy chosen for the voyage. Old Chronicle saves
+    /// default to the neutral posture so the archive remains backward compatible.
+    #[serde(default)]
+    pub command_posture: CommandPosture,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -59,6 +59,31 @@ fn objective_accrues_only_during_operation() {
 }
 
 #[test]
+fn expeditionary_posture_accelerates_operation_work_in_the_live_contract() {
+    use crate::state::sim::CommandPosture;
+
+    let first_operation_accrual = |posture| {
+        let (data, mut sim) = armed(3, "deep_vein_survey");
+        sim.command_posture = posture;
+        sim.population.morale = 0.5;
+        sim.population.unity = 0.5;
+        loop {
+            let progress = advance_contract(&mut sim, &data.config, 0, 0, 0, 0);
+            if progress.phase_changed == Some(ContractPhase::Operation) {
+                break sim.contract.as_ref().unwrap().objective_progress;
+            }
+        }
+    };
+
+    let steady = first_operation_accrual(CommandPosture::Steady);
+    let expeditionary = first_operation_accrual(CommandPosture::Expeditionary);
+    assert!(
+        expeditionary > steady * 1.1,
+        "the live objective accrual honors expeditionary posture: {expeditionary} vs {steady}"
+    );
+}
+
+#[test]
 fn a_bigger_hold_hauls_a_material_writ_faster_but_not_a_survey() {
     // Content-depth charters round 24: cargo capacity quickens a *haul* objective (a
     // mining run measured in tonnes) but is dead weight on a mission whose objective

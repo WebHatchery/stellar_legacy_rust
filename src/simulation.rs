@@ -6,6 +6,7 @@ pub mod advice;
 pub mod autoplay;
 #[cfg(test)]
 mod balance;
+pub mod command;
 pub mod contract;
 pub mod crew;
 pub mod debrief;

@@ -31,7 +31,7 @@ use crate::chronicle::ChronicleStore;
 use crate::data::events::EventCategory;
 use crate::data::ship_components::ComponentKind;
 use crate::data::GameData;
-use crate::state::sim::{GameSpeed, SimState, TradeResource};
+use crate::state::sim::{CommandPosture, GameSpeed, SimState, TradeResource};
 use crate::state::{MenuState, Screen};
 use macroquad::prelude::*;
 use macroquad_toolkit::achievements::Achievements;
@@ -202,6 +202,8 @@ pub enum UiAction {
     // Gameplay verbs (GDD §4)
     /// Set the real-time auto-advance rate / pause (real-time loop §1).
     SetSpeed(GameSpeed),
+    /// Set the voyage-wide operating philosophy shown on the CONTRACT screen.
+    SetPosture(CommandPosture),
     /// Turn the current mission for home early (W2). Only emitted underway.
     AbortMission,
     ResolveEvent(usize),

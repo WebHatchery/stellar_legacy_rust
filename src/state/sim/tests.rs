@@ -57,6 +57,25 @@ fn sim_state_round_trips_through_serde() {
 }
 
 #[test]
+fn an_older_save_without_command_posture_defaults_to_steady() {
+    let data = GameData::load().unwrap();
+    let sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        8,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let mut value = serde_json::to_value(&sim).unwrap();
+    let object = value.as_object_mut().unwrap();
+    object.remove("command_posture");
+    object.remove("command_posture_locked_until");
+
+    let back: SimState = serde_json::from_value(value).unwrap();
+    assert_eq!(back.command_posture, CommandPosture::Steady);
+    assert_eq!(back.command_posture_locked_until, 0);
+}
+
+#[test]
 fn an_unread_homecoming_survives_a_save_and_load() {
     // The debrief is a full-screen takeover the player dismisses by hand.
     // Quitting while it is up and loading back must return to it — a

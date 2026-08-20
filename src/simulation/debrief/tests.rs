@@ -1,6 +1,6 @@
 use super::*;
 use crate::simulation::contract;
-use crate::state::sim::founding_faction_ids;
+use crate::state::sim::{founding_faction_ids, CommandPosture};
 
 /// A campaign with a charter under way, ready to accrue beats.
 fn launched() -> (GameData, SimState) {
@@ -211,4 +211,22 @@ fn the_report_names_only_the_captains_who_held_the_chair_that_voyage() {
         !report.commanders.iter().any(|c| c.name == "Old Guard"),
         "a reign that ended before the launch is not credited to this voyage"
     );
+}
+
+#[test]
+fn the_homecoming_report_remembers_the_command_posture() {
+    let (_data, mut sim) = launched();
+    sim.command_posture = CommandPosture::Expeditionary;
+
+    let report = seal(
+        &sim,
+        0.5,
+        SuccessLevel::Partial,
+        ResourceDelta::default(),
+        None,
+        None,
+    )
+    .expect("a contract is under way");
+
+    assert_eq!(report.command_posture, CommandPosture::Expeditionary);
 }

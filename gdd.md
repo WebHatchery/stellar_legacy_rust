@@ -284,6 +284,18 @@ more contract *content* (objective-specific milestones/risks — currently 2 bas
 1 objective-specific milestone, 4 base + 1 objective-specific success metric, 3 base +
 1 legacy-specific failure risk; see §8 for expansion targets).
 
+#### Command posture
+
+Before launch, and once per year while under way, the council may choose one of three
+voyage-wide operating philosophies. **Steady** preserves the authored baseline;
+**Expeditionary** works the objective 12% faster and raises event pressure 18%, at 8%
+extra travel fuel and a small annual social cost; **Civic** works 8% slower, lowers
+event pressure 8%, and burns 5% less travel fuel while recovering morale, unity,
+stability, and founder-loyalty each year. The choice is shown in the PREP dossier,
+active CONTRACT outlook, dashboard instrument strip, Homecoming report, and the
+cross-playthrough Chronicle. Underway changes lock until the next annual council so
+the policy is a meaningful strategic commitment rather than a frame-by-frame toggle.
+
 ### 5.3 Dynasty & Succession
 
 ~~Every 25 years members age by 25, elders past `member_max_age` pass on, a leader past
@@ -319,6 +331,7 @@ so a hand-stepped `advance_*` still replays — but the live real-time run does 
 
 ```text
 event_chance = min(0.8, 0.3 + years_elapsed * 0.1 + (current_year / target_duration) * 0.2)
+effective_event_chance = event_chance * command_posture.event_pressure_factor
 
 category weights:
   immediate_crisis      base, scales up when food<500, energy<1000,
@@ -458,7 +471,7 @@ game has no hot-reload requirement beyond normal balance iteration, so embed-onl
 
 | Content type | Prototype target | Full target |
 | --- | ---: | ---: |
-| Event templates (across 4 categories) | 12 | **309 authored** |
+| Event templates (across 4 categories) | 12 | **327 authored** |
 | Ship hulls / engines / weapons | 3 / 3 / 3 (as original) | 5 / 5 / 5 |
 | Contract objective templates | 4 (as original) | **22 across 6 objective families** |
 | Legacy factions | 3 (fixed — Preservers/Adaptors/Wanderers) | 3 |
@@ -482,10 +495,10 @@ on loop, not to invent new systems.
 | Dashboard | Resources, ship status, crew summary, pending-event banner | `GridLayout`, meters, badges, `NotificationManager` |
 | Ship Builder | Hull/engine/weapon purchase + current loadout | `GridLayout`, `TextStyle`, tooltips |
 | Crew & Dynasty | Roster, train/recruit/heir actions, dynasty detail (merges the original's separate Crew Quarters + Dynasty Hall — dynasty actions are now real, not cosmetic, see §0) | `ScrollTabs`, meters |
-| Contract & Systems | Active contract progress/milestones, relevant systems for the current journey (replaces the original's sprawling 50-system galaxy map, §0) | `GridLayout`, progress meters |
+| Contract & Systems | Active contract progress/milestones, relevant systems, scheduled-beat outlook, and annual command-posture review (replaces the original's sprawling 50-system galaxy map, §0) | `GridLayout`, progress meters, touch buttons |
 | Market | Buy/sell the 4 tradeable resources with price trend | `TextStyle`, simple table layout |
 | Event/Decision modal | Resolve a triggered event or dilemma; shows outcome preview | `NotificationManager` / modal surface |
-| Homecoming debrief | Full-screen takeover on contract conclusion: authored outcome prose, the pay actually banked, the scorecard behind the band, every captain the voyage passed through, and the voyage log (marks, legs, council decisions). The success counterpart to the extinction takeover | `ScrollArea`, `term_bar`, panels |
+| Homecoming debrief | Full-screen takeover on contract conclusion: authored outcome prose, the pay actually banked, the scorecard behind the band, every captain the voyage passed through, the chosen command posture, and the voyage log (marks, legs, council decisions). The success counterpart to the extinction takeover | `ScrollArea`, `term_bar`, panels |
 | Chronicle & Heritage | Cross-playthrough voyage log, renown, and the automatic tier inherited by a new dynasty | `ScrollTabs`, `TextStyle` |
 | Pause/Settings | Time-advance pace, delegation toggles, save/load | `VirtualUi` |
 

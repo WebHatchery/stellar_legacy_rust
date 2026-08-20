@@ -172,7 +172,8 @@ fn month_of_contract(sim: &mut SimState, data: &GameData, report: &mut TickRepor
         // A degraded engineering bay burns rich (content-depth subsystems round 20):
         // the base travel burn is scaled up as the drive's tuning slips.
         let burn = data.config.provisioning.fuel_burn_per_travel_month
-            * subsystems::engineering_fuel_burn_factor(sim, data);
+            * subsystems::engineering_fuel_burn_factor(sim, data)
+            * crate::simulation::command::fuel_burn_factor(sim.command_posture);
         if sim.ship.fuel < burn {
             // A dry tank in transit: the ship coasts. No progress toward the
             // destination this month (the voyage stretches), and this year's

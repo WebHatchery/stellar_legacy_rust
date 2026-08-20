@@ -3,6 +3,46 @@
 
 use serde::{Deserialize, Serialize};
 
+/// The ship's standing operating philosophy for an active voyage. Each posture
+/// is a real tradeoff rather than a cosmetic label: the council can trade
+/// objective tempo and event exposure against the social condition of the
+/// people it is carrying.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommandPosture {
+    /// Keep the ship's expected risk close to its baseline.
+    #[default]
+    Steady,
+    /// Spend fuel and accept more interruptions to finish the writ sooner.
+    Expeditionary,
+    /// Put the people's cohesion first, even when the objective takes longer.
+    Civic,
+}
+
+impl CommandPosture {
+    pub const ALL: [Self; 3] = [Self::Steady, Self::Expeditionary, Self::Civic];
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Steady => "STEADY",
+            Self::Expeditionary => "EXPEDITIONARY",
+            Self::Civic => "CIVIC",
+        }
+    }
+
+    pub const fn description(self) -> &'static str {
+        match self {
+            Self::Steady => "Hold the line. Normal objective pace and fewer surprises.",
+            Self::Expeditionary => {
+                "Press the writ. Faster work, higher event pressure, richer fuel burn."
+            }
+            Self::Civic => {
+                "Keep the people. Slower work, gentler events, stronger social recovery."
+            }
+        }
+    }
+}
+
 /// Per-category advisor delegation (GDD §5.4): a delegated category's events
 /// auto-resolve via outcome scoring instead of blocking on the player.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]

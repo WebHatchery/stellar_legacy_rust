@@ -3351,5 +3351,154 @@
     "log": "With so few left aboard, the finding was common knowledge before the council had finished convening, and the decision was made in front of everyone it concerned — which is one way to be accountable, and a hard one."
    }
   ]
+ },
+ {
+  "id": "the_year_without_a_name",
+  "category": "generational_challenge",
+  "title": "The Year Without a Name",
+  "description": "The calendar keepers discover that one entire year of the crossing was never named. The ledgers agree on the births, deaths, harvests, and reactor inspections around it; they simply leave a clean white gap where the year itself should be. The gap has become a superstition among children who were taught that an unnamed year cannot be inherited.",
+  "requires_decision": true,
+  "family": "legacy_drift",
+  "min_generation": 3,
+  "min_cultural_drift": 0.3,
+  "outcomes": [
+   {
+    "id": "name_the_year_after_the_dead",
+    "label": "Name it for the dead",
+    "description": "Use the memorial rolls to give the missing year a human name. The historians will have to agree which losses belong to it, and the argument will be as important as the answer.",
+    "resource_delta": {
+     "influence": -15
+    },
+    "population_delta": {
+     "unity": 0.04,
+     "legacy_loyalty": 0.03,
+     "cultural_drift": -0.03
+    },
+    "long_term_consequences": [
+     "the_year_named_for_the_dead"
+    ],
+    "log": "The missing year was named for the people whose lives crossed its blank margin. No one agreed on every name, but the ship agreed that an empty place in the record was not the same thing as an empty year."
+   },
+   {
+    "id": "leave_the_gap_honest",
+    "label": "Leave the gap honest",
+    "description": "Record the omission as an omission. A founding that admits what it cannot recover may be more durable than one that fills every silence with a guess.",
+    "population_delta": {
+     "stability": 0.03,
+     "cultural_drift": 0.06,
+     "adaptation": 0.03,
+     "legacy_loyalty": -0.03
+    },
+    "long_term_consequences": [
+     "the_honest_gap"
+    ],
+    "log": "The council left the year unnamed and wrote the uncertainty into the lessons. Children learned that the record could contain a blank without becoming a lie, and that the ship's memory was allowed to be smaller than its voyage."
+   }
+  ]
+ },
+ {
+  "id": "the_first_council_without_founders",
+  "category": "legacy_moment",
+  "title": "The First Council Without Founders",
+  "description": "A council session opens and every seat is occupied by someone born aboard. The founding generation is finally absent from the room, not because it has been overruled, but because there is nobody left to invite. The clerks wait for the old ritual to tell them who speaks first.",
+  "requires_decision": true,
+  "family": "legacy_drift",
+  "min_generation": 5,
+  "max_legacy_loyalty": 0.75,
+  "outcomes": [
+   {
+    "id": "keep_the_founders_seat_empty",
+    "label": "Keep the founders' seat empty",
+    "description": "Preserve the empty chair and the silence around it. Authority can pass without pretending that the people who began the crossing are still in the room.",
+    "population_delta": {
+     "stability": 0.05,
+     "unity": 0.03,
+     "legacy_loyalty": 0.04
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.05
+     }
+    ],
+    "long_term_consequences": [
+     "the_empty_founders_seat"
+    ],
+    "log": "The empty seat stayed in the chamber. The new council took its oath beneath it, and the ship learned that inheritance could be visible without being allowed to vote."
+   },
+   {
+    "id": "retire_the_old_ritual",
+    "label": "Retire the old ritual",
+    "description": "Remove the seat and write a new opening for councils born entirely of the ship. The founders can remain in the archive without remaining in the procedure.",
+    "resource_delta": {
+     "influence": -20
+    },
+    "population_delta": {
+     "stability": -0.02,
+     "unity": -0.04,
+     "cultural_drift": 0.08,
+     "adaptation": 0.05,
+     "legacy_loyalty": -0.08
+    },
+    "long_term_consequences": [
+     "the_ritual_retired"
+    ],
+    "log": "The chair was removed and the first words of every council were rewritten. For a generation the act felt like an insult; after that, it felt like the first piece of procedure the ship had made for itself."
+   }
+  ]
+ },
+ {
+  "id": "the_work_beneath_the_work",
+  "category": "mission_milestone",
+  "title": "The Work Beneath the Work",
+  "description": "The objective tally passes its middle mark, and a survey crew finds that the work has been quietly changing the ship. Apprentices now know the target better than the specialists who first wrote it. The council must decide whether the charter serves the people or the people serve the charter.",
+  "requires_decision": true,
+  "family": "legacy_drift",
+  "phases": [
+   "operation"
+  ],
+  "min_generation": 3,
+  "min_objective_fraction": 0.5,
+  "outcomes": [
+   {
+    "id": "teach_the_charter_forward",
+    "label": "Teach the charter forward",
+    "description": "Turn the accumulated work into a school. The objective may slow while the newest generation learns why it matters, but the ship will not need to rediscover it every time a specialist dies.",
+    "resource_delta": {
+     "credits": -180
+    },
+    "population_delta": {
+     "morale": 0.03,
+     "unity": 0.04,
+     "legacy_loyalty": 0.02
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.09
+     }
+    ],
+    "objective_progress_delta": -0.015,
+    "long_term_consequences": [
+     "the_charter_taught_forward"
+    ],
+    "log": "The charter became a school before it became a completion mark. The tally lost a little time, then gained people who understood the work well enough to carry it without the founding crew standing over their shoulders."
+   },
+   {
+    "id": "protect_the_tally",
+    "label": "Protect the tally",
+    "description": "Keep every capable hand on the objective until it is done. The ship can teach the meaning afterward; the promise must be completed while the promise is still remembered.",
+    "population_delta": {
+     "morale": -0.04,
+     "unity": -0.02,
+     "legacy_loyalty": 0.03
+    },
+    "objective_progress_delta": 0.02,
+    "long_term_consequences": [
+     "the_tally_protected"
+    ],
+    "log": "The work crews stayed at the stations and the tally rose. The objective was completed in the old manner: faithfully, on time, and with a generation waiting afterward to decide what faithfulness had cost."
+   }
+  ]
  }
 ]

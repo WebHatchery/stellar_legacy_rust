@@ -48,6 +48,8 @@ impl SimState {
             month_clock: 0,
             last_event_month_clock: 0,
             speed: GameSpeed::default(),
+            command_posture: CommandPosture::default(),
+            command_posture_locked_until: 0,
             resources: ResourcePool::from_delta(config.starting_resources),
             production: config.base_production,
             ship: ShipState {

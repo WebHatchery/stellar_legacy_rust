@@ -64,3 +64,14 @@ fn route_tolls_are_projected_across_the_whole_charter() {
         template.annual_toll.ship.life_support * template.target_duration_years as f32
     );
 }
+
+#[test]
+fn expeditionary_posture_is_visible_in_the_departure_fuel_forecast() {
+    let data = GameData::load().unwrap();
+    let mut sim = campaign(&data);
+    let template = data.contracts.get("deep_vein_survey").unwrap();
+    let steady = for_departure(&sim, &data, template);
+    sim.command_posture = crate::state::sim::CommandPosture::Expeditionary;
+    let expeditionary = for_departure(&sim, &data, template);
+    assert!(expeditionary.fuel_burn > steady.fuel_burn);
+}

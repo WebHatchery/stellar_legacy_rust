@@ -13,7 +13,7 @@ the ship makes will be kept (or broken) by someone else's grandchildren.
 - Port of the web original `game_apps/stellar_legacy/` (React/PHP); all game rules
   now live in a deterministic Rust simulation, saves are local toolkit slots.
 
-The current release contains 309 event templates, 22 charters across six objective
+The current release contains 327 event templates, 22 charters across six objective
 families, three legacies, six founding factions, six maintainable subsystems, and a
 month-precise voyage clock. Under way, time advances automatically at the displayed
 Pause / 1× / 2× / 3× pace; drydock and blocking council decisions freeze it. Chronicle
