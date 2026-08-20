@@ -12,28 +12,28 @@ Displayed 1× is the expected readable pace. Clock estimates use the configured 
 
 | Charter | Runs | Complete | Partial | Pyrrhic | Failure | Extinction | Mean score | Mean objective | Mean net cr | Est. 1× / 2× / 3× |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Coronal Tap: The Ember Star | 2250 | 53.6% | 42.4% | 4.0% | 0.0% | 0.0% | 0.892 | 0.998 | 16808 | 58 / 50 / 47 min |
-| Deep Vein Survey: Karst Belt | 2250 | 60.4% | 38.2% | 1.4% | 0.0% | 0.0% | 0.908 | 1.000 | 17711 | 60 / 52 / 49 min |
-| Founding Charter: Meridian Reach | 2250 | 45.1% | 48.7% | 6.2% | 0.0% | 0.0% | 0.878 | 1.000 | 36407 | 78 / 67 / 63 min |
-| Residency: The Hearthfall Accord | 2250 | 66.5% | 33.2% | 0.4% | 0.0% | 0.0% | 0.919 | 1.000 | 39168 | 80 / 69 / 65 min |
-| Recovery Writ: The Hollow Fleet | 2250 | 42.8% | 37.9% | 19.3% | 0.0% | 0.0% | 0.861 | 0.999 | 16322 | 57 / 49 / 46 min |
-| Seedfall Mandate: Ashgrove | 2250 | 40.0% | 46.9% | 13.1% | 0.0% | 0.0% | 0.865 | 1.000 | 29739 | 74 / 63 / 60 min |
-| Beacon Line: The Starfall Verge | 2250 | 38.6% | 47.6% | 13.7% | 0.0% | 0.0% | 0.854 | 0.963 | 34079 | 69 / 59 / 56 min |
-| Relief Mandate: The Tarssen Drift | 2250 | 63.0% | 24.7% | 12.4% | 0.0% | 0.0% | 0.900 | 1.000 | 17108 | 54 / 47 / 44 min |
-| The Ark Charter: Ten Thousand Sleepers | 2250 | 57.8% | 39.0% | 3.2% | 0.0% | 0.0% | 0.897 | 0.855 | 17359 | 59 / 51 / 48 min |
-| Deep Camp: The Cinder Vein | 2250 | 37.1% | 58.7% | 4.2% | 0.0% | 0.0% | 0.869 | 1.000 | 34099 | 83 / 71 / 67 min |
-| Survey Writ: The Far Crossing | 2250 | 17.8% | 44.8% | 36.8% | 0.6% | 0.0% | 0.776 | 0.973 | 51032 | 85 / 73 / 69 min |
-| Enforcement Writ: The Vane Default | 2250 | 61.3% | 38.7% | 0.0% | 0.0% | 0.0% | 0.910 | 1.000 | 33686 | 64 / 55 / 52 min |
-| Karst Belt Works: Permanent Extraction | 2250 | 65.2% | 34.8% | 0.0% | 0.0% | 0.0% | 0.914 | 1.000 | 27605 | 70 / 60 / 56 min |
-| The Long Dark: Charter to the Rim | 2250 | 10.7% | 55.2% | 33.3% | 0.9% | 0.0% | 0.785 | 0.971 | 63887 | 102 / 87 / 82 min |
-| Salvage Writ: The Long Tow | 2250 | 38.1% | 40.5% | 21.4% | 0.0% | 0.0% | 0.850 | 1.000 | 29404 | 78 / 67 / 63 min |
-| Sanctuary Run: The Talleth Exodus | 2250 | 52.4% | 41.0% | 6.5% | 0.0% | 0.0% | 0.888 | 1.000 | 35073 | 70 / 60 / 57 min |
-| The Seedbearers' Writ | 2250 | 58.5% | 41.5% | 0.0% | 0.0% | 0.0% | 0.901 | 1.000 | 29072 | 74 / 63 / 60 min |
-| Relief Writ: The Sunset Coast | 2250 | 63.4% | 31.2% | 5.4% | 0.0% | 0.0% | 0.910 | 1.000 | 32898 | 71 / 61 / 57 min |
-| Survey Writ: The Sunward Dive | 2250 | 38.7% | 40.8% | 20.4% | 0.0% | 0.0% | 0.852 | 1.000 | 30801 | 62 / 54 / 51 min |
-| Double Survey: The Paired Deeps | 2250 | 23.4% | 54.6% | 21.7% | 0.4% | 0.0% | 0.824 | 0.949 | 30030 | 75 / 64 / 60 min |
-| Charter of Discovery: The Veiled Expanse | 2250 | 52.9% | 37.4% | 9.5% | 0.1% | 0.0% | 0.873 | 0.975 | 26140 | 63 / 54 / 51 min |
-| Warden Mandate: The Cinder Lane | 2250 | 59.6% | 35.7% | 4.7% | 0.0% | 0.0% | 0.902 | 1.000 | 27875 | 67 / 57 / 54 min |
+| Coronal Tap: The Ember Star | 2250 | 57.2% | 40.5% | 2.3% | 0.0% | 0.0% | 0.902 | 0.997 | 16517 | 60 / 52 / 50 min |
+| Deep Vein Survey: Karst Belt | 2250 | 65.8% | 33.9% | 0.3% | 0.0% | 0.0% | 0.918 | 1.000 | 17411 | 63 / 54 / 52 min |
+| Founding Charter: Meridian Reach | 2250 | 51.3% | 45.9% | 2.8% | 0.0% | 0.0% | 0.893 | 0.999 | 36260 | 82 / 70 / 67 min |
+| Residency: The Hearthfall Accord | 2250 | 73.1% | 26.8% | 0.1% | 0.0% | 0.0% | 0.930 | 1.000 | 39091 | 84 / 72 / 68 min |
+| Recovery Writ: The Hollow Fleet | 2250 | 43.3% | 43.0% | 13.6% | 0.0% | 0.0% | 0.869 | 0.998 | 16075 | 59 / 51 / 48 min |
+| Seedfall Mandate: Ashgrove | 2250 | 47.1% | 47.1% | 5.8% | 0.0% | 0.0% | 0.884 | 1.000 | 29731 | 77 / 66 / 63 min |
+| Beacon Line: The Starfall Verge | 2250 | 38.9% | 51.8% | 9.2% | 0.1% | 0.0% | 0.863 | 0.967 | 34080 | 72 / 62 / 59 min |
+| Relief Mandate: The Tarssen Drift | 2250 | 69.5% | 24.3% | 6.3% | 0.0% | 0.0% | 0.918 | 1.000 | 17141 | 56 / 49 / 46 min |
+| The Ark Charter: Ten Thousand Sleepers | 2250 | 66.1% | 32.3% | 1.6% | 0.0% | 0.0% | 0.913 | 0.853 | 17506 | 62 / 54 / 51 min |
+| Deep Camp: The Cinder Vein | 2250 | 42.6% | 55.6% | 1.7% | 0.2% | 0.2% | 0.883 | 0.998 | 34115 | 87 / 75 / 71 min |
+| Survey Writ: The Far Crossing | 2250 | 18.9% | 50.9% | 29.2% | 1.0% | 0.0% | 0.794 | 0.967 | 50973 | 90 / 78 / 74 min |
+| Enforcement Writ: The Vane Default | 2250 | 66.1% | 33.9% | 0.0% | 0.0% | 0.0% | 0.916 | 1.000 | 32189 | 67 / 58 / 55 min |
+| Karst Belt Works: Permanent Extraction | 2250 | 71.5% | 28.5% | 0.0% | 0.0% | 0.0% | 0.924 | 1.000 | 27475 | 73 / 63 / 60 min |
+| The Long Dark: Charter to the Rim | 2250 | 11.8% | 64.1% | 23.3% | 0.7% | 0.0% | 0.805 | 0.969 | 64153 | 109 / 94 / 89 min |
+| Salvage Writ: The Long Tow | 2250 | 42.2% | 45.5% | 12.4% | 0.0% | 0.0% | 0.868 | 1.000 | 29036 | 81 / 70 / 66 min |
+| Sanctuary Run: The Talleth Exodus | 2250 | 60.1% | 37.1% | 2.8% | 0.0% | 0.0% | 0.900 | 1.000 | 35008 | 73 / 63 / 60 min |
+| The Seedbearers' Writ | 2250 | 66.3% | 33.7% | 0.0% | 0.0% | 0.0% | 0.914 | 1.000 | 28780 | 75 / 65 / 61 min |
+| Relief Writ: The Sunset Coast | 2250 | 71.2% | 26.0% | 2.8% | 0.0% | 0.0% | 0.927 | 1.000 | 32953 | 74 / 64 / 60 min |
+| Survey Writ: The Sunward Dive | 2250 | 49.1% | 39.6% | 11.4% | 0.0% | 0.0% | 0.875 | 1.000 | 30749 | 65 / 56 / 53 min |
+| Double Survey: The Paired Deeps | 2250 | 24.0% | 60.1% | 15.1% | 0.8% | 0.0% | 0.832 | 0.946 | 30047 | 78 / 67 / 64 min |
+| Charter of Discovery: The Veiled Expanse | 2250 | 53.2% | 39.0% | 7.5% | 0.3% | 0.0% | 0.878 | 0.966 | 25819 | 66 / 57 / 54 min |
+| Warden Mandate: The Cinder Lane | 2250 | 67.5% | 29.8% | 2.8% | 0.0% | 0.0% | 0.916 | 1.000 | 27992 | 70 / 60 / 57 min |
 
 ## Interpretation and release targets
 
