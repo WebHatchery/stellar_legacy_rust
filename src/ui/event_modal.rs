@@ -316,16 +316,10 @@ fn known_effects(
     for delta in &outcome.subsystem_deltas {
         let name = delta.id.replace('_', " ");
         if delta.condition.abs() > f32::EPSILON {
-            effects.push(format!(
-                "{name} condition {:+.0}%",
-                delta.condition * 100.0
-            ));
+            effects.push(format!("{name} condition {:+.0}%", delta.condition * 100.0));
         }
         if delta.knowledge.abs() > f32::EPSILON {
-            effects.push(format!(
-                "{name} knowledge {:+.0}%",
-                delta.knowledge * 100.0
-            ));
+            effects.push(format!("{name} knowledge {:+.0}%", delta.knowledge * 100.0));
         }
     }
     if outcome.objective_progress_delta.abs() > f32::EPSILON {

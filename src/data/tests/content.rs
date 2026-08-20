@@ -286,12 +286,10 @@ fn late_legacy_events_offer_distinct_reckonings_after_the_early_voyage() {
         .get("the_first_council_without_founders")
         .unwrap();
     assert_eq!(founders_gone.max_legacy_loyalty, 0.75);
-    assert!(founders_gone
-        .outcomes
+    assert!(founders_gone.outcomes.iter().any(|outcome| outcome
+        .subsystem_deltas
         .iter()
-        .any(|outcome| outcome.subsystem_deltas.iter().any(|delta| {
-            delta.id == "education_culture" && delta.knowledge > 0.0
-        })));
+        .any(|delta| { delta.id == "education_culture" && delta.knowledge > 0.0 })));
 
     let work_beneath = data.events.get("the_work_beneath_the_work").unwrap();
     assert!(work_beneath.phases.contains(&ContractPhase::Operation));

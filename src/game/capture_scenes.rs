@@ -755,5 +755,4 @@ impl Game {
             self.conclude_contract(score, level);
         }
     }
-
 }
