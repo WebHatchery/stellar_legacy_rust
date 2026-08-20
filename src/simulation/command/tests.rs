@@ -52,6 +52,27 @@ fn annual_posture_effects_stop_in_port() {
 }
 
 #[test]
+fn annual_posture_review_leaves_a_legible_log_entry() {
+    let data = crate::data::GameData::load().unwrap();
+    let legacy = crate::data::GameData::sorted_ids(&data.legacies)[0].clone();
+    let factions = crate::state::sim::founding_faction_ids(&data);
+    let mut sim = crate::state::sim::SimState::new_campaign(&data, &legacy, 7, &factions);
+    let contract_id = crate::data::GameData::sorted_ids(&data.contracts)[0].clone();
+    sim.contract = Some(crate::simulation::contract::start_contract(
+        data.contracts.get(&contract_id).unwrap(),
+        &sim,
+    ));
+    sim.command_posture = CommandPosture::Expeditionary;
+
+    apply_annual_effects(&mut sim);
+
+    assert!(sim
+        .log
+        .last()
+        .is_some_and(|entry| entry.text.contains("Expeditionary posture")));
+}
+
+#[test]
 fn underway_posture_reviews_are_once_per_year() {
     let data = crate::data::GameData::load().unwrap();
     let legacy = crate::data::GameData::sorted_ids(&data.legacies)[0].clone();

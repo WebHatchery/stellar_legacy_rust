@@ -57,15 +57,34 @@ pub fn apply_annual_effects(sim: &mut SimState) {
     if sim.contract.is_none() {
         return;
     }
-    let (morale, unity, stability, loyalty) = match sim.command_posture {
-        CommandPosture::Steady => (0.0, 0.0, 0.0, 0.0),
-        CommandPosture::Expeditionary => (-0.008, -0.004, 0.0, -0.004),
-        CommandPosture::Civic => (0.015, 0.01, 0.01, 0.012),
+    let (morale, unity, stability, loyalty, report) = match sim.command_posture {
+        CommandPosture::Steady => (
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            "Annual council review: Steady posture holds the line.",
+        ),
+        CommandPosture::Expeditionary => (
+            -0.008,
+            -0.004,
+            0.0,
+            -0.004,
+            "Annual council review: Expeditionary posture keeps the mission moving at a social cost.",
+        ),
+        CommandPosture::Civic => (
+            0.015,
+            0.01,
+            0.01,
+            0.012,
+            "Annual council review: Civic posture shelters the people at a slower pace.",
+        ),
     };
     sim.population.morale = (sim.population.morale + morale).clamp(0.0, 1.0);
     sim.population.unity = (sim.population.unity + unity).clamp(0.0, 1.0);
     sim.population.stability = (sim.population.stability + stability).clamp(0.0, 1.0);
     sim.population.legacy_loyalty = (sim.population.legacy_loyalty + loyalty).clamp(0.0, 1.0);
+    sim.push_log(report);
 }
 
 #[cfg(test)]
