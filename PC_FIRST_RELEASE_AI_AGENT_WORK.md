@@ -1,5 +1,12 @@
 # Stellar Legacy — AI-Agent Work for the First PC Release
 
+> **Execution reconciliation (2026-08-26):** all work that can be completed from the
+> repository without owner decisions, credentials, storefront state, new bug reports,
+> or human/clean-machine judgement is implemented or prepared. See
+> `docs/release/AI_AGENT_EXECUTION_STATUS.md` for evidence and the precise external gates.
+> The original boxes below are retained as the audit decomposition; they are not a claim
+> that an agent may complete the human-dependent portions of a mixed item.
+
 **Audit date:** 2026-08-26
 **Launch scope used for this plan:** a paid, full (not Early Access), English-language
 Windows x86-64 release on Steam and itch.io. Browser, Linux, macOS, console, mobile,

@@ -15,10 +15,10 @@ granted by this draft. Do not infer ownership from repository access.
 ## Third-party notices
 
 `THIRD_PARTY_LICENSES.md` is generated from the exact `Cargo.lock` dependency graph.
-Package licence identifiers are inventory evidence, not a substitute for reading and
-shipping each licence text. Before publication, the owner/legal reviewer must resolve
-every `UNKNOWN`, verify attribution and notice requirements, and approve the assembled
-notices.
+`THIRD_PARTY_NOTICES.txt` assembles and deduplicates the licence/notice files published
+inside those exact dependency packages and explicitly lists packages that did not ship
+one locally. Before publication, the owner/legal reviewer must resolve every `UNKNOWN`
+or missing notice, verify attribution and notice requirements, and approve the candidate.
 
 ## AI disclosure facts for owner review
 

@@ -3,6 +3,10 @@
 Audit updated: 2026-08-26. This is the traceable status companion to
 `PC_FIRST_RELEASE_AI_AGENT_WORK.md`.
 
+**Local agent-owned status: COMPLETE.** No remaining item can advance without owner
+input, authenticated storefront state, a human test result/bug report, or authority to
+publish. Those gates remain open below and are not software defects.
+
 ## Completed or prepared by the agent
 
 - Release scope/version/store-feature manifest, changelog, first-build notes, store copy,
@@ -19,7 +23,8 @@ Audit updated: 2026-08-26. This is the traceable status companion to
   real IDs remain external. Credential-free itch example and existing dry-run wrapper.
 - Store descriptions, warnings, flags, launch copy, key-art derivatives, exact Steam/itch
   delivery sizes, genuine screenshot pipeline, editable recipes, and provenance record.
-- Dependency-licence and shipped-asset inventory generation from the lockfile/repository.
+- Dependency-licence inventory, assembled upstream notice texts, and shipped-asset
+  inventory generation from the exact lockfile/repository.
 - Deterministic balance policies now reject unavailable and unaffordable choices; the
   49,500-voyage report is green and byte-identical across regeneration.
 - Automated save round-trip covers atomic replacement and a non-ASCII profile path;
@@ -28,6 +33,8 @@ Audit updated: 2026-08-26. This is the traceable status companion to
   high-resolution screenshots are exported, and exact-size Steam/itch media is ready.
 - The archive passes Defender, strict content checks, exact-executable rendering, and
   a real-browser WebGL initialization smoke on the development machine.
+- Repeat-build comparison verifies every packaged payload entry from two builds of the
+  same clean commit; ZIP-container timestamp variance is recorded separately.
 
 ## Requires human input or external state
 

@@ -18,7 +18,11 @@
 - All 44 capture scenes render. The touch audit reports no ambiguity or undersized
   visible controls across the 43 interactive scenes (the boot frame has no controls).
 - The exact Windows archive passes a two-file allow-list and launches its extracted
-  executable to a rendered frame. The packaged WebGL runtime initializes in Chrome.
+  executable to a rendered frame from a path containing spaces with read-only runtime
+  files. The packaged WebGL runtime initializes in Chrome.
+- `scripts/compare_release_builds.ps1` builds the Windows archive twice from one clean
+  commit and rejects any difference in the extracted runtime payload. It records whether
+  the ZIP containers themselves are byte-identical and explains timestamp-only variance.
 - Windows Defender scanned the candidate ZIP on 2026-08-26 and reported no threats.
 - Windows executable metadata reports Stellar Legacy and version 0.1.0.
 

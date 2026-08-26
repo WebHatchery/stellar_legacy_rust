@@ -23,10 +23,14 @@ function Assert-WindowsPackage([string]$Archive) {
     finally { $zip.Dispose() }
 
     $tempRoot = [IO.Path]::GetTempPath()
-    $work = Join-Path $tempRoot ("stellar-legacy-smoke-" + [guid]::NewGuid().ToString("N"))
+    # A path containing spaces and read-only runtime files approximate the portable
+    # archive living in a locked-down install directory. Saves must still go to the
+    # per-user app-data folder rather than beside the executable.
+    $work = Join-Path $tempRoot ("stellar legacy smoke " + [guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $work | Out-Null
     try {
         Expand-Archive -LiteralPath $archivePath -DestinationPath $work
+        Get-ChildItem -LiteralPath $work -File | ForEach-Object { $_.IsReadOnly = $true }
         $manifest = Join-Path $work "smoke.tsv"
         $frame = Join-Path $work "smoke.png"
         Set-Content -LiteralPath $manifest -Value "menu`t$frame" -Encoding utf8
