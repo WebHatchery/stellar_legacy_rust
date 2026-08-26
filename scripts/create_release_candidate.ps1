@@ -22,8 +22,19 @@ try {
     $artifact = Join-Path $releaseDir "stellar_legacy_${version}_windows_x86_64.zip"
     Copy-Item -LiteralPath $source -Destination $artifact -Force
 
+    $scanStarted = $null
+    $detectionCount = $null
     if ($ScanWithDefender) {
+        $scanStarted = [DateTime]::UtcNow
         Start-MpScan -ScanType CustomScan -ScanPath $artifact
+        $detections = @(Get-MpThreatDetection -ErrorAction Stop | Where-Object {
+            $_.InitialDetectionTime.ToUniversalTime() -ge $scanStarted -and
+                (($_.Resources -join "`n") -match [regex]::Escape($artifact))
+        })
+        $detectionCount = $detections.Count
+        if ($detectionCount -gt 0) {
+            throw "Windows Defender reported $detectionCount detection(s) for the release candidate."
+        }
     }
     $toolkit = Join-Path (Split-Path $project -Parent) "macroquad-toolkit"
     $manifest = [ordered]@{
@@ -36,6 +47,8 @@ try {
         sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $artifact).Hash.ToLowerInvariant()
         cargo_lock_sha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $metadata.workspace_root "Cargo.lock")).Hash.ToLowerInvariant()
         defender_scan_requested = [bool]$ScanWithDefender
+        defender_scan_started_utc = if ($scanStarted) { $scanStarted.ToString("o") } else { $null }
+        defender_detection_count = $detectionCount
     }
     $manifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $releaseDir "release-manifest.json") -Encoding utf8
     $manifest.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } |

@@ -23,7 +23,8 @@
 - `scripts/compare_release_builds.ps1` builds the Windows archive twice from one clean
   commit and rejects any difference in the extracted runtime payload. It records whether
   the ZIP containers themselves are byte-identical and explains timestamp-only variance.
-- Windows Defender scanned the candidate ZIP on 2026-08-26 and reported no threats.
+- Windows Defender scanned the candidate ZIP on 2026-08-26; the release manifest records
+  the scan start and the count of detections associated with the exact artifact path.
 - Windows executable metadata reports Stellar Legacy and version 0.1.0.
 
 P0: crash/data loss/cannot progress. P1: release-blocking install, launch, save, or severe
