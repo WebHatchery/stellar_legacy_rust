@@ -18,8 +18,8 @@
       "desc": "Scroll the charter board and the ship catalogs"
     },
     {
-      "key": "1 - 7",
-      "desc": "Switch tabs; 1 - 9 picks a council option (optional)"
+      "key": "On-screen tabs / 1 - 7",
+      "desc": "Tap tabs; visible council choices may also use 1 - 9"
     }
   ],
   "details": [
@@ -32,8 +32,8 @@
       "value": "Macroquad + Toolkit"
     },
     {
-      "label": "Platform",
-      "value": "Browser, Windows"
+      "label": "PC Release",
+      "value": "Windows x86-64"
     }
   ],
   "repository": "https://github.com/WebHatchery/stellar_legacy_rust"

@@ -3,7 +3,7 @@
 use crate::data::GameConfig;
 use crate::state::sim::SimState;
 use macroquad_toolkit::persistence::{
-    load_from_slot_with_migration, save_to_slot_with_version, slot_exists,
+    load_from_slot_with_migration, quarantine_slot, save_to_slot_with_version, slot_exists,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -27,12 +27,20 @@ pub fn save_campaign(config: &GameConfig, sim: &SimState) -> Result<(), String> 
 }
 
 pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
-    let loaded: SaveData = load_from_slot_with_migration(
+    let loaded: SaveData = match load_from_slot_with_migration(
         &config.game_name,
         &config.save_slot,
         &config.version,
         |version, value| migrate_save_value(version, value, config),
-    )?;
+    ) {
+        Ok(save) => save,
+        Err(error) => {
+            let preserved = quarantine_slot(&config.game_name, &config.save_slot)
+                .map(|slot| format!(" Preserved as {slot}."))
+                .unwrap_or_else(|quarantine| format!(" Could not preserve it: {quarantine}."));
+            return Err(format!("Save could not be loaded: {error}.{preserved}"));
+        }
+    };
     Ok(loaded.sim)
 }
 
@@ -55,3 +63,6 @@ pub fn migrate_save_value(
         )),
     }
 }
+
+#[cfg(test)]
+mod tests;

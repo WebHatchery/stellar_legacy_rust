@@ -14,6 +14,7 @@ mod save;
 mod settings;
 mod simulation;
 mod state;
+mod support;
 mod ui;
 
 use game::Game;
@@ -65,6 +66,7 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    macroquad_toolkit::crash::install_crash_log("stellar_legacy");
     let mut game = Game::new().await;
 
     // Screenshot harness: STELLAR_LEGACY_CAPTURE_PATH renders a named scene

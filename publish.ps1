@@ -29,3 +29,16 @@ if (-not (Test-Path $rootPublisher)) {
     -DryRun:$DryRun
 
 if (-not $?) { exit 1 }
+
+if (-not $DeployOnly) {
+    $smoke = Join-Path $PSScriptRoot "scripts\test_release_package.ps1"
+    $smokeArgs = @{}
+    if (-not $WebGLOnly) {
+        $smokeArgs.WindowsArchive = Join-Path $PSScriptRoot "dist\stellar_legacy_windows.zip"
+    }
+    if (-not $WindowsOnly) {
+        $smokeArgs.WebGLDir = Join-Path $PSScriptRoot "dist\webgl"
+    }
+    & $smoke @smokeArgs
+    if (-not $?) { exit 1 }
+}

@@ -3,6 +3,32 @@
 use super::*;
 
 #[test]
+fn event_ids_are_globally_unique_across_every_authored_file() {
+    let mut seen = std::collections::HashMap::<String, &str>::new();
+
+    for (family, json) in EVENT_FILES {
+        let events: Vec<serde_json::Value> = serde_json::from_str(json)
+            .unwrap_or_else(|error| panic!("events/{family}.json is not valid JSON: {error}"));
+        for event in events {
+            let id = event["id"]
+                .as_str()
+                .unwrap_or_else(|| panic!("events/{family}.json contains an event without an id"));
+            if let Some(first_family) = seen.insert(id.to_owned(), family) {
+                panic!(
+                    "event id '{id}' is duplicated in events/{first_family}.json and events/{family}.json"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn cargo_game_and_save_versions_are_one_release_label() {
+    let config: GameConfig = serde_json::from_str(GAME_CONFIG_JSON).unwrap();
+    assert_eq!(config.version, env!("CARGO_PKG_VERSION"));
+}
+
+#[test]
 fn every_event_is_tagged_and_families_are_filled() {
     use crate::data::contracts::ContractPhase;
     use std::collections::HashMap;

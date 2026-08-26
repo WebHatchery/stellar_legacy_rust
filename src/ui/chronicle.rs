@@ -5,7 +5,7 @@ use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{
-    draw_ui_text_ex, is_fully_visible, note_neighbour, note_target, touch_area, RectExt,
+    draw_ui_text_ex, is_fully_visible, note_neighbour, note_target, occlude, touch_area, RectExt,
 };
 use std::cmp::Reverse;
 
@@ -482,6 +482,7 @@ fn draw_obligation_history(
         area.h,
         Color::new(0.0, 0.0, 0.0, 0.84),
     );
+    occlude(area);
     let modal = Rect::new(area.x + 190.0, area.y + 20.0, area.w - 380.0, area.h - 40.0);
     draw_surface(
         modal,

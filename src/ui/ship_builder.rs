@@ -178,13 +178,25 @@ fn draw_module_ladder(
     let c = rect.inset(14.0);
     let versions = def.tiers.len() + 1; // baseline + each named upgrade
     let top = c.y + 28.0;
-    let stride = ((c.bottom() - top) / versions as f32).min(34.0);
+    let action_tier = (state.tier < versions as u32 - 1).then_some(state.tier + 1);
+    let compact_count = versions - usize::from(action_tier.is_some());
+    let compact_h = if action_tier.is_some() {
+        ((c.bottom() - top - 44.0) / compact_count as f32).clamp(16.0, 22.0)
+    } else {
+        ((c.bottom() - top) / versions as f32).clamp(16.0, 22.0)
+    };
+    let mut ry = top;
 
     for vi in 0..versions {
         let tier = vi as u32;
         let name = def.fitting_name(tier);
-        let ry = top + vi as f32 * stride;
-        let row = Rect::new(c.x, ry, c.w, stride - 4.0);
+        let row_h = if action_tier == Some(tier) {
+            44.0
+        } else {
+            compact_h
+        };
+        let row = Rect::new(c.x, ry, c.w, row_h);
+        ry += row_h;
 
         if tier < state.tier {
             // A version already surpassed — record of the ladder climbed.
@@ -448,10 +460,10 @@ fn draw_field_ops(
             InstallEligibility::NeedsConsumables => (false, format!("{name} · NEEDS PARTS")),
             _ => (false, format!("{name} · UNAVAILABLE")),
         };
-        if term_button(Rect::new(c.x, y, c.w, 26.0), &label, enabled, pointer) {
+        if term_button(Rect::new(c.x, y, c.w, 44.0), &label, enabled, pointer) {
             actions.push(UiAction::InstallSalvage(id.clone()));
         }
-        y += 32.0;
+        y += 50.0;
     }
 }
 

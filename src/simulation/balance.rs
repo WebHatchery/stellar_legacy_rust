@@ -314,22 +314,20 @@ fn event_choice(policy: Policy, sim: &SimState, data: &GameData, event_id: &str)
     let Some(template) = data.events.get(event_id) else {
         return 0;
     };
+    let candidates = template.outcomes.iter().enumerate().filter(|(_, outcome)| {
+        event_resolver::outcome_available(sim, outcome)
+            && event_resolver::outcome_affordable(sim, outcome)
+    });
     match policy {
-        Policy::FirstChoice => 0,
-        Policy::Conservative => template
-            .outcomes
-            .iter()
-            .enumerate()
+        Policy::FirstChoice => candidates.map(|(index, _)| index).next().unwrap_or(0),
+        Policy::Conservative => candidates
             .max_by(|(_, a), (_, b)| {
                 event_resolver::score_outcome(a, sim, &data.config)
                     .total_cmp(&event_resolver::score_outcome(b, sim, &data.config))
             })
             .map(|(index, _)| index)
             .unwrap_or(0),
-        Policy::ObjectiveFirst => template
-            .outcomes
-            .iter()
-            .enumerate()
+        Policy::ObjectiveFirst => candidates
             .max_by(|(_, a), (_, b)| {
                 let a_score = a.objective_progress_delta * 20_000.0
                     + event_resolver::score_outcome(a, sim, &data.config);
@@ -420,45 +418,56 @@ fn run_one(
     };
     let month_limit = (template.target_duration_years + 160) * 12;
     while sim.month_clock < month_limit {
-        if sim.pending_dilemma.is_some() {
-            run.dilemmas += 1;
-            let choice = if policy == Policy::FirstChoice {
-                0
-            } else {
-                let definition = data.legacies.get(&sim.legacy.legacy_id).and_then(|legacy| {
-                    legacy.dilemmas.iter().find(|d| {
-                        sim.pending_dilemma
-                            .as_ref()
-                            .is_some_and(|p| p.dilemma_id == d.id)
-                    })
-                });
-                definition
-                    .and_then(|d| {
-                        d.options
-                            .iter()
-                            .enumerate()
-                            .max_by(|(_, a), (_, b)| a.success_chance.total_cmp(&b.success_chance))
-                            .map(|(i, _)| i)
-                    })
-                    .unwrap_or(0)
-            };
-            legacy::resolve_dilemma(&mut sim, data, choice);
-        }
-        if let Some(pending) = sim.pending_event.clone() {
-            let Some(template) = data.events.get(&pending.template_id).cloned() else {
-                sim.pending_event = None;
+        let mut decision_chain = 0;
+        while sim.has_pending_decision() {
+            decision_chain += 1;
+            assert!(
+                decision_chain <= 32,
+                "balance decision chain did not settle for {charter_id}, seed {seed}"
+            );
+            if sim.pending_dilemma.is_some() {
+                run.dilemmas += 1;
+                let choice = if policy == Policy::FirstChoice {
+                    0
+                } else {
+                    let definition = data.legacies.get(&sim.legacy.legacy_id).and_then(|legacy| {
+                        legacy.dilemmas.iter().find(|d| {
+                            sim.pending_dilemma
+                                .as_ref()
+                                .is_some_and(|p| p.dilemma_id == d.id)
+                        })
+                    });
+                    definition
+                        .and_then(|d| {
+                            d.options
+                                .iter()
+                                .enumerate()
+                                .max_by(|(_, a), (_, b)| {
+                                    a.success_chance.total_cmp(&b.success_chance)
+                                })
+                                .map(|(i, _)| i)
+                        })
+                        .unwrap_or(0)
+                };
+                legacy::resolve_dilemma(&mut sim, data, choice);
                 continue;
-            };
-            run.decisions[category_index(template.category)] += 1;
-            let choice = event_choice(policy, &sim, data, &template.id);
-            if template
-                .outcomes
-                .get(choice)
-                .is_some_and(|outcome| outcome.force_return)
-            {
-                run.forced_returns += 1;
             }
-            event_resolver::apply_outcome(&mut sim, data, &template, choice);
+            if let Some(pending) = sim.pending_event.clone() {
+                let Some(template) = data.events.get(&pending.template_id).cloned() else {
+                    sim.pending_event = None;
+                    continue;
+                };
+                run.decisions[category_index(template.category)] += 1;
+                let choice = event_choice(policy, &sim, data, &template.id);
+                if template
+                    .outcomes
+                    .get(choice)
+                    .is_some_and(|outcome| outcome.force_return)
+                {
+                    run.forced_returns += 1;
+                }
+                event_resolver::apply_outcome(&mut sim, data, &template, choice);
+            }
         }
         if sim.dynasty.extinct {
             run.extinct = true;
@@ -567,7 +576,7 @@ fn csv(aggregates: &[Aggregate]) -> String {
 }
 
 fn markdown(data: &GameData, aggregates: &[Aggregate]) -> String {
-    let mut out = String::from("# Stellar Legacy balance report\n\nGenerated by the deterministic test-only matrix on 2026-08-05. The full 990-cell matrix is in `balance_matrix.csv`; each cell contains 50 seeded voyages.\n\n## Method\n\nThe matrix crosses all 22 charters, three legacies, five purchasable loadout profiles, three policies, and seeds 0–49 (49,500 voyages). Charter deed, reputation, faction, and minimum-loadout gates are satisfied before launch so the report measures voyage balance rather than availability. The policies are: first authored choice; conservative material-outcome scoring with earlier maintenance; and objective-first scoring that strongly values mission progress.\n\nDisplayed 1× is the expected readable pace. Clock estimates use the configured 0.25 seconds/month with truthful 1×/2×/3× multipliers. A human voyage budget adds 12 seconds per blocking decision and five minutes for drydock/preparation; these are planning interaction allowances, not simulation time.\n\n## Charter comparison\n\n| Charter | Runs | Complete | Partial | Pyrrhic | Failure | Extinction | Mean score | Mean objective | Mean net cr | Est. 1× / 2× / 3× |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
+    let mut out = String::from("# Stellar Legacy balance report\n\nGenerated by the deterministic test-only matrix on 2026-08-26. The full 990-cell matrix is in `balance_matrix.csv`; each cell contains 50 seeded voyages.\n\n## Method\n\nThe matrix crosses all 22 charters, three legacies, five purchasable loadout profiles, three policies, and seeds 0–49 (49,500 voyages). Charter deed, reputation, faction, and minimum-loadout gates are satisfied before launch so the report measures voyage balance rather than availability. The policies are: first authored choice; conservative material-outcome scoring with earlier maintenance; and objective-first scoring that strongly values mission progress.\n\nDisplayed 1× is the expected readable pace. Clock estimates use the configured 0.25 seconds/month with truthful 1×/2×/3× multipliers. A human voyage budget adds 12 seconds per blocking decision and five minutes for drydock/preparation; these are planning interaction allowances, not simulation time.\n\n## Charter comparison\n\n| Charter | Runs | Complete | Partial | Pyrrhic | Failure | Extinction | Mean score | Mean objective | Mean net cr | Est. 1× / 2× / 3× |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n");
     for charter_id in GameData::sorted_ids(&data.contracts) {
         let rows: Vec<_> = aggregates
             .iter()
@@ -595,55 +604,9 @@ fn markdown(data: &GameData, aggregates: &[Aggregate]) -> String {
         let human = 5.0 + decisions as f64 / f64::from(runs) * 0.2;
         writeln!(out, "| {} | {} | {:.1}% | {:.1}% | {:.1}% | {:.1}% | {:.1}% | {:.3} | {:.3} | {:.0} | {:.0} / {:.0} / {:.0} min |", data.contracts.get(&charter_id).unwrap().name, runs, complete as f64*100.0/f64::from(runs), partial as f64*100.0/f64::from(runs), pyrrhic as f64*100.0/f64::from(runs), failure as f64*100.0/f64::from(runs), extinction as f64*100.0/f64::from(runs), scores/f64::from(runs), objectives/f64::from(runs), credits as f64/f64::from(runs), base_minutes+human, base_minutes/2.0+human, base_minutes/3.0+human).unwrap();
     }
-    out.push_str("\n## Interpretation and release targets\n\nThe four renown-0 charters produce 72.5% complete-or-partial outcomes under the deliberately naive first-choice policy, inside the 70–85% hypothesis band. Conservative and objective-first play reach 100.0% and 99.8% respectively, but represent informed policies rather than blind play. The Long Dark and Far Crossing are the harshest late writs: only 65.9% and 62.6% complete-or-partial across all policies, with 33.3% and 36.8% pyrrhic outcomes.\n\nSingle-charter extinction was not observed in 49,500 runs. This revises the initial hypothesis rather than hiding a miss: extinction remains a cumulative campaign endpoint, while individual extreme charters express danger through failure, pyrrhic return, deaths, faction loss, and persistent damage. Artificially forcing whole-dynasty extinction into one writ would work against the generational campaign.\n\nNo component profile dominates: complete-or-partial rates span only 88.8–89.6% (cargo 88.8%, combat 89.4%, fuel 88.9%, speed 89.6%, starter 88.8%). Mean net payout spans 29,684–32,034 credits, so the speed profile's modest economic edge does not buy a decisive success advantage. The materially different result is policy: conservative play yields 99.9% complete-or-partial and 24,351 mean credits, objective-first 97.7% and 44,300, while first-choice produces 69.8% complete-or-partial, 30.2% pyrrhic/failure, and 23,573. This is an explained strategy tradeoff, not a hidden dominant fitting.\n\nA full refit costs 4,000 credits: significant against the 10,000-credit founding reserve but normally affordable from the 12,332-credit mean net payout of first-choice renown-0 voyages. Partial and pyrrhic bands are material outcomes throughout the table rather than theoretical labels.\n\n## Human validation\n\nA clean-profile renown-0 walkthrough covered founding choices, charter comparison, integrated provisioning, launch, live route/mission state, and reactive council choices with mouse and keyboard. It confirmed readable prose and clear targets, and exposed the missing known-effects summary on choices; that summary was added before the final capture audit. The 30–60 minute estimates above include measured interaction allowance rather than claiming unattended clock time as human play time. The three policy-shaped full-voyage cohorts in the matrix provide the repeatable conservative, objective-first, and reactive comparison; the live walkthrough validates the interaction layer those policies cannot measure.\n");
+    out.push_str("\n## Interpretation and release targets\n\nThe four renown-0 charters produce 82.1% complete-or-partial outcomes under the deliberately naive first-choice policy, inside the 70–85% hypothesis band. Conservative and objective-first play reach 99.9% and 99.7% respectively, but represent informed policies rather than blind play. The Long Dark and Far Crossing are the harshest late writs: only 67.9% and 61.8% complete-or-partial across all policies, with 32.1% and 38.2% pyrrhic outcomes.\n\nSingle-charter extinction was not observed in 49,500 runs. This revises the initial hypothesis rather than hiding a miss: extinction remains a cumulative campaign endpoint, while individual extreme charters express danger through failure, pyrrhic return, deaths, faction loss, and persistent damage. Artificially forcing whole-dynasty extinction into one writ would work against the generational campaign.\n\nNo component profile dominates: complete-or-partial rates span only 91.2–92.1% (cargo 91.3%, combat 91.8%, fuel 91.2%, speed 92.1%, starter 91.7%). Mean net payout spans 29,417–31,757 credits, so the speed profile's modest economic edge does not buy a decisive success advantage. The materially different result is policy: conservative play yields 99.3% complete-or-partial and 24,238 mean credits, objective-first 95.5% and 43,875, while first-choice produces 80.0% complete-or-partial, 20.0% pyrrhic/failure, and 23,239. This is an explained strategy tradeoff, not a hidden dominant fitting.\n\nA full refit costs 4,000 credits: significant against the 10,000-credit founding reserve but normally affordable from the 12,172-credit mean net payout of first-choice renown-0 voyages. Partial and pyrrhic bands are material outcomes throughout the table rather than theoretical labels.\n\n## Human validation\n\nA clean-profile renown-0 walkthrough covered founding choices, charter comparison, integrated provisioning, launch, live route/mission state, and reactive council choices with mouse and keyboard. It confirmed readable prose and clear targets, and exposed the missing known-effects summary on choices; that summary was added before the final capture audit. The 30–60 minute estimates above include measured interaction allowance rather than claiming unattended clock time as human play time. The three policy-shaped full-voyage cohorts in the matrix provide the repeatable conservative, objective-first, and reactive comparison; the live walkthrough validates the interaction layer those policies cannot measure.\n");
     out
 }
 
-#[test]
-#[ignore = "release analysis: 49,500 deterministic full voyages"]
-fn generate_release_balance_report() {
-    let data = Arc::new(GameData::load().unwrap());
-    let mut jobs = Vec::new();
-    for charter in GameData::sorted_ids(&data.contracts) {
-        for legacy in GameData::sorted_ids(&data.legacies) {
-            for loadout in Loadout::ALL {
-                for policy in Policy::ALL {
-                    jobs.push((charter.clone(), legacy.clone(), loadout, policy));
-                }
-            }
-        }
-    }
-    let queue = Arc::new(Mutex::new(jobs.into_iter()));
-    let output = Arc::new(Mutex::new(Vec::new()));
-    let workers = std::thread::available_parallelism().map_or(4, |n| n.get().min(12));
-    std::thread::scope(|scope| {
-        for _ in 0..workers {
-            let data = Arc::clone(&data);
-            let queue = Arc::clone(&queue);
-            let output = Arc::clone(&output);
-            scope.spawn(move || loop {
-                let Some((charter, legacy, loadout, policy)) = queue.lock().unwrap().next() else {
-                    break;
-                };
-                let mut aggregate = Aggregate::new(&charter, &legacy, loadout, policy);
-                for seed in 0..SEEDS {
-                    aggregate.push(run_one(&data, &charter, &legacy, loadout, policy, seed));
-                }
-                output.lock().unwrap().push(aggregate);
-            });
-        }
-    });
-    let mut aggregates = Arc::try_unwrap(output).unwrap().into_inner().unwrap();
-    aggregates.sort_by(|a, b| {
-        (&a.charter, &a.legacy, a.loadout.label(), a.policy.label()).cmp(&(
-            &b.charter,
-            &b.legacy,
-            b.loadout.label(),
-            b.policy.label(),
-        ))
-    });
-    std::fs::write("balance_matrix.csv", csv(&aggregates)).unwrap();
-    std::fs::write("balance_report.md", markdown(&data, &aggregates)).unwrap();
-    assert_eq!(aggregates.len(), 22 * 3 * 5 * 3);
-    assert!(aggregates.iter().all(|a| a.runs == SEEDS as u32));
-}
+#[cfg(test)]
+mod tests;

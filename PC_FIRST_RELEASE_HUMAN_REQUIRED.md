@@ -279,10 +279,10 @@ The game is ready to publish only when:
   exercised by people on clean environments.
 - Both store pages and builds are approved, timing requirements are satisfied, and the
   release/rollback owner is available.
-- The repository's automated release gate is green; as of 2026-08-26 it is **not green**
-  because of the duplicate `the_seized_works` event ID. The no-argument publisher exits
-  successfully, but the Windows executable it produced panics on startup with exit code
-  101, so a successful package/deploy message is not sufficient evidence.
+- The repository's automated release gate must remain green for the frozen release
+  commit. The duplicate `the_seized_works` startup fault found on 2026-08-26 is fixed and
+  regression-tested; the publisher now launches the exact packaged Windows executable
+  and requires a rendered frame instead of trusting compilation alone.
 
 ## Current official platform references
 

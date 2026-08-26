@@ -8,7 +8,7 @@ use crate::state::sim::factions::steward_decay_factor;
 use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
 
 fn priced_action_label(action: &str, cost: i64, available: i64, unit: &str) -> String {
     if available >= cost {
@@ -192,7 +192,7 @@ fn draw_card(
     };
     // --- Verbs: Repair / Upgrade (port) / Train ---
     let bw = (content.w - 3.0 * 8.0) / 4.0;
-    let by = content.bottom() - 40.0;
+    let by = content.bottom() - 44.0;
     let ceiling = if in_port {
         1.0
     } else {
@@ -220,7 +220,7 @@ fn draw_card(
         )
     };
     if term_button(
-        Rect::new(content.x, by, bw, 40.0),
+        Rect::new(content.x, by, bw, 44.0),
         &repair_label,
         repair_ok,
         pointer,
@@ -248,7 +248,7 @@ fn draw_card(
                 && ctx.sim.resources.minerals >= t.cost.minerals
         });
     if term_button(
-        Rect::new(content.x + bw + 8.0, by, bw, 40.0),
+        Rect::new(content.x + bw + 8.0, by, bw, 44.0),
         &upgrade_label,
         upgrade_ok,
         pointer,
@@ -274,7 +274,7 @@ fn draw_card(
         )
     };
     if term_button(
-        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 40.0),
+        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 44.0),
         &train_label,
         train_ok,
         pointer,
@@ -282,7 +282,7 @@ fn draw_card(
         actions.push(UiAction::TrainSubsystemKnowledge(id.to_owned()));
     }
     if term_button(
-        Rect::new(content.x + 3.0 * (bw + 8.0), by, bw, 40.0),
+        Rect::new(content.x + 3.0 * (bw + 8.0), by, bw, 44.0),
         &institution_label,
         institution_ok,
         pointer,
@@ -318,6 +318,7 @@ fn draw_custody_picker(
         area.h,
         Color::new(0.0, 0.0, 0.0, 0.82),
     );
+    occlude(area);
     let height = 148.0 + candidates.len() as f32 * 82.0;
     let modal = Rect::new(
         area.x + (area.w - 760.0) * 0.5,

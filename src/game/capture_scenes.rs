@@ -21,6 +21,8 @@ impl Game {
         self.capture_run_secs = None;
         self.custody_picker = None;
         self.obligation_detail = None;
+        self.settings_open = false;
+        self.help_open = false;
         self.obligation_resolved_tab.set(false);
         self.boot.finish();
         // The first-run welcome overlay would otherwise sit over every menu

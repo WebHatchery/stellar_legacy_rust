@@ -195,10 +195,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     y += 22.0;
     // Each provisioning row carries its own stock-up button so filling the
     // stores never means leaving the PREP screen.
-    // 36 tall on a PROVISION_STRIDE row: the 8px it leaves is what the touch
-    // expansion grows into, 4px each way, so the target reaches the full 44 the
-    // standard asks for. This screen had the room; the CREW posts column did not.
-    let stock_btn = |y: f32| Rect::new(content.right() - 200.0, y - 22.0, 194.0, 36.0);
+    let stock_btn = |y: f32| Rect::new(content.right() - 200.0, y - 24.0, 194.0, 44.0);
 
     // Food: a current-state projection that includes crew skill, agriculture
     // tier/condition, consumption, and a standing route toll. This is a useful

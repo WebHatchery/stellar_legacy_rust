@@ -9,7 +9,7 @@ use crate::data::WelcomeConfig;
 use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt};
 
 /// Draw the overlay. Returns true when the player clicks the dismiss button.
 pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
@@ -21,6 +21,7 @@ pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
         LOGICAL_HEIGHT,
         Color::new(0.0, 0.0, 0.0, 0.82),
     );
+    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
 
     let panel = Rect::new(
         LOGICAL_WIDTH / 2.0 - 380.0,

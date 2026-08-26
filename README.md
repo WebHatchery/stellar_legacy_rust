@@ -52,3 +52,11 @@ cargo fmt -- --check
 .\scripts\capture_ui.ps1 -Scenes menu,gameplay,event   # headless UI screenshots
 .\publish.ps1                                           # build Windows + WebGL, deploy
 ```
+
+## First Windows release
+
+Release scope, store/support drafts, QA records, legal inventories, and media provenance
+live in `docs/release/`. `publish.ps1` validates the exact packaged executable and WebGL
+payload after packaging. From a clean approved commit,
+`scripts/create_release_candidate.ps1` produces the versioned Windows ZIP plus hashes and
+build provenance. Store uploads and public release controls remain human-authorised gates.

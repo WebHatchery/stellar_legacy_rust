@@ -1696,9 +1696,9 @@
   ]
  },
  {
-  "id": "the_seized_works",
+  "id": "the_founders_seized_engine",
   "category": "immediate_crisis",
-  "title": "The Seized Works",
+  "title": "The Founders' Seized Engine",
   "description": "A core mechanism deep in the ship — one of the great old assemblies the founders installed and no generation since has fully replaced — has seized. It can be worked around; the ship will limp. It can be replaced from stores, at cost, with a part that will do. Or, if the right hands happen to run the ship, it can be made into something better than the founders ever fitted. The council weighs which kind of fix this will be.",
   "requires_decision": true,
   "family": "engineering",

@@ -84,7 +84,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     } else {
         " "
     };
-    let btn = Rect::new(content.x, content.bottom() - 46.0, content.w, 42.0);
+    let btn = Rect::new(content.x, content.bottom() - 48.0, content.w, 44.0);
     if term_button(btn, &format!("{caret} RETIRE VOYAGE"), true, pointer) {
         actions.push(UiAction::RetireVoyage);
     }

@@ -536,7 +536,10 @@ impl Game {
         } else {
             Vec::new()
         };
-        let help_close = self.help_open && ui::help::draw(pointer);
+        let help_action = self
+            .help_open
+            .then(|| ui::help::draw(pointer, &self.data.config.version))
+            .flatten();
         // First-run welcome overlay, above the menu only; its button dismisses it.
         let welcome_dismiss = self.welcome_open
             && matches!(self.state, GameState::Menu(_))
@@ -558,8 +561,15 @@ impl Game {
         for action in display_actions {
             self.apply_display_action(action);
         }
-        if help_close {
-            self.help_open = false;
+        match help_action {
+            Some(ui::help::HelpAction::Close) => self.help_open = false,
+            Some(ui::help::HelpAction::OpenSaveFolder) => {
+                match crate::support::reveal_save_folder(&self.data.config.game_name) {
+                    Ok(()) => self.notifications.info("Save folder opened."),
+                    Err(error) => self.notifications.warning(error),
+                }
+            }
+            None => {}
         }
         if welcome_dismiss {
             self.dismiss_welcome();

@@ -5,7 +5,7 @@
 use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
 
 /// Keyboard shortcuts, every one of which has a control on screen — a tablet
 /// has no function keys, so anything reachable only from this list would be
@@ -23,7 +23,13 @@ const KEYS: &[(&str, &str)] = &[
     ("ESC", "Close an open panel (CLOSE)"),
 ];
 
-pub fn draw(pointer: Pointer) -> bool {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HelpAction {
+    Close,
+    OpenSaveFolder,
+}
+
+pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
     draw_rectangle(
         0.0,
         0.0,
@@ -31,12 +37,13 @@ pub fn draw(pointer: Pointer) -> bool {
         LOGICAL_HEIGHT,
         Color::new(0.0, 0.0, 0.0, 0.8),
     );
+    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
 
     let panel = Rect::new(
         LOGICAL_WIDTH / 2.0 - 280.0,
-        LOGICAL_HEIGHT / 2.0 - 220.0,
+        LOGICAL_HEIGHT / 2.0 - 260.0,
         560.0,
-        440.0,
+        520.0,
     );
     term_panel(panel, Some("HELP // CONTROLS"));
     let content = panel.inset(30.0);
@@ -55,7 +62,7 @@ pub fn draw(pointer: Pointer) -> bool {
             y,
             TextStyle::new(15.0, term::dim()).params(),
         );
-        y += 36.0;
+        y += 32.0;
     }
     y += 8.0;
     draw_ui_text_ex(
@@ -64,11 +71,37 @@ pub fn draw(pointer: Pointer) -> bool {
         y,
         TextStyle::new(13.0, term::faint()).params(),
     );
+    y += 28.0;
+    draw_ui_text_ex(
+        &format!("VERSION {version}  //  LOCAL SAVES  //  NO TELEMETRY"),
+        content.x,
+        y,
+        TextStyle::new(13.0, term::faint()).params(),
+    );
+    y += 22.0;
+    draw_ui_text_ex(
+        "Windows: %LOCALAPPDATA%\\stellar_legacy  (includes crash_log.txt)",
+        content.x,
+        y,
+        TextStyle::new(12.0, term::faint()).params(),
+    );
 
-    term_button(
-        Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0),
+    let button_y = content.bottom() - 44.0;
+    if term_button(
+        Rect::new(content.x, button_y, 330.0, 44.0),
+        "OPEN SAVE FOLDER",
+        true,
+        pointer,
+    ) {
+        return Some(HelpAction::OpenSaveFolder);
+    }
+    if term_button(
+        Rect::new(content.x + 344.0, button_y, content.w - 344.0, 44.0),
         "CLOSE",
         true,
         pointer,
-    )
+    ) {
+        return Some(HelpAction::Close);
+    }
+    None
 }

@@ -8,7 +8,7 @@ use crate::state::sim::DelegationSettings;
 use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
 
 /// A change the display overlay is requesting.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -38,6 +38,7 @@ pub fn draw(
         LOGICAL_HEIGHT,
         Color::new(0.0, 0.0, 0.0, 0.8),
     );
+    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
 
     let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 250.0, 20.0, 500.0, 680.0);
     term_panel(panel, Some("DISPLAY // CRT MONITOR"));

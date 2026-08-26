@@ -57,7 +57,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         LOGICAL_WIDTH / 2.0 - 190.0,
         LOGICAL_HEIGHT - FOOTER_H - 2.0,
         380.0,
-        42.0,
+        44.0,
     );
     let caret = if blink(get_time() as f32, 2.5) {
         ">"
