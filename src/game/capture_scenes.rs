@@ -28,6 +28,7 @@ impl Game {
         // The first-run welcome overlay would otherwise sit over every menu
         // scene; scenes opt into it explicitly (the "welcome" scene below).
         self.welcome_open = false;
+        self.tutorial_open = false;
         self.display = crate::settings::DisplaySettings::default();
         self.crt_style = self.display.crt_style();
         ui::term::set_phosphor(self.display.phosphor);

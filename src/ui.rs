@@ -20,6 +20,7 @@ pub mod shell;
 pub mod ship_builder;
 pub mod ship_schematic;
 pub mod subsystems;
+pub mod tutorial;
 pub mod welcome;
 pub mod widgets;
 
@@ -223,6 +224,12 @@ pub enum UiAction {
     BuyParts(i64),
     /// Hide the first-voyage checklist for the rest of the campaign.
     DismissTutorial,
+    /// Advance the guided first-voyage tutorial.
+    NextTutorial,
+    /// Permanently skip the guided tutorial for this campaign.
+    SkipTutorial,
+    /// Close the guided tutorial without completing it.
+    CancelTutorial,
     PurchaseComponent(ComponentKind, String),
     FieldRepair(crate::simulation::ship::RepairKind),
     FullRepair,

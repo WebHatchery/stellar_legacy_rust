@@ -77,6 +77,13 @@ pub struct DisplaySettings {
     pub audio_volume: f32,
     /// Underway engine-room ambience; cues remain available when disabled.
     pub ambience: bool,
+    /// Whether the guided first-voyage tutorial is available.
+    #[serde(default = "default_tutorial_enabled")]
+    pub tutorial_enabled: bool,
+}
+
+fn default_tutorial_enabled() -> bool {
+    true
 }
 
 impl Default for DisplaySettings {
@@ -88,6 +95,7 @@ impl Default for DisplaySettings {
             phosphor: Phosphor::Amber,
             audio_volume: 0.35,
             ambience: true,
+            tutorial_enabled: true,
         }
     }
 }

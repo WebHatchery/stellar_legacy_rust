@@ -131,6 +131,9 @@ pub struct SimState {
     /// showing once the Chronicle records a completed mission.
     #[serde(default)]
     pub tutorial_dismissed: bool,
+    /// Current guided tutorial lesson, persisted with the campaign.
+    #[serde(default)]
+    pub tutorial_step: usize,
     pub market: MarketState,
     pub delegation: DelegationSettings,
     pub pending_event: Option<PendingEvent>,

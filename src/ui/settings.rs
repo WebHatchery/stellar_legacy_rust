@@ -19,6 +19,7 @@ pub enum DisplayAction {
     SetPhosphor(Phosphor),
     AdjustAudio(f32),
     ToggleAmbience,
+    ToggleTutorial,
     /// Flip whether this category is delegated by default in new voyages.
     ToggleDelegationDefault(EventCategory),
     Close,
@@ -146,6 +147,17 @@ pub fn draw(
         display.ambience,
         pointer,
         DisplayAction::ToggleAmbience,
+        &mut actions,
+    );
+    y += 48.0;
+    toggle_row(
+        content.x,
+        y,
+        content.w,
+        "GUIDED TUTORIAL",
+        display.tutorial_enabled,
+        pointer,
+        DisplayAction::ToggleTutorial,
         &mut actions,
     );
     y += 48.0;

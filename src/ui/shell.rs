@@ -63,6 +63,8 @@ pub struct GameplayCtx<'a> {
     /// SHIP builder sub-tab: `false` = LOADOUT catalog, `true` = MODULES (named
     /// subsystem version ladders). Pure view state, flipped by the on-screen toggle.
     pub ship_modules_tab: &'a std::cell::Cell<bool>,
+    pub tutorial_enabled: bool,
+    pub tutorial_open: bool,
 }
 
 pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
@@ -120,6 +122,9 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     } else if ctx.sim.pending_dilemma.is_some() {
         actions.clear();
         event_modal::draw_dilemma(&ctx, pointer, &mut actions);
+    } else if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
+        actions.clear();
+        tutorial::draw(&ctx, pointer, &mut actions);
     }
 
     actions

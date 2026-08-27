@@ -32,4 +32,5 @@ fn partial_json_loads_with_defaults() {
     assert!(!s.scanlines);
     assert!(s.crt_enabled);
     assert_eq!(s.phosphor, Phosphor::Amber);
+    assert!(s.tutorial_enabled);
 }

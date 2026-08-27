@@ -88,6 +88,8 @@ pub struct Game {
     onboarding: crate::settings::Onboarding,
     /// Whether the first-run welcome overlay is showing (once per install).
     welcome_open: bool,
+    /// Whether the guided tutorial overlay is currently open this session.
+    tutorial_open: bool,
     /// Terminal typewriter reveal for blocking modals: which modal is showing
     /// and when it appeared, so its body text streams in. Purely cosmetic —
     /// never touches the deterministic sim.
@@ -222,6 +224,7 @@ impl Game {
             help_open: false,
             onboarding,
             welcome_open: false,
+            tutorial_open: false,
             modal_key: None,
             modal_started: 0.0,
             mission_started: None,
@@ -526,6 +529,8 @@ impl Game {
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     ship_modules_tab: &self.ship_modules_tab,
+                    tutorial_enabled: self.display.tutorial_enabled,
+                    tutorial_open: self.tutorial_open,
                 }),
             }
         };
@@ -623,6 +628,16 @@ impl Game {
                 self.display.audio_volume = (self.display.audio_volume + delta).clamp(0.0, 1.0)
             }
             DisplayAction::ToggleAmbience => self.display.ambience = !self.display.ambience,
+            DisplayAction::ToggleTutorial => {
+                self.display.tutorial_enabled = !self.display.tutorial_enabled;
+                if self.display.tutorial_enabled {
+                    if let GameState::Gameplay(gameplay) = &self.state {
+                        self.tutorial_open = !gameplay.sim.tutorial_dismissed;
+                    }
+                } else {
+                    self.tutorial_open = false;
+                }
+            }
             DisplayAction::ToggleDelegationDefault(category) => {
                 self.delegation_defaults.toggle(category);
                 if let Err(err) = crate::settings::save_delegation(
@@ -723,6 +738,7 @@ impl Game {
                 let heritage = crate::heritage::derive(&self.chronicle, &self.data.config.heritage);
                 crate::heritage::apply(&mut sim, &heritage);
                 self.state = GameState::Gameplay(Box::new(GameplayState::new(sim)));
+                self.tutorial_open = self.display.tutorial_enabled;
                 if heritage.has_bonus() {
                     self.notifications.success(format!(
                         "The {} heritage steadies the founding oath.",
@@ -736,6 +752,7 @@ impl Game {
             StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
                 Ok(sim) => {
                     self.state = GameState::Gameplay(Box::new(GameplayState::new(sim)));
+                    self.tutorial_open = self.display.tutorial_enabled;
                     self.notifications.success("Voyage resumed.");
                 }
                 Err(err) => self.notifications.danger(format!("Load failed: {err}")),

@@ -25,6 +25,8 @@ pub struct TutorialConfig {
     pub factions_intro: String,
     /// Ordered pre-launch checklist steps for the PREP screen.
     pub steps: Vec<TutorialStep>,
+    /// Guided lessons shown across the first voyage.
+    pub guided_steps: Vec<TutorialStep>,
 }
 
 /// One captioned block of the first-run welcome overlay.

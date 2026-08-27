@@ -97,6 +97,7 @@ impl SimState {
             cultural_divergence_band: 0,
             fuel_scooped_accum: 0.0,
             tutorial_dismissed: false,
+            tutorial_step: 0,
             market,
             delegation: DelegationSettings::default(),
             pending_event: None,

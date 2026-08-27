@@ -106,6 +106,15 @@ fn tutorial_steps_cover_the_launch_flow() {
         assert!(!step.label.trim().is_empty(), "step '{}' label", step.id);
         assert!(!step.tip.trim().is_empty(), "step '{}' tip", step.id);
     }
+    assert!(tutorial.guided_steps.len() >= 6);
+    for step in &tutorial.guided_steps {
+        assert!(
+            !step.label.trim().is_empty(),
+            "guided step '{}' label",
+            step.id
+        );
+        assert!(!step.tip.trim().is_empty(), "guided step '{}' tip", step.id);
+    }
 }
 
 /// Every registry parses and carries at least the authored minimum.

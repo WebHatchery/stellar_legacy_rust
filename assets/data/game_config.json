@@ -140,6 +140,16 @@
         "label": "Press [ LAUNCH ]",
         "tip": "Departure locks the loadout. From here, generations will live and die before the ship sees home again."
       }
+    ],
+    "guided_steps": [
+      { "id": "dashboard", "label": "Read the dashboard", "tip": "This is your command picture: resources, population, morale, stability, and ship condition. Tap NEXT, then use the visible DRYDOCK tab to choose the work that starts your voyage." },
+      { "id": "charter", "label": "Choose a charter", "tip": "Tap DRYDOCK, compare the available charter cards, and tap SELECT on one. A charter is a promise with a destination, a duration, and a reward." },
+      { "id": "provision", "label": "Provision the crossing", "tip": "On PREP, read the FOOD, PARTS, and FUEL forecasts. Use the visible stock-up buttons when a store is short. The ship can launch understocked, but the risk will follow your generations." },
+      { "id": "people", "label": "Know your people", "tip": "Tap CREW & DYNASTY to inspect the families who will inherit your decisions. Recruit, train, and name an heir when the voyage gives you room to shape the next generation." },
+      { "id": "launch", "label": "Launch the charter", "tip": "Return to PREP and tap LAUNCH. Once underway, the clock advances automatically. Tap the visible speed controls to pause or change the pace whenever you need to think." },
+      { "id": "systems", "label": "Watch the ship", "tip": "Use DASHBOARD and SHIP to monitor hull, life support, fuel, and subsystem knowledge. Tap CONTRACT for the current route, progress, and approaching milestones." },
+      { "id": "council", "label": "Answer the council", "tip": "When a decision appears, time stops. Read every outcome, then tap the visible choice you want. There is no undo: your dynasty and the Chronicle carry the result forward." },
+      { "id": "legacy", "label": "Leave a legacy", "tip": "A voyage is more than reaching home. Keep the ship alive, honour obligations, and make choices your heirs can inherit. Tap NEXT to finish this guided tour." }
     ]
   },
   "welcome": {
