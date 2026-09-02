@@ -37,3 +37,17 @@ fn known_effects_keep_small_objective_changes_and_timed_payoffs_visible() {
     let (repair_text, _) = known_effects(repair, None);
     assert!(repair_text.contains("follow-up in 25y"));
 }
+
+#[test]
+fn known_effects_name_the_custodians_change_as_ai_empathy() {
+    let data = crate::data::GameData::load().unwrap();
+    let event = data.events.get("the_spare_calculation").unwrap();
+    let humane = event
+        .outcomes
+        .iter()
+        .find(|outcome| outcome.id == "teach_it_the_crew")
+        .unwrap();
+    let (text, _) = known_effects(humane, None);
+    assert!(text.contains("AI empathy +9%"));
+    assert!(!text.contains("custodian empathy reputation"));
+}

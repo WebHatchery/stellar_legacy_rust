@@ -193,6 +193,18 @@ pub struct FlavorConfig {
     pub resolve_voice_high: f32,
     #[serde(default)]
     pub resolve_voice_low: f32,
+    /// The Custodian AI crossing into a kind temperament. Unlike the ship's
+    /// public reputation, this is the machine speaking differently because the
+    /// council has taught it to account for human experience.
+    #[serde(default)]
+    pub custodian_kind: Vec<String>,
+    /// The Custodian crossing into a severe, purely instrumental temperament.
+    #[serde(default)]
+    pub custodian_severe: Vec<String>,
+    #[serde(default)]
+    pub custodian_empathy_voice_high: f32,
+    #[serde(default)]
+    pub custodian_empathy_voice_low: f32,
     /// The ship's *institutions* crossing into disorder (content-depth voice round 17):
     /// the governance twin of the morale (`ship_mood_darkening`) and polity
     /// (`polity_souring`) voices — distinct from the crew's spirits and from how

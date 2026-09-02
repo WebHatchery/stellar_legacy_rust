@@ -274,3 +274,94 @@ fn a_famines_options_turn_on_the_ships_reputation() {
         "reputation only bites where the larder is already thin"
     );
 }
+
+#[test]
+fn voyage_choices_teach_the_custodian_kindness_or_severity() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let spare = data.events.get("the_spare_calculation").unwrap();
+    let listen = spare
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "teach_it_the_crew")
+        .unwrap();
+    let optimize = spare
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "sharpen_the_voyage")
+        .unwrap();
+    let mercy = data.events.get("mercy_without_orders").unwrap();
+    let cold = data.events.get("the_cold_equation").unwrap();
+
+    let mut kind = SimState::new_campaign(&data, "preservers", 101, &picks);
+    assert_eq!(kind.reputation("custodian_empathy"), 0.5);
+    assert!(!passes_gate(&kind, mercy) && !passes_gate(&kind, cold));
+    apply_outcome(&mut kind, &data, spare, listen);
+    apply_outcome(&mut kind, &data, spare, listen);
+    assert!(kind.reputation("custodian_empathy") >= 0.65);
+    assert!(passes_gate(&kind, mercy));
+    assert!(!passes_gate(&kind, cold));
+
+    let mut severe = SimState::new_campaign(&data, "preservers", 102, &picks);
+    apply_outcome(&mut severe, &data, spare, optimize);
+    apply_outcome(&mut severe, &data, spare, optimize);
+    assert!(severe.reputation("custodian_empathy") <= 0.35);
+    assert!(passes_gate(&severe, cold));
+    assert!(!passes_gate(&severe, mercy));
+}
+
+#[test]
+fn restoring_the_emotional_module_promises_the_custodians_first_grief() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let mut sim = SimState::new_campaign(&data, "preservers", 103, &picks);
+    let module = data.events.get("the_emotional_module").unwrap();
+    let restore = module
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "restore_the_module")
+        .unwrap();
+
+    let before = sim.reputation("custodian_empathy");
+    apply_outcome(&mut sim, &data, module, restore);
+    assert!(sim.reputation("custodian_empathy") > before);
+    let followup = sim
+        .scheduled_events
+        .iter()
+        .find(|event| event.template_id == "the_custodians_first_grief")
+        .expect("restoring affect schedules the emotional reckoning");
+    assert_eq!(followup.fire_year, sim.year() + 15);
+}
+
+#[test]
+fn the_custodians_temperament_opens_different_constitutional_answers() {
+    let data = GameData::load().unwrap();
+    let picks = crate::state::sim::founding_faction_ids(&data);
+    let rights = data.events.get("the_right_to_refuse").unwrap();
+    let personhood = rights
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "recognize_a_shipboard_person")
+        .unwrap();
+    let revoke = rights
+        .outcomes
+        .iter()
+        .position(|outcome| outcome.id == "revoke_the_question")
+        .unwrap();
+
+    let neutral = SimState::new_campaign(&data, "preservers", 104, &picks);
+    let options = available_outcome_indices(&neutral, rights);
+    assert!(!options.contains(&personhood) && !options.contains(&revoke));
+
+    let mut kind = neutral.clone();
+    kind.reputation.insert("custodian_empathy".to_owned(), 0.8);
+    let options = available_outcome_indices(&kind, rights);
+    assert!(options.contains(&personhood) && !options.contains(&revoke));
+
+    let mut severe = neutral;
+    severe
+        .reputation
+        .insert("custodian_empathy".to_owned(), 0.2);
+    let options = available_outcome_indices(&severe, rights);
+    assert!(options.contains(&revoke) && !options.contains(&personhood));
+}

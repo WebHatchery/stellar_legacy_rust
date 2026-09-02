@@ -32,6 +32,23 @@ pub use pools::*;
 pub use records::*;
 pub use session::*;
 
+/// Player-facing temperament learned by the Custodian across voyage choices.
+/// Kept simulation-owned so live instruments and sealed reports cannot drift
+/// into naming the same empathy value differently.
+pub fn custodian_disposition(empathy: f32) -> &'static str {
+    if empathy >= 0.75 {
+        "KIND"
+    } else if empathy >= 0.6 {
+        "CONSIDERATE"
+    } else if empathy > 0.4 {
+        "BALANCED"
+    } else if empathy > 0.25 {
+        "CLINICAL"
+    } else {
+        "SEVERE"
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimState {
     pub seed: u64,
@@ -213,6 +230,11 @@ pub struct SimState {
     /// once. 0 at launch (a neutral name); a return to the middle re-arms.
     #[serde(default)]
     pub resolve_voice_band: i8,
+    /// The last-announced temperament of the Custodian AI. Its empathy is a
+    /// persistent reputation trait shaped by voyage decisions; this band keeps
+    /// a newly kind or newly severe voice from repeating every year.
+    #[serde(default)]
+    pub custodian_empathy_voice_band: i8,
     /// The last-announced band of the ship's *institutional* order (content-depth
     /// voice round 17): the governance twin of `morale_band`. Tracks whether stability
     /// last crossed into a firm or a fraying band so a government quietly working, or

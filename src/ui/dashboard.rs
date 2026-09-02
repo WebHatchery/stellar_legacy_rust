@@ -13,6 +13,9 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
+mod status;
+use status::custodian_status;
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     // Reserve a full-width instrument strip along the bottom (the mockup's
     // systems readout); the three panels share the space above it.
@@ -134,6 +137,7 @@ fn draw_ship_panel(
                 .map(|c| c.name.clone())
         })
         .unwrap_or_else(|| "UNARMED".to_owned());
+    let custodian_empathy = sim.reputation("custodian_empathy");
     for (label, value, color) in [
         ("SHIP CLASS", hull_name.to_owned(), term::primary()),
         ("DRIVE", drive_name.to_owned(), term::primary()),
@@ -161,6 +165,15 @@ fn draw_ship_panel(
             },
         ),
         ("ARMAMENT", armament, term::accent()),
+        (
+            "CUSTODIAN AI",
+            custodian_status(custodian_empathy),
+            if custodian_empathy <= 0.4 {
+                term::alert()
+            } else {
+                term::accent()
+            },
+        ),
     ] {
         spec_line(content.x, y, content.w, label, &value, color);
         y += 18.0;

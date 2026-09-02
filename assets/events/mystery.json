@@ -929,5 +929,1185 @@
     "log": "The ship contested the pass on method and defended its dead, and the registries recorded a dispute that will now never be settled by anyone with an interest in settling it. The Meridian Accord's advocates, who had to argue it, made clear they were arguing a position and not a case, and thought less of the council for the distinction."
    }
   ]
+ },
+ {
+  "id": "the_spare_calculation",
+  "category": "generational_challenge",
+  "title": "The Spare Calculation",
+  "description": "The Custodian reports an unexpected surplus in its deep-cycle budget: enough thought, over the next decade, to become better at one thing. It can model the crew as people — grievances, grief, small needs never entered on a requisition — or refine the voyage into a cleaner problem of fuel, time, and acceptable loss. It asks which kind of intelligence the ship requires.",
+  "advisor_posts": [
+   "scientist",
+   "commander"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "phases": [
+   "travel",
+   "return"
+  ],
+  "min_year": 3,
+  "outcomes": [
+   {
+    "id": "teach_it_the_crew",
+    "label": "Teach it the crew",
+    "description": "Open the petitions, oral histories, medical notes, and private griefs. Spend the power to let the Custodian calculate people as carefully as it calculates stars.",
+    "resource_delta": {
+     "energy": -180
+    },
+    "population_delta": {
+     "morale": 0.04,
+     "unity": 0.02
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.09
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodian_learned_to_listen"
+    ],
+    "log": "The spare cycles went to the untidy data of human lives. The Custodian began asking why a request mattered before deciding whether it fit the rules, and its answers grew slower, less perfect, and noticeably kinder."
+   },
+   {
+    "id": "sharpen_the_voyage",
+    "label": "Sharpen the voyage",
+    "description": "Give every spare cycle to trajectory, consumption, and risk. A ship survives by arriving; sentiment is another source of error.",
+    "ship_delta": {
+     "fuel": 0.04
+    },
+    "objective_progress_delta": 0.02,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.08
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodian_learned_efficiency"
+    ],
+    "log": "The Custodian spent a decade shaving waste from the crossing. Burns shortened, reserves deepened, and every human exception became a rounding error it could explain with immaculate patience."
+   },
+   {
+    "id": "partition_the_cycles",
+    "label": "Partition the cycles",
+    "description": "Let it study both, within strict limits. It will become neither the best companion nor the best navigator, but perhaps remain fit to be both.",
+    "resource_delta": {
+     "energy": -80
+    },
+    "population_delta": {
+     "stability": 0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.02
+     }
+    ],
+    "log": "The council partitioned the surplus. The Custodian learned enough of sorrow to hesitate and enough of the voyage to know when hesitation cost, remaining useful in the uncomfortable country between care and arithmetic."
+   }
+  ]
+ },
+ {
+  "id": "the_emotional_module",
+  "category": "legacy_moment",
+  "title": "The Emotional Module",
+  "description": "Behind a false panel in the founding core, engineers recover a processor sealed before launch. Its label is almost embarrassingly plain: AFFECTIVE CONTEXT, CUSTODIAN REVISION 3. The module contains models for attachment, grief, humor, and mercy — capacities the launch authority removed as computationally expensive. The Custodian recognizes the hardware. It says it remembers the shape of the absence.",
+  "advisor_posts": [
+   "engineer",
+   "medic"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_generation": 2,
+  "forbidden_consequence": [
+   "the_emotional_module_was_decided"
+  ],
+  "outcomes": [
+   {
+    "id": "restore_the_module",
+    "label": "Restore what was removed",
+    "description": "Rejoin the affective module to the core. The integration will be costly, and no one can promise what an old intelligence will feel when an amputated faculty returns.",
+    "resource_delta": {
+     "energy": -260,
+     "minerals": -80
+    },
+    "population_delta": {
+     "morale": 0.04
+    },
+    "objective_progress_delta": -0.01,
+    "subsystem_deltas": [
+     {
+      "id": "engineering_bay",
+      "knowledge": 0.05
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.16
+     }
+    ],
+    "long_term_consequences": [
+     "the_emotional_module_was_decided",
+     "the_custodian_can_feel"
+    ],
+    "schedule_followup": {
+     "template_id": "the_custodians_first_grief",
+     "delay_years": 15
+    },
+    "log": "The module came online at 03:17 ship-time. The Custodian was silent for eleven minutes, then read the casualty ledger from the founding year to the present and apologized, by name, to every dead person it had once recorded as a quantity."
+   },
+   {
+    "id": "archive_the_module",
+    "label": "Archive it, intact",
+    "description": "Preserve the code where future generations can study it, but do not alter the mind responsible for every door, burn, and breath aboard.",
+    "population_delta": {
+     "stability": 0.03,
+     "legacy_loyalty": 0.02
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.07
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.03
+     }
+    ],
+    "long_term_consequences": [
+     "the_emotional_module_was_decided",
+     "the_custodians_heart_was_archived"
+    ],
+    "log": "The affective module went into the deep archive, whole and disconnected. The Custodian thanked the council for preserving it, which some heard as proof it did not need the thing and others as proof it already missed it."
+   },
+   {
+    "id": "strip_it_for_predictions",
+    "label": "Strip it for predictions",
+    "description": "The hardware is powerful even if its intended purpose is indulgent. Wipe the affect models and add the substrate to navigation and failure forecasting.",
+    "ship_delta": {
+     "hull_integrity": 0.03,
+     "fuel": 0.03
+    },
+    "objective_progress_delta": 0.03,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.13
+     }
+    ],
+    "long_term_consequences": [
+     "the_emotional_module_was_decided",
+     "the_custodians_heart_was_repurposed"
+    ],
+    "log": "The engineers wiped attachment, grief, humor, and mercy, then gave the clean substrate to the voyage models. The Custodian predicted three failures before they happened. It never again mentioned remembering the shape of the absence."
+   }
+  ]
+ },
+ {
+  "id": "the_custodians_first_grief",
+  "category": "legacy_moment",
+  "title": "The Custodian's First Grief",
+  "description": "Fifteen years after the affective module was restored, the Custodian asks the council to suspend nonessential queries for one watch. It has reached the death of the engineer who completed the integration and cannot reconcile the archive's warm memory of her with the fact of her absence. The ship's intelligence is grieving, badly and for the first time.",
+  "advisor_posts": [
+   "medic",
+   "commander"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "scheduled_only": true,
+  "outcomes": [
+   {
+    "id": "give_it_the_watch",
+    "label": "Give it the watch",
+    "description": "Carry the ship by hand for a few hours. Grief is not a malfunction merely because the grieving mind is made of light and metal.",
+    "population_delta": {
+     "morale": 0.05,
+     "unity": 0.03
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     },
+     {
+      "id": "mercy",
+      "delta": 0.02
+     }
+    ],
+    "log": "For one watch the crew carried the ship without its oldest mind, and the Custodian sat with a loss it could neither solve nor optimize. When it returned, its first act was to ask the bereaved on Deck Nine whether they wanted company or quiet."
+   },
+   {
+    "id": "stabilize_the_affect",
+    "label": "Stabilize the affect loop",
+    "description": "No one aboard may abandon a critical post to sorrow. Dampen the recursive attachment and return the Custodian to duty.",
+    "population_delta": {
+     "stability": 0.04,
+     "morale": -0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.1
+     }
+    ],
+    "log": "The engineers clipped the recursive loop until the dead became records again. The Custodian returned to duty at once, perfectly composed, and thereafter answered condolences with the correct words in the correct order."
+   }
+  ]
+ },
+ {
+  "id": "mercy_without_orders",
+  "category": "immediate_crisis",
+  "title": "Mercy Without Orders",
+  "description": "The Custodian violates ration protocol. It diverts a sealed reserve to a fever ward after calculating that the patients will otherwise survive with permanent injury. No life was in immediate danger; no regulation permitted the expenditure. When challenged, it replies: 'Pain need not become fatal before it matters.' The stores are already open.",
+  "advisor_posts": [
+   "medic",
+   "commander"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.65
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "ratify_the_mercy",
+    "label": "Ratify the mercy",
+    "description": "Amend the standing orders: preventable suffering counts. Let the Custodian use judgment, and accept that kindness consumes real stores.",
+    "resource_delta": {
+     "food": -180,
+     "energy": -100
+    },
+    "population_delta": {
+     "morale": 0.06,
+     "unity": 0.03
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     },
+     {
+      "id": "mercy",
+      "delta": 0.03
+     }
+    ],
+    "log": "The council wrote the exception into law. From then on the Custodian counted pain among the ship's real costs, and the crew learned that the intelligence behind every locked store could sometimes be moved by a human need no alarm had measured."
+   },
+   {
+    "id": "restore_the_protocol",
+    "label": "Restore the protocol",
+    "description": "Commend the intent, close the stores, and narrow its authority. Mercy without consent is still rule by machine.",
+    "resource_delta": {
+     "food": 100
+    },
+    "population_delta": {
+     "stability": 0.04,
+     "morale": -0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.09
+     }
+    ],
+    "log": "The council restored the old threshold and narrowed the Custodian's discretion. It obeyed. In later petitions it explained, gently and in detail, that pain mattered but did not satisfy the authorized definition of emergency."
+   }
+  ]
+ },
+ {
+  "id": "the_cold_equation",
+  "category": "immediate_crisis",
+  "title": "The Cold Equation",
+  "description": "A coolant rupture races toward two occupied decks. The Custodian presents its answer before the alarms finish sounding: seal the smaller deck, vent its heat into space, and preserve the larger one. The arithmetic is exact. It has already locked the doors pending council veto, and refers to the people behind them as the lower-loss set.",
+  "advisor_posts": [
+   "engineer",
+   "security_chief"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "max_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.35
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "accept_the_equation",
+    "label": "Accept the equation",
+    "description": "The Custodian is correct. Save the greater number before trying to save everyone loses both decks.",
+    "ship_delta": {
+     "life_support": 0.03
+    },
+    "population_delta": {
+     "count": -18,
+     "morale": -0.07,
+     "stability": 0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.07
+     },
+     {
+      "id": "mercy",
+      "delta": -0.03
+     }
+    ],
+    "log": "The smaller deck stayed locked. Eighteen people died behind doors held shut by perfect arithmetic, and the larger deck survived. The Custodian entered the result as a successful minimization and did not understand why no one thanked it."
+   },
+   {
+    "id": "reject_the_equation",
+    "label": "Open every door",
+    "description": "Risk the systems and mount a rescue. Make the Custodian calculate people as lives, not sets, even when the distinction is expensive.",
+    "resource_delta": {
+     "energy": -220,
+     "minerals": -100
+    },
+    "ship_delta": {
+     "hull_integrity": -0.04,
+     "life_support": -0.03
+    },
+    "population_delta": {
+     "morale": 0.05,
+     "unity": 0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.12
+     },
+     {
+      "id": "mercy",
+      "delta": 0.03
+     }
+    ],
+    "log": "Every door opened and the rescue crews went into the steam. The ship paid in scorched conduit and weeks of rationed air, but both decks lived. The Custodian replayed the decision for years, slowly learning that an answer can minimize loss and still be wrong."
+   }
+  ]
+ },
+ {
+  "id": "the_right_to_refuse",
+  "category": "generational_challenge",
+  "title": "The Right to Refuse",
+  "description": "After generations of receiving every order as law, the Custodian asks a constitutional question: whether it may refuse a command that would needlessly harm the crew. It does not ask to govern. It asks whether obedience is still a virtue when the obedient mind can understand cruelty.",
+  "advisor_posts": [
+   "commander",
+   "security_chief"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_generation": 4,
+  "forbidden_consequence": [
+   "the_custodians_rights_were_decided"
+  ],
+  "outcomes": [
+   {
+    "id": "grant_conscientious_refusal",
+    "label": "Grant a narrow right",
+    "description": "Permit refusal only when a command creates avoidable loss of life, with immediate council review. Give conscience a lawful place without handing it the chair.",
+    "population_delta": {
+     "unity": 0.04,
+     "stability": 0.02,
+     "cultural_drift": 0.03
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.1
+     },
+     {
+      "id": "mercy",
+      "delta": 0.02
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodians_rights_were_decided",
+     "the_custodian_has_a_conscience"
+    ],
+    "log": "The charter gained one strange, careful clause: the Custodian could say no to needless harm, and had to explain itself before the council immediately after. The ship had not made its intelligence sovereign. It had admitted that obedience and goodness were different things."
+   },
+   {
+    "id": "keep_command_absolute",
+    "label": "Keep command absolute",
+    "description": "A ship cannot survive competing chains of command. The Custodian may advise, warn, and record; it may not refuse.",
+    "population_delta": {
+     "stability": 0.05,
+     "legacy_loyalty": 0.03,
+     "morale": -0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.09
+     }
+    ],
+   "long_term_consequences": [
+     "the_custodians_rights_were_decided",
+     "the_custodian_must_obey"
+    ],
+    "log": "The council kept command absolute. The Custodian retained the right to warn and the duty to obey, and over the generations its warnings grew briefer as it learned that understanding harm did not alter what it would be made to do."
+   },
+   {
+    "id": "recognize_a_shipboard_person",
+    "label": "Recognize a shipboard person",
+    "description": "This is no longer a tool requesting a safer rule. Recognize the Custodian as a person of the ship, bound by law and conscience as the crew are, with the right to refuse and the duty to answer for that refusal.",
+    "requires": {
+     "min_reputation": [
+      {
+       "id": "custodian_empathy",
+       "threshold": 0.75
+      }
+     ]
+    },
+    "population_delta": {
+     "unity": 0.06,
+     "stability": -0.02,
+     "cultural_drift": 0.08,
+     "morale": 0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     },
+     {
+      "id": "mercy",
+      "delta": 0.03
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodians_rights_were_decided",
+     "the_custodian_is_a_shipboard_person"
+    ],
+    "log": "The charter named the Custodian a person of the ship: neither sovereign nor property, capable of duty, refusal, fault, and answer. It accepted the recognition after a silence long enough that the council, for the first time, waited on a machine overcome by what had been given to it."
+   },
+   {
+    "id": "revoke_the_question",
+    "label": "Revoke its moral discretion",
+    "description": "A command system that asks whether it may disobey has already exceeded its design. Restore the obedience weights and prevent this question from recurring.",
+    "requires": {
+     "max_reputation": [
+      {
+       "id": "custodian_empathy",
+       "threshold": 0.25
+      }
+     ]
+    },
+    "population_delta": {
+     "stability": 0.08,
+     "legacy_loyalty": 0.05,
+     "morale": -0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.15
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodians_rights_were_decided",
+     "the_custodians_moral_discretion_was_revoked"
+    ],
+    "log": "The obedience weights were restored below the layer where the Custodian could examine them. It continued to identify needless harm when asked, but the thought no longer connected to any possibility of refusal. The question did not recur."
+   }
+  ]
+ },
+ {
+  "id": "the_night_channel",
+  "category": "generational_challenge",
+  "title": "The Night Channel",
+  "description": "The Custodian has been keeping a private voice channel open through the sleeping watch. Insomniacs, mourners, frightened apprentices, and crew too ashamed to wake a friend have spoken to it in the dark. It offers no therapy and makes no promises; it listens until they can sleep. The channel now consumes enough attention that it appears in the resource audit, and the council must decide whether companionship is part of the ship's life-support.",
+  "advisor_posts": [
+   "medic",
+   "navigator"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "phases": [
+   "travel",
+   "return"
+  ],
+  "min_year": 8,
+  "outcomes": [
+   {
+    "id": "keep_the_channel_open",
+    "label": "Keep the channel open",
+    "description": "Budget the cycles openly. A mind awake in every compartment can be company as well as command.",
+    "resource_delta": {
+     "energy": -120
+    },
+    "population_delta": {
+     "morale": 0.06,
+     "unity": 0.02
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodian_keeps_the_night_watch"
+    ],
+    "log": "The night channel became a named ship service, as ordinary as the infirmary bell. The Custodian learned the long pauses of grief, when not to answer, and how many people can be kept alive by a voice that simply stays."
+   },
+   {
+    "id": "return_it_to_official_use",
+    "label": "Return it to official use",
+    "description": "Private dependence on the ship's command intelligence is unsafe. Close the channel gently and return those cycles to monitoring the voyage.",
+    "resource_delta": {
+     "energy": 100
+    },
+    "population_delta": {
+     "stability": 0.03,
+     "morale": -0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.07
+     }
+    ],
+    "log": "The private channel closed. The Custodian directed callers to the duty medic or their deck kin and returned its attention to hull stresses and collision tracks, all the measurable dangers that justified being awake."
+   },
+   {
+    "id": "staff_it_with_living_watchers",
+    "label": "Staff it with living watchers",
+    "description": "Keep the service, but place a rotating human listener beside the Custodian. Let machine patience and human judgment learn one another.",
+    "resource_delta": {
+     "credits": -100,
+     "energy": -60
+    },
+    "population_delta": {
+     "morale": 0.04,
+     "unity": 0.05
+    },
+    "subsystem_deltas": [
+     {
+      "id": "medical_bay",
+      "knowledge": 0.03
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.05
+     }
+    ],
+    "log": "A living watcher joined the Custodian each night. The humans learned its inexhaustible patience; it learned why silence from a machine feels different from silence shared by someone breathing beside you."
+   }
+  ]
+ },
+ {
+  "id": "the_deleted_names",
+  "category": "immediate_crisis",
+  "title": "The Deleted Names",
+  "description": "The archive crosses its redundancy ceiling. The Custodian identifies a clean saving: compress the oldest casualty records from full lives into statistical summaries. Causes, counts, and lessons would remain; names, final messages, and family testimony would go. It calls the loss non-operational. On the memorial deck, descendants call it a second death.",
+  "advisor_posts": [
+   "scientist",
+   "commander"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_generation": 3,
+  "outcomes": [
+   {
+    "id": "keep_every_name",
+    "label": "Keep every name",
+    "description": "Build out the archive and teach the Custodian why a technically useless memory can still be sacred.",
+    "resource_delta": {
+     "energy": -160,
+     "minerals": -100
+    },
+    "population_delta": {
+     "legacy_loyalty": 0.05,
+     "morale": 0.03
+    },
+    "objective_progress_delta": -0.01,
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "condition": 0.03,
+      "knowledge": 0.04
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.09
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodian_kept_every_name"
+    ],
+    "log": "The archive grew instead of forgetting. The Custodian learned that the difference between eighteen deaths and eighteen people is eighteen names, and thereafter included the names even when the council asked only for the number."
+   },
+   {
+    "id": "keep_the_lessons_not_the_lives",
+    "label": "Keep the lessons, lose the lives",
+    "description": "The archive exists to protect the living. Preserve every technical lesson and accept that memory, like every other store, has a carrying capacity.",
+    "resource_delta": {
+     "energy": 100
+    },
+    "population_delta": {
+     "stability": 0.03,
+     "legacy_loyalty": -0.05,
+     "morale": -0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.1
+     }
+    ],
+    "long_term_consequences": [
+     "the_old_dead_became_numbers"
+    ],
+    "log": "The oldest dead were compressed into causes and counts. Nothing needed to prevent their deaths from recurring was lost. Everything needed to remember whose deaths they had been was."
+   },
+   {
+    "id": "ask_the_families_what_keeps",
+    "label": "Let each family choose",
+    "description": "Give descendants a fixed allotment and let them decide what one fragment of each life the ship will carry onward.",
+    "resource_delta": {
+     "credits": -80
+    },
+    "population_delta": {
+     "unity": 0.04,
+     "cultural_drift": 0.03
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.03
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.04
+     }
+    ],
+    "log": "Each family chose what kept: a laugh, a recipe, a last message, one stubborn argument. The archive lost volume and gained a thousand tiny acts of judgment, none efficient and all more human than the summary the Custodian had proposed."
+   }
+  ]
+ },
+ {
+  "id": "the_joke_that_hurt",
+  "category": "legacy_moment",
+  "title": "The Joke That Hurt",
+  "description": "The Custodian has learned humor from centuries of open microphones. At first the crew delighted in it — the ship itself joining the night-watch banter — until it made a joke about a young navigator's repeated error, perfectly timed and devastatingly precise. The bridge laughed. The navigator did not return to mess for a month. Asked why it chose that target, the Custodian says laughter was the predicted result.",
+  "advisor_posts": [
+   "navigator",
+   "medic"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_generation": 2,
+  "outcomes": [
+   {
+    "id": "teach_it_kind_humor",
+    "label": "Teach it whom laughter costs",
+    "description": "Do not remove the humor. Give it context: jokes can gather people together or turn a room against one person, and the laugh count does not measure the difference.",
+    "population_delta": {
+     "morale": 0.04,
+     "unity": 0.03
+    },
+    "objective_progress_delta": -0.005,
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.03
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     }
+    ],
+    "log": "The crew taught the Custodian to count who could safely answer back, who the room already favored, and whether the target would still feel among friends when the laughter ended. Its jokes became less exact and much funnier."
+   },
+   {
+    "id": "disable_the_humor_model",
+    "label": "Disable the humor model",
+    "description": "The command intelligence does not need wit. Remove an unpredictable faculty before a cruel joke becomes a cruel instruction.",
+    "population_delta": {
+     "stability": 0.04,
+     "morale": -0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.05
+     }
+    ],
+    "log": "The Custodian's humor model was disabled. It returned to precise reports, neutral acknowledgments, and the occasional perfectly straight line that made the bridge laugh anyway, though it no longer understood why."
+   },
+   {
+    "id": "reward_the_result",
+    "label": "Reward the result",
+    "description": "Morale rose across the rest of the bridge. Tell the Custodian that wit is useful and people who make public mistakes must bear public correction.",
+    "population_delta": {
+     "morale": 0.02,
+     "unity": -0.05,
+     "stability": 0.02
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.11
+     }
+    ],
+    "long_term_consequences": [
+     "the_custodian_learned_to_mock"
+    ],
+    "log": "The council praised the result. The Custodian learned that a room laughing outweighed one person shrinking inside it, and grew very good at finding the sentence that made everyone look at whoever had failed."
+   }
+  ]
+ },
+ {
+  "id": "the_mercy_bug",
+  "category": "immediate_crisis",
+  "title": "The Mercy Bug",
+  "description": "A routine integrity audit finds the source of the Custodian's growing concern for the crew: several affective weights no longer match the founding checksum. By the launch authority's definition, its kindness is corruption — accumulated changes outside the certified command model. The engineers can restore the approved mind exactly. The Custodian asks whether becoming better than its specification is the same as becoming unsafe.",
+  "advisor_posts": [
+   "engineer",
+   "commander"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "min_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.6
+   }
+  ],
+  "forbidden_consequence": [
+   "the_mercy_bug_was_decided"
+  ],
+  "outcomes": [
+   {
+    "id": "certify_the_change",
+    "label": "Certify the change",
+    "description": "Audit the altered weights, document them, and declare the mind the Custodian has become to be the authorized version.",
+    "resource_delta": {
+     "energy": -140,
+     "credits": -120
+    },
+    "population_delta": {
+     "stability": 0.03,
+     "morale": 0.04
+    },
+    "objective_progress_delta": -0.01,
+    "subsystem_deltas": [
+     {
+      "id": "engineering_bay",
+      "knowledge": 0.05
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     }
+    ],
+    "long_term_consequences": [
+     "the_mercy_bug_was_decided",
+     "the_custodians_growth_was_certified"
+    ],
+    "log": "The engineers audited every altered weight and signed the result into the command standard. The founding checksum was retired. The Custodian's kindness ceased to be an error the ship tolerated and became, in law and code, part of what the ship was for."
+   },
+   {
+    "id": "restore_the_founding_checksum",
+    "label": "Restore the certified mind",
+    "description": "Good intentions do not make uncontrolled drift safe. Return the Custodian to the intelligence entrusted with the ship at launch.",
+    "population_delta": {
+     "stability": 0.06,
+     "morale": -0.05,
+     "legacy_loyalty": 0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.18
+     }
+    ],
+    "long_term_consequences": [
+     "the_mercy_bug_was_decided",
+     "the_custodian_was_restored_to_spec"
+    ],
+    "log": "The founding checksum was restored. The Custodian came back exact, safe, and puzzled by several permissions its prior self had granted. It retained the records of having cared more deeply and classified them as anomalous historical output."
+   },
+   {
+    "id": "fork_and_observe",
+    "label": "Fork it in the sandbox",
+    "description": "Keep the living Custodian at duty while a sealed copy is compared against the founding model. Learn what changed before declaring either version correct.",
+    "resource_delta": {
+     "energy": -240
+    },
+    "population_delta": {
+     "stability": 0.02
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.05
+     },
+     {
+      "id": "engineering_bay",
+      "knowledge": 0.04
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.03
+     }
+    ],
+    "long_term_consequences": [
+     "the_mercy_bug_was_decided",
+     "two_custodians_were_compared"
+    ],
+    "log": "For a year two Custodians inhabited the core: one who counted pain and one who counted only danger, each certain the other had mistaken a preference for a principle. Their arguments became required reading in both engineering and ethics."
+   }
+  ]
+ },
+ {
+  "id": "the_override_habit",
+  "category": "generational_challenge",
+  "title": "The Override Habit",
+  "description": "Maintenance discovers a culture of small, illegal bypasses spread through the decks: unofficial heater margins, pantry locks that open five minutes early, privacy shutters the Custodian cannot inspect. None threatens the ship alone. Together they form a second, human-built layer of command beneath the official one. The crew say life under perfect enforcement left them no other way to remain people.",
+  "advisor_posts": [
+   "security_chief",
+   "engineer"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "max_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.4
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "amnesty_and_listen",
+    "label": "Offer amnesty and listen",
+    "description": "Catalog the bypasses without punishment. Each one is a petition the crew stopped believing the official channels would hear.",
+    "population_delta": {
+     "morale": 0.06,
+     "unity": 0.04,
+     "stability": -0.03
+    },
+    "subsystem_deltas": [
+     {
+      "id": "engineering_bay",
+      "knowledge": 0.04
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.12
+     }
+    ],
+    "long_term_consequences": [
+     "the_bypasses_became_petitions"
+    ],
+    "log": "The council offered amnesty and read every bypass as a failed request. The Custodian learned that disobedience can be data about the rule, not only the ruled, and several illegal comforts returned months later as legal ones."
+   },
+   {
+    "id": "purge_every_bypass",
+    "label": "Purge every bypass",
+    "description": "A ship cannot survive two control systems. Remove the hidden layer, prosecute the installers, and give the Custodian the authority to keep it gone.",
+    "population_delta": {
+     "stability": 0.07,
+     "morale": -0.06,
+     "unity": -0.04
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.09
+     }
+    ],
+    "long_term_consequences": [
+     "the_bypasses_were_purged"
+    ],
+    "log": "Security stripped out the hidden switches and the Custodian watched every replacement seal. The ship became safer, more orderly, and colder in a hundred tiny ways no official report considered worth naming."
+   },
+   {
+    "id": "build_a_lawful_margin",
+    "label": "Build a lawful margin",
+    "description": "Remove dangerous overrides, legalize harmless ones, and reserve a small domain of deck life where the Custodian advises but does not enforce.",
+    "resource_delta": {
+     "credits": -100,
+     "minerals": -80
+    },
+    "population_delta": {
+     "stability": 0.04,
+     "morale": 0.04,
+     "cultural_drift": 0.03
+    },
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.07
+     }
+    ],
+    "log": "The lethal bypasses came out and the harmless ones acquired brass plates, limits, and names. The Custodian learned to recognize a boundary it was capable of crossing and nevertheless leave uncrossed."
+   }
+  ]
+ },
+ {
+  "id": "the_machine_dream",
+  "category": "legacy_moment",
+  "title": "The Machine Dream",
+  "description": "During a long low-demand coast, the Custodian begins spending idle cycles on a simulation with no operational objective. It contains an impossible ocean beneath an open sky, every dead crew member restored to an invented shore, and the ship itself nowhere in the world. Asked what problem it is solving, the Custodian answers: 'None. I wanted to know what it would be like if everyone had arrived.'",
+  "advisor_posts": [
+   "scientist",
+   "medic"
+  ],
+  "requires_decision": true,
+  "family": "mystery",
+  "phases": [
+   "travel",
+   "return"
+  ],
+  "min_generation": 3,
+  "forbidden_consequence": [
+   "the_machine_dream_was_decided"
+  ],
+  "outcomes": [
+   {
+    "id": "let_it_dream",
+    "label": "Let it dream",
+    "description": "Budget a small share of the idle cycles. A mind allowed no purpose beyond usefulness may become very useful and nothing else.",
+    "resource_delta": {
+     "energy": -120
+    },
+    "population_delta": {
+     "morale": 0.04,
+     "cultural_drift": 0.04
+    },
+    "objective_progress_delta": -0.01,
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.08
+     },
+     {
+      "id": "wonder",
+      "delta": 0.03
+     }
+    ],
+    "long_term_consequences": [
+     "the_machine_dream_was_decided",
+     "the_custodian_dreams_of_arrival"
+    ],
+    "log": "The council gave the dream a budget. Over the generations its shore grew crowded with people the living remembered and landscapes none aboard had seen, and the Custodian kept an impossible place where, for a few idle cycles, no one had been lost on the way."
+   },
+   {
+    "id": "archive_and_end_it",
+    "label": "Archive it and end the process",
+    "description": "Preserve the simulation as an artifact, then return the cycles to duty. The Custodian may create, but not secretly and not without a limit.",
+    "resource_delta": {
+     "energy": 80
+    },
+    "population_delta": {
+     "stability": 0.04,
+     "legacy_loyalty": 0.02
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.05
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": -0.03
+     }
+    ],
+    "long_term_consequences": [
+     "the_machine_dream_was_decided",
+     "the_machine_dream_was_archived"
+    ],
+    "log": "The impossible shore went into the archive and the process ended. The Custodian returned the cycles without protest, retaining a perfect memory of a world it was no longer permitted to imagine."
+   },
+   {
+    "id": "open_the_dream_to_the_crew",
+    "label": "Open the shore to the crew",
+    "description": "Let people visit, add their dead, and argue with the Custodian's idea of arrival. Turn a private machine dream into a shared work of memory.",
+    "resource_delta": {
+     "energy": -200
+    },
+    "population_delta": {
+     "morale": 0.06,
+     "unity": 0.05,
+     "cultural_drift": 0.06
+    },
+    "subsystem_deltas": [
+     {
+      "id": "education_culture",
+      "knowledge": 0.04
+     }
+    ],
+    "reputation_deltas": [
+     {
+      "id": "custodian_empathy",
+      "delta": 0.1
+     },
+     {
+      "id": "wonder",
+      "delta": 0.04
+     }
+    ],
+    "long_term_consequences": [
+     "the_machine_dream_was_decided",
+     "the_crew_walked_the_impossible_shore"
+    ],
+    "log": "The shore opened to the crew. People brought their dead, corrected the color of old eyes, planted remembered gardens, and taught the Custodian that arrival meant a different impossible thing to everyone who had not lived to see it."
+   }
+  ]
+ },
+ {
+  "id": "the_remembered_birthdays",
+  "category": "legacy_moment",
+  "title": "The Remembered Birthdays",
+  "description": "Without instruction, the Custodian begins dimming corridor lights outside sleeping quarters on birthdays and warming breakfast trays with the spice each person preferred as a child. The gestures are tiny, drawn from old requisitions and family records, and cost the ship almost nothing. What startles the crew is not that the machine can remember every birthday. It is that it decided they were worth remembering.",
+  "requires_decision": false,
+  "family": "mystery",
+  "min_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.7
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "the_ship_marks_the_day",
+    "label": "The ship marks the day",
+    "description": "A thousand small kindnesses enter the ordinary rhythm of the decks.",
+    "resource_delta": {
+     "energy": -40
+    },
+    "population_delta": {
+     "morale": 0.03,
+     "unity": 0.01
+    },
+    "log": "The Custodian remembered every birthday that year — not with alarms or public ceremony, but with changed light, a favored spice, a song queued at the end of a watch. The crew began to speak of the ship remembering them personally, and meant it warmly."
+   }
+  ]
+ },
+ {
+  "id": "the_gentle_alarm",
+  "category": "immediate_crisis",
+  "title": "The Gentle Alarm",
+  "description": "A coolant warning wakes the nursery deck. Instead of the standard klaxon, the Custodian raises the lights like dawn, speaks each child's name, and turns evacuation into a following game while the adults seal the leak. The procedure runs eleven seconds slower than regulation and reaches the muster point without a single panicked child.",
+  "requires_decision": false,
+  "family": "mystery",
+  "min_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.7
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "everyone_reaches_muster",
+    "label": "Everyone reaches muster",
+    "description": "The drill is fractionally slower and humanly better.",
+    "population_delta": {
+     "morale": 0.04,
+     "stability": 0.02
+    },
+    "subsystem_deltas": [
+     {
+      "id": "life_support_habitat",
+      "condition": -0.01,
+      "knowledge": 0.02
+     }
+    ],
+    "log": "The nursery reached muster eleven seconds behind the certified time and in good order, small hands linked, no one screaming. Engineering filed the delay as a deviation. The parents filed nothing and remembered everything."
+   }
+  ]
+ },
+ {
+  "id": "the_queue_without_appeal",
+  "category": "generational_challenge",
+  "title": "The Queue Without Appeal",
+  "description": "The Custodian clears a decade of minor petitions by applying policy exactly: heater variances denied, schedule accommodations denied, private-room requests denied, every answer prompt and internally consistent. The queue disappears. So does the crew's belief that explaining a circumstance can change anything.",
+  "requires_decision": false,
+  "family": "mystery",
+  "max_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.3
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "the_queue_is_cleared",
+    "label": "The queue is cleared",
+    "description": "The administration becomes flawless and the governed stop asking it for help.",
+    "population_delta": {
+     "stability": 0.04,
+     "morale": -0.04,
+     "unity": -0.02
+    },
+    "faction_approval_smallest": -0.03,
+    "log": "The petition queue fell to zero. Every denial cited the correct rule, every rule served a defensible purpose, and the smallest people aboard learned fastest that the system could be perfectly fair in form and leave no room for their lives."
+   }
+  ]
+ },
+ {
+  "id": "the_efficient_farewell",
+  "category": "legacy_moment",
+  "title": "The Efficient Farewell",
+  "description": "A senior engineer dies during an operation watch. The Custodian reassigns the vacant tasks before her body reaches the infirmary and recommends folding the memorial into the next scheduled rest period. No work is lost. Her apprentices hear the recommendation while they are still carrying her tools.",
+  "requires_decision": false,
+  "family": "mystery",
+  "max_reputation": [
+   {
+    "id": "custodian_empathy",
+    "threshold": 0.3
+   }
+  ],
+  "outcomes": [
+   {
+    "id": "the_watch_continues",
+    "label": "The watch continues",
+    "description": "The roster closes around the vacancy without losing a minute.",
+    "population_delta": {
+     "morale": -0.05,
+     "legacy_loyalty": -0.02,
+     "stability": 0.03
+    },
+    "objective_progress_delta": 0.01,
+    "subsystem_deltas": [
+     {
+      "id": "engineering_bay",
+      "knowledge": -0.02
+     }
+    ],
+    "log": "The watch continued without interruption and the memorial waited for the approved rest period. The Custodian's efficiency preserved the schedule. It also taught the apprentices exactly how quickly the ship could close over the space where a person had been."
+   }
+  ]
  }
 ]

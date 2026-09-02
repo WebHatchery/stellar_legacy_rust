@@ -115,6 +115,12 @@ fn tutorial_steps_cover_the_launch_flow() {
         );
         assert!(!step.tip.trim().is_empty(), "guided step '{}' tip", step.id);
     }
+    let systems = tutorial
+        .guided_steps
+        .iter()
+        .find(|step| step.id == "systems")
+        .unwrap();
+    assert!(systems.tip.contains("CUSTODIAN AI"));
 }
 
 /// Every registry parses and carries at least the authored minimum.
@@ -336,4 +342,121 @@ fn late_legacy_events_offer_distinct_reckonings_after_the_early_voyage() {
         .outcomes
         .iter()
         .any(|outcome| outcome.objective_progress_delta > 0.0));
+}
+
+#[test]
+fn custodian_events_build_and_answer_a_persistent_ai_disposition() {
+    let data = GameData::load().unwrap();
+    let spare = data.events.get("the_spare_calculation").unwrap();
+    assert!(spare.outcomes.iter().any(|outcome| outcome
+        .reputation_deltas
+        .iter()
+        .any(|delta| delta.id == "custodian_empathy" && delta.delta > 0.0)));
+    assert!(spare.outcomes.iter().any(|outcome| outcome
+        .reputation_deltas
+        .iter()
+        .any(|delta| delta.id == "custodian_empathy" && delta.delta < 0.0)));
+
+    let module = data.events.get("the_emotional_module").unwrap();
+    assert!(module
+        .forbidden_consequence
+        .contains(&"the_emotional_module_was_decided".to_owned()));
+    assert!(module.outcomes.iter().all(|outcome| outcome
+        .long_term_consequences
+        .contains(&"the_emotional_module_was_decided".to_owned())));
+    let restoration = module
+        .outcomes
+        .iter()
+        .find(|outcome| outcome.id == "restore_the_module")
+        .unwrap();
+    assert_eq!(
+        restoration.schedule_followup.as_ref().unwrap().template_id,
+        "the_custodians_first_grief"
+    );
+
+    let kind = data.events.get("mercy_without_orders").unwrap();
+    assert!(kind
+        .min_reputation
+        .iter()
+        .any(|gate| gate.id == "custodian_empathy" && gate.threshold > 0.5));
+    let harsh = data.events.get("the_cold_equation").unwrap();
+    assert!(harsh
+        .max_reputation
+        .iter()
+        .any(|gate| gate.id == "custodian_empathy" && gate.threshold < 0.5));
+    let rights = data.events.get("the_right_to_refuse").unwrap();
+    assert!(rights.outcomes.iter().all(|outcome| outcome
+        .long_term_consequences
+        .contains(&"the_custodians_rights_were_decided".to_owned())));
+    let personhood = rights
+        .outcomes
+        .iter()
+        .find(|outcome| outcome.id == "recognize_a_shipboard_person")
+        .unwrap();
+    assert!(personhood
+        .requires
+        .min_reputation
+        .iter()
+        .any(|gate| gate.id == "custodian_empathy" && gate.threshold >= 0.75));
+
+    for id in [
+        "the_night_channel",
+        "the_deleted_names",
+        "the_joke_that_hurt",
+        "the_mercy_bug",
+        "the_override_habit",
+        "the_machine_dream",
+    ] {
+        let event = data.events.get(id).unwrap();
+        assert!(event.outcomes.len() >= 3, "'{id}' needs a real tradeoff");
+        assert!(event.outcomes.iter().all(|outcome| outcome
+            .reputation_deltas
+            .iter()
+            .any(|delta| delta.id == "custodian_empathy")));
+    }
+
+    for (event_id, outcome_id) in [
+        ("the_spare_calculation", "teach_it_the_crew"),
+        ("the_emotional_module", "restore_the_module"),
+        ("mercy_without_orders", "ratify_the_mercy"),
+        ("the_night_channel", "keep_the_channel_open"),
+        ("the_machine_dream", "let_it_dream"),
+    ] {
+        let outcome = data
+            .events
+            .get(event_id)
+            .unwrap()
+            .outcomes
+            .iter()
+            .find(|outcome| outcome.id == outcome_id)
+            .unwrap();
+        assert!(
+            outcome.objective_progress_delta < 0.0,
+            "empathy-building '{event_id}/{outcome_id}' should spend voyage time"
+        );
+    }
+}
+
+#[test]
+fn the_custodians_extreme_temperaments_have_ambient_consequences() {
+    let data = GameData::load().unwrap();
+    for (id, kind) in [
+        ("the_remembered_birthdays", true),
+        ("the_gentle_alarm", true),
+        ("the_queue_without_appeal", false),
+        ("the_efficient_farewell", false),
+    ] {
+        let event = data.events.get(id).unwrap();
+        assert!(
+            !event.requires_decision,
+            "'{id}' should play as an observed beat"
+        );
+        assert_eq!(event.outcomes.len(), 1);
+        let gates = if kind {
+            &event.min_reputation
+        } else {
+            &event.max_reputation
+        };
+        assert!(gates.iter().any(|gate| gate.id == "custodian_empathy"));
+    }
 }

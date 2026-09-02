@@ -306,11 +306,12 @@ fn known_effects(
     }
     for delta in &outcome.reputation_deltas {
         if delta.delta.abs() > f32::EPSILON {
-            effects.push(format!(
-                "{} reputation {:+.0}%",
-                delta.id.replace('_', " "),
-                delta.delta * 100.0
-            ));
+            let label = if delta.id == "custodian_empathy" {
+                "AI empathy".to_owned()
+            } else {
+                format!("{} reputation", delta.id.replace('_', " "))
+            };
+            effects.push(format!("{label} {:+.0}%", delta.delta * 100.0));
         }
     }
     for delta in &outcome.subsystem_deltas {

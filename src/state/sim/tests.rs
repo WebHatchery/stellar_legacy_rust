@@ -76,6 +76,26 @@ fn an_older_save_without_command_posture_defaults_to_steady() {
 }
 
 #[test]
+fn an_older_save_without_custodian_voice_state_starts_balanced_and_unannounced() {
+    let data = GameData::load().unwrap();
+    let sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        9,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let mut value = serde_json::to_value(&sim).unwrap();
+    value
+        .as_object_mut()
+        .unwrap()
+        .remove("custodian_empathy_voice_band");
+
+    let back: SimState = serde_json::from_value(value).unwrap();
+    assert_eq!(back.custodian_empathy_voice_band, 0);
+    assert_eq!(back.reputation("custodian_empathy"), 0.5);
+}
+
+#[test]
 fn an_unread_homecoming_survives_a_save_and_load() {
     // The debrief is a full-screen takeover the player dismisses by hand.
     // Quitting while it is up and loading back must return to it — a

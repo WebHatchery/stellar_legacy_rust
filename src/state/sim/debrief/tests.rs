@@ -56,6 +56,19 @@ fn an_older_report_shape_loads_with_defaults() {
         serde_json::from_str(r#"{"contract_name":"The Long Tow","score":0.62}"#).unwrap();
     assert_eq!(debrief.contract_name, "The Long Tow");
     assert!((debrief.score - 0.62).abs() < 1e-6);
+    assert!((debrief.custodian_empathy - 0.5).abs() < 1e-6);
+    assert_eq!(debrief.custodian_disposition(), "BALANCED");
     assert!(debrief.commanders.is_empty());
     assert_eq!(debrief.milestones_reached(), (0, 0));
+}
+
+#[test]
+fn the_report_names_the_custodians_learned_temperament() {
+    let mut report = VoyageDebrief {
+        custodian_empathy: 0.8,
+        ..Default::default()
+    };
+    assert_eq!(report.custodian_disposition(), "KIND");
+    report.custodian_empathy = 0.2;
+    assert_eq!(report.custodian_disposition(), "SEVERE");
 }

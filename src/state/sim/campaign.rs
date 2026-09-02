@@ -115,6 +115,7 @@ impl SimState {
             reputation_voice_band: 0,
             wonder_voice_band: 0,
             resolve_voice_band: 0,
+            custodian_empathy_voice_band: 0,
             stability_voice_band: 0,
             loyalty_voice_band: 0,
             adaptation_voice_band: 0,

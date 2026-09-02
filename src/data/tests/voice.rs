@@ -427,6 +427,18 @@ fn every_band_voice_is_stocked_on_both_sides() {
             fl.resolve_voice_high
         );
     }
+    if fl.custodian_empathy_voice_high > 0.0 {
+        assert!(
+            fl.custodian_kind.len() >= 3 && fl.custodian_severe.len() >= 3,
+            "Custodian temperament voice is enabled but lacks varied lines"
+        );
+        assert!(
+            fl.custodian_empathy_voice_low > 0.0
+                && fl.custodian_empathy_voice_low < fl.custodian_empathy_voice_high
+                && fl.custodian_empathy_voice_high < 1.0,
+            "Custodian empathy thresholds must order inside 0..1"
+        );
+    }
     // Content-depth voice round 6: the recurring-crisis pools need variety
     // (they fire per year the crisis lasts), and famine weaves in its toll.
     assert!(

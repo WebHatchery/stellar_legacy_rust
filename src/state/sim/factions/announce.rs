@@ -256,6 +256,39 @@ impl SimState {
         self.resolve_voice_band = band;
     }
 
+    /// Let the Custodian's learned temperament speak for itself. Event choices
+    /// move `custodian_empathy`; crossing either authored threshold produces one
+    /// first-person line, while returning to the middle silently re-arms it.
+    pub fn announce_custodian_disposition(&mut self, data: &GameData) {
+        let fl = &data.config.flavor;
+        if fl.custodian_empathy_voice_high <= 0.0 {
+            return;
+        }
+        let empathy = self.reputation("custodian_empathy");
+        let band = if empathy >= fl.custodian_empathy_voice_high {
+            1
+        } else if empathy <= fl.custodian_empathy_voice_low {
+            -1
+        } else {
+            0
+        };
+        if band == self.custodian_empathy_voice_band {
+            return;
+        }
+        let pool = match band {
+            1 => &fl.custodian_kind,
+            -1 => &fl.custodian_severe,
+            _ => {
+                self.custodian_empathy_voice_band = band;
+                return;
+            }
+        };
+        if let Some(line) = FlavorConfig::line_with_name(pool, self.year() as usize, "") {
+            self.push_log(line);
+        }
+        self.custodian_empathy_voice_band = band;
+    }
+
     /// Give the ship's *institutions* a voice (content-depth voice round 17): the
     /// governance twin of the morale (`announce_ship_mood`) and polity
     /// (`announce_polity_mood`) voices. Distinct from the crew's spirits and from how

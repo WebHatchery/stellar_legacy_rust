@@ -625,3 +625,39 @@ fn the_ship_remarks_when_the_crew_becomes_a_new_people_or_keeps_the_old_ways() {
     );
     assert_eq!(sim.drift_voice_band, -1);
 }
+
+#[test]
+fn the_custodian_speaks_when_its_temperament_becomes_kind_or_severe() {
+    let (data, mut sim, _picks) = armed(61);
+    let fl = &data.config.flavor;
+    assert!(fl.custodian_kind.len() >= 3 && fl.custodian_severe.len() >= 3);
+    let ai_lines = |sim: &SimState| {
+        sim.log
+            .iter()
+            .filter(|line| {
+                fl.custodian_kind.contains(&line.text) || fl.custodian_severe.contains(&line.text)
+            })
+            .count()
+    };
+
+    sim.announce_custodian_disposition(&data);
+    assert_eq!(ai_lines(&sim), 0, "a balanced Custodian is initially quiet");
+
+    sim.adjust_reputation("custodian_empathy", 0.2);
+    sim.announce_custodian_disposition(&data);
+    assert_eq!(ai_lines(&sim), 1);
+    assert_eq!(sim.custodian_empathy_voice_band, 1);
+    sim.announce_custodian_disposition(&data);
+    assert_eq!(
+        ai_lines(&sim),
+        1,
+        "a stable kind temperament does not repeat"
+    );
+
+    sim.reputation.insert("custodian_empathy".to_owned(), 0.5);
+    sim.announce_custodian_disposition(&data);
+    sim.reputation.insert("custodian_empathy".to_owned(), 0.2);
+    sim.announce_custodian_disposition(&data);
+    assert_eq!(ai_lines(&sim), 2);
+    assert_eq!(sim.custodian_empathy_voice_band, -1);
+}

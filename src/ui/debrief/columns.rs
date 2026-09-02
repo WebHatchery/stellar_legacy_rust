@@ -36,7 +36,7 @@ pub(super) fn draw_report(report: &VoyageDebrief, area: Rect) {
     }
 
     // The tallies.
-    let rows: [(&str, String); 6] = [
+    let rows: [(&str, String); 7] = [
         (
             "YEARS UNDER WAY",
             format!(
@@ -46,6 +46,14 @@ pub(super) fn draw_report(report: &VoyageDebrief, area: Rect) {
         ),
         ("GENERATIONS PASSED", report.generations.to_string()),
         ("COMMAND POSTURE", report.command_posture.label().to_owned()),
+        (
+            "CUSTODIAN AI",
+            format!(
+                "{} · EMPATHY {:.0}%",
+                report.custodian_disposition(),
+                report.custodian_empathy.clamp(0.0, 1.0) * 100.0
+            ),
+        ),
         (
             "SOULS ABOARD",
             format!(

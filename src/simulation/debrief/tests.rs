@@ -159,6 +159,7 @@ fn sealing_snapshots_what_the_cleared_contract_would_take_with_it() {
         "the authored prose rides along"
     );
     assert_eq!(report.population_start, report.population_end);
+    assert!((report.custodian_empathy - 0.5).abs() < 1e-6);
 
     // The report outlives the contract that produced it — the whole point.
     sim.contract = None;
@@ -229,4 +230,23 @@ fn the_homecoming_report_remembers_the_command_posture() {
     .expect("a contract is under way");
 
     assert_eq!(report.command_posture, CommandPosture::Expeditionary);
+}
+
+#[test]
+fn the_homecoming_report_remembers_the_custodians_empathy() {
+    let (_data, mut sim) = launched();
+    sim.reputation.insert("custodian_empathy".to_owned(), 0.78);
+
+    let report = seal(
+        &sim,
+        0.5,
+        SuccessLevel::Partial,
+        ResourceDelta::default(),
+        None,
+        None,
+    )
+    .expect("a contract is under way");
+
+    assert!((report.custodian_empathy - 0.78).abs() < 1e-6);
+    assert_eq!(report.custodian_disposition(), "KIND");
 }

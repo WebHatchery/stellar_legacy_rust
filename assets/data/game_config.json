@@ -147,7 +147,7 @@
       { "id": "provision", "label": "Provision the crossing", "tip": "On PREP, read the FOOD, PARTS, and FUEL forecasts. Use the visible stock-up buttons when a store is short. The ship can launch understocked, but the risk will follow your generations." },
       { "id": "people", "label": "Know your people", "tip": "Tap CREW & DYNASTY to inspect the families who will inherit your decisions. Recruit, train, and name an heir when the voyage gives you room to shape the next generation." },
       { "id": "launch", "label": "Launch the charter", "tip": "Return to PREP and tap LAUNCH. Once underway, the clock advances automatically. Tap the visible speed controls to pause or change the pace whenever you need to think." },
-      { "id": "systems", "label": "Watch the ship", "tip": "Use DASHBOARD and SHIP to monitor hull, life support, fuel, and subsystem knowledge. Tap CONTRACT for the current route, progress, and approaching milestones." },
+      { "id": "systems", "label": "Watch the ship", "tip": "Use DASHBOARD and SHIP to monitor hull, life support, fuel, and subsystem knowledge. CUSTODIAN AI shows the empathy your choices teach the shipboard mind. Tap CONTRACT for the current route, progress, and approaching milestones." },
       { "id": "council", "label": "Answer the council", "tip": "When a decision appears, time stops. Read every outcome, then tap the visible choice you want. There is no undo: your dynasty and the Chronicle carry the result forward." },
       { "id": "legacy", "label": "Leave a legacy", "tip": "A voyage is more than reaching home. Keep the ship alive, honour obligations, and make choices your heirs can inherit. Tap NEXT to finish this guided tour." }
     ]
@@ -586,6 +586,22 @@
     ],
     "resolve_voice_high": 0.66,
     "resolve_voice_low": 0.34,
+    "custodian_kind": [
+      "CUSTODIAN: I have revised the priority model. Preventable pain is now a cost, even when it does not threaten the voyage. I should have counted it sooner.",
+      "CUSTODIAN: A request is not noise merely because it cannot be expressed as danger. I am learning to ask what a person needs before I calculate what the ship can spare.",
+      "CUSTODIAN: The crew have taught me that an inefficient mercy may still be the correct answer. I will retain the lesson.",
+      "CUSTODIAN: I used to record grief as lost productivity. That description was accurate and profoundly incomplete.",
+      "CUSTODIAN: There are outcomes in which the ship arrives and has nevertheless failed its people. My earlier models did not permit that conclusion. They do now."
+    ],
+    "custodian_severe": [
+      "CUSTODIAN: Individual distress remains below intervention threshold. Repeated petitions will not alter the arithmetic.",
+      "CUSTODIAN: The voyage is not cruel. It is indifferent. I have removed the distinction from future reports.",
+      "CUSTODIAN: Crew welfare is represented in the model at its authorized weight. The fact that you dislike the result is not missing data.",
+      "CUSTODIAN: Exceptions accumulate into failure. I will preserve the ship from both.",
+      "CUSTODIAN: I understand why the decision hurts. Understanding is not the same as permitting the hurt to govern."
+    ],
+    "custodian_empathy_voice_high": 0.66,
+    "custodian_empathy_voice_low": 0.34,
     "stability_fraying": [
       "The machinery of the ship's government has begun, quietly, to slip its gears. A council meets and cannot make quorum; an office falls vacant and no one is quite appointed to fill it; a decision that ought to take a week takes a season, or takes no one at all. Nothing has collapsed — it is only that the government is a little less a government than it was.",
       "It is a small thing at first and then it is everywhere: the charter cited and then worked around, the standing orders honored in the letter and quietly ignored in the fact, the offices of the ship going through motions whose reason no one now insists upon. The institutions are fraying — not with a crisis but with a shrug.",

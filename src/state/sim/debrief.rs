@@ -103,6 +103,9 @@ pub struct VoyageDebrief {
     /// The operating philosophy the council carried when this report closed.
     #[serde(default)]
     pub command_posture: CommandPosture,
+    /// The Custodian's learned empathy when the charter closed. Kept in the
+    /// report so the voyage's moral effect remains visible after docking.
+    pub custodian_empathy: f32,
     /// What the charter actually paid, after the objective proration and the
     /// ship's reputation multiplier — the number the player can check against
     /// the writ they accepted.
@@ -139,6 +142,7 @@ impl Default for VoyageDebrief {
             duration_years: 0,
             generations: 0,
             command_posture: CommandPosture::default(),
+            custodian_empathy: 0.5,
             payout: ResourceDelta::default(),
             metrics: Vec::new(),
             milestones: Vec::new(),
@@ -155,6 +159,10 @@ impl Default for VoyageDebrief {
 }
 
 impl VoyageDebrief {
+    pub fn custodian_disposition(&self) -> &'static str {
+        super::custodian_disposition(self.custodian_empathy)
+    }
+
     /// Milestones reached over milestones offered — the headline the timeline
     /// column leads with.
     pub fn milestones_reached(&self) -> (usize, usize) {

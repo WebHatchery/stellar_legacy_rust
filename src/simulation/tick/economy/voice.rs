@@ -59,6 +59,10 @@ pub(super) fn decay_modules_and_speak(
     // voice set — when the `resolve` trait crosses into steadfast or yielding, the decks remark
     // the ship's growing name for seeing the hard thing through, or for folding.
     sim.announce_resolve_name(data);
+    // …and the Custodian's own learned character: council choices can teach the
+    // shipboard intelligence empathy or reduce people to variables. When that
+    // tendency becomes pronounced, the AI itself says so once in its changed voice.
+    sim.announce_custodian_disposition(data);
 
     // Voyage drift (PLAN M4.1): a long voyage changes the people, not just the
     // ship — adaptation and cultural drift rise, loyalty to the founders fades,
