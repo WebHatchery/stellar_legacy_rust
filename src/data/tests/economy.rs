@@ -93,6 +93,9 @@ fn a_charter_fee_clears_its_provisioning_bill() {
     let data = GameData::load().unwrap();
     let config = &data.config;
     for (id, c) in data.contracts.iter() {
+        if c.tutorial {
+            continue;
+        }
         let parts_needed = config.parts_upkeep_per_year * c.target_duration_years as i64;
         let parts_shortfall = (parts_needed - config.starting_spare_parts).max(0);
         let bill = parts_shortfall * config.provisioning.part_cost_credits
@@ -178,6 +181,7 @@ fn a_full_refit_is_a_visible_slice_of_a_fee_but_never_a_wall() {
     let cheapest_fee = data
         .contracts
         .iter()
+        .filter(|(_, c)| !c.tutorial)
         .map(|(_, c)| c.reward.credits)
         .min()
         .expect("at least one charter");

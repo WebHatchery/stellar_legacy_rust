@@ -161,6 +161,11 @@ impl Game {
                         self.notifications.danger(format!("Autosave failed: {err}"));
                     }
                 }
+                if crate::data::contracts::is_demo_build() {
+                    self.state = GameState::Menu(MenuState::new(true));
+                    self.notifications
+                        .success("Demo complete. The Chronicle remembers your voyage.");
+                }
                 None
             }
             UiAction::SelectScreen(screen) => {
@@ -407,6 +412,7 @@ impl Game {
                     // charters round 12: the peoples the writ needs aboard) must
                     // both clear before a charter can be put under consideration.
                     if sim.contract.is_none()
+                        && crate::data::contracts::is_available_in_build(template)
                         && renown >= template.min_renown
                         && crate::simulation::contract::meets_in_world_gate(sim, template)
                         && crate::simulation::contract::meets_loadout_gate(

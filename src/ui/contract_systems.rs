@@ -431,6 +431,9 @@ fn grouped_charters(ctx: &GameplayCtx<'_>) -> Vec<(ContractObjective, Vec<Charte
         let Some(template) = ctx.data.contracts.get(&id) else {
             continue;
         };
+        if !crate::data::contracts::is_available_in_build(template) {
+            continue;
+        }
         let (locked, lock_label) = charter_lock(ctx, template);
         let entry = CharterEntry {
             id,
@@ -529,11 +532,14 @@ fn draw_charter_card(
     } else {
         term::primary()
     };
+    let mission_kind = if template.tutorial {
+        "TUTORIAL".to_owned()
+    } else {
+        template.objective.label().to_uppercase()
+    };
     let meta = format!(
         "{} · {} YEARS · reward {} cr",
-        template.objective.label().to_uppercase(),
-        template.target_duration_years,
-        template.reward.credits
+        mission_kind, template.target_duration_years, template.reward.credits
     );
 
     if compact {

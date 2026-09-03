@@ -1,5 +1,5 @@
 {
-  "target": "OWNER/STELLAR-LEGACY",
+  "target": "webhatchery/stellar-legacy",
   "channels": {
     "html5": "html5-demo",
     "windows": "windows"

@@ -64,7 +64,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     } else {
         " "
     };
-    if term_button(btn, &format!("{caret} FILE THE REPORT"), true, pointer) {
+    let label = if crate::data::contracts::is_demo_build() {
+        format!("{caret} COMPLETE THE DEMO")
+    } else {
+        format!("{caret} FILE THE REPORT")
+    };
+    if term_button(btn, &label, true, pointer) {
         actions.push(UiAction::FileReport);
     }
 }

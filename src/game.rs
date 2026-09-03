@@ -3,6 +3,7 @@
 //! seeding in [`capture_scenes`].
 
 mod actions;
+mod build_mode;
 mod capture_scenes;
 
 use crate::audio::{AudioManager, Cue};
@@ -172,8 +173,7 @@ impl Game {
         // unseeded it starts from a fixed default, so every new game came out the
         // same. A `fixed_seed` in game_config still overrides this for testing.
         macroquad_toolkit::rng::srand((macroquad::miniquad::date::now() * 1000.0) as u64);
-        let data = GameData::load()
-            .unwrap_or_else(|err| panic!("Stellar Legacy embedded data failed to load: {err}"));
+        let data = build_mode::load_data();
         let chronicle = ChronicleStore::load(
             &data.config.game_name,
             &data.config.chronicle_slot,

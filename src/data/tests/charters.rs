@@ -10,7 +10,8 @@ fn active_route_site_is_derived_from_the_authored_writ_name() {
     assert_eq!(charter.operation_site(), "Karst Belt");
 }
 
-/// W1-rescale and W2: >= 300 years, phases summing exactly to it.
+/// W1-rescale and W2: campaign charters are >= 300 years, while the explicit
+/// onboarding exception is 150; every route's phases still sum exactly.
 #[test]
 fn every_charter_is_a_generational_voyage_with_authored_phases() {
     let data = GameData::load().unwrap();
@@ -29,11 +30,18 @@ fn every_charter_is_a_generational_voyage_with_authored_phases() {
     // Return kinds, at least one Operation segment, and a real objective.
     use contracts::ContractPhase;
     for (id, c) in data.contracts.iter() {
-        assert!(
-            c.target_duration_years >= 300,
-            "charter '{id}' must be a generational voyage (>= 300 yr), is {}",
-            c.target_duration_years
-        );
+        if c.tutorial {
+            assert_eq!(
+                c.target_duration_years, 150,
+                "tutorial charter '{id}' must be the 150-year proving run"
+            );
+        } else {
+            assert!(
+                c.target_duration_years >= 300,
+                "charter '{id}' must be a generational voyage (>= 300 yr), is {}",
+                c.target_duration_years
+            );
+        }
         let phase_years: u32 = c.phases.iter().map(|p| p.years).sum();
         assert_eq!(
             phase_years, c.target_duration_years,
@@ -58,6 +66,44 @@ fn every_charter_is_a_generational_voyage_with_authored_phases() {
             c.objective_target > 0.0,
             "charter '{id}' must have a positive objective target"
         );
+    }
+}
+
+#[test]
+fn one_tutorial_charter_flies_out_works_and_returns() {
+    let data = GameData::load().unwrap();
+    let tutorials: Vec<_> = data.contracts.iter().filter(|(_, c)| c.tutorial).collect();
+    assert_eq!(
+        tutorials.len(),
+        1,
+        "exactly one tutorial charter is authored"
+    );
+    let (id, charter) = tutorials[0];
+    assert_eq!(id, contracts::TUTORIAL_CONTRACT_ID);
+    assert_eq!(charter.min_renown, 0);
+    assert_eq!(charter.phases.len(), 3);
+    assert_eq!(charter.phases[0].kind, contracts::ContractPhase::Travel);
+    assert_eq!(charter.phases[1].kind, contracts::ContractPhase::Operation);
+    assert_eq!(charter.phases[2].kind, contracts::ContractPhase::Return);
+    assert_eq!(
+        charter.phases.iter().map(|p| p.years).collect::<Vec<_>>(),
+        vec![50, 50, 50]
+    );
+}
+
+#[test]
+fn demo_build_exposes_only_the_tutorial_charter() {
+    let data = GameData::load().unwrap();
+    let visible: Vec<_> = data
+        .contracts
+        .iter()
+        .filter(|(_, charter)| contracts::is_available_in_build(charter))
+        .map(|(id, _)| id.as_str())
+        .collect();
+    if contracts::is_demo_build() {
+        assert_eq!(visible, vec![contracts::TUTORIAL_CONTRACT_ID]);
+    } else {
+        assert_eq!(visible.len(), data.contracts.len());
     }
 }
 

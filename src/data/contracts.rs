@@ -3,6 +3,18 @@
 use crate::data::{PopulationDelta, ResourceDelta, ShipDelta};
 use serde::{Deserialize, Serialize};
 
+pub const TUTORIAL_CONTRACT_ID: &str = "lumen_relay_proving_run";
+
+pub const fn is_demo_build() -> bool {
+    cfg!(feature = "demo")
+}
+
+/// The full game offers every charter. The itch demo keeps the same simulation
+/// and content pipeline, but limits its writ board to the authored proving run.
+pub fn is_available_in_build(template: &ContractTemplate) -> bool {
+    !is_demo_build() || (template.tutorial && template.id == TUTORIAL_CONTRACT_ID)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ContractObjective {
@@ -184,6 +196,10 @@ pub struct ContractTemplate {
     /// (PLAN M4.8). 0 = available from the founding; richer charters gate higher.
     #[serde(default)]
     pub min_renown: i64,
+    /// Marks the short first-voyage charter used by onboarding and by the itch
+    /// demo. It remains a normal selectable charter in the full game.
+    #[serde(default)]
+    pub tutorial: bool,
     /// Minimum ship *loadout* the writ demands to even be accepted (content-depth
     /// charters round 26): the drydock's coupling to charter *availability*, the twin of
     /// the it21/it166 accrual gates (which decide how *well* a fitted ship works a mission,

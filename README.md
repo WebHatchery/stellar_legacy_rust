@@ -13,7 +13,7 @@ the ship makes will be kept (or broken) by someone else's grandchildren.
 - Port of the web original `game_apps/stellar_legacy/` (React/PHP); all game rules
   now live in a deterministic Rust simulation, saves are local toolkit slots.
 
-The current release contains 327 event templates, 22 charters across six objective
+The current release contains 327 event templates, 23 charters across six objective
 families, three legacies, six founding factions, six maintainable subsystems, and a
 month-precise voyage clock. Under way, time advances automatically at the displayed
 Pause / 1× / 2× / 3× pace; drydock and blocking council decisions freeze it. Chronicle
@@ -26,6 +26,17 @@ The primary flow is New Game → legacy and founding peoples → drydock charter
 preparation checklist → launch → dashboard/specialist screens and council decisions →
 Homecoming debrief → drydock. Chronicle, Help, and Display remain available from the
 command shell.
+
+The full game includes **Proving Run: Lumen Relay**, a 150-year tutorial charter with
+50-year outbound, operation, and return legs. The itch.io HTML5 channel is a
+feature-gated demo that offers only this one voyage while using the same simulation,
+save flow, and content as the full game. Build and validate the normal release first,
+then package the demo without uploading it with:
+
+```powershell
+.\publish.ps1
+.\publish-itch.ps1 -Channel html5 -DryRun
+```
 
 ## Layout
 

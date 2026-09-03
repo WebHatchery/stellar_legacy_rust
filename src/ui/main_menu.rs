@@ -123,6 +123,15 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         }
     };
 
+    if crate::data::contracts::is_demo_build() {
+        draw_ui_text_ex(
+            "ITCH.IO DEMO · ONE 150-YEAR TUTORIAL VOYAGE",
+            bx,
+            by - 18.0,
+            TextStyle::new(12.0, term::accent()).params(),
+        );
+    }
+
     // A single column of options, most-common action first.
     if term_button(
         Rect::new(bx, by, bw, bh),

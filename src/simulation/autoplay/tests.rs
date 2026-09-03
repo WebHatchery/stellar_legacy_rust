@@ -114,6 +114,30 @@ fn deep_vein_survey_completes_with_a_living_dynasty() {
     );
 }
 
+#[test]
+fn tutorial_proving_run_reaches_home_in_150_years() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        150,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let outcome = play_mission(
+        &mut sim,
+        &data,
+        crate::data::contracts::TUTORIAL_CONTRACT_ID,
+        170,
+    );
+    assert!(outcome.completed, "the tutorial voyage must reach home");
+    assert!(!outcome.extinct, "the tutorial dynasty must survive");
+    assert_eq!(outcome.final_year, 150);
+    assert!(
+        outcome.final_score >= 0.45,
+        "the guided first voyage should not teach the player with an unavoidable failure"
+    );
+}
+
 /// Soak the long-station charter shape (content-depth): the 480-year Deep
 /// Camp spends most of its length parked on-station rather than in transit.
 /// It must resolve legally (complete or lose the line), never run the clock

@@ -1,5 +1,118 @@
 [
  {
+  "id": "lumen_relay_proving_run",
+  "name": "Proving Run: Lumen Relay",
+  "objective": "exploration",
+  "description": "Take the newly inherited ship to the nearby Lumen Relay, restore its silent navigation beacon, and bring the crew home. This short proving run teaches provisioning, the voyage clock, council decisions, mission work, and homecoming before the longer charters begin.",
+  "target_duration_years": 150,
+  "phases": [
+   {
+    "kind": "travel",
+    "years": 50
+   },
+   {
+    "kind": "operation",
+    "years": 50
+   },
+   {
+    "kind": "return",
+    "years": 50
+   }
+  ],
+  "objective_target": 100,
+  "objective_unit": "relay systems restored",
+  "milestones": [
+   {
+    "id": "first_burn",
+    "name": "First interstellar burn completed",
+    "progress_threshold": 0.05
+   },
+   {
+    "id": "lumen_arrival",
+    "name": "Lumen Relay reached",
+    "progress_threshold": 0.34,
+    "reward": {
+     "influence": 10
+    }
+   },
+   {
+    "id": "beacon_awake",
+    "name": "Navigation beacon restored",
+    "progress_threshold": 0.66
+   },
+   {
+    "id": "home_signal",
+    "name": "Homecoming signal acquired",
+    "progress_threshold": 0.9
+   }
+  ],
+  "success_metrics": [
+   {
+    "id": "population_survival",
+    "kind": "population_survival",
+    "name": "Population survival",
+    "weight": 0.25,
+    "target": 0.95
+   },
+   {
+    "id": "mission_completion",
+    "kind": "mission_completion",
+    "name": "Relay restoration",
+    "weight": 0.35,
+    "target": 1.0
+   },
+   {
+    "id": "resource_efficiency",
+    "kind": "resource_efficiency",
+    "name": "Provisioning discipline",
+    "weight": 0.15,
+    "target": 0.7
+   },
+   {
+    "id": "social_cohesion",
+    "kind": "social_cohesion",
+    "name": "Crew cohesion",
+    "weight": 0.15,
+    "target": 0.6
+   },
+   {
+    "id": "knowledge_retained",
+    "kind": "knowledge_retained",
+    "name": "Navigation craft retained",
+    "weight": 0.1,
+    "target": 0.6
+   }
+  ],
+  "failure_risks": [
+   "hull_breach",
+   "famine",
+   "succession_crisis"
+  ],
+  "reward": {
+   "credits": 6000,
+   "influence": 30
+  },
+  "min_renown": 0,
+  "tutorial": true,
+  "tags": [
+   "survey"
+  ],
+  "beat_families": [
+   "exploration_first_contact",
+   "engineering"
+  ],
+  "objective_subsystem": "education_culture",
+  "completion_reward": {
+   "subsystem_deltas": [
+    {
+     "id": "education_culture",
+     "knowledge": 0.03
+    }
+   ],
+   "log": "The proving run returned with a living route in the charts and a crew that understood how to carry navigation craft from one generation to the next."
+  }
+ },
+ {
   "id": "founding_colony",
   "name": "Founding Charter: Meridian Reach",
   "objective": "colonization",
