@@ -14,6 +14,7 @@ pub mod game_over;
 pub mod help;
 pub mod main_menu;
 pub mod market;
+pub mod mission;
 pub mod prep;
 pub mod settings;
 pub mod shell;
@@ -217,6 +218,7 @@ pub enum UiAction {
     SelectHeir(u32),
     /// Put a charter under consideration in port — never starts it (W4).
     SelectCharter(String),
+    CancelSelection,
     /// Commit the selected charter and begin the voyage (W4) — the sole path
     /// that starts a contract.
     Launch,

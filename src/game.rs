@@ -135,6 +135,8 @@ pub struct Game {
     /// which now outgrows its panel (grouped by objective, all tiers listed).
     /// A `Cell` so the pure-view draw path can update it through `&GameplayCtx`.
     charter_scroll: Cell<ScrollArea>,
+    description_scroll: Cell<ScrollArea>,
+    abort_confirm: Cell<bool>,
     /// Smooth-scroll state for the SHIP builder's three catalog columns
     /// (Hull/Engine/Weapon), which overflow once a mission-reward part joins a
     /// full column. One `ScrollArea` per column.
@@ -243,6 +245,8 @@ impl Game {
             custody_picker: None,
             obligation_detail: None,
             charter_scroll: Cell::new(ScrollArea::new()),
+            description_scroll: Cell::new(ScrollArea::new()),
+            abort_confirm: Cell::new(false),
             ship_scroll: Cell::new([ScrollArea::new(); 3]),
             roster_scroll: Cell::new(ScrollArea::new()),
             chronicle_scroll: Cell::new(ScrollArea::new()),
@@ -455,6 +459,8 @@ impl Game {
                     custody_picker: self.custody_picker.as_deref(),
                     obligation_detail: self.obligation_detail.as_deref(),
                     charter_scroll: &self.charter_scroll,
+                    description_scroll: &self.description_scroll,
+                    abort_confirm: &self.abort_confirm,
                     ship_scroll: &self.ship_scroll,
                     roster_scroll: &self.roster_scroll,
                     chronicle_scroll: &self.chronicle_scroll,

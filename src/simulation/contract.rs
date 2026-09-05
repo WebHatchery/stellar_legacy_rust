@@ -588,6 +588,14 @@ pub fn jump_to_return(sim: &mut SimState) -> bool {
     if contract.months_elapsed >= return_start {
         return false;
     }
+    // Retire itinerary events from the abandoned work, without cancelling
+    // campaign obligations and their independently scheduled consequences.
+    contract.scheduled_beats_fired = contract
+        .scheduled_beats
+        .iter()
+        .take_while(|beat| beat.at_year * 12 <= return_start)
+        .count() as u32;
+    contract.beats.clear();
     contract.months_elapsed = return_start;
     contract.phase_index = return_index;
     contract.phase = contract.phases[return_index].kind;

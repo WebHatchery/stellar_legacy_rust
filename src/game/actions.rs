@@ -217,6 +217,7 @@ impl Game {
                 None
             }
             UiAction::AbortMission => {
+                self.abort_confirm.set(false);
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;
                     // The council turns the ship for home; pay will be prorated
@@ -405,7 +406,19 @@ impl Game {
                 }
                 None
             }
+            UiAction::CancelSelection => {
+                if let GameState::Gameplay(g) = &mut self.state {
+                    if g.sim.contract.is_none() {
+                        g.sim.selected_charter = None;
+                    }
+                }
+                self.description_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
+                None
+            }
             UiAction::SelectCharter(id) => {
+                self.description_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
                 // Selecting a charter never starts it (W4) — it only puts it
                 // under consideration on the PREP screen. Renown gates exactly
                 // as before; re-selecting swaps the choice.

@@ -29,6 +29,7 @@ impl Game {
         // scene; scenes opt into it explicitly (the "welcome" scene below).
         self.welcome_open = false;
         self.tutorial_open = false;
+        self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
         self.crt_style = self.display.crt_style();
         ui::term::set_phosphor(self.display.phosphor);
@@ -385,6 +386,22 @@ impl Game {
                 let mut gameplay = GameplayState::new(sim);
                 gameplay.screen = Screen::Market;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
+            }
+            "abort" => {
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    5,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                sim.contract = Some(contract::start_contract(
+                    self.data.contracts.get("deep_vein_survey").unwrap(),
+                    &sim,
+                ));
+                self.abort_confirm.set(true);
+                let mut g = GameplayState::new(sim);
+                g.screen = Screen::Contract;
+                self.state = crate::state::GameState::Gameplay(Box::new(g));
             }
             "contracts" => {
                 // No active contract, so the available-charters list is shown.

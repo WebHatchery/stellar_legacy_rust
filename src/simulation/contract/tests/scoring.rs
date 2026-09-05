@@ -295,3 +295,33 @@ fn the_family_metrics_grade_what_their_family_is_actually_judged_on() {
         "a survey flown by a crew that let its teaching lapse comes home worth less"
     );
 }
+
+#[test]
+fn cancelling_retires_itinerary_without_refunding_or_resetting_calendar() {
+    let (_, mut sim) = armed(9, "deep_vein_survey");
+    sim.contract
+        .as_mut()
+        .unwrap()
+        .beats
+        .push(crate::state::sim::CampaignBeat {
+            month_clock: 99,
+            family: "engineering".into(),
+            fired: false,
+        });
+    let credits = sim.resources.credits;
+    let calendar = sim.month_clock;
+    assert!(jump_to_return(&mut sim));
+    assert_eq!(sim.resources.credits, credits);
+    assert_eq!(sim.month_clock, calendar);
+    assert!(sim.contract.as_ref().unwrap().beats.is_empty());
+    let mut restored: SimState =
+        serde_json::from_str(&serde_json::to_string(&sim).unwrap()).unwrap();
+    assert_eq!(
+        restored.contract.as_ref().unwrap().phase,
+        ContractPhase::Return
+    );
+    assert!(
+        !jump_to_return(&mut restored),
+        "cannot repeatedly cancel the return leg"
+    );
+}

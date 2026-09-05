@@ -235,17 +235,12 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
     // to the panel bottom so it never collides with the growing metric list.
     let underway = matches!(
         contract.phase,
-        ContractPhase::Travel | ContractPhase::Operation
+        ContractPhase::Preparation | ContractPhase::Travel | ContractPhase::Operation
     );
     let abort = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
     if underway {
-        if term_button(
-            abort,
-            "[ TURN BACK ]  ·  pay prorated to the objective banked (0 if none)",
-            true,
-            pointer,
-        ) {
-            actions.push(UiAction::AbortMission);
+        if term_button(abort, "CANCEL MISSION / RETURN HOME", true, pointer) {
+            ctx.abort_confirm.set(true);
         }
     } else {
         term_button(abort, "— HOMEBOUND —", false, pointer);

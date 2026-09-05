@@ -35,6 +35,8 @@ pub struct GameplayCtx<'a> {
     /// Smooth-scroll state for the charter board / PREP swap column (the list
     /// outgrows its panel). A `Cell` so this pure-view path can update the offset
     /// through the shared `&GameplayCtx` without threading `&mut` everywhere.
+    pub description_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    pub abort_confirm: &'a std::cell::Cell<bool>,
     pub charter_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the SHIP builder's three catalog columns, so a
     /// column that overflows (e.g. a mission-reward part added to a full one)
@@ -122,6 +124,10 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     } else if ctx.sim.pending_dilemma.is_some() {
         actions.clear();
         event_modal::draw_dilemma(&ctx, pointer, &mut actions);
+    }
+    if ctx.abort_confirm.get() && !ctx.sim.has_pending_decision() {
+        actions.clear();
+        mission::draw_abort(&ctx, pointer, &mut actions);
     }
     if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
         tutorial::draw(&ctx, pointer, &mut actions);
