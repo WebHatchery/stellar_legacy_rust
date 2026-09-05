@@ -13,7 +13,7 @@ impl Game {
     /// and auto-resolve it once the countdown runs out. Docked, nothing advances.
     /// Skipped entirely in capture mode (deterministic screenshots).
     pub(super) fn update_realtime(&mut self, dt: f32) {
-        if self.instant_reveal {
+        if self.instant_reveal || self.tutorial_holds_clock() {
             return;
         }
         let (is_gameplay, key, can_advance, multiplier) = match &self.state {

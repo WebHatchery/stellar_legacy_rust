@@ -492,26 +492,14 @@ impl Game {
                 }
                 None
             }
-            UiAction::DismissTutorial => {
-                if let GameState::Gameplay(gameplay) = &mut self.state {
-                    gameplay.sim.tutorial_dismissed = true;
-                }
-                None
-            }
+            UiAction::ReviewProvisions => None,
             UiAction::NextTutorial => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
-                    let last = self
-                        .data
-                        .config
-                        .tutorial
-                        .guided_steps
-                        .len()
-                        .saturating_sub(1);
-                    if gameplay.sim.tutorial_step >= last {
+                    if gameplay.sim.tutorial_step + 1
+                        == self.data.config.tutorial.guided_steps.len()
+                    {
                         gameplay.sim.tutorial_dismissed = true;
                         self.tutorial_open = false;
-                    } else {
-                        gameplay.sim.tutorial_step += 1;
                     }
                 }
                 None
@@ -523,12 +511,7 @@ impl Game {
                 self.tutorial_open = false;
                 None
             }
-            UiAction::CancelTutorial => {
-                self.tutorial_open = false;
-                self.display.tutorial_enabled = false;
-                self.persist_display();
-                None
-            }
+
             UiAction::BuyParts(amount) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     match crate::simulation::ship::buy_parts(

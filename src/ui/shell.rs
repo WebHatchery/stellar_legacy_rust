@@ -122,8 +122,8 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     } else if ctx.sim.pending_dilemma.is_some() {
         actions.clear();
         event_modal::draw_dilemma(&ctx, pointer, &mut actions);
-    } else if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
-        actions.clear();
+    }
+    if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
         tutorial::draw(&ctx, pointer, &mut actions);
     }
 

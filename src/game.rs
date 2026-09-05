@@ -6,6 +6,7 @@ mod actions;
 mod build_mode;
 mod capture_scenes;
 mod realtime;
+mod tutorial;
 
 use crate::audio::{AudioManager, Cue};
 use crate::boot::BootScreen;
@@ -314,9 +315,11 @@ impl Game {
             ) {
                 self.audio.cue(Cue::Resolution, self.display.audio_volume);
             }
+            let tutorial_action = action.clone();
             if let Some(t) = self.apply_action(action) {
                 transition = Some(t);
             }
+            self.track_tutorial(&tutorial_action);
         }
         if let Some(transition) = transition {
             self.transition(transition);
@@ -673,7 +676,18 @@ impl Game {
                 }
             }
             StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
-                Ok(sim) => {
+                Ok(mut sim) => {
+                    // Older slideshow saves may resume after their launch steps.
+                    if sim.has_pending_decision() && sim.tutorial_step < 8 {
+                        sim.tutorial_step = 8;
+                    } else if sim.contract.is_some() && sim.tutorial_step < 6 {
+                        sim.tutorial_step = 6;
+                    } else if sim.contract.is_none()
+                        && sim.tutorial_step >= 6
+                        && !sim.tutorial_dismissed
+                    {
+                        sim.tutorial_step = 0;
+                    }
                     self.state = GameState::Gameplay(Box::new(GameplayState::new(sim)));
                     self.tutorial_open = self.display.tutorial_enabled;
                     self.notifications.success("Voyage resumed.");

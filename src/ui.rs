@@ -224,14 +224,11 @@ pub enum UiAction {
     Refuel,
     /// Stock spare parts in drydock (W4 provisioning, PREP screen).
     BuyParts(i64),
-    /// Hide the first-voyage checklist for the rest of the campaign.
-    DismissTutorial,
     /// Advance the guided first-voyage tutorial.
     NextTutorial,
+    ReviewProvisions,
     /// Permanently skip the guided tutorial for this campaign.
     SkipTutorial,
-    /// Close the guided tutorial without completing it.
-    CancelTutorial,
     PurchaseComponent(ComponentKind, String),
     FieldRepair(crate::simulation::ship::RepairKind),
     FullRepair,
