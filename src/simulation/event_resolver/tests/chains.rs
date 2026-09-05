@@ -56,6 +56,9 @@ fn every_obligation_chain_crosses_a_succession_and_offers_three_endings() {
             crate::state::sim::ObligationStatus::Defaulted,
         ] {
             let mut sim = SimState::new_campaign(&data, "preservers", 701, &picks);
+            // This fixture jumps generations without simulating their farming.
+            // Fund the future payment explicitly; starting stores are only a reserve.
+            sim.resources.food = 12_000;
             apply_outcome(&mut sim, &data, seed, 0);
             assert_eq!(sim.obligations[0].authored_id, authored_id);
             assert_eq!(sim.scheduled_events[0].template_id, due_id);

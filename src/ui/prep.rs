@@ -16,7 +16,7 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 /// is the *stride* that decides it: a hit area grows only halfway toward its
 /// neighbour, so rows packed at 30 cap their targets at 30 however tall the
 /// button is drawn.
-const PROVISION_STRIDE: f32 = 44.0;
+const PROVISION_STRIDE: f32 = 64.0;
 
 fn launch_commit_label(conflicts: usize, shortfalls: usize) -> String {
     match (conflicts, shortfalls) {
@@ -45,17 +45,20 @@ fn provision_line(x: f32, y: f32, label: &str, have: i64, need: i64, note: &str)
     } else {
         term::accent()
     };
-    let tail = if note.is_empty() {
-        String::new()
-    } else {
-        format!("   ·   {note}")
-    };
     draw_ui_text_ex(
-        &format!("{label} — have {have} / need {need}{tail}"),
+        &format!("{label} - stored {have} / recommended {need}"),
         x,
         y,
         TextStyle::new(13.0, color).params(),
     );
+    if !note.is_empty() {
+        draw_ui_text_ex(
+            note,
+            x,
+            y + 17.0,
+            TextStyle::new(11.0, term::dim()).params(),
+        );
+    }
 }
 
 fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
@@ -181,6 +184,13 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         y,
         TextStyle::new(14.0, term::primary()).params(),
     );
+    y += 20.0;
+    draw_ui_text_ex(
+        "Food is a reserve; farms supply the crossing. Events can change this forecast.",
+        content.x,
+        y,
+        TextStyle::new(11.0, term::dim()).params(),
+    );
     y += 22.0;
     // Each provisioning row carries its own stock-up button so filling the
     // stores never means leaving the PREP screen.
@@ -195,11 +205,11 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     provision_line(
         content.x,
         y,
-        "FOOD ",
+        "FOOD",
         sim.resources.food,
         food_need,
         &format!(
-            "end {} · net {:+}/yr ({} made / {} eaten)",
+            "Projected end {} · net {:+}/yr ({} made / {} eaten)",
             forecast.projected_food_end,
             forecast.annual_food_net,
             forecast.annual_food_output,

@@ -15,15 +15,28 @@ fn a_new_ship_sails_provisioned_for_a_starter_charter() {
         .map(|(_, c)| c.target_duration_years)
         .min()
         .expect("at least one renown-0 charter");
-    let food_need = (config.starting_population as f32
-        * config.food_per_person_per_year
-        * starter_years as f32)
-        .ceil() as i64;
-    assert!(
-        config.starting_resources.food >= food_need,
-        "founding food {} must cover a {starter_years}-yr starter charter ({food_need})",
-        config.starting_resources.food
-    );
+    // Farms replace consumption during the crossing: compare with the same
+    // net-production departure forecast the player sees, not gross food use.
+    let starter = data
+        .contracts
+        .iter()
+        .map(|(_, c)| c)
+        .filter(|c| c.min_renown == 0)
+        .min_by_key(|c| c.target_duration_years)
+        .unwrap();
+    for legacy in GameData::sorted_ids(&data.legacies) {
+        let sim = crate::state::sim::SimState::new_campaign(
+            &data,
+            &legacy,
+            1,
+            &crate::state::sim::founding_faction_ids(&data),
+        );
+        let forecast = crate::simulation::contract::forecast::for_departure(&sim, &data, starter);
+        assert!(
+            sim.resources.food >= forecast.recommended_food_store,
+            "{legacy} needs a stocked starter reserve"
+        );
+    }
     assert!(
         config.starting_spare_parts >= config.parts_upkeep_per_year * starter_years as i64,
         "founding parts {} must cover {starter_years} years of upkeep",
