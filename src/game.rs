@@ -168,6 +168,7 @@ pub struct Game {
     /// `true` = MODULES (the six subsystems' named version ladders). Pure view
     /// state, flipped by the on-screen toggle.
     ship_modules_tab: Cell<bool>,
+    ship_preview: Cell<(u64, f64)>,
 }
 
 impl Game {
@@ -257,6 +258,7 @@ impl Game {
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
             ship_modules_tab: Cell::new(false),
+            ship_preview: Cell::new((0, -100.0)),
         }
     }
 
@@ -471,6 +473,7 @@ impl Game {
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     ship_modules_tab: &self.ship_modules_tab,
+                    ship_preview: &self.ship_preview,
                     tutorial_enabled: self.display.tutorial_enabled,
                     tutorial_open: self.tutorial_open,
                 }),

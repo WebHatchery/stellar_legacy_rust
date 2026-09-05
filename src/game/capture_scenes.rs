@@ -223,53 +223,7 @@ impl Game {
                 gameplay.screen = Screen::CrewDynasty;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
-            "ship" => {
-                let mut sim = SimState::new_campaign(
-                    &self.data,
-                    "preservers",
-                    0xC0FFEE,
-                    &crate::state::sim::founding_faction_ids(&self.data),
-                );
-                // Seed a salvage hold so the SALVAGE HOLD strip shows (M4.4), incl.
-                // a mission-reward part so its MISSION REWARD tag + install state show.
-                sim.ship.salvage = vec![
-                    "mass_driver".to_owned(),
-                    "solar_sail".to_owned(),
-                    "singularity_lance".to_owned(),
-                ];
-                let mut gameplay = GameplayState::new(sim);
-                gameplay.screen = Screen::ShipBuilder;
-                self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
-            }
-            "ship_modules" => {
-                // The SHIP tab's MODULES sub-tab: subsystem version ladders. Vary
-                // the fitted tiers so passed / installed / next-to-buy rows all show.
-                let mut sim = SimState::new_campaign(
-                    &self.data,
-                    "preservers",
-                    0xC0FFEE,
-                    &crate::state::sim::founding_faction_ids(&self.data),
-                );
-                for (id, tier) in [
-                    ("agriculture", 3),
-                    ("engineering_bay", 3),
-                    ("medical_bay", 2),
-                    ("life_support_habitat", 3),
-                    ("security", 0),
-                ] {
-                    if let Some(s) = sim.subsystems.get_mut(id) {
-                        s.tier = tier;
-                    }
-                }
-                // One mission-reward version recovered (engineering's Nanolathe
-                // Forge → INSTALL · RECOVERED), one still locked (life support's
-                // Voidsealed Biosphere → MISSION REWARD).
-                sim.ship.unlocked_fittings = vec!["nanolathe_forge".to_owned()];
-                let mut gameplay = GameplayState::new(sim);
-                gameplay.screen = Screen::ShipBuilder;
-                self.ship_modules_tab.set(true);
-                self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
-            }
+            "ship" | "ship_refitted" | "ship_modules" => self.seed_drydock_ship(scene),
             // The SHIP tab under way (real-time loop §5): the procedural blueprint.
             // Three hull classes share one demo sim so the schematic's adaptation
             // to different outlines can be verified side by side.

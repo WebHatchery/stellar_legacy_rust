@@ -64,6 +64,7 @@ pub struct GameplayCtx<'a> {
     pub debrief_log_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// SHIP builder sub-tab: `false` = LOADOUT catalog, `true` = MODULES (named
     /// subsystem version ladders). Pure view state, flipped by the on-screen toggle.
+    pub ship_preview: &'a std::cell::Cell<(u64, f64)>,
     pub ship_modules_tab: &'a std::cell::Cell<bool>,
     pub tutorial_enabled: bool,
     pub tutorial_open: bool,

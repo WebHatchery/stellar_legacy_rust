@@ -1,5 +1,7 @@
 //! Ship Builder: component catalog and current loadout (GDD §9).
 
+mod preview;
+
 use crate::data::ship_components::{ComponentKind, ComponentStats, ShipComponent};
 use crate::simulation::ship::{install_eligibility, InstallEligibility};
 use crate::ui::{ship_schematic, stat_line, term, term_button, term_panel, GameplayCtx, UiAction};
@@ -57,7 +59,14 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
             ctx.ship_modules_tab.set(i == 1);
         }
     }
-    let body = Rect::new(area.x, area.y + SEG_H + 10.0, area.w, area.h - SEG_H - 10.0);
+    let preview_area = Rect::new(area.x, area.y + SEG_H + 10.0, area.w, 172.0);
+    preview::draw(ctx, preview_area);
+    let body = Rect::new(
+        area.x,
+        preview_area.bottom() + 12.0,
+        area.w,
+        area.bottom() - preview_area.bottom() - 12.0,
+    );
     if modules {
         draw_modules(ctx, body, pointer, actions);
     } else {
@@ -145,14 +154,14 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
 /// the same `UpgradeSubsystem` action the Subsystems tab uses.
 fn draw_modules(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     const GAP: f32 = 12.0;
-    let col_w = (area.w - GAP) / 2.0;
-    let row_h = (area.h - 2.0 * GAP) / 3.0;
+    let col_w = (area.w - 2.0 * GAP) / 3.0;
+    let row_h = (area.h - GAP) / 2.0;
     for (i, id) in crate::data::GameData::sorted_ids(&ctx.data.subsystems)
         .into_iter()
         .enumerate()
     {
-        let col = (i % 2) as f32;
-        let row = (i / 2) as f32;
+        let col = (i % 3) as f32;
+        let row = (i / 3) as f32;
         let rect = Rect::new(
             area.x + col * (col_w + GAP),
             area.y + row * (row_h + GAP),
@@ -179,16 +188,16 @@ fn draw_module_ladder(
     let versions = def.tiers.len() + 1; // baseline + each named upgrade
     let top = c.y + 28.0;
     let action_tier = (state.tier < versions as u32 - 1).then_some(state.tier + 1);
-    let compact_count = versions - usize::from(action_tier.is_some());
-    let compact_h = if action_tier.is_some() {
-        ((c.bottom() - top - 44.0) / compact_count as f32).clamp(16.0, 22.0)
-    } else {
-        ((c.bottom() - top) / versions as f32).clamp(16.0, 22.0)
-    };
+    // Keep the installed version and the next actionable upgrade readable.
+    // Earlier and later versions do not take space away from the install target.
+    let compact_h = 26.0;
     let mut ry = top;
 
     for vi in 0..versions {
         let tier = vi as u32;
+        if tier < state.tier || tier > state.tier + 1 {
+            continue;
+        }
         let name = def.fitting_name(tier);
         let row_h = if action_tier == Some(tier) {
             44.0

@@ -352,11 +352,22 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
         .find(ComponentKind::Engine, &sim.ship.engine)
         .map(|c| c.name.to_uppercase())
         .unwrap_or_else(|| sim.ship.engine.to_uppercase());
+    let engine_height = 38.0
+        + data
+            .ship_components
+            .find(ComponentKind::Engine, &sim.ship.engine)
+            .map_or(0, |c| c.stats.speed.clamp(0, 6)) as f32
+            * 4.0;
     modules.push(component_glyph(
         &sim.ship.engine,
         &engine_label,
         "DRV",
-        Rect::new(x_at(0.95) - 64.0, cy - 22.0, 72.0, 44.0),
+        Rect::new(
+            x_at(0.95) - 64.0,
+            cy - engine_height / 2.0,
+            72.0,
+            engine_height,
+        ),
         ModuleKind::Engine,
         // The engine reads by how much reaction mass it has to work with.
         sim.ship.fuel,
@@ -370,11 +381,22 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
             .find(ComponentKind::Weapon, weapon_id)
             .map(|c| c.name.to_uppercase())
             .unwrap_or_else(|| weapon_id.to_uppercase());
+        let weapon_width = 60.0
+            + data
+                .ship_components
+                .find(ComponentKind::Weapon, weapon_id)
+                .map_or(0, |c| c.stats.combat.clamp(0, 12)) as f32
+                * 3.0;
         modules.push(component_glyph(
             weapon_id,
             &label,
             "WPN",
-            Rect::new(x_at(0.5) - 34.0, cy - max_h - 30.0, 68.0, 24.0),
+            Rect::new(
+                x_at(0.5) - weapon_width / 2.0,
+                cy - max_h - 30.0,
+                weapon_width,
+                24.0,
+            ),
             ModuleKind::Weapon,
             sim.ship.hull_integrity,
             false,

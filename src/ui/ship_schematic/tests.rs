@@ -107,6 +107,7 @@ fn swapping_the_engine_changes_the_engine_glyph() {
         .find(|m| m.kind == ModuleKind::Engine)
         .unwrap();
     assert_ne!(e0.id, e1.id);
+    assert_ne!(e0.rect.h, e1.rect.h, "drive refit changes visible hardware");
     assert_eq!(e1.id, "warp_coil");
 }
 
@@ -155,4 +156,19 @@ fn barge_and_ark_profiles_have_different_architecture() {
     assert!(ark_schematic.outline.len() > barge_schematic.outline.len());
     assert_ne!(ark_schematic.outline, barge_schematic.outline);
     assert!(ark_schematic.ring.is_some());
+}
+
+#[test]
+fn commissioning_a_hull_updates_the_drydock_schematic_immediately() {
+    let data = GameData::load().unwrap();
+    let mut s = sim(&data);
+    s.resources.credits = 1_000_000;
+    s.resources.minerals = 1_000_000;
+    s.resources.energy = 1_000_000;
+    let before = build(&s, &data, frame());
+    crate::simulation::ship::commission_ship(&mut s, &data, "generation_ark").unwrap();
+    let after = build(&s, &data, frame());
+    assert_ne!(before.outline, after.outline);
+    assert!(after.ring.is_some());
+    assert_eq!(after.hull_id, "generation_ark");
 }
