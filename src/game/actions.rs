@@ -680,7 +680,7 @@ impl Game {
     }
 
     /// Resolve a blocked council decision by a random available option (real-time
-    /// loop §2): the 30s countdown ran out. The pick flows through the seeded RNG
+    /// loop §2): the decision countdown ran out. The pick flows through the seeded RNG
     /// so a given state still resolves reproducibly.
     pub(super) fn auto_resolve_decision(&mut self) {
         let GameState::Gameplay(gameplay) = &mut self.state else {

@@ -51,11 +51,11 @@ fn digit_pressed(index: usize) -> bool {
 /// the typewriter reveal clock and the auto-resolve countdown (real-time loop §2).
 fn current_decision_key(sim: &SimState) -> Option<String> {
     if let Some(p) = &sim.pending_event {
-        Some(format!("E:{}", p.template_id))
+        Some(format!("E:{}:{}", p.template_id, p.rolled_month_clock))
     } else {
         sim.pending_dilemma
             .as_ref()
-            .map(|p| format!("D:{}", p.dilemma_id))
+            .map(|p| format!("D:{}:{}", p.dilemma_id, p.rolled_month_clock))
     }
 }
 
