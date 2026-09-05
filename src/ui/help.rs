@@ -13,8 +13,8 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
 const KEYS: &[(&str, &str)] = &[
     ("1 - 7", "Switch screen tabs"),
     (
-        "ON-SCREEN",
-        "Pause or choose the displayed 1x / 2x / 3x pace",
+        "SPACE",
+        "PAUSE / RESUME (top right); choose 1x / 2x / 3x there",
     ),
     ("1 - 9", "Choose an option in a council modal"),
     ("F1", "Display & delegation settings (DISPLAY)"),

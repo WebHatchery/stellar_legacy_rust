@@ -151,10 +151,32 @@ impl GameSpeed {
     /// Short label for the speed-selector row.
     pub fn label(self) -> &'static str {
         match self {
-            GameSpeed::Paused => "II",
+            GameSpeed::Paused => "PAUSE",
             GameSpeed::X1 => "1x",
             GameSpeed::X2 => "2x",
             GameSpeed::X3 => "3x",
+        }
+    }
+}
+
+impl super::SimState {
+    pub fn set_speed(&mut self, speed: GameSpeed) {
+        if speed != GameSpeed::Paused {
+            self.resume_speed = speed;
+        }
+        self.speed = speed;
+    }
+
+    pub fn toggle_pause(&mut self) {
+        if self.speed == GameSpeed::Paused {
+            self.set_speed(if self.resume_speed == GameSpeed::Paused {
+                GameSpeed::X1
+            } else {
+                self.resume_speed
+            });
+        } else {
+            self.resume_speed = self.speed;
+            self.speed = GameSpeed::Paused;
         }
     }
 }

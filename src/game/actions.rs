@@ -182,9 +182,15 @@ impl Game {
             }
 
             // ---- Gameplay ----
+            UiAction::TogglePause => {
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    gameplay.sim.toggle_pause();
+                }
+                None
+            }
             UiAction::SetSpeed(step) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
-                    gameplay.sim.speed = step;
+                    gameplay.sim.set_speed(step);
                 }
                 None
             }

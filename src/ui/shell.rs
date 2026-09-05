@@ -159,7 +159,7 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
     // ~30-min floor / ~1-hr cap (PLAN M4.7).
     let run_seg = if sim.contract.is_some() {
         ctx.run_clock
-            .map(|secs| format!("  |  RUN {}", format_mmss(secs)))
+            .map(|secs| format!(" · RUN {}", format_mmss(secs)))
             .unwrap_or_default()
     } else {
         String::new()
@@ -175,11 +175,11 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
             run_seg
         ),
         rect.x + 330.0,
-        rect.y + 36.0,
-        TextStyle::new(16.0, term::dim()).params(),
+        rect.y + 18.0,
+        TextStyle::new(12.0, term::dim()).params(),
     );
 
-    draw_text_right(
+    draw_ui_text_ex(
         &format!(
             "CR {}  EN {}  MIN {}  FOOD {}  INF {}",
             sim.resources.credits,
@@ -188,9 +188,9 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
             sim.resources.food,
             sim.resources.influence
         ),
-        rect.right() - 16.0,
-        rect.y + 36.0,
-        TextStyle::new(15.0, term::accent()),
+        rect.x + 330.0,
+        rect.y + 44.0,
+        TextStyle::new(14.0, term::accent()).params(),
     );
 }
 

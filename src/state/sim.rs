@@ -64,6 +64,8 @@ pub struct SimState {
     /// game-loop driver + the dashboard selector; never touched by the tick.
     #[serde(default)]
     pub speed: GameSpeed,
+    #[serde(default)]
+    pub resume_speed: GameSpeed,
     /// Voyage-wide command posture. Defaulted so saves from before the command
     /// layer continue with the neutral STEADY policy.
     #[serde(default)]

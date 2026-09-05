@@ -5,6 +5,7 @@
 mod actions;
 mod build_mode;
 mod capture_scenes;
+mod realtime;
 
 use crate::audio::{AudioManager, Cue};
 use crate::boot::BootScreen;
@@ -123,7 +124,7 @@ pub struct Game {
     /// (`E:{id}` / `D:{id}`), and the wall-clock it started at (real-time loop §2).
     /// Reset when the pending decision changes.
     decision_key: Option<String>,
-    decision_started: f64,
+    decision_elapsed: f32,
     /// Session-local institution picker. The resulting custody is persistent;
     /// merely opening this overlay is not simulation state.
     custody_picker: Option<String>,
@@ -237,7 +238,7 @@ impl Game {
             boot: BootScreen::new(),
             month_accumulator: 0.0,
             decision_key: None,
-            decision_started: 0.0,
+            decision_elapsed: 0.0,
             custody_picker: None,
             obligation_detail: None,
             charter_scroll: Cell::new(ScrollArea::new()),
@@ -330,77 +331,6 @@ impl Game {
             .update_ambience(ambience, self.display.audio_volume);
     }
 
-    /// The real-time driver (real-time loop §1/§2). While under way and unpaused,
-    /// bank real seconds toward the next month and step the tick each time the
-    /// per-month threshold is crossed, hard-stopping the moment a decision,
-    /// completion, or extinction lands. While a decision blocks, freeze the clock
-    /// and auto-resolve it once the countdown runs out. Docked, nothing advances.
-    /// Skipped entirely in capture mode (deterministic screenshots).
-    fn update_realtime(&mut self, dt: f32) {
-        if self.instant_reveal {
-            return;
-        }
-        let (is_gameplay, key, can_advance, multiplier) = match &self.state {
-            GameState::Gameplay(g) => {
-                let key = current_decision_key(&g.sim);
-                let can_advance = key.is_none()
-                    && !g.sim.dynasty.extinct
-                    && g.sim.contract.is_some()
-                    && g.sim.speed != crate::state::sim::GameSpeed::Paused;
-                (true, key, can_advance, g.sim.speed.multiplier())
-            }
-            _ => (false, None, false, 0.0),
-        };
-        if !is_gameplay {
-            self.decision_key = None;
-            self.month_accumulator = 0.0;
-            return;
-        }
-
-        // Track the countdown clock, restarting it whenever the decision changes.
-        if key != self.decision_key {
-            self.decision_key = key.clone();
-            self.decision_started = get_time();
-        }
-
-        if key.is_some() {
-            // A decision blocks time; let the clock decide once it runs out.
-            self.month_accumulator = 0.0;
-            let timeout = self.data.config.real_time.decision_timeout_secs as f64;
-            if get_time() - self.decision_started >= timeout {
-                self.auto_resolve_decision();
-            }
-            return;
-        }
-
-        if !can_advance {
-            self.month_accumulator = 0.0;
-            return;
-        }
-
-        self.month_accumulator += dt * multiplier;
-        let per_month = self.data.config.real_time.seconds_per_month.max(0.01);
-        while self.month_accumulator >= per_month {
-            self.month_accumulator -= per_month;
-            self.advance_one_month();
-            // Stop bursting months the instant something needs the player or the
-            // voyage ended; the remainder is dropped so it doesn't fast-forward on
-            // resume.
-            let stop = match &self.state {
-                GameState::Gameplay(g) => {
-                    g.sim.has_pending_decision()
-                        || g.sim.dynasty.extinct
-                        || g.sim.contract.is_none()
-                }
-                _ => true,
-            };
-            if stop {
-                self.month_accumulator = 0.0;
-                break;
-            }
-        }
-    }
-
     /// Terminal-style keyboard navigation. On the menu, number keys pick a
     /// legacy, arrows move the selection, Enter begins the voyage. In gameplay,
     /// a blocking council modal takes the number keys for its options, otherwise
@@ -408,6 +338,9 @@ impl Game {
     /// loop §1), so there is no manual step key. Suppressed while the settings or
     /// help panel is up.
     fn gather_keyboard_actions(&mut self, actions: &mut Vec<UiAction>) {
+        if matches!(self.state, GameState::Gameplay(_)) && is_key_pressed(KeyCode::Space) {
+            actions.push(UiAction::TogglePause);
+        }
         if self.settings_open || self.help_open {
             return;
         }
@@ -545,6 +478,13 @@ impl Game {
             .help_open
             .then(|| ui::help::draw(pointer, &self.data.config.version))
             .flatten();
+        let mut time_actions = Vec::new();
+        if let GameState::Gameplay(gameplay) = &self.state {
+            ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
+        }
+        for action in time_actions {
+            self.events.push(action);
+        }
         // First-run welcome overlay, above the menu only; its button dismisses it.
         let welcome_dismiss = self.welcome_open
             && matches!(self.state, GameState::Menu(_))
@@ -691,23 +631,6 @@ impl Game {
             self.log_started = get_time();
         }
         (get_time() - self.log_started) as f32
-    }
-
-    /// The cosmetic run timer's elapsed seconds (PLAN M4.7): live while a mission
-    /// is active, frozen at the last mission's time while in port, and a fixed
-    /// override in capture. Never feeds the deterministic sim.
-    /// Real seconds left before the current blocking decision auto-resolves
-    /// (real-time loop §2). Full timeout in capture (the clock never runs there);
-    /// 0 when nothing is pending.
-    fn decision_remaining(&self, sim: &SimState) -> f32 {
-        let timeout = self.data.config.real_time.decision_timeout_secs;
-        if self.instant_reveal {
-            return timeout;
-        }
-        if !sim.has_pending_decision() {
-            return 0.0;
-        }
-        (timeout - (get_time() - self.decision_started) as f32).max(0.0)
     }
 
     fn run_clock_for(&self, sim: &SimState) -> Option<f32> {

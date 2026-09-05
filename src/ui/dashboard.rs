@@ -3,7 +3,7 @@
 use crate::data::ship_components::ComponentKind;
 use crate::data::{GameConfig, GameData};
 use crate::simulation::ship::{field_repair_target, full_repair_needed, RepairKind};
-use crate::state::sim::{GameSpeed, PopulationState, SimState};
+use crate::state::sim::{PopulationState, SimState};
 use crate::state::Screen;
 use crate::ui::{
     spec_line, stat_line, status_badge, term, term_button, term_meter, term_meter_toned,
@@ -209,7 +209,7 @@ fn draw_ship_panel(
     let half_w = (content.w - REPAIR_GAP) * 0.5;
     let repair_label = |name: &str, stat: f32| {
         if stat >= repair.field_ceiling {
-            format!("{name} · DRYDOCK")
+            format!("{name} · SOUND")
         } else if sim.ship.spare_parts < repair.field_parts_cost
             || sim.resources.minerals < repair.field_minerals_cost
         {
@@ -238,6 +238,9 @@ fn draw_ship_panel(
         actions.push(UiAction::FieldRepair(RepairKind::LifeSupport));
     }
     y += REPAIR_H + REPAIR_GAP;
+    if !in_port {
+        return;
+    }
     let refit_needed = full_repair_needed(sim, &ctx.data.config);
     let full_label = if !in_port {
         "FULL REFIT — PORT ONLY".to_owned()
@@ -267,42 +270,6 @@ fn draw_ship_panel(
         pointer,
     ) {
         actions.push(UiAction::FullRepair);
-    }
-    y += REPAIR_H + 10.0;
-
-    // Extinction is handled by the full-screen game-over takeover
-    // (`ui::game_over`), so the dashboard never renders in that state.
-    //
-    // Time control (real-time loop §1): under way the month clock auto-advances;
-    // the row pauses it or sets the 1×/2×/3× rate. Docked, time is frozen no
-    // matter the setting, so the row disables and says so. The row sits at the
-    // panel foot, just below maintenance.
-    let underway = sim.contract.is_some();
-    draw_ui_text_ex(
-        if underway {
-            "TIME CONTROL"
-        } else {
-            "TIME CONTROL — IN DRYDOCK, TIME PAUSED"
-        },
-        content.x,
-        y,
-        TextStyle::new(13.0, if underway { term::dim() } else { term::faint() }).params(),
-    );
-    y += 12.0;
-
-    let gap = 6.0;
-    let bw = (content.w - gap * 3.0) / 4.0;
-    for (i, step) in GameSpeed::ALL.iter().enumerate() {
-        let r = Rect::new(content.x + (bw + gap) * i as f32, y, bw, 44.0);
-        let active = underway && sim.speed == *step;
-        let label = if active {
-            format!("[{}]", step.label())
-        } else {
-            step.label().to_owned()
-        };
-        if term_button(r, &label, underway, pointer) {
-            actions.push(UiAction::SetSpeed(*step));
-        }
     }
 }
 
@@ -582,16 +549,6 @@ fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
     for (i, (icon, label, value, color)) in cells.into_iter().enumerate() {
         let cell = Rect::new(inner.x + i as f32 * cw, inner.y, cw, inner.h);
         status_badge(cell, icon, label, &value, color);
-        if i + 1 < n {
-            draw_line(
-                cell.right(),
-                cell.y + 6.0,
-                cell.right(),
-                cell.bottom() - 6.0,
-                1.0,
-                term::faint(),
-            );
-        }
     }
 }
 

@@ -20,6 +20,7 @@ pub mod shell;
 pub mod ship_builder;
 pub mod ship_schematic;
 pub mod subsystems;
+pub mod time_controls;
 pub mod tutorial;
 pub mod welcome;
 pub mod widgets;
@@ -203,6 +204,7 @@ pub enum UiAction {
     // Gameplay verbs (GDD §4)
     /// Set the real-time auto-advance rate / pause (real-time loop §1).
     SetSpeed(GameSpeed),
+    TogglePause,
     /// Set the voyage-wide operating philosophy shown on the CONTRACT screen.
     SetPosture(CommandPosture),
     /// Turn the current mission for home early (W2). Only emitted underway.

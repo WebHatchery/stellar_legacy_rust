@@ -991,8 +991,8 @@
     }
   ],
   "real_time": {
-    "seconds_per_month": 0.25,
-    "decision_timeout_secs": 30.0,
+    "seconds_per_month": 1.0,
+    "decision_timeout_secs": 90.0,
     "impact_variance": 0.4,
     "impact_min_magnitude_for_range": 20
   },
