@@ -56,3 +56,33 @@ fn emergency_stabilisation_is_one_use_and_restores_air() {
     assert!(sim.ship.life_support > 0.0);
     assert!(emergency_stabilise(&mut sim, &data).is_err());
 }
+
+#[test]
+fn observing_damage_does_not_spend_air_grace() {
+    let (data, mut sim) = campaign();
+    sim.ship.life_support = 0.0;
+    for month in 1..=12 {
+        sim.month_clock = month;
+        update_air_warning(&mut sim, &data);
+        for _ in 0..3 {
+            observe_air_warning(&mut sim, &data);
+        }
+        assert_eq!(sim.survival.air_zero_months, month);
+        assert_eq!(check_and_record(&mut sim, &data).is_some(), month == 12);
+    }
+}
+
+#[test]
+fn monthly_driver_charges_one_air_month() {
+    let (mut data, mut sim) = campaign();
+    data.config.event_chance_base = 0.0;
+    data.config.event_chance_cap = 0.0;
+    sim.ship.life_support = 0.0;
+    let template = data.contracts.get("deep_vein_survey").unwrap();
+    sim.contract = Some(crate::simulation::contract::start_contract(template, &sim));
+    let report = crate::simulation::tick::advance_months(&mut sim, &data, 1);
+    assert_eq!(report.months_advanced, 1);
+    assert_eq!(sim.survival.air_zero_months, 1);
+    assert!(report.critical_warning);
+    assert!(sim.terminal.is_none());
+}

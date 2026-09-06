@@ -71,6 +71,7 @@ impl Game {
                         || g.sim.dynasty.extinct
                         || g.sim.terminal.is_some()
                         || g.sim.contract.is_none()
+                        || g.sim.speed == crate::state::sim::GameSpeed::Paused
                 }
                 _ => true,
             };

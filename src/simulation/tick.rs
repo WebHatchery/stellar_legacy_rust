@@ -108,7 +108,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         // reactive/filler roll runs.
         issues::refresh_maintenance_issues(sim, data);
         issues::apply_overdue_maintenance(sim, data);
-        report.critical_warning |= survival::update_air_warning(sim, data);
+        report.critical_warning |= survival::observe_air_warning(sim, data);
         if let Some(outcome) = survival::check_and_record(sim, data) {
             report.terminal = Some(outcome);
             break;

@@ -74,6 +74,19 @@ pub fn update_air_warning(sim: &mut SimState, data: &GameData) -> bool {
             sim.push_log("Life support rose above zero; the emergency countdown clears.");
         }
     }
+    observe_air_warning(sim, data)
+}
+
+/// Observe event/action damage without charging another simulation month.
+pub fn observe_air_warning(sim: &mut SimState, data: &GameData) -> bool {
+    if sim.terminal.is_some() {
+        return false;
+    }
+    if sim.ship.life_support > data.config.survival.critical_warning_threshold {
+        sim.survival.warning_active = false;
+        sim.survival.warning_reviewed = false;
+        sim.survival.emergency_used = false;
+    }
     let critical = sim.ship.life_support <= data.config.survival.critical_warning_threshold
         || sim.survival.air_zero_months > 0;
     if critical && !sim.survival.warning_active && !sim.survival.warning_reviewed {
