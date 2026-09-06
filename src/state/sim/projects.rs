@@ -78,6 +78,8 @@ impl ProjectAmounts {
 /// it starts; only the remaining recoverable escrow can be refunded.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectInstance {
+    #[serde(default)]
+    pub legacy_single_delivery: bool,
     pub sequence_id: u64,
     pub project_id: String,
     pub target_id: Option<String>,
@@ -112,6 +114,7 @@ impl ProjectInstance {
         month: u32,
     ) -> Self {
         Self {
+            legacy_single_delivery: false,
             sequence_id,
             project_id: project_id.to_owned(),
             target_id,

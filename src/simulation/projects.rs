@@ -10,6 +10,16 @@ pub use accounting::refund_preview;
 use accounting::*;
 use effects::deliver_stage;
 
+/// Old quarters investments keep their original final-only delivery contract.
+pub fn definition_for(job: &ProjectInstance, data: &GameData) -> Option<ProjectDefinition> {
+    let mut definition = data.projects.get(&job.project_id)?.clone();
+    if job.legacy_single_delivery {
+        definition.stage_count = 1;
+        definition.divisible = false;
+    }
+    Some(definition)
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectEligibility {
     pub eligible: bool,
@@ -486,9 +496,8 @@ pub fn capture_month(sim: &SimState, data: &GameData) -> Vec<(u64, Option<String
         .map(|job| {
             (
                 job.sequence_id,
-                data.projects
-                    .get(&job.project_id)
-                    .and_then(|def| running_block_reason(sim, data, job, def)),
+                definition_for(job, data)
+                    .and_then(|def| running_block_reason(sim, data, job, &def)),
             )
         })
         .collect();
@@ -523,11 +532,8 @@ pub fn advance_captured_month(
         else {
             continue;
         };
-        let (project_id, target_id) = {
-            let job = &sim.projects.jobs[index];
-            (job.project_id.clone(), job.target_id.clone())
-        };
-        let Some(definition) = data.projects.get(&project_id) else {
+        let target_id = sim.projects.jobs[index].target_id.clone();
+        let Some(definition) = definition_for(&sim.projects.jobs[index], data) else {
             continue;
         };
         if let Some(reason) = block_reason {
@@ -555,7 +561,7 @@ pub fn advance_captured_month(
         commit_month(&mut sim.projects.jobs[index], duration);
         while sim.projects.jobs[index].delivered_stages < new_stages {
             let stage = sim.projects.jobs[index].delivered_stages + 1;
-            deliver_stage(sim, data, index, definition, stage, target_id.as_deref());
+            deliver_stage(sim, data, index, &definition, stage, target_id.as_deref());
         }
         if elapsed >= duration {
             let job = &mut sim.projects.jobs[index];

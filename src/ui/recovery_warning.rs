@@ -58,6 +58,18 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         content.y + 150.0,
         TextStyle::new(12.0, term::faint()).params(),
     );
+    if let Some(notice) = &ctx.sim.survival.migration_notice {
+        draw_text_block(
+            notice,
+            content.x,
+            content.y + 184.0,
+            content.w,
+            72.0,
+            13.0,
+            3.0,
+            term::alert(),
+        );
+    }
     let y = panel.bottom() - 60.0;
     let review = Rect::new(content.x, y, 210.0, 44.0);
     let rescue = Rect::new(content.x + 224.0, y, 220.0, 44.0);

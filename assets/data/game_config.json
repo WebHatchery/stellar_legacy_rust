@@ -3,7 +3,7 @@
   "display_name": "Stellar Legacy",
   "save_slot": "autosave",
   "chronicle_slot": "chronicle",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "starting_resources": {
     "credits": 10000,
     "energy": 5000,

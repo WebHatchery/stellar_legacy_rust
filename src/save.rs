@@ -8,6 +8,7 @@ use macroquad_toolkit::persistence::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+mod validation;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SaveData {
@@ -33,7 +34,11 @@ pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
         &config.save_slot,
         &config.version,
         |version, value| migrate_save_value(version, value, config),
-    ) {
+    )
+    .and_then(|save: SaveData| {
+        validation::validate(&save.sim, &crate::data::GameData::load()?)?;
+        Ok(save)
+    }) {
         Ok(save) => save,
         Err(error) => {
             let preserved = quarantine_slot(&config.game_name, &config.save_slot)
@@ -56,8 +61,24 @@ pub fn migrate_save_value(
     let payload = value.get("data").cloned().unwrap_or(value);
     match serde_json::from_value::<SaveData>(payload) {
         Ok(mut save) => {
+            let version = detected_version.as_deref().unwrap_or(&save.version);
+            if !["0.1.0", "0.2.0", config.version.as_str()].contains(&version)
+                || !["0.1.0", "0.2.0", config.version.as_str()].contains(&save.version.as_str())
+            {
+                return Err(format!("Unsupported save version: {version}"));
+            }
+            if version == "0.2.0" {
+                for job in &mut save.sim.projects.jobs {
+                    if job.project_id == "restore_crew_quarters" {
+                        job.legacy_single_delivery = true;
+                    }
+                }
+            }
+            if version == "0.1.0" {
+                survival::migrate_legacy(&mut save.sim);
+            }
+            validation::validate(&save.sim, &crate::data::GameData::load()?)?;
             save.version = config.version.clone();
-            survival::migrate_legacy(&mut save.sim);
             Ok(save)
         }
         Err(err) => Err(format!(

@@ -98,7 +98,7 @@ pub fn age_paused_projects(sim: &mut SimState, data: &GameData) {
         else {
             continue;
         };
-        let (project_id, delivered, paused) = {
+        let (_project_id, delivered, paused) = {
             let job = &sim.projects.jobs[index];
             (
                 job.project_id.clone(),
@@ -106,7 +106,7 @@ pub fn age_paused_projects(sim: &mut SimState, data: &GameData) {
                 job.paused_months,
             )
         };
-        let Some(definition) = data.projects.get(&project_id) else {
+        let Some(definition) = definition_for(&sim.projects.jobs[index], data) else {
             continue;
         };
         let job = &mut sim.projects.jobs[index];

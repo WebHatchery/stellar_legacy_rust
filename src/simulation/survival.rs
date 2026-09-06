@@ -152,6 +152,12 @@ pub fn emergency_stabilise(sim: &mut SimState, data: &GameData) -> Result<(), St
 /// Legacy migration hook: an old save with zero air has not yet had a chance
 /// to receive the new warning, so it starts with the full grace period.
 pub fn migrate_legacy(sim: &mut SimState) {
+    if sim.terminal.is_none() && (sim.ship.hull_integrity <= 0.0 || sim.population.count == 0) {
+        sim.survival.migration_notice = Some("This legacy campaign has zero hull or population. It will end under the new survival rules when evaluation resumes.".to_owned());
+        sim.speed = crate::state::sim::GameSpeed::Paused;
+        sim.survival.warning_active = true;
+        return;
+    }
     if sim.terminal.is_none() && sim.dynasty.extinct && sim.survival.migration_notice.is_none() {
         sim.survival.migration_notice = Some(
             "This campaign was migrated after dynasty extinction; its terminal record is preserved."

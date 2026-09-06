@@ -63,3 +63,5 @@ fn campaign_round_trips_atomically_with_a_non_ascii_profile_path() {
     let _ = std::fs::remove_file(&path);
     let _ = std::fs::remove_dir(path.parent().unwrap());
 }
+
+mod investments;

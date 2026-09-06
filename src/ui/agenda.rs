@@ -301,7 +301,7 @@ fn draw_job(
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
-    let Some(definition) = ctx.data.projects.get(&job.project_id) else {
+    let Some(definition) = project_sim::definition_for(job, ctx.data) else {
         return;
     };
     draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
@@ -470,7 +470,7 @@ fn draw_cancel_preview(
         ctx.project_cancel_confirm.set(None);
         return;
     };
-    let Some(definition) = ctx.data.projects.get(&job.project_id) else {
+    let Some(definition) = project_sim::definition_for(job, ctx.data) else {
         ctx.project_cancel_confirm.set(None);
         return;
     };
