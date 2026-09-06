@@ -166,6 +166,10 @@ pub struct Game {
     /// Smooth-scroll state for the homecoming debrief's voyage log, which holds
     /// up to `voyage_highlight_limit` remembered beats.
     debrief_log_scroll: Cell<ScrollArea>,
+    /// Smooth-scroll state for the Custodian Agenda catalogue and project log.
+    agenda_scroll: Cell<ScrollArea>,
+    /// Session-local cancellation preview for one Agenda job.
+    project_cancel_confirm: Cell<Option<u64>>,
     /// SHIP builder sub-tab: `false` = LOADOUT (hull/engine/weapon catalog),
     /// `true` = MODULES (the six subsystems' named version ladders). Pure view
     /// state, flipped by the on-screen toggle.
@@ -259,6 +263,8 @@ impl Game {
             obligation_history_scroll: Cell::new(ScrollArea::new()),
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
+            agenda_scroll: Cell::new(ScrollArea::new()),
+            project_cancel_confirm: Cell::new(None),
             ship_modules_tab: Cell::new(false),
             ship_preview: Cell::new((0, -100.0)),
         }
@@ -337,7 +343,7 @@ impl Game {
         // auto-advance the month clock under way, or run the decision countdown.
         self.update_realtime(dt);
         let ambience = self.display.ambience
-            && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && !gameplay.sim.dynasty.extinct);
+            && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && !gameplay.sim.dynasty.extinct && gameplay.sim.terminal.is_none());
         self.audio
             .update_ambience(ambience, self.display.audio_volume);
     }
@@ -474,6 +480,8 @@ impl Game {
                     obligation_history_scroll: &self.obligation_history_scroll,
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
+                    agenda_scroll: &self.agenda_scroll,
+                    project_cancel_confirm: &self.project_cancel_confirm,
                     ship_modules_tab: &self.ship_modules_tab,
                     ship_preview: &self.ship_preview,
                     tutorial_enabled: self.display.tutorial_enabled,
@@ -688,9 +696,12 @@ impl Game {
             }
             StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
                 Ok(mut sim) => {
+                    if sim.terminal.is_none() && sim.dynasty.extinct {
+                        crate::simulation::survival::check_and_record(&mut sim, &self.data);
+                    }
                     // Older slideshow saves may resume after their launch steps.
-                    if sim.has_pending_decision() && sim.tutorial_step < 8 {
-                        sim.tutorial_step = 8;
+                    if sim.has_pending_decision() && sim.tutorial_step < 10 {
+                        sim.tutorial_step = 10;
                     } else if sim.contract.is_some() && sim.tutorial_step < 6 {
                         sim.tutorial_step = 6;
                     } else if sim.contract.is_none()

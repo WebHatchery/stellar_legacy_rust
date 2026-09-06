@@ -62,6 +62,10 @@ pub struct GameplayCtx<'a> {
     pub debrief_commanders_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the homecoming debrief's voyage log.
     pub debrief_log_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    /// Smooth-scroll state for the Custodian Agenda catalogue and project log.
+    pub agenda_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    /// The one-frame cancellation preview selected by the Agenda.
+    pub project_cancel_confirm: &'a std::cell::Cell<Option<u64>>,
     /// SHIP builder sub-tab: `false` = LOADOUT catalog, `true` = MODULES (named
     /// subsystem version ladders). Pure view state, flipped by the on-screen toggle.
     pub ship_preview: &'a std::cell::Cell<(u64, f64)>,
@@ -76,8 +80,19 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
 
     // Extinction halts the voyage: a full-screen terminal takeover replaces the
     // normal screens (GDD §7).
-    if ctx.sim.dynasty.extinct {
-        game_over::draw(&ctx, pointer, &mut actions);
+    if ctx.sim.terminal.is_some() || ctx.sim.dynasty.extinct {
+        if ctx.screen == Screen::Chronicle {
+            draw_header(&ctx);
+            draw_tabs(&ctx, pointer, &mut actions);
+            chronicle::draw(
+                &ctx,
+                Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0),
+                pointer,
+                &mut actions,
+            );
+        } else {
+            game_over::draw(&ctx, pointer, &mut actions);
+        }
         return actions;
     }
 
@@ -106,6 +121,7 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     let content = Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0);
     match screen {
         Screen::Dashboard => dashboard::draw(&ctx, content, pointer, &mut actions),
+        Screen::Agenda => agenda::draw(&ctx, content, pointer, &mut actions),
         Screen::Drydock => contract_systems::draw_drydock(&ctx, content, pointer, &mut actions),
         Screen::ShipBuilder => ship_builder::draw(&ctx, content, pointer, &mut actions),
         Screen::Subsystems => subsystems::draw(&ctx, content, pointer, &mut actions),
@@ -128,6 +144,10 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     } else if ctx.sim.pending_dilemma.is_some() {
         actions.clear();
         event_modal::draw_dilemma(&ctx, pointer, &mut actions);
+    }
+    if ctx.sim.survival.warning_active && ctx.sim.terminal.is_none() {
+        actions.clear();
+        recovery_warning::draw(&ctx, pointer, &mut actions);
     }
     if ctx.abort_confirm.get() && !ctx.sim.has_pending_decision() {
         actions.clear();

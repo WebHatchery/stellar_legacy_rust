@@ -16,23 +16,29 @@ pub mod debrief;
 pub mod dynasty;
 pub mod factions;
 pub mod institutions;
+pub mod issues;
 pub mod market;
 pub mod obligations;
 pub mod pools;
+pub mod projects;
 pub mod records;
 pub mod session;
 pub mod subsystems;
+pub mod survival;
 
 pub use authority::*;
 pub use campaign::*;
 pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
 pub use dynasty::*;
 pub use institutions::*;
+pub use issues::*;
 pub use market::*;
 pub use obligations::*;
 pub use pools::*;
+pub use projects::*;
 pub use records::*;
 pub use session::*;
+pub use survival::*;
 
 /// Player-facing temperament learned by the Custodian across voyage choices.
 /// Kept simulation-owned so live instruments and sealed reports cannot drift
@@ -434,6 +440,17 @@ pub struct SimState {
     /// to closing the window.
     #[serde(default)]
     pub debrief: Option<debrief::VoyageDebrief>,
+    /// Ship work and recovered capabilities. Empty by default for old saves.
+    #[serde(default)]
+    pub projects: projects::ProjectState,
+    /// Persistent event aftermath and maintenance notices.
+    #[serde(default)]
+    pub issues: issues::IssueState,
+    /// Explicit vessel terminal outcome and life-support emergency grace.
+    #[serde(default)]
+    pub terminal: Option<survival::TerminalOutcome>,
+    #[serde(default)]
+    pub survival: survival::SurvivalState,
     pub log: Vec<LogEntry>,
 }
 

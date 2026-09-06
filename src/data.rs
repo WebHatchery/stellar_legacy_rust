@@ -6,6 +6,7 @@ pub mod crew;
 pub mod events;
 pub mod factions;
 pub mod legacies;
+pub mod projects;
 pub mod ship_components;
 pub mod subsystems;
 
@@ -14,12 +15,14 @@ use macroquad_toolkit::data_loader::{
     load_embedded_json, load_embedded_json_labeled, DataRegistry,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 use contracts::ContractTemplate;
 use crew::{CrewArchetype, DynastyNamePools};
 use events::EventTemplate;
 use factions::FactionDef;
 use legacies::LegacyDef;
+use projects::ProjectDefinition;
 use ship_components::ShipComponentCatalog;
 use subsystems::SubsystemDef;
 
@@ -89,6 +92,7 @@ const DYNASTY_NAMES_JSON: &str =
     macroquad_toolkit::include_json_str!("../assets/dynasty_names.json");
 const CREW_ARCHETYPES_JSON: &str =
     macroquad_toolkit::include_json_str!("../assets/crew_archetypes.json");
+const PROJECTS_JSON: &str = macroquad_toolkit::include_json_str!("../assets/projects.json");
 
 /// How a fitting (ship component or subsystem version) is obtained. `Purchasable`
 /// is bought in the drydock at its `cost`; `MissionReward` is never for sale —
@@ -166,6 +170,7 @@ pub struct GameData {
     pub ship_components: ShipComponentCatalog,
     pub events: DataRegistry<EventTemplate>,
     pub legacies: DataRegistry<LegacyDef>,
+    pub projects: DataRegistry<ProjectDefinition>,
     pub contracts: DataRegistry<ContractTemplate>,
     pub factions: DataRegistry<FactionDef>,
     pub subsystems: DataRegistry<SubsystemDef>,
@@ -176,11 +181,15 @@ pub struct GameData {
 
 impl GameData {
     pub fn load() -> Result<Self, String> {
+        let events = Self::load_events()?;
+        let projects = Self::load_projects()?;
+        Self::validate_project_references(&projects, &events)?;
         Ok(Self {
             config: load_embedded_json_labeled("game_config", GAME_CONFIG_JSON)?,
             ship_components: load_embedded_json_labeled("ship_components", SHIP_COMPONENTS_JSON)?,
-            events: Self::load_events()?,
+            events,
             legacies: DataRegistry::from_embedded_json(LEGACIES_JSON, "id")?,
+            projects,
             contracts: DataRegistry::from_embedded_json(CONTRACTS_JSON, "id")?,
             factions: DataRegistry::from_embedded_json(FACTIONS_JSON, "id")?,
             subsystems: DataRegistry::from_embedded_json(SUBSYSTEMS_JSON, "id")?,
@@ -188,6 +197,88 @@ impl GameData {
             crew_archetypes: load_embedded_json_labeled("crew_archetypes", CREW_ARCHETYPES_JSON)?,
             texture_manifest: load_embedded_json(TEXTURE_MANIFEST_JSON)?,
         })
+    }
+
+    fn load_projects() -> Result<DataRegistry<ProjectDefinition>, String> {
+        let registry: DataRegistry<ProjectDefinition> =
+            DataRegistry::from_embedded_json(PROJECTS_JSON, "id")?;
+        for id in registry.ids() {
+            registry
+                .get(id)
+                .ok_or_else(|| format!("project registry lost '{id}'"))?
+                .validates()
+                .map_err(|error| format!("projects.json: {error}"))?;
+        }
+        Ok(registry)
+    }
+
+    fn validate_project_references(
+        projects: &DataRegistry<ProjectDefinition>,
+        events: &DataRegistry<EventTemplate>,
+    ) -> Result<(), String> {
+        let capabilities: HashSet<&str> = projects
+            .iter()
+            .filter_map(|(_, project)| project.effect.capability.as_deref())
+            .collect();
+        let issue_ids: HashSet<&str> = events
+            .iter()
+            .flat_map(|(_, event)| {
+                event
+                    .outcomes
+                    .iter()
+                    .filter_map(|outcome| outcome.issue.as_ref())
+            })
+            .map(|issue| issue.id.as_str())
+            .collect();
+        for (_, project) in projects.iter() {
+            if let Some(capability) = &project.requires_capability {
+                if !capabilities.contains(capability.as_str()) {
+                    return Err(format!(
+                        "projects.json: '{}' requires unknown capability '{}'",
+                        project.id, capability
+                    ));
+                }
+            }
+            if let Some(issue) = &project.requires_issue {
+                if !issue_ids.contains(issue.as_str()) {
+                    return Err(format!(
+                        "projects.json: '{}' requires unknown issue '{}'",
+                        project.id, issue
+                    ));
+                }
+            }
+        }
+        for (_, event) in events.iter() {
+            for outcome in &event.outcomes {
+                for capability in &outcome.requires.requires_capabilities {
+                    if !capabilities.contains(capability.as_str()) {
+                        return Err(format!(
+                            "event '{}': outcome '{}' requires unknown capability '{}'",
+                            event.id, outcome.id, capability
+                        ));
+                    }
+                }
+                for issue in &outcome.resolves_issues {
+                    if !issue_ids.contains(issue.as_str()) {
+                        return Err(format!(
+                            "event '{}': outcome '{}' resolves unknown issue '{}'",
+                            event.id, outcome.id, issue
+                        ));
+                    }
+                }
+                if let Some(issue) = &outcome.issue {
+                    for project_id in &issue.recovery_project_ids {
+                        if !projects.contains(project_id) {
+                            return Err(format!(
+                                "event '{}': issue '{}' names unknown recovery project '{}'",
+                                event.id, issue.id, project_id
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
     /// Merge the per-family event files into one registry. Fails loudly on a

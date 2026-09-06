@@ -6,6 +6,7 @@
 mod authority;
 mod completion;
 mod decision;
+mod projects;
 
 use super::Game;
 use crate::data::ship_components::ComponentKind;
@@ -182,6 +183,18 @@ impl Game {
                 }
                 None
             }
+            action @ UiAction::QueueProject { .. } => self.apply_project_action(action),
+            action @ UiAction::PauseProject(_) => self.apply_project_action(action),
+            action @ UiAction::ResumeProject(_) => self.apply_project_action(action),
+            action @ UiAction::MoveProject { .. } => self.apply_project_action(action),
+            action @ UiAction::PreviewCancelProject(_) => self.apply_project_action(action),
+            action @ UiAction::CancelProject(_) => self.apply_project_action(action),
+            UiAction::DismissCancelProject => {
+                self.apply_project_action(UiAction::DismissCancelProject)
+            }
+            UiAction::ReviewRecovery => self.apply_project_action(UiAction::ReviewRecovery),
+            UiAction::EmergencyStabilise => self.apply_project_action(UiAction::EmergencyStabilise),
+            UiAction::ResumeAfterWarning => self.apply_project_action(UiAction::ResumeAfterWarning),
 
             // ---- Gameplay ----
             UiAction::TogglePause => {
@@ -226,6 +239,13 @@ impl Game {
                 None
             }
             UiAction::RepairSubsystem(id) => {
+                if matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some())
+                {
+                    return self.apply_project_action(UiAction::QueueProject {
+                        project_id: "service_subsystem".to_owned(),
+                        target_id: Some(id),
+                    });
+                }
                 self.subsystem_verb(subsystems::repair_subsystem, &id, "Subsystem mended.");
                 None
             }
@@ -246,6 +266,13 @@ impl Game {
                 None
             }
             UiAction::TrainSubsystemKnowledge(id) => {
+                if matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some())
+                {
+                    return self.apply_project_action(UiAction::QueueProject {
+                        project_id: "train_replacement_cohort".to_owned(),
+                        target_id: Some(id),
+                    });
+                }
                 self.subsystem_verb(
                     subsystems::train_subsystem_knowledge,
                     &id,
@@ -334,12 +361,14 @@ impl Game {
                         sim.pending_event = None;
                     }
                 }
+                self.check_terminal_after_action();
                 None
             }
             UiAction::ResolveDilemma(index) => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     legacy::resolve_dilemma(&mut gameplay.sim, &self.data, index);
                 }
+                self.check_terminal_after_action();
                 None
             }
             UiAction::RecruitCrew(archetype_id) => {
@@ -622,7 +651,7 @@ impl Game {
             return;
         };
         let sim = &mut gameplay.sim;
-        if sim.has_pending_decision() || sim.dynasty.extinct {
+        if sim.has_pending_decision() || sim.dynasty.extinct || sim.terminal.is_some() {
             return;
         }
 
@@ -638,6 +667,14 @@ impl Game {
             self.notifications.danger("The dynasty has ended.");
             self.audio
                 .cue(crate::audio::Cue::GameOver, self.display.audio_volume);
+        }
+        if let Some(outcome) = report.terminal.as_ref() {
+            self.notifications.danger(outcome.reason.label());
+            self.audio
+                .cue(crate::audio::Cue::GameOver, self.display.audio_volume);
+        } else if report.critical_warning {
+            self.notifications
+                .warning("Life support critical. Recovery review paused the voyage.");
         }
         if report.leader_died {
             self.audio

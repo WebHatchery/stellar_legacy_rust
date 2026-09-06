@@ -237,7 +237,19 @@
     "long_term_consequences": [
      "blighted_seed_stock"
     ],
+    "subsystem_deltas": [
+     {
+      "id": "agriculture",
+      "condition": -0.2
+     }
+    ],
     "log": "The trays were scoured to bare metal and sown again from the last clean stock. It cost dearly, and it might yet hold."
+   ,"issue": {
+    "id": "agriculture_blight",
+    "target": "agriculture",
+    "severity": "critical",
+    "recovery_project_ids": ["sterilise_damaged_growing_systems"]
+   }
    },
    {
     "id": "abandon_the_site",
@@ -250,7 +262,27 @@
      "morale": -0.06
     },
     "force_return": true,
-    "log": "The blighted decks were sealed and the mission cut short. The ship came about, holds light and hopes lighter, for the long road home."
+   "log": "The blighted decks were sealed and the mission cut short. The ship came about, holds light and hopes lighter, for the long road home."
+   },
+   {
+    "id": "use_seed_protocol",
+    "label": "Use the seed programme",
+    "description": "Deploy the prepared clean stock and contain the blight without surrendering the whole growing deck.",
+    "requires": {
+     "requires_capabilities": ["seed_programme"]
+    },
+    "resolves_issues": ["agriculture_blight"],
+    "resource_delta": {
+     "food": -100
+    },
+    "subsystem_deltas": [
+     {
+      "id": "agriculture",
+      "condition": 0.04
+     }
+    ],
+    "long_term_consequences": ["seed_programme_paid_off"],
+    "log": "The prepared seed programme opened its clean stores. The blight was contained before it could take the whole garden."
    }
   ],
   "complications": [

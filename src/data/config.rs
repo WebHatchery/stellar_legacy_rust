@@ -12,12 +12,14 @@ mod campaign;
 mod crew;
 mod flavor;
 mod onboarding;
+mod projects;
 mod ship;
 
 pub use campaign::*;
 pub use crew::*;
 pub use flavor::*;
 pub use onboarding::*;
+pub use projects::*;
 pub use ship::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -312,6 +314,11 @@ pub struct GameConfig {
     /// Heritage tiers (GDD §7), ascending by `min_renown`. The highest tier a
     /// new dynasty's accumulated Chronicle renown clears grants its bonus.
     pub heritage: Vec<HeritageTier>,
+    /// Agenda queue and cancellation tuning for underway ship work.
+    pub projects: ProjectTuning,
+    /// Explicit vessel-loss and emergency-recovery rules.
+    pub survival: SurvivalConfig,
+    pub readiness: ReadinessConfig,
     pub log_limit: usize,
     /// How many voyage beats a single charter remembers for its homecoming
     /// debrief. Unlike `log_limit` this bounds a per-voyage list that is

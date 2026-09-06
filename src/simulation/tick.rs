@@ -16,7 +16,9 @@ use crate::data::contracts::ContractPhase;
 use crate::data::GameData;
 use crate::simulation::contract::SuccessLevel;
 use crate::simulation::debrief::remember;
-use crate::simulation::{contract, event_resolver, mortality, ship, subsystems};
+use crate::simulation::{
+    contract, event_resolver, issues, mortality, projects, ship, subsystems, survival,
+};
 use crate::state::sim::debrief::HighlightKind;
 use crate::state::sim::SimState;
 
@@ -41,6 +43,10 @@ pub struct TickReport {
     /// Set when the active contract crossed into a new authored phase this call
     /// (W2) — a hard-stop for the fast-forward, like a decision.
     pub phase_changed: Option<ContractPhase>,
+    /// A shared terminal result reached during this authoritative month.
+    pub terminal: Option<crate::state::sim::TerminalOutcome>,
+    /// The air warning entered during this month and should be surfaced once.
+    pub critical_warning: bool,
 }
 
 /// Advance time up to `max_months`. Steps month by month, applying the W1-tuned
@@ -56,6 +62,10 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
     );
     let mut report = TickReport::default();
 
+    if sim.terminal.is_some() {
+        return report;
+    }
+
     for _ in 0..max_months {
         sim.month_clock += 1;
         report.months_advanced += 1;
@@ -67,6 +77,19 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
             sim.record_obligation_watch();
         }
 
+        if let Some(outcome) = survival::check_and_record(sim, data) {
+            report.terminal = Some(outcome);
+            break;
+        }
+
+        // Projects use the month's starting eligibility, after the economy has
+        // settled and before later contract/events mutate the target.
+        projects::advance_projects(sim, data);
+        report.critical_warning = survival::update_air_warning(sim, data);
+        if let Some(outcome) = survival::check_and_record(sim, data) {
+            report.terminal = Some(outcome);
+            break;
+        }
         // Monthly contract progress (W2): objective accrual on-station, the
         // authored phase timeline, milestones, and completion all step here.
         month_of_contract(sim, data, &mut report);
@@ -83,6 +106,14 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         // extinction — one decision at a time, never piled onto a finished year.
         // A due campaign beat (W6) replaces the random roll; otherwise the
         // reactive/filler roll runs.
+        issues::refresh_maintenance_issues(sim, data);
+        issues::apply_overdue_maintenance(sim, data);
+        report.critical_warning |= survival::update_air_warning(sim, data);
+        if let Some(outcome) = survival::check_and_record(sim, data) {
+            report.terminal = Some(outcome);
+            break;
+        }
+
         if sim.pending_dilemma.is_none()
             && report.contract_completed.is_none()
             && !report.dynasty_extinct
@@ -125,11 +156,19 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
             roll_monthly_event(sim, data, &mut report);
         }
 
+        if let Some(outcome) = survival::check_and_record(sim, data) {
+            report.terminal = Some(outcome);
+            report.contract_completed = None;
+            break;
+        }
+
         // Hard-stop the fast-forward the instant something needs attention — a
         // decision, a completion, an extinction, or crossing a phase boundary.
         if report.decision_required
             || report.contract_completed.is_some()
             || report.dynasty_extinct
+            || report.terminal.is_some()
+            || report.critical_warning
             || report.phase_changed.is_some()
         {
             break;

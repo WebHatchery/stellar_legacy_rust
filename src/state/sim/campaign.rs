@@ -142,6 +142,10 @@ impl SimState {
             factions: factions::build_founding_factions(faction_ids, config.starting_population),
             subsystems: subsystems::build_founding_subsystems(data),
             debrief: None,
+            projects: projects::ProjectState::default(),
+            issues: issues::IssueState::default(),
+            terminal: None,
+            survival: survival::SurvivalState::default(),
             log: Vec::new(),
         };
         // Record the launch morale's band so the ship's hopeful starting spirits

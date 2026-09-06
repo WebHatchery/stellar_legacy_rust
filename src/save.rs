@@ -1,6 +1,7 @@
 //! Save slots and migration (GDD §7): local persistence only, no server.
 
 use crate::data::GameConfig;
+use crate::simulation::survival;
 use crate::state::sim::SimState;
 use macroquad_toolkit::persistence::{
     load_from_slot_with_migration, quarantine_slot, save_to_slot_with_version, slot_exists,
@@ -44,9 +45,9 @@ pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
     Ok(loaded.sim)
 }
 
-/// v0.1.0 is the first shape; older/foreign payloads are rejected. When the
-/// save format changes, add a real migration arm here instead of bumping the
-/// version silently (the toolkit hands us the detected version).
+/// v0.2.0 adds Agenda, issue, and survival state. New fields are serde-defaulted
+/// so v0.1.0 saves preserve their existing resources and obligations while the
+/// next safe simulation update derives new warnings and maintenance notices.
 pub fn migrate_save_value(
     detected_version: Option<String>,
     value: Value,
@@ -56,6 +57,7 @@ pub fn migrate_save_value(
     match serde_json::from_value::<SaveData>(payload) {
         Ok(mut save) => {
             save.version = config.version.clone();
+            survival::migrate_legacy(&mut save.sim);
             Ok(save)
         }
         Err(err) => Err(format!(

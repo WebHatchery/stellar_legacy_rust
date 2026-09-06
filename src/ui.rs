@@ -4,6 +4,7 @@
 //! UI is a pure view layer: every function reads state and returns
 //! `UiAction` intents; nothing here mutates the sim (CODE_STANDARDS §7).
 
+pub mod agenda;
 pub mod authority_modal;
 pub mod chronicle;
 pub mod contract_systems;
@@ -17,6 +18,7 @@ pub mod main_menu;
 pub mod market;
 pub mod mission;
 pub mod prep;
+pub mod recovery_warning;
 pub mod settings;
 pub mod shell;
 pub mod ship_builder;
@@ -203,6 +205,22 @@ pub enum UiAction {
     /// ship back to the drydock board for its next charter.
     FileReport,
     SelectScreen(Screen),
+    QueueProject {
+        project_id: String,
+        target_id: Option<String>,
+    },
+    PauseProject(u64),
+    ResumeProject(u64),
+    MoveProject {
+        sequence_id: u64,
+        direction: i32,
+    },
+    PreviewCancelProject(u64),
+    CancelProject(u64),
+    DismissCancelProject,
+    ReviewRecovery,
+    EmergencyStabilise,
+    ResumeAfterWarning,
     // Gameplay verbs (GDD §4)
     /// Set the real-time auto-advance rate / pause (real-time loop §1).
     SetSpeed(GameSpeed),

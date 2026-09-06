@@ -3,10 +3,10 @@
 use crate::data::ship_components::ComponentKind;
 use crate::data::{GameConfig, GameData};
 use crate::simulation::ship::{field_repair_target, full_repair_needed, RepairKind};
-use crate::state::sim::{PopulationState, SimState};
+use crate::state::sim::{PopulationState, ProjectStatus, SimState};
 use crate::state::Screen;
 use crate::ui::{
-    spec_line, stat_line, status_badge, term, term_button, term_meter, term_meter_toned,
+    spec_line, stat_line, status_badge, term, term_bar, term_button, term_meter, term_meter_toned,
     term_panel, GameplayCtx, GaugeIcon, MeterTone, UiAction,
 };
 use macroquad::prelude::*;
@@ -653,12 +653,62 @@ const LOG_CPS: f32 = 45.0;
 fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
     term_panel(rect, Some("SHIP'S LOG"));
     let content = rect.inset(18.0);
+    let active_jobs: Vec<_> = ctx
+        .sim
+        .projects
+        .jobs
+        .iter()
+        .filter(|job| job.status == ProjectStatus::Running)
+        .take(2)
+        .collect();
+    draw_ui_text_ex(
+        &format!(
+            "AGENDA // {} ACTIVE · {} WAITING · TAP AGENDA FOR ORDERS",
+            active_jobs.len(),
+            ctx.sim.projects.waiting_count()
+        ),
+        content.x,
+        content.y + 14.0,
+        TextStyle::new(11.0, term::primary()).params(),
+    );
+    for (index, job) in active_jobs.iter().enumerate() {
+        let y = content.y + 31.0 + index as f32 * 21.0;
+        let definition = ctx.data.projects.get(&job.project_id);
+        let name = definition
+            .map(|project| project.name.as_str())
+            .unwrap_or(&job.project_id);
+        draw_ui_text_ex(
+            name,
+            content.x,
+            y,
+            TextStyle::new(11.0, term::dim()).params(),
+        );
+        let progress = definition
+            .map(|project| job.progress(project.duration_months))
+            .unwrap_or(0.0);
+        term_bar(
+            Rect::new(content.x + 142.0, y - 12.0, content.w - 142.0, 16.0),
+            progress,
+            term::accent(),
+            "",
+            &format!("{:.0}%", progress * 100.0),
+        );
+    }
     let line_h = 34.0;
-    let visible = ((content.h - 44.0) / line_h).floor() as usize;
+    let log_top = content.y + 88.0;
+    draw_line(
+        content.x,
+        log_top - 18.0,
+        content.right(),
+        log_top - 18.0,
+        1.0,
+        term::faint(),
+    );
+    let visible = ((content.bottom() - log_top) / line_h).floor() as usize;
     let total = ctx.sim.log.len();
     let start = total.saturating_sub(visible);
 
-    let mut y = content.y + 44.0;
+    let mut y = log_top;
     for (i, entry) in ctx.sim.log.iter().enumerate().skip(start) {
         draw_ui_text_ex(
             &format!("Y{}·M{:02}", entry.year, entry.month),

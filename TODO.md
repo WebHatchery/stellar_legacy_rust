@@ -3,19 +3,20 @@
 Standing direction for content passes lives in `content_depth.md`; this file holds only
 the discrete open items left behind by finished workstreams.
 
-## Ship work (planned, not implemented)
+## Ship work (shipped in 0.2.0)
 
 Implementation details and acceptance gates live in
 [the ship work plan](docs/ship_work_implementation_plan.md).
 
-- [ ] A: Baseline and explicit survival/recovery contract.
-- [ ] B: Custodian project queue and actionable interface.
-- [ ] C: Readiness, maintenance, and persistent event aftermath.
-- [ ] D: Preparation payoffs and touch-first tutorial.
-- [ ] E: Comparative balance validation, accessibility, and release documentation.
+- [x] A: Baseline and explicit survival/recovery contract.
+- [x] B: Custodian project queue and actionable interface.
+- [x] C: Readiness, maintenance, and persistent event aftermath.
+- [x] D: Preparation payoffs and touch-first tutorial.
+- [ ] E: Complete the comparative balance cohort and human accessibility/storefront gates;
+  automated regression, formatting, and parameterless publish validation pass.
 
 Protected reserves, named development programmes, standing orders, and additional
-project slots are deferred until this core is validated.
+project slots remain deferred until this core is validated in human play.
 
 ## Identity implementation record
 

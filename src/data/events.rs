@@ -89,6 +89,9 @@ pub struct OutcomeRequirement {
     pub min_reputation: Vec<ReputationGate>,
     #[serde(default)]
     pub max_reputation: Vec<ReputationGate>,
+    /// Completed Agenda capabilities that unlock a prepared response.
+    #[serde(default)]
+    pub requires_capabilities: Vec<String>,
     /// Dominant-faction gate (content-depth factions round 25): the outcome appears only
     /// while this people runs the ship (the largest aboard). The choice-level parallel to
     /// the it6 `requires_dominant_faction` *event* gate and the it10 dilemma-option
@@ -108,6 +111,7 @@ impl OutcomeRequirement {
             && self.min_knowledge.is_empty()
             && self.min_reputation.is_empty()
             && self.max_reputation.is_empty()
+            && self.requires_capabilities.is_empty()
             && self.requires_dominant_faction.is_empty()
     }
 }
@@ -207,6 +211,12 @@ pub struct EventOutcome {
     /// subsystem kept expert). Empty = always offered. See `OutcomeRequirement`.
     #[serde(default)]
     pub requires: OutcomeRequirement,
+    /// Persistent aftermath created only when this outcome commits.
+    #[serde(default)]
+    pub issue: Option<IssueSpec>,
+    /// Active aftermath issues explicitly cleared by this committed response.
+    #[serde(default)]
+    pub resolves_issues: Vec<String>,
     #[serde(default)]
     pub resource_delta: ResourceDelta,
     /// A voluntary bargain whose negative resource components must be paid in
@@ -300,6 +310,17 @@ pub struct EventOutcome {
     pub record: Option<OutcomeRecord>,
     #[serde(default)]
     pub log: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IssueSpec {
+    pub id: String,
+    pub target: String,
+    pub severity: crate::state::sim::IssueSeverity,
+    #[serde(default)]
+    pub due_months: Option<u32>,
+    #[serde(default)]
+    pub recovery_project_ids: Vec<String>,
 }
 
 /// A state-gated twist that can ride along on an event (content-depth event

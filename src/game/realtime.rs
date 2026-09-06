@@ -21,6 +21,7 @@ impl Game {
                 let key = current_decision_key(&g.sim);
                 let can_advance = key.is_none()
                     && !g.sim.dynasty.extinct
+                    && g.sim.terminal.is_none()
                     && g.sim.contract.is_some()
                     && g.sim.speed != crate::state::sim::GameSpeed::Paused;
                 (true, key, can_advance, g.sim.speed.multiplier())
@@ -68,6 +69,7 @@ impl Game {
                 GameState::Gameplay(g) => {
                     g.sim.has_pending_decision()
                         || g.sim.dynasty.extinct
+                        || g.sim.terminal.is_some()
                         || g.sim.contract.is_none()
                 }
                 _ => true,

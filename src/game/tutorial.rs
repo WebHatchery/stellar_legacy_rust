@@ -10,11 +10,15 @@ fn completed(step: usize, action: &UiAction, sim: &SimState) -> bool {
         (3, UiAction::SelectScreen(Screen::CrewDynasty)) => true,
         (4, UiAction::SelectScreen(Screen::ShipBuilder)) => true,
         (5, UiAction::Launch) => sim.contract.is_some(),
-        (6, UiAction::TogglePause | UiAction::SetSpeed(GameSpeed::Paused)) => {
+        (6, UiAction::SelectScreen(Screen::Agenda)) => true,
+        (7, UiAction::QueueProject { .. }) => !sim.projects.jobs.is_empty(),
+        (8, UiAction::TogglePause | UiAction::SetSpeed(GameSpeed::Paused)) => {
             sim.speed == GameSpeed::Paused
         }
-        (7, UiAction::TogglePause | UiAction::SetSpeed(_)) => sim.speed != GameSpeed::Paused,
-        (8, UiAction::ResolveEvent(_) | UiAction::ResolveDilemma(_)) => !sim.has_pending_decision(),
+        (9, UiAction::TogglePause | UiAction::SetSpeed(_)) => sim.speed != GameSpeed::Paused,
+        (10, UiAction::ResolveEvent(_) | UiAction::ResolveDilemma(_)) => {
+            !sim.has_pending_decision()
+        }
         _ => false,
     }
 }
@@ -34,7 +38,7 @@ impl Game {
     pub(super) fn tutorial_holds_clock(&self) -> bool {
         self.display.tutorial_enabled
             && self.tutorial_open
-            && matches!(&self.state, GameState::Gameplay(g) if !g.sim.tutorial_dismissed && g.sim.tutorial_step < 8)
+            && matches!(&self.state, GameState::Gameplay(g) if !g.sim.tutorial_dismissed && g.sim.tutorial_step < 10)
     }
 }
 

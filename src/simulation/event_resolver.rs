@@ -90,10 +90,15 @@ pub fn outcome_available(sim: &SimState, outcome: &EventOutcome) -> bool {
             .iter()
             .all(|g| sim.reputation(&g.id) >= g.threshold)
         && outcome
+        .requires
+        .max_reputation
+        .iter()
+        .all(|g| sim.reputation(&g.id) <= g.threshold)
+        && outcome
             .requires
-            .max_reputation
+            .requires_capabilities
             .iter()
-            .all(|g| sim.reputation(&g.id) <= g.threshold)
+            .all(|id| sim.projects.has_capability(id))
         // Dominant-faction gate (content-depth factions round 25): a choice only on the
         // table while the named people runs the ship.
         && (outcome.requires.requires_dominant_faction.is_empty()

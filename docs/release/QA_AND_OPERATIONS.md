@@ -12,20 +12,19 @@
 
 ## Agent validation record
 
-- 465 active unit tests and the source-size integration gate pass; the one ignored
-  49,500-voyage job passes separately and regenerates byte-identical report/matrix files.
-- Formatting and clippy with warnings denied pass; no Rust file exceeds 800 lines.
-- All 44 capture scenes render. The touch audit reports no ambiguity or undersized
-  visible controls across the 43 interactive scenes (the boot frame has no controls).
-- The exact Windows archive passes a two-file allow-list and launches its extracted
-  executable to a rendered frame from a path containing spaces with read-only runtime
-  files. The packaged WebGL runtime initializes in Chrome.
-- `scripts/compare_release_builds.ps1` builds the Windows archive twice from one clean
-  commit and rejects any difference in the extracted runtime payload. It records whether
-  the ZIP containers themselves are byte-identical and explains timestamp-only variance.
-- Windows Defender scanned the candidate ZIP on 2026-08-26; the release manifest records
-  the scan start and the count of detections associated with the exact artifact path.
-- Windows executable metadata reports Stellar Legacy and version 0.1.0.
+- 501 active unit tests and the source-size integration gate pass. The ignored
+  49,500-voyage comparative balance job remains a separate release gate; it was
+  started for this pass but stopped after an extended CPU-bound run without a result.
+- Formatting passes; no Rust file exceeds 800 lines. Clippy with warnings denied is
+  retained as a release check and was not rerun in this implementation pass.
+- The parameterless `publish.ps1` run passed Windows and WebGL builds, packaging,
+  Preview deployment, packaged Windows rendering, and real-browser WebGL rendering.
+- The prior candidate's 44-scene capture audit, two-build comparison, and Defender
+  scan remain useful operational procedures but require rerunning against the 0.2.0
+  artifact before public release.
+- Windows executable metadata reports Stellar Legacy and version 0.2.0.
+- The Agenda/readiness/recovery capture set covers queued work, staged delivery,
+  persistent aftermath, critical-air review, and terminal Chronicle recovery.
 
 P0: crash/data loss/cannot progress. P1: release-blocking install, launch, save, or severe
 usability problem. P2/P3 may be scheduled only after explicit owner review.
@@ -49,7 +48,9 @@ commands.
 3. Open CHARTERS, choose a starter charter, provision in PREP, and tap LAUNCH.
 4. Use the visible pace controls until an authority decision appears; choose an available
    option by clicking it and verify the named actor in the log.
-5. Return to port, verify Homecoming and Chronicle, quit, relaunch, and choose CONTINUE.
+5. Open AGENDA during travel and verify a project can be queued, paused, resumed,
+   reordered, and cancelled with the disclosed refund preview.
+6. Return to port, verify Homecoming and Chronicle, quit, relaunch, and choose CONTINUE.
 
 ## Rollback/hotfix procedure
 
@@ -57,7 +58,7 @@ Never edit a store artifact. Rebuild from the known-good commit, run the full va
 and package smoke, compare SHA-256, then assign the recorded Steam manifest or itch build
 to the restricted branch/channel. Public promotion, rollback, messaging, and visibility
 remain explicit human actions. Hotfix branches use `codex/hotfix-<issue>` and must preserve
-the 0.1.0 save shape or add a tested migration.
+the 0.2.0 save shape or add a tested migration.
 
 ## Release stop line
 

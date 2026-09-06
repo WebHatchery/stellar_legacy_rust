@@ -3,6 +3,7 @@
 
 use crate::data::events::{EventOutcome, EventTemplate};
 use crate::data::{GameConfig, GameData};
+use crate::simulation::issues;
 use crate::simulation::subsystems;
 use crate::state::sim::SimState;
 
@@ -160,6 +161,13 @@ pub fn apply_outcome(
         if !sim.ship.unlocked_fittings.contains(fitting_id) {
             sim.ship.unlocked_fittings.push(fitting_id.clone());
         }
+    }
+
+    if let Some(issue) = &outcome.issue {
+        issues::record_event_issue(sim, issue, &template.id);
+    }
+    for issue_id in &outcome.resolves_issues {
+        issues::resolve_issue(sim, issue_id, &outcome.label);
     }
 
     let text = if outcome.log.is_empty() {

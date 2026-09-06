@@ -6,18 +6,13 @@
 use super::{CommandPosture, DynastyMember, SimState};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CaptainPriority {
+    #[default]
     Steady,
     Civic,
     Expeditionary,
-}
-
-impl Default for CaptainPriority {
-    fn default() -> Self {
-        Self::Steady
-    }
 }
 
 impl CaptainPriority {

@@ -8,6 +8,7 @@ use crate::state::sim::SimState;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Screen {
     Dashboard,
+    Agenda,
     /// In-port charter board / PREP / homecoming (docked only).
     Drydock,
     ShipBuilder,
@@ -22,8 +23,9 @@ pub enum Screen {
 impl Screen {
     /// Tabs shown while docked (in port): the refit-and-choose set, with the
     /// DRYDOCK board and MARKET, but no active CONTRACT (real-time loop §5).
-    pub const DOCKED: [Screen; 7] = [
+    pub const DOCKED: [Screen; 8] = [
         Screen::Dashboard,
+        Screen::Agenda,
         Screen::Drydock,
         Screen::ShipBuilder,
         Screen::Subsystems,
@@ -34,8 +36,9 @@ impl Screen {
 
     /// Tabs shown under way (on a mission): the operations set, with the active
     /// CONTRACT but no DRYDOCK board and no MARKET (trading is a port activity).
-    pub const UNDERWAY: [Screen; 6] = [
+    pub const UNDERWAY: [Screen; 7] = [
         Screen::Dashboard,
+        Screen::Agenda,
         Screen::ShipBuilder,
         Screen::Subsystems,
         Screen::CrewDynasty,
@@ -55,6 +58,7 @@ impl Screen {
     pub fn label(self) -> &'static str {
         match self {
             Screen::Dashboard => "DASHBOARD",
+            Screen::Agenda => "AGENDA",
             Screen::Drydock => "DRYDOCK",
             Screen::ShipBuilder => "SHIP",
             Screen::Subsystems => "SUBSYSTEMS",

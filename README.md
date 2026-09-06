@@ -23,6 +23,9 @@ scars that the next generation must manage.
   as generations grow old aboard the same vessel.
 - **Make consequential choices.** Council dilemmas trade immediate relief against
   future costs. Recorded obligations can conflict with later charters.
+- **Keep the quiet years useful.** Open the **CUSTODIAN AGENDA** to compare food,
+  fuel, engineering, life support, knowledge, and cohesion readiness, then queue
+  scarce ship projects. Work starts only when a slot and its full escrow are ready.
 - **Build a legacy.** Review each Homecoming and the Chronicle, then prepare the
   next voyage. Chronicle renown grants an automatic Heritage head start when you
   found a new dynasty.
@@ -46,10 +49,16 @@ scars that the next generation must manage.
 6. Under way, use **DASHBOARD** to watch the ship and **CONTRACT** to track the
    mission. Start at **1x** and tap **PAUSE** whenever you need to review or act.
    Tap **RESUME** to continue; **2x** and **3x** speed up quieter stretches.
-7. When a council decision appears, read its choices and tap an option card.
+7. Open **AGENDA**. Read the readiness rows and any aftermath notices, choose a
+   useful project, tap **QUEUE**, and tap **RESUME**. Two projects may run at once;
+   queued work waits without charging until it starts.
+8. When a council decision appears, read its choices and tap an option card.
    The voyage clock stops for blocking decisions, but the decision countdown can
    still run. Tap **PAUSE** to hold that countdown while you consider the choice.
-8. At **Homecoming**, review the outcome and what the voyage cost your ship and
+9. If life support becomes critical, follow the visible recovery review. Food and
+   fuel warnings are forecasts, while hull, population, dynasty, and prolonged
+   zero-air failures can end the campaign.
+10. At **Homecoming**, review the outcome and what the voyage cost your ship and
    people. Return to drydock, replenish and refit, and choose your next charter.
 
 Follow the on-screen **CUSTODIAN GUIDE** for the opening steps. The full game
@@ -66,6 +75,7 @@ a keyboard is optional. Drag lists to scroll.
 | Numbered tabs | Switch between the ship's screens. Available tabs change between port and travel. |
 | **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time. |
 | **DASHBOARD** | Review resources, ship condition, and recent developments. |
+| **AGENDA** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
 | **SHIP / SUBSYSTEMS** | Inspect the loadout and manage the systems keeping the vessel running. |
 | **CREW & DYNASTY** | Review your people, captain, and succession. |
 | **DRYDOCK / MARKET** | Choose and prepare charters, and trade while in port. |
@@ -82,6 +92,16 @@ The game remains readable with audio muted.
 - **Stock for the whole journey.** Farms offset food demand, but shortages can
   still become starvation. Parts support upkeep; running out of fuel stalls
   progress and strains the ship. The market is only available in port.
+- **Spend quiet years deliberately.** Project queues are free to create, but a
+  project rechecks its target and charges its full material escrow when it starts.
+  Paused work can accumulate deterioration debt, and cancellation refunds only
+  recoverable stores.
+- **Read readiness as a forecast.** Gross food reserve can hide a net deficit after
+  crew demand, route tolls, and spoilage. The Agenda also surfaces maintenance and
+  event aftermath before they become linked failures.
+- **Recover before the warning becomes final.** A critical air notice pauses the
+  voyage for review and offers one bounded emergency stabilisation. Terminal
+  outcomes are recorded in the Chronicle and remain final for that campaign.
 - **Treat warnings as decisions.** The launch button can allow an understocked
   departure or a default on obligations. Permission to launch is not assurance
   that the voyage is well prepared.

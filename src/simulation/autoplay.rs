@@ -2,8 +2,8 @@
 //!
 //! The owner's primary playtest channel: a deterministic *policy player* that
 //! starts a charter and flies it year by year with a fixed, dumb strategy —
-//! resolve every council decision by first choice, patch the hull when it
-//! slips, buy food when the stores run low — then reports how the voyage
+//! resolve council decisions, queue recovery work when systems slip, and buy
+//! food when the stores run low — then reports how the voyage
 //! ended. It exists to soak the whole content set (events, dilemmas,
 //! succession, contract completion) across a generational voyage and catch any
 //! invariant that escapes its range along the way.
@@ -14,7 +14,7 @@
 use crate::data::GameData;
 use crate::simulation::contract::start_contract;
 use crate::simulation::tick::advance_months;
-use crate::simulation::{event_resolver, legacy, market, ship, subsystems};
+use crate::simulation::{event_resolver, legacy, market, projects, ship, subsystems, survival};
 use crate::state::sim::{SimState, TradeResource};
 
 /// How a played-out mission ended.
@@ -34,8 +34,8 @@ pub struct MissionOutcome {
 /// under a fixed policy, asserting every per-year invariant along the way.
 ///
 /// Policy: refit and service affordable systems in port; resolve a pending
-/// event by its first visible, affordable choice and a dilemma by its first
-/// choice; field-repair the hull whenever it drops below half; buy food when
+/// event by the highest-scoring visible, affordable choice and a dilemma by its
+/// first choice; queue hull and subsystem recovery when they slip; buy food when
 /// stores fall under the crisis threshold. Deterministic for a given
 /// (sim, contract) pair — all randomness flows through `sim.rng`.
 pub fn play_mission(
@@ -117,22 +117,42 @@ pub fn play_mission(
         // same dumb policy the game's own soak has always used.
         if sim.pending_dilemma.is_some() {
             legacy::resolve_dilemma(sim, data, 0);
+            if survival::check_and_record(sim, data).is_some() {
+                outcome.extinct = true;
+                break;
+            }
         }
         if let Some(pending) = sim.pending_event.clone() {
             match data.events.get(&pending.template_id).cloned() {
                 Some(template) => {
                     let choice = event_resolver::available_outcome_indices(sim, &template)
                         .into_iter()
-                        .find(|&index| {
+                        .filter(|&index| {
                             event_resolver::outcome_affordable(sim, &template.outcomes[index])
+                        })
+                        .max_by(|&left, &right| {
+                            event_resolver::score_outcome(
+                                &template.outcomes[left],
+                                sim,
+                                &data.config,
+                            )
+                            .total_cmp(&event_resolver::score_outcome(
+                                &template.outcomes[right],
+                                sim,
+                                &data.config,
+                            ))
                         })
                         .expect("every event needs an affordable fallback");
                     event_resolver::apply_outcome(sim, data, &template, choice);
+                    if survival::check_and_record(sim, data).is_some() {
+                        outcome.extinct = true;
+                        break;
+                    }
                 }
                 None => sim.pending_event = None,
             }
         }
-        if sim.dynasty.extinct {
+        if sim.dynasty.extinct || sim.terminal.is_some() {
             outcome.extinct = true;
             break;
         }
@@ -140,14 +160,14 @@ pub fn play_mission(
         // Standing orders: keep the hull off the floor and the galley stocked.
         // Both verbs refuse (harmlessly) when they can't be paid for.
         if sim.ship.hull_integrity < 0.5 {
-            let _ = ship::field_repair(sim, &data.config, ship::RepairKind::Hull);
+            let _ = projects::queue_project(sim, data, "restore_hull", None);
         }
         if sim.resources.food < data.config.low_food_threshold {
             let _ = market::buy(sim, TradeResource::Food, 1000);
         }
         // Keep the subsystems mended and their knowledge alive when it's cheap
-        // and needed (W5) — train up before the experts die out, patch what
-        // slips. Both verbs refuse harmlessly when they can't be paid for.
+        // and needed (W5) — underway recovery now uses the same Agenda queue
+        // as a human player, so automation cannot bypass project duration.
         for id in crate::data::GameData::sorted_ids(&data.subsystems) {
             let Some(sub) = sim.subsystems.get(&id) else {
                 continue;
@@ -159,10 +179,15 @@ pub fn play_mission(
                 .map(|d| d.repair_knowledge_required)
                 .unwrap_or(1.0);
             if knowledge < required && sim.resources.credits > 20_000 {
-                let _ = subsystems::train_subsystem_knowledge(sim, data, &id);
+                let _ = projects::queue_project(
+                    sim,
+                    data,
+                    "train_replacement_cohort",
+                    Some(id.clone()),
+                );
             }
             if condition < 0.5 {
-                let _ = subsystems::repair_subsystem(sim, data, &id);
+                let _ = projects::queue_project(sim, data, "service_subsystem", Some(id));
             }
         }
 
@@ -190,6 +215,10 @@ pub fn play_mission(
             break;
         }
         if report.dynasty_extinct {
+            outcome.extinct = true;
+            break;
+        }
+        if report.terminal.is_some() || sim.terminal.is_some() {
             outcome.extinct = true;
             break;
         }

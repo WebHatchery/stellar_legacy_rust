@@ -3,7 +3,7 @@
   "display_name": "Stellar Legacy",
   "save_slot": "autosave",
   "chronicle_slot": "chronicle",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "starting_resources": {
     "credits": 10000,
     "energy": 5000,
@@ -173,9 +173,19 @@
         "tip": "Tap DRYDOCK, then LAUNCH. Read any shortage warning before committing."
       },
       {
+        "id": "agenda",
+        "label": "Open the Custodian Agenda",
+        "tip": "Tap AGENDA to inspect readiness, aftermath issues, and the ship-work catalogue."
+      },
+      {
+        "id": "queue_project",
+        "label": "Queue useful ship work",
+        "tip": "In AGENDA, tap QUEUE beside an eligible project. Queueing is free; the full budget is charged only when work starts."
+      },
+      {
         "id": "pause",
         "label": "Take control of time",
-        "tip": "Tap PAUSE in the time controls at the top right. The voyage clock waits while you learn this control."
+        "tip": "Tap PAUSE in the time controls at the top right. The voyage clock waits while you review the ship-work plan."
       },
       {
         "id": "resume",
@@ -186,11 +196,6 @@
         "id": "council",
         "label": "Answer the council",
         "tip": "When a council decision appears, read the outcomes and tap a choice. Tap PAUSE to hold the countdown while you review it."
-      },
-      {
-        "id": "legacy",
-        "label": "You are the Custodian",
-        "tip": "Tap REVIEW MANDATE on CONTRACT to see who can act, then tap FINISH to complete the tutorial."
       }
     ]
   },
@@ -1039,6 +1044,38 @@
     "impact_min_magnitude_for_range": 20
   },
   "fixed_seed": null,
+  "projects": {
+    "concurrent_slots": 2,
+    "waiting_cap": 4,
+    "pause_grace_months": 12,
+    "pause_debt_fraction_per_month": 0.01,
+    "pause_debt_cap_fraction": 0.25,
+    "cancellation_refund_fraction": 0.8,
+    "maximum_hydroponics_bonus": 0.15,
+    "maintenance_condition_threshold": 0.55,
+    "maintenance_due_months": 24,
+    "overdue_hull_damage": 0.04,
+    "overdue_life_support_damage": 0.05
+  },
+  "survival": {
+    "air_grace_months": 12,
+    "critical_warning_threshold": 0.2,
+    "emergency_air_gain": 0.15,
+    "emergency_resource_cost": {
+      "credits": 0,
+      "energy": 300,
+      "minerals": 50,
+      "food": 0,
+      "influence": 0
+    },
+    "emergency_parts_cost": 10
+  },
+  "readiness": {
+    "strong_threshold": 0.75,
+    "stable_threshold": 0.5,
+    "vulnerable_threshold": 0.25,
+    "recovery_hysteresis": 0.05
+  },
   "log_limit": 200,
   "voyage_highlight_limit": 120
 }

@@ -1,0 +1,103 @@
+[
+  {
+    "id": "service_subsystem",
+    "name": "Service subsystem",
+    "description": "Restore one damaged module using the ship's existing craft and stores.",
+    "kind": "service_subsystem",
+    "target": "subsystem",
+    "duration_months": 72,
+    "stage_count": 2,
+    "divisible": true,
+    "cost": { "minerals": 40, "spare_parts": 12 },
+    "knowledge_required": 0.5,
+    "target_condition_below": 0.85,
+    "effect": { "condition_gain": 0.2 }
+  },
+  {
+    "id": "restore_hull",
+    "name": "Restore hull",
+    "description": "Patch the frame in stages; later damage is never erased by an old quote.",
+    "kind": "restore_hull",
+    "target": "none",
+    "duration_months": 96,
+    "stage_count": 2,
+    "divisible": true,
+    "cost": { "minerals": 80, "spare_parts": 20 },
+    "target_condition_below": 0.9,
+    "effect": { "hull_gain": 0.25 }
+  },
+  {
+    "id": "overhaul_life_support",
+    "name": "Overhaul life support",
+    "description": "Bring the air plant back in measured stages before the emergency clock runs out.",
+    "kind": "overhaul_life_support",
+    "target": "none",
+    "duration_months": 96,
+    "stage_count": 2,
+    "divisible": true,
+    "cost": { "minerals": 70, "spare_parts": 18 },
+    "target_condition_below": 0.9,
+    "effect": { "life_support_gain": 0.25 }
+  },
+  {
+    "id": "train_replacement_cohort",
+    "name": "Train replacement cohort",
+    "description": "Teach a new generation the discipline that keeps a failing module serviceable.",
+    "kind": "train_replacement_cohort",
+    "target": "subsystem",
+    "duration_months": 96,
+    "stage_count": 2,
+    "divisible": true,
+    "cost": { "credits": 600 },
+    "effect": { "knowledge_gain": 0.25 }
+  },
+  {
+    "id": "optimise_hydroponics",
+    "name": "Optimise hydroponics",
+    "description": "Tune the growing decks for a capped production lift while they remain workable.",
+    "kind": "optimise_hydroponics",
+    "target": "agriculture",
+    "duration_months": 144,
+    "stage_count": 2,
+    "divisible": true,
+    "cost": { "minerals": 120, "spare_parts": 18 },
+    "target_condition_below": 0.95,
+    "effect": { "food_production_bonus": 0.06 }
+  },
+  {
+    "id": "restore_crew_quarters",
+    "name": "Restore crew quarters",
+    "description": "Repair the shared living decks for bounded morale and unity recovery.",
+    "kind": "restore_crew_quarters",
+    "target": "social",
+    "duration_months": 60,
+    "stage_count": 1,
+    "cost": { "minerals": 50, "spare_parts": 10 },
+    "effect": { "morale_recovery": 0.06, "unity_recovery": 0.04 }
+  },
+  {
+    "id": "sterilise_damaged_growing_systems",
+    "name": "Sterilise damaged growing systems",
+    "description": "Clear the blight aftermath and its ongoing penalty without refunding the original loss.",
+    "kind": "sterilise_growing_systems",
+    "target": "agriculture",
+    "duration_months": 48,
+    "stage_count": 1,
+    "cost": { "minerals": 40, "food": 20, "spare_parts": 8 },
+    "requires_issue": "agriculture_blight",
+    "effect": { "condition_gain": 0.12 }
+  },
+  {
+    "id": "establish_seed_programme",
+    "name": "Establish seed programme",
+    "description": "Build a disciplined seed reserve that can answer one later authored blight.",
+    "kind": "establish_seed_programme",
+    "target": "agriculture",
+    "duration_months": 216,
+    "stage_count": 3,
+    "divisible": false,
+    "cost": { "minerals": 160, "food": 300, "spare_parts": 22 },
+    "knowledge_required": 0.55,
+    "effect": { "capability": "seed_programme" }
+  }
+]
