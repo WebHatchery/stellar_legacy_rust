@@ -8,10 +8,23 @@
     "duration_months": 72,
     "stage_count": 2,
     "divisible": true,
-    "cost": { "minerals": 40, "spare_parts": 12 },
+    "cost": {
+      "minerals": 40,
+      "spare_parts": 12
+    },
     "knowledge_required": 0.5,
     "target_condition_below": 0.85,
-    "effect": { "condition_gain": 0.2 }
+    "effect": {
+      "condition_gain": 0.2
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "restore_hull",
@@ -22,9 +35,22 @@
     "duration_months": 96,
     "stage_count": 2,
     "divisible": true,
-    "cost": { "minerals": 80, "spare_parts": 20 },
+    "cost": {
+      "minerals": 80,
+      "spare_parts": 20
+    },
     "target_condition_below": 0.9,
-    "effect": { "hull_gain": 0.25 }
+    "effect": {
+      "hull_gain": 0.25
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "overhaul_life_support",
@@ -35,9 +61,22 @@
     "duration_months": 96,
     "stage_count": 2,
     "divisible": true,
-    "cost": { "minerals": 70, "spare_parts": 18 },
+    "cost": {
+      "minerals": 70,
+      "spare_parts": 18
+    },
     "target_condition_below": 0.9,
-    "effect": { "life_support_gain": 0.25 }
+    "effect": {
+      "life_support_gain": 0.25
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "train_replacement_cohort",
@@ -48,8 +87,20 @@
     "duration_months": 96,
     "stage_count": 2,
     "divisible": true,
-    "cost": { "credits": 600 },
-    "effect": { "knowledge_gain": 0.25 }
+    "cost": {
+      "credits": 600
+    },
+    "effect": {
+      "knowledge_gain": 0.25
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "optimise_hydroponics",
@@ -60,9 +111,22 @@
     "duration_months": 144,
     "stage_count": 2,
     "divisible": true,
-    "cost": { "minerals": 120, "spare_parts": 18 },
+    "cost": {
+      "minerals": 120,
+      "spare_parts": 18
+    },
     "target_condition_below": 0.95,
-    "effect": { "food_production_bonus": 0.06 }
+    "effect": {
+      "food_production_bonus": 0.06
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "restore_crew_quarters",
@@ -71,9 +135,24 @@
     "kind": "restore_crew_quarters",
     "target": "social",
     "duration_months": 60,
-    "stage_count": 1,
-    "cost": { "minerals": 50, "spare_parts": 10 },
-    "effect": { "morale_recovery": 0.06, "unity_recovery": 0.04 }
+    "stage_count": 10,
+    "cost": {
+      "minerals": 50,
+      "spare_parts": 10
+    },
+    "effect": {
+      "morale_recovery": 0.06,
+      "unity_recovery": 0.04
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    },
+    "divisible": true
   },
   {
     "id": "sterilise_damaged_growing_systems",
@@ -83,9 +162,23 @@
     "target": "agriculture",
     "duration_months": 48,
     "stage_count": 1,
-    "cost": { "minerals": 40, "food": 20, "spare_parts": 8 },
+    "cost": {
+      "minerals": 40,
+      "food": 20,
+      "spare_parts": 8
+    },
     "requires_issue": "agriculture_blight",
-    "effect": { "condition_gain": 0.12 }
+    "effect": {
+      "condition_gain": 0.12
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   },
   {
     "id": "establish_seed_programme",
@@ -96,8 +189,22 @@
     "duration_months": 216,
     "stage_count": 3,
     "divisible": false,
-    "cost": { "minerals": 160, "food": 300, "spare_parts": 22 },
+    "cost": {
+      "minerals": 160,
+      "food": 300,
+      "spare_parts": 22
+    },
     "knowledge_required": 0.55,
-    "effect": { "capability": "seed_programme" }
+    "effect": {
+      "capability": "seed_programme"
+    },
+    "refundable": {
+      "credits": 1,
+      "energy": 1,
+      "minerals": 1,
+      "food": 1,
+      "influence": 0,
+      "spare_parts": 1
+    }
   }
 ]

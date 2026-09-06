@@ -67,6 +67,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
     }
 
     for _ in 0..max_months {
+        let project_month = projects::capture_month(sim, data);
         sim.month_clock += 1;
         report.months_advanced += 1;
 
@@ -82,9 +83,8 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
             break;
         }
 
-        // Projects use the month's starting eligibility, after the economy has
-        // settled and before later contract/events mutate the target.
-        projects::advance_projects(sim, data);
+        // Deliver against captured starting eligibility, after annual production.
+        projects::advance_captured_month(sim, data, project_month);
         report.critical_warning = survival::update_air_warning(sim, data);
         if let Some(outcome) = survival::check_and_record(sim, data) {
             report.terminal = Some(outcome);

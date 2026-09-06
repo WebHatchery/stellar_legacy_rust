@@ -38,6 +38,28 @@ impl ProjectAmounts {
         }
     }
 
+    pub fn values(self) -> [f64; 6] {
+        [
+            self.credits,
+            self.energy,
+            self.minerals,
+            self.food,
+            self.influence,
+            self.spare_parts,
+        ]
+    }
+
+    pub fn from_values(v: [f64; 6]) -> Self {
+        Self {
+            credits: v[0],
+            energy: v[1],
+            minerals: v[2],
+            food: v[3],
+            influence: v[4],
+            spare_parts: v[5],
+        }
+    }
+
     pub fn nonzero(self) -> bool {
         [
             self.credits,
@@ -128,6 +150,8 @@ pub struct ProjectState {
     pub capabilities: Vec<String>,
     pub next_sequence_id: u64,
     pub hydroponics_bonus: f32,
+    /// Fractional change retained when settling against integer ship stores.
+    pub settlement_balance: ProjectAmounts,
 }
 
 impl ProjectState {

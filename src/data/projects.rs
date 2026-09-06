@@ -81,6 +81,8 @@ pub struct ProjectDefinition {
     pub divisible: bool,
     #[serde(default)]
     pub cost: ProjectCost,
+    #[serde(default = "default_refundable")]
+    pub refundable: ProjectCost,
     /// Knowledge floor used by service and preparation projects. Training has
     /// no floor so expertise loss never creates a circular recovery lock.
     #[serde(default)]
@@ -120,5 +122,16 @@ impl ProjectDefinition {
             return Err(format!("project '{}' has invalid knowledge floor", self.id));
         }
         Ok(())
+    }
+}
+
+fn default_refundable() -> ProjectCost {
+    ProjectCost {
+        credits: 1,
+        energy: 1,
+        minerals: 1,
+        food: 1,
+        influence: 0,
+        spare_parts: 1,
     }
 }

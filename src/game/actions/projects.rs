@@ -39,7 +39,7 @@ impl Game {
             }
             UiAction::PauseProject(sequence_id) => {
                 let result = if let GameState::Gameplay(gameplay) = &mut self.state {
-                    projects::pause_project(&mut gameplay.sim, sequence_id)
+                    projects::pause_project(&mut gameplay.sim, &self.data, sequence_id)
                 } else {
                     Err("No active campaign.".to_owned())
                 };

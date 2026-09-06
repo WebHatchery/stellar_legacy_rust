@@ -17,9 +17,13 @@ use macroquad_toolkit::ui::{
 };
 
 const GUTTER: f32 = 14.0;
-const ROW_H: f32 = 64.0;
+const ROW_H: f32 = 138.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
+    if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
+        draw_cancel_preview(ctx, sequence_id, pointer, actions);
+        return;
+    }
     let left_w = 420.0;
     let left = Rect::new(area.x, area.y, left_w, area.h);
     let right = Rect::new(
@@ -359,40 +363,17 @@ fn draw_job(
         row.y + 51.0,
         TextStyle::new(10.0, term::dim()).params(),
     );
-    let button_w = 76.0;
-    let cancel = Rect::new(row.right() - button_w, row.y + 6.0, button_w, 24.0);
+    let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 48.0);
     if matches!(
         job.status,
         ProjectStatus::Queued | ProjectStatus::Running | ProjectStatus::Paused
-    ) && term_button(cancel, "CANCEL", true, pointer)
+    ) && term_button(manage, "REVIEW PROJECT", true, pointer)
     {
         actions.push(UiAction::PreviewCancelProject(job.sequence_id));
     }
-    if job.status == ProjectStatus::Running {
-        let pause = Rect::new(
-            row.right() - button_w * 2.0 - 6.0,
-            row.y + 6.0,
-            button_w,
-            24.0,
-        );
-        if term_button(pause, "PAUSE", true, pointer) {
-            actions.push(UiAction::PauseProject(job.sequence_id));
-        }
-    } else if job.status == ProjectStatus::Paused {
-        let resume = Rect::new(
-            row.right() - button_w * 2.0 - 6.0,
-            row.y + 6.0,
-            button_w,
-            24.0,
-        );
-        if term_button(resume, "RESUME", true, pointer) {
-            actions.push(UiAction::ResumeProject(job.sequence_id));
-        }
-    } else if job.status == ProjectStatus::Queued {
-        let down_w = 84.0;
-        let up_w = 72.0;
-        let down = Rect::new(row.right() - down_w, row.y + 34.0, down_w, 24.0);
-        let up = Rect::new(row.right() - down_w - up_w - 6.0, row.y + 34.0, up_w, 24.0);
+    if job.is_waiting() {
+        let up = Rect::new(row.x + 184.0, row.y + 76.0, 116.0, 48.0);
+        let down = Rect::new(row.x + 310.0, row.y + 76.0, 136.0, 48.0);
         if term_button(up, "MOVE UP", true, pointer) {
             actions.push(UiAction::MoveProject {
                 sequence_id: job.sequence_id,
@@ -443,7 +424,20 @@ fn draw_choice(
         row.y + 35.0,
         TextStyle::new(10.0, term::dim()).params(),
     );
-    let button = Rect::new(row.right() - 86.0, row.y + 18.0, 76.0, 28.0);
+    draw_ui_text_ex(
+        &if definition.divisible {
+            format!(
+                "{} staged deliveries; completed recovery is retained.",
+                definition.stage_count()
+            )
+        } else {
+            "Final delivery only; partial work grants no capability.".to_owned()
+        },
+        row.x + 10.0,
+        row.y + 69.0,
+        TextStyle::new(11.0, term::dim()).params(),
+    );
+    let button = Rect::new(row.x + 10.0, row.y + 78.0, 116.0, 48.0);
     if term_button(
         button,
         if choice.eligible { "QUEUE" } else { "BLOCKED" },
@@ -481,8 +475,8 @@ fn draw_cancel_preview(
         return;
     };
     occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 350.0, 170.0, 700.0, 360.0);
-    term_panel(panel, Some("CANCEL PROJECT // PREVIEW"));
+    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 460.0, 105.0, 920.0, 520.0);
+    term_panel(panel, Some("PROJECT OPTIONS // EXACT ACCOUNTING"));
     let content = panel.inset(24.0);
     draw_ui_text_ex(
         &definition.name,
@@ -500,7 +494,7 @@ fn draw_cancel_preview(
         3.0,
         term::dim(),
     );
-    let refund = refund_preview(job, ctx.data.config.projects.cancellation_refund_fraction);
+    let refund = project_sim::refund_preview(job, ctx.data);
     let debt = job.restoration_debt;
     let mut y = content.y + 106.0;
     spec_line(
@@ -568,49 +562,50 @@ fn draw_cancel_preview(
         &next,
         term::dim(),
     );
-    let keep = Rect::new(content.x, panel.bottom() - 56.0, 190.0, 42.0);
-    let confirm = Rect::new(content.right() - 190.0, panel.bottom() - 56.0, 190.0, 42.0);
-    if term_button(keep, "KEEP PROJECT", true, pointer) {
-        ctx.project_cancel_confirm.set(None);
+    y += 30.0;
+    draw_text_block(
+        "CONTINUE keeps work and escrow. PAUSE releases the slot with no refund; unfinished stages age only during voyage months. RESUME pays the displayed debt once. Fractional change stays in the saved ledger.",
+        content.x, y, content.w, 64.0, 13.0, 3.0, term::dim(),
+    );
+    let bottom = panel.bottom() - 68.0;
+    let keep = Rect::new(content.x, bottom, 180.0, 48.0);
+    if term_button(keep, "CONTINUE", true, pointer) {
         actions.push(UiAction::DismissCancelProject);
     }
-    if term_button(confirm, "CONFIRM CANCEL", true, pointer) {
-        ctx.project_cancel_confirm.set(None);
-        actions.push(UiAction::CancelProject(sequence_id));
+    let pivot = Rect::new(content.x + 194.0, bottom, 210.0, 48.0);
+    if job.status == ProjectStatus::Running && term_button(pivot, "PAUSE PROJECT", true, pointer) {
+        actions.push(UiAction::PauseProject(sequence_id));
+        actions.push(UiAction::DismissCancelProject);
     }
-}
-
-fn refund_preview(job: &crate::state::sim::ProjectInstance, fraction: f32) -> ProjectAmounts {
-    let f = fraction.clamp(0.0, 1.0) as f64;
-    ProjectAmounts {
-        credits: job.remaining_escrow.credits * f,
-        energy: job.remaining_escrow.energy * f,
-        minerals: job.remaining_escrow.minerals * f,
-        food: job.remaining_escrow.food * f,
-        influence: 0.0,
-        spare_parts: job.remaining_escrow.spare_parts * f,
+    if job.status == ProjectStatus::Paused && term_button(pivot, "RESUME PROJECT", true, pointer) {
+        actions.push(UiAction::ResumeProject(sequence_id));
+        actions.push(UiAction::DismissCancelProject);
+    }
+    let confirm = Rect::new(content.right() - 235.0, bottom, 235.0, 48.0);
+    if term_button(confirm, "CONFIRM CANCEL", true, pointer) {
+        actions.push(UiAction::CancelProject(sequence_id));
     }
 }
 
 fn format_cost(amounts: ProjectAmounts) -> String {
     let mut parts = Vec::new();
     if amounts.credits > 0.0 {
-        parts.push(format!("{:.0}cr", amounts.credits));
+        parts.push(format!("{:.2}cr", amounts.credits));
     }
     if amounts.energy > 0.0 {
-        parts.push(format!("{:.0}en", amounts.energy));
+        parts.push(format!("{:.2}en", amounts.energy));
     }
     if amounts.minerals > 0.0 {
-        parts.push(format!("{:.0}min", amounts.minerals));
+        parts.push(format!("{:.2}min", amounts.minerals));
     }
     if amounts.food > 0.0 {
-        parts.push(format!("{:.0} food", amounts.food));
+        parts.push(format!("{:.2} food", amounts.food));
     }
     if amounts.influence > 0.0 {
-        parts.push(format!("{:.0} inf", amounts.influence));
+        parts.push(format!("{:.2} inf", amounts.influence));
     }
     if amounts.spare_parts > 0.0 {
-        parts.push(format!("{:.0} parts", amounts.spare_parts));
+        parts.push(format!("{:.2} parts", amounts.spare_parts));
     }
     if parts.is_empty() {
         "none".to_owned()

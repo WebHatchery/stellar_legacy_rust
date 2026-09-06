@@ -53,7 +53,7 @@ fn paused_work_ages_after_grace_and_cancellation_refunds_remaining_escrow() {
     let (data, mut sim) = campaign();
     sim.ship.hull_integrity = 0.7;
     let id = queue_project(&mut sim, &data, "restore_hull", None).unwrap();
-    pause_project(&mut sim, id).unwrap();
+    pause_project(&mut sim, &data, id).unwrap();
     for _ in 0..data.config.projects.pause_grace_months + 2 {
         age_paused_projects(&mut sim, &data);
     }
@@ -62,3 +62,5 @@ fn paused_work_ages_after_grace_and_cancellation_refunds_remaining_escrow() {
     let refund = cancel_project(&mut sim, &data, id).unwrap();
     assert!(refund.minerals < 80.0 * data.config.projects.cancellation_refund_fraction as f64);
 }
+
+mod lifecycle;
