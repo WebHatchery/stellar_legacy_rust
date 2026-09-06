@@ -166,7 +166,10 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
             format!(
                 "Hull {:.0}% · bay {:.0}%",
                 sim.ship.hull_integrity * 100.0,
-                engineering_score * 100.0
+                sim.subsystems
+                    .get("engineering_bay")
+                    .map_or(0.0, |bay| bay.condition)
+                    * 100.0
             ),
             trend(engineering_score),
             if sim.ship.hull_integrity < data.config.readiness.stable_threshold {

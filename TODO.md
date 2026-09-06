@@ -3,17 +3,18 @@
 Standing direction for content passes lives in `content_depth.md`; this file holds only
 the discrete open items left behind by finished workstreams.
 
-## Ship work (shipped in 0.2.0)
+## Ship work (0.2.1 audit corrections)
 
 Implementation details and acceptance gates live in
 [the ship work plan](docs/ship_work_implementation_plan.md).
 
-- [x] A: Baseline and explicit survival/recovery contract.
-- [x] B: Custodian project queue and actionable interface.
-- [x] C: Readiness, maintenance, and persistent event aftermath.
-- [x] D: Preparation payoffs and touch-first tutorial.
-- [ ] E: Complete the comparative balance cohort and human accessibility/storefront gates;
-  automated regression, formatting, and parameterless publish validation pass.
+- [x] Correct audited survival timer, project suspension/accounting, readiness, and save-validation defects.
+- [x] Run the comparable 864-campaign cohort and deterministic neglect/recovery and seed-payoff scenarios.
+- [x] Inspect desktop/narrow Agenda and project-review captures.
+- [ ] Complete human touch/click acceptance routes and 30-90 second choice-timing measurements.
+- [ ] Complete clean-profile/accessibility/storefront gates before claiming full milestone E acceptance.
+
+Measured results and limitations: [ship-work validation](docs/ship_work_validation.md).
 
 Protected reserves, named development programmes, standing orders, and additional
 project slots remain deferred until this core is validated in human play.

@@ -40,7 +40,27 @@ pub(super) fn draw_readiness(
                 2.0,
                 term::dim(),
             );
-            if let Some(id) = &row.recommended_project {
+            if row.id == "life_support"
+                && ctx.sim.ship.life_support <= ctx.data.config.survival.critical_warning_threshold
+                && !ctx.sim.survival.emergency_used
+            {
+                let cfg = &ctx.data.config.survival;
+                let button = Rect::new(rect.x, rect.y + 82.0, rect.w, 60.0);
+                if term_button(button, "STABILISE AIR", true, pointer) {
+                    actions.push(UiAction::EmergencyStabilise);
+                }
+                draw_ui_text_ex(
+                    &format!(
+                        "Cost: {} energy / {} minerals / {} parts",
+                        cfg.emergency_resource_cost.energy,
+                        cfg.emergency_resource_cost.minerals,
+                        cfg.emergency_parts_cost
+                    ),
+                    rect.x,
+                    rect.y + 160.0,
+                    TextStyle::new(11.0, term::dim()).params(),
+                );
+            } else if let Some(id) = &row.recommended_project {
                 queue_response(
                     ctx,
                     id,

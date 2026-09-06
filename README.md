@@ -142,3 +142,19 @@ uploading it with:
 ```powershell
 .\publish-itch.ps1 -Channel html5 -DryRun
 ```
+
+
+### Ship-work verification
+
+Version 0.2.1 corrects the audited survival, Agenda escrow, readiness, and save
+issues. Open **AGENDA**, then **REVIEW PROJECT** to compare retained deliveries,
+remaining work, refunds, and restoration cost before pausing, resuming, or
+confirming cancellation. New quarters recover morale in ten stages. Fractional
+resource change remains in the saved ledger; older quarters retain their original
+single delivery. Authored issue `food_production_penalty` values affect current
+production only while the issue is active; `refundable` resource masks define
+which project escrow can be recovered.
+
+The [verification record](docs/ship_work_validation.md) includes the 864-run
+policy comparison and remaining human acceptance gates. Passing builds and
+publisher checks do not mean those human gates have passed.

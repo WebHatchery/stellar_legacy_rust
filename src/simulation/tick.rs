@@ -80,6 +80,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
 
         if let Some(outcome) = survival::check_and_record(sim, data) {
             report.terminal = Some(outcome);
+            report.contract_completed = None;
             break;
         }
 
@@ -88,6 +89,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         report.critical_warning = survival::update_air_warning(sim, data);
         if let Some(outcome) = survival::check_and_record(sim, data) {
             report.terminal = Some(outcome);
+            report.contract_completed = None;
             break;
         }
         // Monthly contract progress (W2): objective accrual on-station, the
@@ -111,6 +113,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         report.critical_warning |= survival::observe_air_warning(sim, data);
         if let Some(outcome) = survival::check_and_record(sim, data) {
             report.terminal = Some(outcome);
+            report.contract_completed = None;
             break;
         }
 

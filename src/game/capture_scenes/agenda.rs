@@ -13,7 +13,11 @@ impl Game {
             &sim,
         ));
         sim.ship.hull_integrity = 0.25;
-        sim.ship.life_support = 0.4;
+        sim.ship.life_support = if scene == "agenda_recovery" {
+            0.05
+        } else {
+            0.4
+        };
         sim.population.morale = 0.3;
         let id =
             projects::queue_project(&mut sim, &self.data, "restore_crew_quarters", None).unwrap();

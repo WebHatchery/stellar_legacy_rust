@@ -36,9 +36,11 @@ impl Game {
         ui::term::set_phosphor(self.display.phosphor);
         self.delegation_defaults = crate::state::sim::DelegationSettings::default();
         match scene {
-            "agenda" | "agenda_review" | "agenda_narrow" | "agenda_review_narrow" => {
-                self.capture_agenda(scene)
-            }
+            "agenda"
+            | "agenda_review"
+            | "agenda_narrow"
+            | "agenda_review_narrow"
+            | "agenda_recovery" => self.capture_agenda(scene),
             "menu" => self.state = crate::state::GameState::Menu(MenuState::new(false)),
             "welcome" => {
                 // The first-run orientation overlay above the new-game picker,

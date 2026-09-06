@@ -86,3 +86,47 @@ fn monthly_driver_charges_one_air_month() {
     assert!(report.critical_warning);
     assert!(sim.terminal.is_none());
 }
+
+#[test]
+fn neglected_air_really_loses_while_stabilisation_buys_time_for_overhaul() {
+    let (mut data, mut neglected) = campaign();
+    // Isolate the warned survival sequence from unrelated authored event choices.
+    let ids: Vec<_> = data.events.ids().cloned().collect();
+    for id in ids {
+        data.events.remove(&id);
+    }
+    neglected.ship.life_support = 0.0;
+    neglected.contract = Some(crate::simulation::contract::start_contract(
+        data.contracts.get("deep_vein_survey").unwrap(),
+        &neglected,
+    ));
+    let mut rescued = neglected.clone();
+    emergency_stabilise(&mut rescued, &data).unwrap();
+    let project = crate::simulation::projects::queue_project(
+        &mut rescued,
+        &data,
+        "overhaul_life_support",
+        None,
+    )
+    .unwrap();
+    for _ in 0..12 {
+        crate::simulation::tick::advance_months(&mut neglected, &data, 1);
+    }
+    assert_eq!(
+        neglected.terminal.as_ref().unwrap().reason,
+        TerminalReason::LifeSupportFailure
+    );
+    assert_eq!(neglected.month_clock, 12);
+    for _ in 0..96 {
+        if rescued.has_pending_decision() {
+            break;
+        }
+        crate::simulation::tick::advance_months(&mut rescued, &data, 1);
+    }
+    assert!(rescued.terminal.is_none());
+    assert_eq!(
+        rescued.projects.find(project).unwrap().status,
+        crate::state::sim::ProjectStatus::Completed
+    );
+    assert!(rescued.ship.life_support > data.config.survival.emergency_air_gain);
+}

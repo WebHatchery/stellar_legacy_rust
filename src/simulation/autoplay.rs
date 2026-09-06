@@ -16,6 +16,8 @@ use crate::simulation::contract::start_contract;
 use crate::simulation::tick::advance_months;
 use crate::simulation::{event_resolver, legacy, market, projects, ship, subsystems, survival};
 use crate::state::sim::{SimState, TradeResource};
+pub mod policies;
+use policies::{Metrics, Policy};
 
 /// How a played-out mission ended.
 #[derive(Debug, Clone, Copy)]
@@ -43,6 +45,24 @@ pub fn play_mission(
     data: &GameData,
     contract_id: &str,
     max_years: u32,
+) -> MissionOutcome {
+    play_with_policy(
+        sim,
+        data,
+        contract_id,
+        max_years,
+        Policy::Legacy,
+        &mut Metrics::default(),
+    )
+}
+
+pub fn play_with_policy(
+    sim: &mut SimState,
+    data: &GameData,
+    contract_id: &str,
+    max_years: u32,
+    policy: Policy,
+    metrics: &mut Metrics,
 ) -> MissionOutcome {
     let template = data
         .contracts
@@ -157,43 +177,48 @@ pub fn play_mission(
             break;
         }
 
-        // Standing orders: keep the hull off the floor and the galley stocked.
-        // Both verbs refuse (harmlessly) when they can't be paid for.
-        if sim.ship.hull_integrity < 0.5 {
-            let _ = projects::queue_project(sim, data, "restore_hull", None);
-        }
-        if sim.resources.food < data.config.low_food_threshold {
-            let _ = market::buy(sim, TradeResource::Food, 1000);
-        }
-        // Keep the subsystems mended and their knowledge alive when it's cheap
-        // and needed (W5) — underway recovery now uses the same Agenda queue
-        // as a human player, so automation cannot bypass project duration.
-        for id in crate::data::GameData::sorted_ids(&data.subsystems) {
-            let Some(sub) = sim.subsystems.get(&id) else {
-                continue;
-            };
-            let (condition, knowledge) = (sub.condition, sub.knowledge);
-            let required = data
-                .subsystems
-                .get(&id)
-                .map(|d| d.repair_knowledge_required)
-                .unwrap_or(1.0);
-            if knowledge < required && sim.resources.credits > 20_000 {
-                let _ = projects::queue_project(
-                    sim,
-                    data,
-                    "train_replacement_cohort",
-                    Some(id.clone()),
-                );
+        metrics.observe(sim, data, false);
+        if policy == Policy::Legacy {
+            // Standing orders: keep the hull off the floor and the galley stocked.
+            // Both verbs refuse (harmlessly) when they can't be paid for.
+            if sim.ship.hull_integrity < 0.5 {
+                let _ = projects::queue_project(sim, data, "restore_hull", None);
             }
-            if condition < 0.5 {
-                let _ = projects::queue_project(sim, data, "service_subsystem", Some(id));
+            if sim.resources.food < data.config.low_food_threshold {
+                let _ = market::buy(sim, TradeResource::Food, 1000);
             }
+            // Keep the subsystems mended and their knowledge alive when it's cheap
+            // and needed (W5) — underway recovery now uses the same Agenda queue
+            // as a human player, so automation cannot bypass project duration.
+            for id in crate::data::GameData::sorted_ids(&data.subsystems) {
+                let Some(sub) = sim.subsystems.get(&id) else {
+                    continue;
+                };
+                let (condition, knowledge) = (sub.condition, sub.knowledge);
+                let required = data
+                    .subsystems
+                    .get(&id)
+                    .map(|d| d.repair_knowledge_required)
+                    .unwrap_or(1.0);
+                if knowledge < required && sim.resources.credits > 20_000 {
+                    let _ = projects::queue_project(
+                        sim,
+                        data,
+                        "train_replacement_cohort",
+                        Some(id.clone()),
+                    );
+                }
+                if condition < 0.5 {
+                    let _ = projects::queue_project(sim, data, "service_subsystem", Some(id));
+                }
+            }
+        } else {
+            policies::act(sim, data, policy);
         }
-
         // Fly a decade per step (hard-stops on the next decision either way), so
         // the dumb policy still resolves everything in order (real-time loop).
-        let report = advance_months(sim, data, 120);
+        let report = advance_months(sim, data, if policy == Policy::Legacy { 120 } else { 1 });
+        metrics.observe(sim, data, true);
         outcome.final_year = sim.year();
         assert_year_invariants(sim);
         for faction in &sim.factions {
@@ -208,6 +233,10 @@ pub fn play_mission(
             }
         }
 
+        if report.terminal.is_some() || sim.terminal.is_some() {
+            outcome.extinct = true;
+            break;
+        }
         if let Some((score, _)) = report.contract_completed {
             outcome.completed = true;
             outcome.final_score = score;

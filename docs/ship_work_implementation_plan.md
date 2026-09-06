@@ -1,6 +1,6 @@
 # Stellar Legacy: ship work implementation plan
 
-Status: A–D implemented in 0.2.0; E release gates recorded 2026-09-07.
+Status: 0.2.1 corrects the implementation audit defects; automated cohort and regression evidence recorded 2026-09-07. Human acceptance gates remain open. See [validation](ship_work_validation.md).
 
 ## 1. Intended experience
 
@@ -416,10 +416,10 @@ Extend the existing autoplay services rather than simulating a separate game.
 4. **Additional slots/content:** only if two slots produce excessive blocking
    rather than interesting choices. Keep slots scarce and modifiers bounded.
 
-The first implementation task was milestone A. The complete first playable ship-work
-slice is now A through D; milestone E remains the release gate. The active regression
-suite, formatting check, and parameterless publisher pass, while the comparative
-balance cohort and human storefront/clean-machine playtest gates remain owned by
-release operations. This repository has no standalone `gdd.md` or
-`event_design_notes.md` file to update; README, event data/schema, TODO, and release
-records carry the shipped authoring guidance.
+The 0.2.0 statement that A through D were complete was too strong. The 0.2.1
+correction pass repairs the audited lifecycle, accounting, readiness, save, and
+survival defects and adds comparative automated evidence. See
+[the validation record](ship_work_validation.md) for results and remaining human
+gates. A successful publisher does not close milestone E. This repository has no
+standalone `gdd.md` or `event_design_notes.md`; README, event data/schema, TODO,
+and release records carry the shipped authoring guidance.
