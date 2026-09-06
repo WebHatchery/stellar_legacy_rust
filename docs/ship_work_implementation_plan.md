@@ -81,16 +81,20 @@ projects. Use repeatable work only when there is an actual deficit to address.
 
 - A queued job is an intention: no resources charged and no benefits granted.
   Starting rechecks cost, target, knowledge, unique-effect caps, and authority.
-- Deduct the full authored cost once when work starts. No recurring hidden drain
-  in the first release. The occupied slot is the ongoing opportunity cost.
-- Store elapsed work in integer months. Completion applies its result exactly
-  once and records the date. No collection button or completion decision modal.
-- Running jobs can be suspended or cancelled through visible controls. Suspension
-  preserves investment/progress and releases the slot; it does not restore costs.
-  Cancellation discards progress and returns no resources; preview this plainly.
+- Deduct the full authored cost into project escrow when work starts. Consume it
+  as work advances, tracking committed costs separately from unused materials.
+  The occupied slot is the ongoing opportunity cost; paused-work deterioration
+  is disclosed separately below, never a hidden recurring withdrawal.
+- Store elapsed work in integer months and record delivered milestones. Apply
+  each milestone or final result exactly once, with its date. No collection button
+  or completion decision modal. A project's final payout excludes prior deliveries.
+- Running jobs have visible PAUSE PROJECT and CANCEL PROJECT controls. Both release
+  the active slot. Pausing retains completed deliveries and unfinished progress;
+  cancellation retains completed deliveries, abandons unfinished progress, and
+  refunds recoverable unused materials. Preview the exact consequences first.
 - Queued and suspended work share the four-job waiting cap. Reorder with visible
   MOVE UP / MOVE DOWN controls; dragging is optional. Resuming uses the next free
-  slot and does not charge again.
+  slot and charges only the disclosed restoration cost, not the original budget.
 - Start the first eligible waiting job in player priority order; leave blocked
   jobs visible with a reason. Never silently replace the player's selection.
 - Evaluate eligibility and fixed monthly progress from the month's starting
@@ -103,8 +107,84 @@ projects. Use repeatable work only when there is an actual deficit to address.
 - Projects advance only during unpaused voyage months. On Homecoming, unfinished
   work carries into port suspended and resumes next voyage if still eligible.
   Port actions revalidate affected jobs; no hidden instant project completion.
+  Port suspension incurs no ageing because the simulation clock is frozen there.
 - Save running, waiting, suspended, and completed-capability state. No offline
   advancement or calendar-time catch-up in this release.
+
+### Optional pivots, partial delivery, and resumption costs
+
+Events change priorities in both directions. A food disaster may justify pausing
+housing to restore agriculture; discovering abundant food may justify pausing
+agriculture and finishing housing. Readiness updates recommendations, but never
+pauses, cancels, or reprioritises work for the player. Keeping the original plan is
+always an option. Resource relief does not undo completed projects or auto-cancel
+their remaining stages. Temporary relief shows its estimated duration and expiry.
+
+Treat completed useful work differently from unfinished construction. Definitions
+declare whether work is divisible and list its delivery milestones. For a project
+to build ten housing units, completing five delivers five units' authored benefit
+permanently; pausing or cancelling the other five does not demolish them. Housing
+units are an illustrative project output, not a requirement for room placement or
+a new construction simulation. Map actual projects to existing statistics: quarters
+restoration can deliver bounded recovery in stages. Seed-programme event access
+and other indivisible capabilities unlock only when fully completed; half a seed
+programme cannot unlock the full response. Show this distinction before starting.
+
+Use the following initial accounting policy, with rates authored in project data
+and tuned in milestone E:
+
+- Original costs are allocated across work stages. Labour/effort already spent,
+  delivered benefits, and materials committed to unfinished work are not refunded.
+  Each resource cost explicitly declares whether its unused escrow is refundable;
+  physical stocks default to refundable, while influence/effort do not.
+- Cancelling returns **80% of remaining recoverable escrow** as an initial tuning
+  value. Show amounts in the game's real resource units, not “80% of total cost.”
+  Never refund more than the remaining escrow or refund the same investment twice.
+- Pausing pays no refund and makes no immediate progress reduction. After a
+  **12-simulation-month grace period**, each additional paused month adds restoration
+  debt worth **1% of the original material budget of the unfinished stages**, capped
+  at **25% of that budget**. These are initial tuning values. Delivered stages never
+  contribute to the debt; nonmaterial costs do not deteriorate into material costs.
+- Debt represents spoiled stock and work that needs restoring. It reduces the
+  corresponding recoverable escrow first. Any amount beyond escrow remains a
+  cost to resume, not a bill on cancellation. Cancellation refunds 80% of the
+  remaining recoverable escrow after this deduction. This makes a long pause
+  costly without taking resources from the ship invisibly.
+- Resuming pays the accumulated debt once, restores damaged escrow, and preserves
+  unfinished progress. Display exact extra resources and remaining duration.
+  If unaffordable, leave the job paused with a clear reason; other work can proceed.
+  Preserve fractional accounting internally and round only for display, so repeated
+  pause/resume cannot create materials through rounding.
+- Track cumulative paused months per unfinished stage. Brief resumption does not
+  reset its grace allowance. Paying restoration clears paid debt, not that history;
+  genuinely finishing a stage removes it from future deterioration. Bound lifetime
+  deterioration per stage by the same 25% cap to avoid repeated-charge traps.
+- Expertise loss uses the same paused accounting and shows its cause. Global PAUSE,
+  blocking decisions, port time, and a closed application accrue no paused months.
+  A project deliberately paused while other work advances does accrue them.
+
+For example, a divisible housing job costs 100 Parts and is halfway through ten
+equal stages: five units are delivered, 50 Parts committed, and 50 remain in escrow.
+Immediate cancellation keeps the five units and refunds 40 Parts. Pausing keeps
+the five units and the 50 Parts reserved. After 18 paused months, six months are
+beyond grace: restoration debt is 3 Parts, leaving 47 recoverable Parts. Resuming
+costs 3 additional Parts; cancelling instead refunds 37.6 Parts before display
+rounding. This arithmetic example is not the final housing balance.
+
+The Agenda preview compares CONTINUE, PAUSE PROJECT, and CANCEL PROJECT: benefits
+already delivered, remaining work, immediate refund, restoration cost now, and
+the next deterioration date/cap. A paused card includes RESUME PROJECT and CANCEL
+PROJECT. Starting a replacement requires the ordinary explicit QUEUE action; never
+assume which other project the player wants to sacrifice. Reuse the existing
+confirmation pattern for cancellation with its concrete refund and retained output.
+
+Acceptance story: housing is half complete when a crop crisis arrives. The player
+pauses housing, starts food work in the released slot, and keeps the housing already
+delivered. A later discovery covers projected food needs for 12 months. The player
+may leave food work running, pause it and resume housing, or cancel another project
+for materials. When relief expires, forecasts and recommendations update without
+silently changing the queue. The same scenario must also support cancellation with
+a partial refund and eventual loss if the player neglects a warned critical need.
 
 Use constant progress initially rather than another crew-capacity simulation.
 Add speed modifiers only if later evidence warrants their forecasting complexity.
@@ -204,7 +284,7 @@ Add small modules beside the existing systems:
 | Proposed module | Responsibility |
 | --- | --- |
 | `src/data/projects.rs` and `assets/projects.json` | Typed definitions, effects, prerequisites, catalogue validation |
-| `src/state/sim/projects.rs` | Serializable project state, unique capabilities, stable sequence IDs |
+| `src/state/sim/projects.rs` | Serializable project state, stage deliveries, cost/escrow ledger, pause age/debt, unique capabilities, stable sequence IDs |
 | `src/state/sim/issues.rs` | Persisted active/resolved issue references and warning acknowledgement |
 | `src/simulation/projects.rs` with child modules | Eligibility, payment, queue commands, progression, completion |
 | `src/simulation/readiness.rs` | Pure readiness/forecast/recommendation models shared by UI and autoplay |
@@ -261,7 +341,10 @@ Do not call the whole feature released until milestone E passes.
   commands so old instant actions cannot bypass duration. Keep port behavior.
 - Gate: complete a service and training project through visible controls;
   suspension/reorder/reload preserve progress and costs; insufficient funds and
-  lost expertise give precise reasons; no duplicate completion effects.
+  lost expertise give precise reasons; no duplicate completion effects. Cancellation
+  refunds only recoverable escrow; staged deliveries survive cancellation; pause
+  debt follows the disclosed grace, resource types, and cap. The housing/food pivot
+  acceptance story above is supported by deterministic fixtures and visible controls.
 
 ### C — Readiness and persistent consequences
 
@@ -310,7 +393,11 @@ Do not call the whole feature released until milestone E passes.
 Test annual/monthly completion boundaries; equivalent seeded outcomes at each
 speed; no advancement while paused, in port, or on a blocking decision; event
 damage during a repair; knowledge loss and training recovery; queue affordability
-changes; cancel/resume without duplication; old/new save round-trips; delegated
+changes; partial refunds; delivered stages surviving cancellation; grace/debt/cap
+boundaries; repeated pause/resume without refunds or benefit duplication; restoration
+affordability; partial-stage cancellation; no ageing on global pause or in port;
+temporary food relief expiring without queue mutation; old/new save round-trips
+including escrow, paid debt, and pause history; delegated
 and timed aftermath; warning deduplication; gate capability availability; and
 failure during event resolution, project processing, and charter completion.
 Extend the existing autoplay services rather than simulating a separate game.
