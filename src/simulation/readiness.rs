@@ -25,6 +25,7 @@ impl ReadinessBand {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FoodReadiness {
+    pub annual_spoilage: i64,
     pub annual_output: i64,
     pub annual_consumption: i64,
     pub annual_route_toll: i64,
@@ -44,6 +45,7 @@ pub struct FuelReadiness {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReadinessRow {
+    pub score: f32,
     pub id: String,
     pub concern: String,
     pub band: ReadinessBand,
@@ -85,8 +87,11 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         .max(1.0) as i64;
     let route_toll = active_route_food_toll(sim, data);
     let annual_consumption = consumption + (-route_toll).max(0);
-    let net = output - consumption + route_toll;
-    let gross_years = sim.resources.food as f32 / annual_consumption.max(1) as f32;
+    let after_food =
+        (sim.resources.food.saturating_add(route_toll).max(0) + output - consumption).max(0);
+    let spoilage = food_spoilage(after_food, &data.config);
+    let net = output - consumption + route_toll - spoilage;
+    let gross_years = sim.resources.food as f32 / consumption.max(1) as f32;
     let deficit_years = (net < 0).then(|| sim.resources.food as f32 / (-net) as f32);
     let food_score = if net >= 0 {
         (gross_years / 10.0).clamp(0.0, 1.0)
@@ -102,10 +107,11 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
     let fuel_score = if remaining_burn <= 0.0 {
         1.0
     } else {
-        (sim.ship.fuel + annual_scoop * (travel_months as f32 / 12.0) / remaining_burn)
+        ((sim.ship.fuel + annual_scoop * (travel_months as f32 / 12.0)) / remaining_burn)
             .clamp(0.0, 1.0)
     };
     let food = FoodReadiness {
+        annual_spoilage: spoilage,
         annual_output: output,
         annual_consumption,
         annual_route_toll: route_toll,
@@ -134,8 +140,9 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
     let knowledge_score = if sim.subsystems.is_empty() {
         0.0
     } else {
-        sim.subsystems
-            .values()
+        GameData::sorted_ids(&data.subsystems)
+            .iter()
+            .filter_map(|id| sim.subsystems.get(id))
             .map(|state| state.knowledge)
             .sum::<f32>()
             / sim.subsystems.len() as f32
@@ -162,8 +169,16 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
                 engineering_score * 100.0
             ),
             trend(engineering_score),
-            "service_subsystem",
-            Some("engineering_bay"),
+            if sim.ship.hull_integrity < data.config.readiness.stable_threshold {
+                "restore_hull"
+            } else {
+                "service_subsystem"
+            },
+            if sim.ship.hull_integrity < data.config.readiness.stable_threshold {
+                None
+            } else {
+                Some("engineering_bay")
+            },
         ),
         row(
             "life_support",
@@ -197,7 +212,7 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
             None,
         ),
     ];
-    if fuel.score < 0.75 {
+    {
         rows.push(row(
             "fuel",
             "FUEL",
@@ -212,11 +227,55 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         ));
     }
     for row in &mut rows {
-        if (row.band == ReadinessBand::Strong || row.band == ReadinessBand::Stable)
-            && (row.id != "food" || food.net_per_year < 0)
-        {
+        row.score = match row.id.as_str() {
+            "food" => food.score,
+            "fuel" => fuel.score,
+            "engineering" => engineering_score,
+            "life_support" => air_score,
+            "knowledge" => knowledge_score,
+            _ => cohesion_score,
+        };
+        let previous = sim.projects.readiness_history.get(&row.id);
+        if let Some(previous) = previous {
+            let rank = band_rank(row.band);
+            if rank > previous.band {
+                let threshold = match rank {
+                    3 => data.config.readiness.strong_threshold,
+                    2 => data.config.readiness.stable_threshold,
+                    _ => data.config.readiness.vulnerable_threshold,
+                };
+                if row.score < threshold + data.config.readiness.recovery_hysteresis {
+                    row.band = rank_band(previous.band);
+                }
+            }
+            let delta = row.score - previous.score;
+            row.trend = if delta.abs() < 1e-5 {
+                previous.trend.clone()
+            } else if delta > 0.0 {
+                "IMPROVING".into()
+            } else {
+                "FALLING".into()
+            };
+        } else {
+            row.trend = "NO PRIOR READING".into();
+        }
+        if row.id == "food" {
+            row.trend = if food.net_per_year > 0 {
+                "STORES GROWING"
+            } else if food.net_per_year < 0 {
+                "STORES DEPLETING"
+            } else {
+                "STORES BALANCED"
+            }
+            .into();
+        }
+        if row.band == ReadinessBand::Strong || row.band == ReadinessBand::Stable {
             row.recommended_project = None;
             row.recommended_target = None;
+        }
+        if row.id == "food" && sim.issues.has_active("agriculture_blight") {
+            row.recommended_project = Some("sterilise_damaged_growing_systems".into());
+            row.recommended_target = Some("agriculture".into());
         }
     }
     rows.sort_by_key(|row| match row.band {
@@ -238,6 +297,7 @@ fn row(
     target: Option<&str>,
 ) -> ReadinessRow {
     ReadinessRow {
+        score: 0.0,
         id: id.to_owned(),
         concern: concern.to_owned(),
         band,
@@ -256,20 +316,58 @@ fn format_food(food: &FoodReadiness) -> String {
     format!("{:.1} gross years · {net}", food.gross_reserve_years)
 }
 
-fn trend(value: f32) -> String {
-    if value < 0.35 {
-        "FALLING".to_owned()
-    } else if value > 0.8 {
-        "READY".to_owned()
-    } else {
-        "WATCH".to_owned()
+fn trend(_value: f32) -> String {
+    "NO PRIOR READING".to_owned()
+}
+
+pub fn food_spoilage(stores: i64, config: &crate::data::GameConfig) -> i64 {
+    if config.food_carrying_capacity <= 0 {
+        return 0;
+    }
+    ((stores - config.food_carrying_capacity).max(0) as f32 * config.food_spoilage_fraction).round()
+        as i64
+}
+
+fn band_rank(band: ReadinessBand) -> u8 {
+    match band {
+        ReadinessBand::Critical => 0,
+        ReadinessBand::Vulnerable => 1,
+        ReadinessBand::Stable => 2,
+        ReadinessBand::Strong => 3,
+    }
+}
+fn rank_band(rank: u8) -> ReadinessBand {
+    match rank {
+        0 => ReadinessBand::Critical,
+        1 => ReadinessBand::Vulnerable,
+        2 => ReadinessBand::Stable,
+        _ => ReadinessBand::Strong,
+    }
+}
+
+/// Store observations only at authoritative updates, never during UI drawing.
+pub fn refresh(sim: &mut SimState, data: &GameData) {
+    for row in forecast(sim, data).rows {
+        sim.projects.readiness_history.insert(
+            row.id,
+            crate::state::sim::projects::ReadinessSample {
+                score: row.score,
+                band: band_rank(row.band),
+                trend: row.trend,
+            },
+        );
     }
 }
 
 fn weakest_knowledge(sim: &SimState) -> Option<&str> {
     sim.subsystems
         .iter()
-        .min_by(|left, right| left.1.knowledge.total_cmp(&right.1.knowledge))
+        .min_by(|left, right| {
+            left.1
+                .knowledge
+                .total_cmp(&right.1.knowledge)
+                .then_with(|| left.0.cmp(right.0))
+        })
         .map(|(id, _)| id.as_str())
 }
 

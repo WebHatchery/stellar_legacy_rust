@@ -159,8 +159,7 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
     // stores loses nothing and only a deep hoard erodes, asymptoting toward the line it can
     // actually keep. Bounds the abundance without forbidding a prudent reserve.
     if config.food_carrying_capacity > 0 && sim.resources.food > config.food_carrying_capacity {
-        let excess = sim.resources.food - config.food_carrying_capacity;
-        let spoiled = (excess as f32 * config.food_spoilage_fraction).round() as i64;
+        let spoiled = crate::simulation::readiness::food_spoilage(sim.resources.food, config);
         if spoiled > 0 {
             sim.resources.food -= spoiled;
             let pool = &data.config.flavor.food_spoilage;

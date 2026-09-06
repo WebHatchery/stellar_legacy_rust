@@ -168,6 +168,7 @@ pub struct Game {
     debrief_log_scroll: Cell<ScrollArea>,
     /// Smooth-scroll state for the Custodian Agenda catalogue and project log.
     agenda_scroll: Cell<ScrollArea>,
+    agenda_readiness_scroll: Cell<ScrollArea>,
     /// Session-local cancellation preview for one Agenda job.
     project_cancel_confirm: Cell<Option<u64>>,
     /// SHIP builder sub-tab: `false` = LOADOUT (hull/engine/weapon catalog),
@@ -264,6 +265,7 @@ impl Game {
             debrief_commanders_scroll: Cell::new(ScrollArea::new()),
             debrief_log_scroll: Cell::new(ScrollArea::new()),
             agenda_scroll: Cell::new(ScrollArea::new()),
+            agenda_readiness_scroll: Cell::new(ScrollArea::new()),
             project_cancel_confirm: Cell::new(None),
             ship_modules_tab: Cell::new(false),
             ship_preview: Cell::new((0, -100.0)),
@@ -481,6 +483,7 @@ impl Game {
                     debrief_commanders_scroll: &self.debrief_commanders_scroll,
                     debrief_log_scroll: &self.debrief_log_scroll,
                     agenda_scroll: &self.agenda_scroll,
+                    agenda_readiness_scroll: &self.agenda_readiness_scroll,
                     project_cancel_confirm: &self.project_cancel_confirm,
                     ship_modules_tab: &self.ship_modules_tab,
                     ship_preview: &self.ship_preview,

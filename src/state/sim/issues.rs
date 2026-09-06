@@ -24,6 +24,7 @@ impl IssueSeverity {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Issue {
+    pub food_production_penalty: f32,
     pub id: String,
     pub source: String,
     pub target: String,
@@ -40,6 +41,7 @@ pub struct Issue {
 impl Default for Issue {
     fn default() -> Self {
         Self {
+            food_production_penalty: 0.0,
             id: String::new(),
             source: String::new(),
             target: String::new(),

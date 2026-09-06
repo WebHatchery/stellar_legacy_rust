@@ -182,6 +182,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
         sim.push_log(format!("The last of {name} is gone."));
     }
 
+    crate::simulation::readiness::refresh(sim, data);
     sim.trim_log(data.config.log_limit);
     report
 }

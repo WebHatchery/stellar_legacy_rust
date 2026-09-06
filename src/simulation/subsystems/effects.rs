@@ -126,6 +126,10 @@ pub fn agriculture_food_bonus(sim: &SimState, data: &GameData) -> f32 {
         .map(|s| s.tier)
         .unwrap_or(0);
     tier as f32 * data.config.subsystems.agriculture_food_bonus_per_tier
+        + sim
+            .projects
+            .hydroponics_bonus
+            .min(data.config.projects.maximum_hydroponics_bonus)
 }
 
 /// Food-yield multiplier from the agriculture bay's *condition* (content-depth
@@ -135,14 +139,19 @@ pub fn agriculture_food_bonus(sim: &SimState, data: &GameData) -> f32 {
 /// year rather than only staving off a breakdown. A missing bay counts as neutral.
 pub fn agriculture_condition_food_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.agriculture_condition_food_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("agriculture")
         .map_or(1.0, |s| s.condition);
-    (1.0 - penalty * (1.0 - condition)).max(0.0)
+    let aftermath = sim
+        .issues
+        .active
+        .iter()
+        .map(|issue| issue.food_production_penalty)
+        .sum::<f32>()
+        .clamp(0.0, 0.5);
+    (1.0 - penalty * (1.0 - condition)).max(0.0) * (1.0 - aftermath)
 }
 
 /// Crew lost this year to a life-support/habitat plant that cannot sustain everyone
@@ -230,9 +239,7 @@ pub fn medical_famine_relief(sim: &SimState, data: &GameData) -> f32 {
 /// pristine bay is the baseline; 1.0 when the coupling is off or the module is gone.
 pub fn engineering_fuel_burn_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.engineering_fuel_burn_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("engineering_bay")
@@ -251,9 +258,7 @@ pub fn engineering_fuel_burn_factor(sim: &SimState, data: &GameData) -> f32 {
 /// full condition, when the penalty is 0, or when the bay is gone.
 pub fn engineering_fuel_regen_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.engineering_fuel_regen_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("engineering_bay")
@@ -271,9 +276,7 @@ pub fn engineering_fuel_regen_factor(sim: &SimState, data: &GameData) -> f32 {
 /// keeps the normal rate — and 1.0 when the coupling is off or the module is gone.
 pub fn engineering_hull_decay_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.engineering_hull_decay_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("engineering_bay")
@@ -292,9 +295,7 @@ pub fn engineering_hull_decay_factor(sim: &SimState, data: &GameData) -> f32 {
 /// ship's own manufacturing. 1.0 (inert) when the penalty is 0 or the bay is absent.
 pub fn engineering_fabrication_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.engineering_fabrication_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("engineering_bay")
@@ -381,9 +382,7 @@ pub fn security_spread_relief_factor(sim: &SimState, data: &GameData) -> f32 {
 /// deadlock). 1.0 (inert) when the penalty is 0 or the academy is absent.
 pub fn education_training_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.education_training_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("education_culture")
@@ -436,9 +435,7 @@ pub fn education_morale_effect(sim: &SimState, data: &GameData) -> f32 {
 /// gone (renewal unchanged).
 pub fn habitat_renewal_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.habitat_renewal_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("life_support_habitat")
@@ -457,9 +454,7 @@ pub fn habitat_renewal_factor(sim: &SimState, data: &GameData) -> f32 {
 /// the coupling is off or the module is gone.
 pub fn medical_renewal_factor(sim: &SimState, data: &GameData) -> f32 {
     let penalty = data.config.subsystems.medical_renewal_penalty;
-    if penalty == 0.0 {
-        return 1.0;
-    }
+
     let condition = sim
         .subsystems
         .get("medical_bay")

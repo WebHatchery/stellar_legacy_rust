@@ -155,6 +155,7 @@ pub struct ProjectState {
     pub hydroponics_bonus: f32,
     /// Fractional change retained when settling against integer ship stores.
     pub settlement_balance: ProjectAmounts,
+    pub readiness_history: std::collections::BTreeMap<String, ReadinessSample>,
 }
 
 impl ProjectState {
@@ -182,4 +183,11 @@ impl ProjectState {
             .iter_mut()
             .find(|job| job.sequence_id == sequence_id)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadinessSample {
+    pub score: f32,
+    pub band: u8,
+    pub trend: String,
 }

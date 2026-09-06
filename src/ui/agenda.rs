@@ -6,7 +6,7 @@
 
 use crate::data::projects::ProjectTarget;
 use crate::simulation::{projects as project_sim, readiness};
-use crate::state::sim::{IssueSeverity, ProjectAmounts, ProjectStatus};
+use crate::state::sim::{ProjectAmounts, ProjectStatus};
 use crate::ui::{
     spec_line, term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
 };
@@ -16,8 +16,11 @@ use macroquad_toolkit::ui::{
     draw_text_block, draw_ui_text_ex, is_fully_visible, occlude, Pointer, RectExt,
 };
 
+mod readiness_panel;
+use readiness_panel::draw_readiness;
+
 const GUTTER: f32 = 14.0;
-const ROW_H: f32 = 138.0;
+const ROW_H: f32 = 160.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
@@ -32,140 +35,11 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         area.w - left_w - 12.0,
         area.h,
     );
-    draw_readiness(ctx, left, pointer);
+    draw_readiness(ctx, left, pointer, actions);
     draw_work_board(ctx, right, pointer, actions);
 
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
         draw_cancel_preview(ctx, sequence_id, pointer, actions);
-    }
-}
-
-fn draw_readiness(ctx: &GameplayCtx<'_>, area: Rect, _pointer: Pointer) {
-    term_panel(area, Some("READINESS // CUSTODIAN READOUT"));
-    let content = area.inset(18.0);
-    let model = readiness::forecast(ctx.sim, ctx.data);
-    draw_ui_text_ex(
-        "WATCH THE NEXT EVENT, NOT JUST THE LAST ONE",
-        content.x,
-        content.y + 16.0,
-        TextStyle::new(11.0, term::faint()).params(),
-    );
-    let mut y = content.y + 42.0;
-    for row in model.rows.iter().take(6) {
-        let color = band_color(row.band);
-        draw_ui_text_ex(
-            &row.concern,
-            content.x,
-            y,
-            TextStyle::new(14.0, term::primary()).params(),
-        );
-        draw_text_right(
-            row.band.label(),
-            content.right(),
-            y,
-            TextStyle::new(14.0, color),
-        );
-        draw_ui_text_ex(
-            &format!("{} · {}", row.evidence, row.trend),
-            content.x,
-            y + 19.0,
-            TextStyle::new(11.0, term::dim()).params(),
-        );
-        y += 48.0;
-    }
-    draw_line(
-        content.x,
-        y - 9.0,
-        content.right(),
-        y - 9.0,
-        1.0,
-        term::faint(),
-    );
-    draw_ui_text_ex(
-        &format!(
-            "FOOD: {} output · {} used · {} net/yr",
-            model.food.annual_output, model.food.annual_consumption, model.food.net_per_year
-        ),
-        content.x,
-        y + 12.0,
-        TextStyle::new(11.0, term::accent()).params(),
-    );
-    draw_ui_text_ex(
-        &format!(
-            "RESERVE: {:.1} gross years{}",
-            model.food.gross_reserve_years,
-            model.food.net_deficit_years.map_or_else(
-                || " · SURPLUS".to_owned(),
-                |years| format!(" · {:.1} deficit years", years)
-            )
-        ),
-        content.x,
-        y + 29.0,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-    draw_ui_text_ex(
-        &format!(
-            "FUEL: {} travel months · burn {:.2} · scoop {:.2}/yr",
-            model.fuel.remaining_travel_months, model.fuel.remaining_burn, model.fuel.annual_scoop
-        ),
-        content.x,
-        y + 46.0,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-
-    let issue_top = area.y + area.h - 176.0;
-    draw_line(
-        content.x,
-        issue_top - 12.0,
-        content.right(),
-        issue_top - 12.0,
-        1.0,
-        term::faint(),
-    );
-    draw_ui_text_ex(
-        &format!("AFTERMATH // {} ACTIVE", ctx.sim.issues.active.len()),
-        content.x,
-        issue_top,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    if ctx.sim.issues.active.is_empty() {
-        draw_ui_text_ex(
-            "No open maintenance or event aftermath.",
-            content.x,
-            issue_top + 26.0,
-            TextStyle::new(12.0, term::dim()).params(),
-        );
-    } else {
-        for (index, issue) in ctx.sim.issues.active.iter().take(3).enumerate() {
-            let y = issue_top + 24.0 + index as f32 * 38.0;
-            let color = if issue.severity == IssueSeverity::Notice {
-                term::dim()
-            } else {
-                term::alert()
-            };
-            draw_ui_text_ex(
-                &issue.id.replace('_', " ").to_uppercase(),
-                content.x,
-                y,
-                TextStyle::new(12.0, color).params(),
-            );
-            let due = issue.due_month.map_or_else(
-                || "NO DEADLINE".to_owned(),
-                |month| format!("DUE Y{:03}.{:02}", month / 12, month % 12 + 1),
-            );
-            draw_text_right(&due, content.right(), y, TextStyle::new(11.0, term::dim()));
-            draw_ui_text_ex(
-                &format!(
-                    "{} · {} · RECOVER: {}",
-                    issue.severity.label(),
-                    issue.source,
-                    issue.recovery_project_ids.join(", ")
-                ),
-                content.x,
-                y + 16.0,
-                TextStyle::new(10.0, term::faint()).params(),
-            );
-        }
     }
 }
 
@@ -363,7 +237,7 @@ fn draw_job(
         row.y + 51.0,
         TextStyle::new(10.0, term::dim()).params(),
     );
-    let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 48.0);
+    let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 60.0);
     if matches!(
         job.status,
         ProjectStatus::Queued | ProjectStatus::Running | ProjectStatus::Paused
@@ -372,8 +246,8 @@ fn draw_job(
         actions.push(UiAction::PreviewCancelProject(job.sequence_id));
     }
     if job.is_waiting() {
-        let up = Rect::new(row.x + 184.0, row.y + 76.0, 116.0, 48.0);
-        let down = Rect::new(row.x + 310.0, row.y + 76.0, 136.0, 48.0);
+        let up = Rect::new(row.x + 184.0, row.y + 76.0, 116.0, 60.0);
+        let down = Rect::new(row.x + 310.0, row.y + 76.0, 136.0, 60.0);
         if term_button(up, "MOVE UP", true, pointer) {
             actions.push(UiAction::MoveProject {
                 sequence_id: job.sequence_id,
@@ -414,15 +288,10 @@ fn draw_choice(
     );
     let cost = format_cost(ProjectAmounts::from_cost(definition.cost.clone()));
     draw_ui_text_ex(
-        &format!(
-            "{} · {}y · {}",
-            definition.description,
-            definition.duration_months.div_ceil(12),
-            cost
-        ),
+        &format!("{} months / {}", definition.duration_months, cost),
         row.x + 10.0,
         row.y + 35.0,
-        TextStyle::new(10.0, term::dim()).params(),
+        TextStyle::new(12.0, term::dim()).params(),
     );
     draw_ui_text_ex(
         &if definition.divisible {
@@ -437,7 +306,7 @@ fn draw_choice(
         row.y + 69.0,
         TextStyle::new(11.0, term::dim()).params(),
     );
-    let button = Rect::new(row.x + 10.0, row.y + 78.0, 116.0, 48.0);
+    let button = Rect::new(row.x + 10.0, row.y + 78.0, 116.0, 60.0);
     if term_button(
         button,
         if choice.eligible { "QUEUE" } else { "BLOCKED" },
@@ -454,7 +323,7 @@ fn draw_choice(
         draw_ui_text_ex(
             &choice.reason,
             row.x + 10.0,
-            row.y + 52.0,
+            row.y + 149.0,
             TextStyle::new(10.0, term::alert()).params(),
         );
     }
@@ -477,7 +346,9 @@ fn draw_cancel_preview(
     occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
     let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 460.0, 105.0, 920.0, 520.0);
     term_panel(panel, Some("PROJECT OPTIONS // EXACT ACCOUNTING"));
-    let content = panel.inset(24.0);
+    let mut content = panel.inset(24.0);
+    content.y += 16.0;
+    content.h -= 16.0;
     draw_ui_text_ex(
         &definition.name,
         content.x,
@@ -549,17 +420,21 @@ fn draw_cancel_preview(
     let next = if job.paused_months < ctx.data.config.projects.pause_grace_months {
         format!(
             "after {} more paused months",
-            ctx.data.config.projects.pause_grace_months - job.paused_months
+            ctx.data.config.projects.pause_grace_months + 1 - job.paused_months
         )
     } else {
-        "already accruing each simulation month (cap 25% of unfinished materials)".to_owned()
+        "accrues each voyage month".to_owned()
     };
     spec_line(
         content.x,
         y,
         content.w,
         "PAUSE DETERIORATION",
-        &next,
+        &format!(
+            "{}; cap {:.0}% per unfinished stage",
+            next,
+            ctx.data.config.projects.pause_debt_cap_fraction * 100.0
+        ),
         term::dim(),
     );
     y += 30.0;
@@ -568,11 +443,11 @@ fn draw_cancel_preview(
         content.x, y, content.w, 64.0, 13.0, 3.0, term::dim(),
     );
     let bottom = panel.bottom() - 68.0;
-    let keep = Rect::new(content.x, bottom, 180.0, 48.0);
+    let keep = Rect::new(content.x, bottom, 180.0, 60.0);
     if term_button(keep, "CONTINUE", true, pointer) {
         actions.push(UiAction::DismissCancelProject);
     }
-    let pivot = Rect::new(content.x + 194.0, bottom, 210.0, 48.0);
+    let pivot = Rect::new(content.x + 194.0, bottom, 210.0, 60.0);
     if job.status == ProjectStatus::Running && term_button(pivot, "PAUSE PROJECT", true, pointer) {
         actions.push(UiAction::PauseProject(sequence_id));
         actions.push(UiAction::DismissCancelProject);
@@ -581,7 +456,7 @@ fn draw_cancel_preview(
         actions.push(UiAction::ResumeProject(sequence_id));
         actions.push(UiAction::DismissCancelProject);
     }
-    let confirm = Rect::new(content.right() - 235.0, bottom, 235.0, 48.0);
+    let confirm = Rect::new(content.right() - 235.0, bottom, 235.0, 60.0);
     if term_button(confirm, "CONFIRM CANCEL", true, pointer) {
         actions.push(UiAction::CancelProject(sequence_id));
     }

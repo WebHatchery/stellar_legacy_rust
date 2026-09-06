@@ -16,6 +16,9 @@ pub fn record_event_issue(sim: &mut SimState, spec: &IssueSpec, source: &str) {
         .iter_mut()
         .find(|issue| issue.id == spec.id)
     {
+        issue.food_production_penalty = issue
+            .food_production_penalty
+            .max(spec.food_production_penalty);
         issue.severity = issue.severity.max(spec.severity);
         issue.due_month = match (issue.due_month, due_month) {
             (Some(current), Some(next)) => Some(current.min(next)),
@@ -30,6 +33,7 @@ pub fn record_event_issue(sim: &mut SimState, spec: &IssueSpec, source: &str) {
         return;
     }
     sim.issues.active.push(Issue {
+        food_production_penalty: spec.food_production_penalty,
         id: spec.id.clone(),
         source: source.to_owned(),
         target: spec.target.clone(),
@@ -81,6 +85,7 @@ pub fn refresh_maintenance_issues(sim: &mut SimState, data: &GameData) {
             continue;
         }
         let spec = IssueSpec {
+            food_production_penalty: 0.0,
             id: issue_id,
             target: id.clone(),
             severity: if state.condition <= threshold * 0.65 {

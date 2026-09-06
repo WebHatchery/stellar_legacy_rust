@@ -64,6 +64,7 @@ pub struct GameplayCtx<'a> {
     pub debrief_log_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Smooth-scroll state for the Custodian Agenda catalogue and project log.
     pub agenda_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
+    pub agenda_readiness_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// The one-frame cancellation preview selected by the Agenda.
     pub project_cancel_confirm: &'a std::cell::Cell<Option<u64>>,
     /// SHIP builder sub-tab: `false` = LOADOUT catalog, `true` = MODULES (named

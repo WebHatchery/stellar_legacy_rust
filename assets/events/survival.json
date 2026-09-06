@@ -246,6 +246,7 @@
     "log": "The trays were scoured to bare metal and sown again from the last clean stock. It cost dearly, and it might yet hold."
    ,"issue": {
     "id": "agriculture_blight",
+    "food_production_penalty": 0.10,
     "target": "agriculture",
     "severity": "critical",
     "recovery_project_ids": ["sterilise_damaged_growing_systems"]

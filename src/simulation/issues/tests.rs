@@ -16,6 +16,7 @@ fn campaign() -> (GameData, crate::state::sim::SimState) {
 fn repeated_aftermath_merges_instead_of_duplicating() {
     let (_data, mut sim) = campaign();
     let spec = IssueSpec {
+        food_production_penalty: 0.0,
         id: "crop".to_owned(),
         target: "agriculture".to_owned(),
         severity: IssueSeverity::Vulnerable,

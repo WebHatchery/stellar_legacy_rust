@@ -314,6 +314,8 @@ pub struct EventOutcome {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueSpec {
+    #[serde(default)]
+    pub food_production_penalty: f32,
     pub id: String,
     pub target: String,
     pub severity: crate::state::sim::IssueSeverity,

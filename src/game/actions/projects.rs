@@ -8,6 +8,7 @@ use crate::ui::UiAction;
 impl Game {
     pub(super) fn check_terminal_after_action(&mut self) {
         let outcome = if let GameState::Gameplay(gameplay) = &mut self.state {
+            crate::simulation::readiness::refresh(&mut gameplay.sim, &self.data);
             survival::observe_air_warning(&mut gameplay.sim, &self.data);
             survival::check_and_record(&mut gameplay.sim, &self.data)
         } else {

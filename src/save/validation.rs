@@ -105,6 +105,11 @@ pub(super) fn validate(sim: &SimState, data: &GameData) -> Result<(), String> {
     }
     let mut active = HashSet::new();
     for issue in sim.issues.active.iter().chain(&sim.issues.resolved) {
+        if !issue.food_production_penalty.is_finite()
+            || !(0.0..=0.5).contains(&issue.food_production_penalty)
+        {
+            return Err("Invalid ongoing issue penalty.".into());
+        }
         if data.subsystems.get(&issue.target).is_none()
             || issue
                 .recovery_project_ids
