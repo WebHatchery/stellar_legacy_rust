@@ -105,6 +105,8 @@ Design and contributor references:
 - [Content direction](content_depth.md): guidelines for deepening the game.
 - [Event authoring](event_design_notes.md): event structure and content rules.
 - [Open work](TODO.md): outstanding tasks.
+- [Ship work implementation plan](docs/ship_work_implementation_plan.md): proposed
+  semi-idle projects, readiness, aftermath, and survival rules.
 - [Release documentation](docs/release/): packaging, QA, and release records.
 
 From the project directory, build, validate, and deploy the normal Windows and

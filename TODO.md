@@ -3,8 +3,19 @@
 Standing direction for content passes lives in `content_depth.md`; this file holds only
 the discrete open items left behind by finished workstreams.
 
-No discrete TODO items remain. The ship schematic pass is complete; future work belongs
-in the standing direction documents above or in a newly authored item here.
+## Ship work (planned, not implemented)
+
+Implementation details and acceptance gates live in
+[the ship work plan](docs/ship_work_implementation_plan.md).
+
+- [ ] A: Baseline and explicit survival/recovery contract.
+- [ ] B: Custodian project queue and actionable interface.
+- [ ] C: Readiness, maintenance, and persistent event aftermath.
+- [ ] D: Preparation payoffs and touch-first tutorial.
+- [ ] E: Comparative balance validation, accessibility, and release documentation.
+
+Protected reserves, named development programmes, standing orders, and additional
+project slots are deferred until this core is validated.
 
 ## Identity implementation record
 
