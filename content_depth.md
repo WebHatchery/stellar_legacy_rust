@@ -1,5 +1,15 @@
 # Stellar Legacy — Content Depth (long-term, non-deterministic goal)
 
+## Identity continuity bar
+
+The standing Custodian is the player identity across the whole campaign. Content should
+name the captain or council when a human actor speaks, preserve recorded promises across
+succession, and treat empathy values as perceived conduct assembled from outcomes. A
+captain objection is useful content only when the dispatcher enforces the same review
+shown by the UI. Timeout text must name the acting human office and use a legal authored
+fallback. New events should carry a decision-owner classification and a durable
+consequence whenever a later memory depends on the choice.
+
 This is the **standing north star** for deepening the generational-voyage experience after
 the v3 redesign (`plan.md`, W1–W7 all shipped). It is deliberately **not a checklist with an
 end state** — it defines *directions* of depth, a *rotation discipline*, and *quality bars*,

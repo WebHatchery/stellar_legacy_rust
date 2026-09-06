@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 pub enum HighlightKind {
     /// A charter milestone came up on the timeline.
     Milestone,
-    /// The council was asked, and answered — the player's own decision.
+    /// A human authority or the Custodian made a recorded decision.
     Decision,
     /// The charter's phase turned: outbound, on station, homeward.
     Phase,
@@ -38,7 +38,7 @@ impl HighlightKind {
     pub fn tag(self) -> &'static str {
         match self {
             HighlightKind::Milestone => "MARK",
-            HighlightKind::Decision => "COUNCIL",
+            HighlightKind::Decision => "AUTHORITY",
             HighlightKind::Phase => "LEG",
         }
     }

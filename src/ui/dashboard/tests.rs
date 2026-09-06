@@ -50,9 +50,9 @@ fn weakest_module_readout_does_not_invent_a_decline() {
 
 #[test]
 fn custodian_disposition_names_the_ai_empathy_bands() {
-    assert_eq!(custodian_status(0.9), "KIND · EMPATHY 90%");
-    assert_eq!(custodian_status(0.7), "CONSIDERATE · EMPATHY 70%");
-    assert_eq!(custodian_status(0.5), "BALANCED · EMPATHY 50%");
-    assert_eq!(custodian_status(0.3), "CLINICAL · EMPATHY 30%");
-    assert_eq!(custodian_status(0.1), "SEVERE · EMPATHY 10%");
+    assert_eq!(custodian_status(0.9), "KIND · PERCEIVED CONDUCT 90%");
+    assert_eq!(custodian_status(0.7), "CONSIDERATE · PERCEIVED CONDUCT 70%");
+    assert_eq!(custodian_status(0.5), "BALANCED · PERCEIVED CONDUCT 50%");
+    assert_eq!(custodian_status(0.3), "CLINICAL · PERCEIVED CONDUCT 30%");
+    assert_eq!(custodian_status(0.1), "SEVERE · PERCEIVED CONDUCT 10%");
 }

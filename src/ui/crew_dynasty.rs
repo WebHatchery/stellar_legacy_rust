@@ -422,9 +422,34 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
 mod tests;
 
 fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    term_panel(rect, Some("COUNCIL & DELEGATION"));
+    term_panel(rect, Some("CUSTODIAN & CAPTAIN"));
     let content = rect.inset(18.0);
     let mut y = content.y + 42.0;
+
+    draw_ui_text_ex(
+        "CUSTODIAN // ROUTINE OPERATIONS UNDER STANDING MANDATE",
+        content.x,
+        y,
+        TextStyle::new(11.0, term::accent()).params(),
+    );
+    y += 18.0;
+    let captain = ctx
+        .sim
+        .dynasty
+        .leader()
+        .map(|leader| leader.name.as_str())
+        .unwrap_or("NO CAPTAIN");
+    draw_ui_text_ex(
+        &format!(
+            "CAPTAIN // {} · PRIORITY {}",
+            captain.to_uppercase(),
+            ctx.sim.authority.captain_priority.label()
+        ),
+        content.x,
+        y,
+        TextStyle::new(11.0, term::primary()).params(),
+    );
+    y += 24.0;
 
     stat_line(
         content.x,

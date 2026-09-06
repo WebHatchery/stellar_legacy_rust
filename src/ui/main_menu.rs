@@ -99,7 +99,7 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                 3.0,
             );
             draw_text_centered(
-                "// generational starship command //",
+                "// CUSTODIAN // GENERATIONAL STARSHIP INTELLIGENCE //",
                 LOGICAL_WIDTH / 2.0,
                 295.0,
                 TextStyle::new(18.0, term::dim()),

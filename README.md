@@ -1,8 +1,8 @@
 # Stellar Legacy
 
-A generational starship strategy game in Rust + Macroquad. You are the standing
-council of a generation ship — captains age out, heirs inherit, and every promise
-the ship makes will be kept (or broken) by someone else's grandchildren.
+A generational starship strategy game in Rust + Macroquad. You are the Custodian,
+the persistent intelligence aboard a generation ship — captains age out, heirs
+inherit, and every recorded promise crosses generations with you.
 
 - **Design:** `gdd.md` (authoritative — pillars, systems, formulas, milestones)
 - **Content direction:** `content_depth.md` (the standing north star for deepening

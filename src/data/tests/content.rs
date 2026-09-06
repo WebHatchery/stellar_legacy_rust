@@ -438,7 +438,7 @@ fn custodian_events_build_and_answer_a_persistent_ai_disposition() {
 }
 
 #[test]
-fn the_custodians_extreme_temperaments_have_ambient_consequences() {
+fn identity_sensitive_custodian_events_require_recorded_decisions() {
     let data = GameData::load().unwrap();
     for (id, kind) in [
         ("the_remembered_birthdays", true),
@@ -448,8 +448,8 @@ fn the_custodians_extreme_temperaments_have_ambient_consequences() {
     ] {
         let event = data.events.get(id).unwrap();
         assert!(
-            !event.requires_decision,
-            "'{id}' should play as an observed beat"
+            event.requires_decision,
+            "'{id}' should require an authored decision"
         );
         assert_eq!(event.outcomes.len(), 1);
         let gates = if kind {

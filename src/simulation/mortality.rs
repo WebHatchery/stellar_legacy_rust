@@ -14,7 +14,7 @@
 
 use crate::data::{FlavorConfig, GameData, MortalityConfig};
 use crate::simulation::tick::TickReport;
-use crate::simulation::{institutions, subsystems, succession};
+use crate::simulation::{debrief, institutions, memory, subsystems, succession};
 use crate::state::sim::{generate_member, CrewMember, DynastyMember, SimState};
 
 /// The chance a character of `age` dies in a given month: a flat accident floor
@@ -215,7 +215,13 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
         || (leader_retired && succession::eligible_heir_exists(&sim.dynasty, &data.config))
     {
         let year = sim.year();
+        let outgoing = sim
+            .dynasty
+            .leader()
+            .map(|leader| leader.name.clone())
+            .unwrap_or_else(|| "the vacant office".to_owned());
         let (new_leader, _) = succession::install_successor(&mut sim.dynasty, &data.config, year);
+        crate::state::sim::authority::refresh_captain(sim);
         sim.inherit_obligations();
         if let Some(name) = new_leader {
             let idx = sim.dynasty.next_member_id as usize; // varies per handoff
@@ -224,12 +230,14 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
             {
                 sim.push_log(line);
             }
-            // Deliberately *not* remembered as a voyage-log beat: the debrief's
-            // chain-of-command column already names every captain a charter
-            // passed through, with the generation, years held, and temperament
-            // this line has no room for. A 450-year charter changes captains
-            // twenty-odd times, and logging each one crowded the council's own
-            // decisions — the log's unique content — out of the record.
+            let callback = memory::succession_callback(sim, &outgoing, &name);
+            sim.push_log(callback.clone());
+            debrief::remember(
+                sim,
+                data,
+                crate::state::sim::debrief::HighlightKind::Decision,
+                callback,
+            );
         }
     }
 

@@ -71,10 +71,10 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
 
 ## 1. High Concept
 
-- **Pitch:** You are the standing council of a generation ship — a vessel that is also a
-  city, a company, and a dynasty. Every choice you make will be inherited by people who
-  aren't born yet; every promise your ship makes to the galaxy will still be owed a
-  century later, by someone else's grandchildren.
+- **Pitch:** You are the Custodian, the persistent ship intelligence aboard a generation
+  ship — a vessel that is also a city, a company, and a dynasty. Captains and councils
+  are human partners with changing priorities; the Custodian carries the commission and
+  its recorded promises across centuries.
 - **Genre:** Generational strategy / succession sim. Distinct from the catalog's existing
   kingdom-builders (`realmseed`, `frontier`) and city-management sims (`apartment`) —
   those manage *places*; this manages *one vessel's bloodline* across unbroken decades.
@@ -117,11 +117,12 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
    **Superseded (real-time loop).** Time now auto-advances while a mission is under way
    (1 month per 0.25 s at 1×, `real_time.seconds_per_month`), controllable with a
    Pause / 1× / 2× / 3× selector; **docked, time is frozen** so refit and charter choice
-   are unhurried. A blocked council decision holds the clock and **auto-resolves to a
-   random option after 30 s** (`real_time.decision_timeout_secs`). The *sim internals*
-   stay seeded (event rolls, ranged impacts, and timeout picks all draw from `sim.rng`),
-   so a manual `advance_*` still replays deterministically — but the live wall-clock pace
-   and player-timed choices mean a played session is no longer a strict seed replay.
+   are unhurried. A blocked decision holds the clock and **uses its authored human
+   fallback after 30 s** (`real_time.decision_timeout_secs`). The fallback names the
+   acting captain or office and never invents a Custodian conviction. The *sim internals*
+   stay seeded (event rolls and ranged impacts draw from `sim.rng`), so a manual
+   `advance_*` still replays deterministically — but the live wall-clock pace and
+   player-timed choices mean a played session is no longer a strict seed replay.
    The decision still *matters*; it just no longer waits forever.
 5. **Succession is a mechanic, not a screen transition.** Leader death/retirement,
    heir selection, and generational aging (§5.3) drive real gameplay stakes — new leaders
@@ -139,8 +140,9 @@ Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_
    crew training, or colony development; adjust delegation settings.
 3. Let the underway clock auto-advance at 1× / 2× / 3×, or pause it. Monthly ticks
    apply production, population change, dynasty aging, and event rolls.
-4. Resolve any event that requires a decision (or let a delegated advisor auto-resolve
-   it, per §5.4). Auto-resolved events still log their outcome.
+4. Resolve any event that requires a decision (or let a delegated advisor or captain
+   fallback resolve it, per §5.4). Automatic results still name the acting authority
+   and log the selected outcome.
 5. Repeat until the active mission/contract reaches its target duration or fails outright.
 
 **Campaign loop** (spans the whole playthrough, mirrors `realmseed/gdd.md`'s
@@ -220,19 +222,46 @@ standing direction of further deepening passes.
 
 ## 4. Player Role & Verbs
 
-- **The player is:** the standing council of the ship — not any single character. No
-  avatar, no player-character portrait or death.
+- **The player is:** the Custodian, the standing intelligence aboard the ship. No avatar,
+  biological body, or player-character death; captain succession changes the human
+  partner and authority context around the same persistent AI.
+- **Human authority:** the serving captain and council ratify major commitments and can
+  object to strategic posture under authored conditions. The Custodian executes resource
+  allocation, repairs, trade, training, and other routine operations under its standing
+  mandate. A narrow emergency override appears only when an authored emergency permits it.
 - **The player directly controls:** resource allocation, ship component purchases, crew
-  training/recruitment/heir designation, contract acceptance, event decisions, delegation
-  settings, time advancement pace.
-- **The player does NOT control:** individual non-leader crew/cohort members'
-  day-to-day behavior (population and cohorts are simulated in aggregate), the exact
-  timing or content of random events (rolled, weighted by ship/population state), an
-  advisor's specific choice once a domain is delegated (only that a domain *is*
-  delegated).
-- **Core verb list:** *Allocate* (resources/crew), *Advance* (time), *Decide* (resolve an
-  event/dilemma), *Delegate* (hand a domain to an advisor), *Build* (ship components),
-  *Recruit/Train* (crew), *Select Heir*, *Accept/Abandon* (a contract), *Trade* (market).
+  training/recruitment and charter-authorized heir nomination, contract proposals,
+  event decisions within the current mandate, delegation settings, and visible time
+  controls.
+- **The player does NOT control:** private human thoughts, individual non-leader daily
+  behavior, or a human fallback after a decision timer expires. Human actions are named
+  in the log; the Custodian's conduct is measured as perceived conduct, not an assertion
+  about private feelings.
+- **Core verb list:** *Allocate*, *Advance*, *Propose*, *Execute*, *Review Mandate*,
+  *Delegate*, *Build*, *Recruit/Train*, *Nominate Heir*, *Accept/Abandon*, and *Trade*.
+
+### 4.1 Authority and continuity contract
+
+| Action | Custodian authority | Human authority |
+| --- | --- | --- |
+| Resources, repairs, trade, training | Execute under standing mandate | Existing rules still bind the action |
+| Charter acceptance or abandonment | Propose and prepare | Captain/council ratification and cancellation rules |
+| Strategic posture | Propose and implement after review | Captain can object; compromise or a legal emergency override is shown |
+| Social and ethical events | Advise or exercise delegated authority | Authored event metadata determines ratification |
+| Heir designation | Nominate an eligible successor | Charter rules select from the existing eligible pool |
+| Delegation | Entrust a domain to an office | Timeout names that office or captain and records its result |
+
+One Custodian persists across captain deaths, retirement, voyages, and drydock. Reign
+records and obligation histories preserve what can be known; they do not create private
+memories for conversations the archive never recorded. If the dynasty becomes extinct,
+the founding commission ends and the Custodian is archived with the vessel's records.
+The next campaign commissions a new instance; Chronicle and Heritage are inherited
+archives, not proof that the current Custodian personally lived another campaign.
+
+Narrative convention: “you” means the Custodian; “captain” and “council” mean human
+actors; “we” appears only in attributed collective speech. Empathy values describe the
+ship's perceived conduct built from recorded choices, not a privileged reading of the
+player's inner state.
 
 ---
 
@@ -286,7 +315,7 @@ more contract *content* (objective-specific milestones/risks — currently 2 bas
 
 #### Command posture
 
-Before launch, and once per year while under way, the council may choose one of three
+Before launch, and once per year while under way, the Custodian may propose one of three
 voyage-wide operating philosophies. **Steady** preserves the authored baseline;
 **Expeditionary** works the objective 12% faster and raises event pressure 18%, at 8%
 extra travel fuel and a small annual social cost; **Civic** works 8% slower, lowers
@@ -343,7 +372,9 @@ category weights:
 ```
 
 If an event doesn't require a player decision (or a domain has been delegated, §4), it
-auto-resolves: each outcome is scored and the highest-scoring one is applied.
+auto-resolves: each legal outcome is scored and the highest-scoring one is applied. A
+timed identity-sensitive decision uses the authored legal human fallback; it never
+attributes an unselected response to the Custodian.
 
 ```text
 outcome_score = food_weight(x2 if food<500) + hull/life_support penalty (x1000 if below threshold)

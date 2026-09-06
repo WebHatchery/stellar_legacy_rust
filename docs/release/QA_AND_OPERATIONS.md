@@ -47,8 +47,8 @@ commands.
 1. Launch `stellar_legacy.exe`; tap/click through the welcome and choose NEW GAME.
 2. Select a legacy and founding choices using visible controls.
 3. Open CHARTERS, choose a starter charter, provision in PREP, and tap LAUNCH.
-4. Use the visible pace controls until a council decision appears; choose an available
-   option by clicking it.
+4. Use the visible pace controls until an authority decision appears; choose an available
+   option by clicking it and verify the named actor in the log.
 5. Return to port, verify Homecoming and Chronicle, quit, relaunch, and choose CONTINUE.
 
 ## Rollback/hotfix procedure

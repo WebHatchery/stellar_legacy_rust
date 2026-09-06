@@ -9,6 +9,7 @@ use macroquad_toolkit::rng::SeededRng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+pub mod authority;
 pub mod campaign;
 pub mod contract;
 pub mod debrief;
@@ -22,6 +23,7 @@ pub mod records;
 pub mod session;
 pub mod subsystems;
 
+pub use authority::*;
 pub use campaign::*;
 pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
 pub use dynasty::*;
@@ -155,6 +157,10 @@ pub struct SimState {
     pub tutorial_step: usize,
     pub market: MarketState,
     pub delegation: DelegationSettings,
+    /// The Custodian's standing mandate and the current captain-specific
+    /// review state. New fields default so older campaigns keep their history.
+    #[serde(default)]
+    pub authority: AuthorityState,
     pub pending_event: Option<PendingEvent>,
     #[serde(default)]
     pub pending_dilemma: Option<PendingDilemma>,
@@ -445,7 +451,9 @@ impl SimState {
 
     /// True while any council decision (event or dilemma) blocks the tick.
     pub fn has_pending_decision(&self) -> bool {
-        self.pending_event.is_some() || self.pending_dilemma.is_some()
+        self.pending_event.is_some()
+            || self.pending_dilemma.is_some()
+            || self.authority.pending_review.is_some()
     }
 
     pub fn push_log(&mut self, text: impl Into<String>) {

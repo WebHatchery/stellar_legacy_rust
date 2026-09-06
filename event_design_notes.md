@@ -1,5 +1,26 @@
 # Event-System Design Notes
 
+## Identity and authority authoring contract
+
+The player is the persistent Custodian AI. Captains and councils are human actors;
+their priorities, objections, and fallback actions must be attributed in the text and
+the log. A description may state observed ship facts and recorded policy outcomes, but
+it must not invent a private Custodian feeling or an unchosen human thought.
+
+Every identity-sensitive event must answer three questions before it is added:
+
+1. Does the Custodian act under standing mandate, propose an action for human
+   ratification, or invoke an explicitly authored emergency power?
+2. If the timer expires, which legal human office acts, and why is that response safe?
+3. Which durable flag, obligation, or reputation change records the choice so a later
+   callback can cite it without reconstructing trimmed log text?
+
+Automatic acts such as remembered alarms or birthdays require an established policy
+gate, or they become selectable decisions. A severe outcome must be tied to an event
+flag or prior policy choice; a reputation value alone can weight content but cannot
+invent a consequential action. Preserve event IDs and compatible consequence flags
+when revising authored voice so existing saves still resolve.
+
 *Living content-authoring reference: the working map onto the shipped
 `family × phase × gate` system. All event content lives under `assets/events/`,
 **one file per family** (`assets/events/<family>.json`, e.g. `comedy.json`),

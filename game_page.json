@@ -6,7 +6,7 @@
   },
   "canvas_rendering": "pixelated",
   "about": [
-    "Command a starship across the generations. Captains age, heirs inherit, and today's promises shape the lives of the people who follow."
+    "Be the mind of a generation ship. Guide generations of captains and carry their promises across the stars."
   ],
   "controls": [
     {
@@ -19,7 +19,7 @@
     },
     {
       "key": "On-screen tabs / 1 - 7",
-      "desc": "Tap tabs; visible council choices may also use 1 - 9"
+      "desc": "Tap tabs and visible Custodian decisions; keyboard shortcuts are optional"
     }
   ],
   "details": [

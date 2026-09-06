@@ -14,6 +14,7 @@ pub mod event_resolver;
 pub mod institutions;
 pub mod legacy;
 pub mod market;
+pub mod memory;
 pub mod mortality;
 pub mod ship;
 pub mod subsystems;

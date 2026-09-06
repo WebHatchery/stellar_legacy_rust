@@ -3,7 +3,9 @@
 //! effects, and surfaces notifications (CODE_STANDARDS §7). Split out of
 //! `game.rs` so the state-machine core stays lean.
 
+mod authority;
 mod completion;
+mod decision;
 
 use super::Game;
 use crate::data::ship_components::ComponentKind;
@@ -195,26 +197,10 @@ impl Game {
                 None
             }
             UiAction::SetPosture(posture) => {
-                if let GameState::Gameplay(gameplay) = &mut self.state {
-                    if !crate::simulation::command::posture_change_allowed(&gameplay.sim) {
-                        let months = gameplay
-                            .sim
-                            .command_posture_locked_until
-                            .saturating_sub(gameplay.sim.month_clock);
-                        self.notifications
-                            .warning(format!("Command review locked for {months} more months."));
-                    } else if gameplay.sim.command_posture != posture {
-                        gameplay.sim.command_posture = posture;
-                        gameplay.sim.command_posture_locked_until =
-                            crate::simulation::command::next_review_month(&gameplay.sim);
-                        gameplay
-                            .sim
-                            .push_log(format!("Command posture set to {}.", posture.label()));
-                        self.notifications
-                            .success(format!("Posture: {}", posture.label()));
-                    }
-                }
-                None
+                self.apply_authority_action(UiAction::SetPosture(posture))
+            }
+            UiAction::ResolveAuthority(choice) => {
+                self.apply_authority_action(UiAction::ResolveAuthority(choice))
             }
             UiAction::AbortMission => {
                 self.abort_confirm.set(false);
@@ -677,44 +663,6 @@ impl Game {
             self.notifications.info("Docked for refit.");
         }
         self.check_achievements();
-    }
-
-    /// Resolve a blocked council decision by a random available option (real-time
-    /// loop §2): the decision countdown ran out. The pick flows through the seeded RNG
-    /// so a given state still resolves reproducibly.
-    pub(super) fn auto_resolve_decision(&mut self) {
-        let GameState::Gameplay(gameplay) = &mut self.state else {
-            return;
-        };
-        let sim = &mut gameplay.sim;
-        if let Some(pending) = sim.pending_event.clone() {
-            match self.data.events.get(&pending.template_id).cloned() {
-                Some(template) => {
-                    let avail = event_resolver::available_outcome_indices(sim, &template);
-                    let pick = if avail.is_empty() {
-                        0
-                    } else {
-                        avail[sim.rng.below(avail.len())]
-                    };
-                    event_resolver::apply_outcome(sim, &self.data, &template, pick);
-                }
-                None => sim.pending_event = None,
-            }
-            self.notifications
-                .warning("The council let the clock decide.");
-            self.check_achievements();
-            return;
-        }
-        if sim.pending_dilemma.is_some() {
-            let count = legacy::pending_dilemma_def(sim, &self.data)
-                .map(|d| d.options.len())
-                .unwrap_or(0);
-            let pick = if count == 0 { 0 } else { sim.rng.below(count) };
-            legacy::resolve_dilemma(sim, &self.data, pick);
-            self.notifications
-                .warning("The council let the clock decide.");
-            self.check_achievements();
-        }
     }
 
     /// Run a subsystem verb (W5) against the sim and surface its result. Keeps

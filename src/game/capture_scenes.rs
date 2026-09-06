@@ -452,6 +452,31 @@ impl Game {
                 gameplay.screen = Screen::Contract;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
+            "authority_review" => {
+                // A civic captain objects to expeditionary tempo while the crew
+                // is strained. This is the reproducible disagreement capture:
+                // the modal shows the enforced compromise and emergency gate.
+                let mut sim = SimState::new_campaign(
+                    &self.data,
+                    "preservers",
+                    0xC0FFEE,
+                    &crate::state::sim::founding_faction_ids(&self.data),
+                );
+                if let Some(template) = self.data.contracts.get("deep_vein_survey") {
+                    sim.contract = Some(contract::start_contract(template, &sim));
+                }
+                sim.population.morale = 0.52;
+                sim.population.unity = 0.56;
+                sim.authority.captain_priority = crate::state::sim::CaptainPriority::Civic;
+                sim.authority.captain_name = "Captain Ilyan Vale".to_owned();
+                sim.authority.pending_review = crate::state::sim::authority::posture_review(
+                    &sim,
+                    crate::state::sim::CommandPosture::Expeditionary,
+                );
+                let mut gameplay = GameplayState::new(sim);
+                gameplay.screen = Screen::Contract;
+                self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
+            }
             "dilemma" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,

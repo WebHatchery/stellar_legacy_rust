@@ -4,6 +4,7 @@
 //! UI is a pure view layer: every function reads state and returns
 //! `UiAction` intents; nothing here mutates the sim (CODE_STANDARDS §7).
 
+pub mod authority_modal;
 pub mod chronicle;
 pub mod contract_systems;
 pub mod crew_dynasty;
@@ -259,4 +260,6 @@ pub enum UiAction {
     Buy(TradeResource, i64),
     Sell(TradeResource, i64),
     ToggleDelegation(EventCategory),
+    /// Resolve the captain's blocking review of a strategic posture.
+    ResolveAuthority(crate::state::sim::AuthorityChoice),
 }

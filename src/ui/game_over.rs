@@ -30,8 +30,11 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         3.0,
     );
     draw_ui_text_ex(
-        &format!("// {} — no heir remains //", legacy.to_uppercase()),
-        LOGICAL_WIDTH / 2.0 - 150.0,
+        &format!(
+            "// {} — the founding commission has ended //",
+            legacy.to_uppercase()
+        ),
+        LOGICAL_WIDTH / 2.0 - 250.0,
         175.0,
         TextStyle::new(16.0, term::dim()).params(),
     );
@@ -68,7 +71,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
 
     y += 14.0;
     draw_text_block(
-        "The ship sails on, unmanned by any bloodline. Its Chronicle endures.",
+        "The captaincy has no eligible heir. The Custodian is archived with the vessel's records, and this commission ends here; the Chronicle preserves what the generations carried.",
         content.x,
         y,
         content.w,

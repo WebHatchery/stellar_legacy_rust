@@ -52,6 +52,14 @@ pub(crate) fn draw_posture(
         rect.y + 58.0,
         TextStyle::new(11.0, term::accent()).params(),
     );
+    if term_button(
+        Rect::new(rect.right() - 146.0, rect.y + 68.0, 136.0, 38.0),
+        "REVIEW MANDATE",
+        true,
+        pointer,
+    ) {
+        actions.push(UiAction::OpenHelp);
+    }
     let can_change = crate::simulation::command::posture_change_allowed(ctx.sim);
     if !can_change {
         draw_ui_text_ex(
@@ -220,7 +228,7 @@ pub(super) fn draw(
     );
     draw_posture(
         ctx,
-        Rect::new(content.x, content.bottom() - 142.0, content.w, 132.0),
+        Rect::new(content.x, content.bottom() - 182.0, content.w, 172.0),
         pointer,
         actions,
     );

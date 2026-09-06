@@ -50,7 +50,9 @@ fn digit_pressed(index: usize) -> bool {
 /// (`E:{template}` for an event, `D:{dilemma}` for a legacy dilemma). Drives both
 /// the typewriter reveal clock and the auto-resolve countdown (real-time loop §2).
 fn current_decision_key(sim: &SimState) -> Option<String> {
-    if let Some(p) = &sim.pending_event {
+    if let Some(review) = &sim.authority.pending_review {
+        Some(format!("A:{}", review.proposed.label()))
+    } else if let Some(p) = &sim.pending_event {
         Some(format!("E:{}:{}", p.template_id, p.rolled_month_clock))
     } else {
         sim.pending_dilemma

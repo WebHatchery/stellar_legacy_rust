@@ -112,8 +112,8 @@
   "tutorial": {
     "drydock_hint": "FIRST VOYAGE - Select a charter below to open the PREP screen and ready the ship.",
     "drydock_refit_hint": "Repair or refit on the SHIP screen, then choose the next charter:",
-    "legacy_intro": "Your legacy is the creed the ship lives by. It shapes your founding families' names and temperament, the moral dilemmas the voyage forces on you, and how your society comes apart under strain. Pick the way of failing you want to play against:",
-    "factions_intro": "The founding peoples are the cultures that crew the ship. Each leans somewhere from tech-embracing to traditional, and whichever grows largest aboard sways your defining gambles. Choose the mix you mean to hold together for centuries:",
+    "legacy_intro": "The legacy is the founding society's mandate and culture. It shapes the names, priorities, and dilemmas you will carry as the Custodian:",
+    "factions_intro": "Founding peoples are the human cultures that commissioned and crew you. Their balance shapes advice and political pressure across the voyage:",
     "steps": [
       {
         "id": "choose_charter",
@@ -175,43 +175,43 @@
       {
         "id": "pause",
         "label": "Take control of time",
-        "tip": "Tap PAUSE at the top right (or press Space). The launch clock waits while you learn this control."
+        "tip": "Tap PAUSE in the time controls at the top right. The voyage clock waits while you learn this control."
       },
       {
         "id": "resume",
         "label": "Resume your voyage",
-        "tip": "Tap RESUME at the top right (or press Space). The ship will run at your selected speed."
+        "tip": "Tap RESUME in the time controls at the top right. The ship will run at your selected speed."
       },
       {
         "id": "council",
         "label": "Answer the council",
-        "tip": "When a council decision appears, read the outcomes and tap a choice. PAUSE freezes its 90-second countdown."
+        "tip": "When a council decision appears, read the outcomes and tap a choice. Tap PAUSE to hold the countdown while you review it."
       },
       {
         "id": "legacy",
-        "label": "You have the helm",
-        "tip": "Tap FINISH to complete the tutorial. Use PAUSE and the speed buttons whenever you need breathing room."
+        "label": "You are the Custodian",
+        "tip": "Tap REVIEW MANDATE on CONTRACT to see who can act, then tap FINISH to complete the tutorial."
       }
     ]
   },
   "welcome": {
-    "title": "WELCOME ABOARD, COMMANDER",
-    "intro": "Stellar Legacy is a generational-starship command game. You do not fly a ship so much as steward a whole society across the centuries it takes to cross the dark. Here is what you are taking on:",
+    "title": "WELCOME, CUSTODIAN",
+    "intro": "You are the intelligence aboard a generation ship. Captains age. Councils change. You remain — carrying their promises, mistakes, and hopes across the centuries.",
     "sections": [
       {
-        "heading": "THE VOYAGE",
-        "body": "You accept a charter — a destination and a term of years — then prep the ship and LAUNCH. Time advances automatically while under way. Use Pause when you need to think, or choose the displayed 1× / 2× / 3× pace when the road is quiet. Food, spare parts, and fuel must last the whole crossing, so provision for centuries, not for a season."
+        "heading": "YOUR COMMISSION",
+        "body": "The founding society commissioned you to operate the vessel and preserve its mandate. Choose a legacy and founding peoples, then choose a charter. Tap SELECT, review the briefing, and tap LAUNCH when the ship is ready."
       },
       {
-        "heading": "YOUR PEOPLE",
-        "body": "You begin by choosing a LEGACY — the creed your dynasty lives and dies by — and a handful of FOUNDING PEOPLES who crew the ship. Both are real choices: they set your families' temperament, the dilemmas you'll face, and the way your civilization can come apart. Generations are born, lead, and pass on while the voyage runs."
+        "heading": "THE HUMAN PARTNERS",
+        "body": "The captain and council are human actors with their own priorities and mortality. You execute routine operations under a standing mandate; the captain can object to a strategic posture when the ship's condition makes it unsafe. Tap REVIEW MANDATE on CONTRACT to see the rule."
       },
       {
-        "heading": "COMMAND",
-        "body": "The council brings you decisions; each one pauses the clock until you answer, and there are no undo buttons — only consequences your heirs inherit. Tap HELP any time for controls, and DISPLAY for settings. When you're ready, tap BEGIN and choose your legacy."
+        "heading": "CONTINUITY",
+        "body": "One Custodian persists through captain deaths, retirements, voyages, and drydock. Recorded promises and captaincies remain available in the Chronicle. If no eligible heir remains, the founding commission ends; this is a campaign ending, not the Custodian dying with one captain."
       }
     ],
-    "dismiss_label": "BEGIN"
+    "dismiss_label": "BEGIN BRIEFING"
   },
   "subsystems": {
     "knowledge_start": 0.7,

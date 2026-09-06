@@ -101,6 +101,7 @@ impl SimState {
             tutorial_step: 0,
             market,
             delegation: DelegationSettings::default(),
+            authority: AuthorityState::default(),
             pending_event: None,
             pending_dilemma: None,
             consequences: Vec::new(),
@@ -215,6 +216,7 @@ impl SimState {
         // the baseline, not a "changing of the guard" the ruling-people voice announces — only a
         // *later* shift in who is dominant speaks (content-depth voice round 31).
         sim.ruling_people_voice = sim.dominant_faction_id().map(str::to_owned);
+        authority::refresh_captain(&mut sim);
         // Founding senior staff fill the configured starting posts.
         for archetype_id in &config.crew.starting_posts {
             let age_span = config.crew.recruit_age_max - config.crew.recruit_age_min + 1;

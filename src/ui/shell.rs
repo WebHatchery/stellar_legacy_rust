@@ -23,8 +23,8 @@ pub struct GameplayCtx<'a> {
     /// current mission (live), or the last mission's while in port. `None`
     /// before the first charter. Never feeds the deterministic sim.
     pub run_clock: Option<f32>,
-    /// Real seconds left before a blocking council decision auto-resolves to a
-    /// random option (real-time loop §2). Only meaningful while a decision is
+    /// Real seconds left before a blocking decision uses its authored human
+    /// fallback (real-time loop §2). Only meaningful while a decision is
     /// pending; the modal renders it as a countdown.
     pub decision_remaining: f32,
     /// Discipline whose custodianship picker is open, if any. Session-local UI
@@ -117,9 +117,12 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
         Screen::Chronicle => chronicle::draw(&ctx, content, pointer, &mut actions),
     }
 
-    // A pending council decision blocks everything else (GDD §9 step 4):
+    // A pending authority decision blocks everything else (GDD §9 step 4):
     // discard screen intents and only accept the modal's.
-    if ctx.sim.pending_event.is_some() {
+    if ctx.sim.authority.pending_review.is_some() {
+        actions.clear();
+        authority_modal::draw(&ctx, pointer, &mut actions);
+    } else if ctx.sim.pending_event.is_some() {
         actions.clear();
         event_modal::draw(&ctx, pointer, &mut actions);
     } else if ctx.sim.pending_dilemma.is_some() {
@@ -150,12 +153,18 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
         0.12,
         2.0,
     );
+    draw_ui_text_ex(
+        "CUSTODIAN // SHIP INTELLIGENCE",
+        rect.x + 16.0,
+        rect.y + 54.0,
+        TextStyle::new(10.0, term::accent()).params(),
+    );
 
     let leader = sim
         .dynasty
         .leader()
-        .map(|l| format!("{} ({})", l.name, l.age))
-        .unwrap_or_else(|| "NO LEADER".to_owned());
+        .map(|l| format!("CAPTAIN {} ({})", l.name, l.age))
+        .unwrap_or_else(|| "CAPTAIN // NO LEADER".to_owned());
     let legacy = ctx
         .data
         .legacies
@@ -183,7 +192,7 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
         ),
         rect.x + 330.0,
         rect.y + 18.0,
-        TextStyle::new(12.0, term::dim()).params(),
+        TextStyle::new(11.0, term::dim()).params(),
     );
 
     draw_ui_text_ex(

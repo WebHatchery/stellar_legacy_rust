@@ -364,8 +364,9 @@ fn known_effects(
 }
 
 /// Dim the world and draw the modal surface with `header` centered in the title
-/// band and the auto-resolve `countdown` right-aligned within it (real-time loop
-/// §2); returns the content rect.
+/// band and the human fallback `countdown` beside it. Tall cards move the
+/// countdown below the header so it cannot collide with the global time controls
+/// above the gameplay shell (real-time loop §2); returns the content rect.
 fn modal_frame(
     header: &str,
     countdown: i32,
@@ -406,13 +407,19 @@ fn modal_frame(
         header_h,
         TextStyle::new(15.0, accent),
     );
-    // The countdown tucks into the right of the header band so it never crowds
-    // the centered title.
+    // Tall cards can reach the shell's top controls. Move their countdown just
+    // below the header; the body is left-aligned, so this right-side label stays
+    // clear of the event title and advisor copy.
+    let countdown_y = if rect.y < 84.0 {
+        rect.y + header_h + 18.0
+    } else {
+        rect.y + header_h * 0.5 + 4.0
+    };
     draw_text_right(
-        &format!("AUTO-RESOLVE {countdown}s"),
+        &format!("CAPTAIN FALLBACK {countdown}s"),
         rect.right() - 16.0,
-        rect.y + header_h * 0.5 + 4.0,
-        TextStyle::new(13.0, accent),
+        countdown_y,
+        TextStyle::new(11.0, accent),
     );
     rect.inset(26.0)
 }

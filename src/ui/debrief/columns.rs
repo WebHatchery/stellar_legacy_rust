@@ -47,9 +47,9 @@ pub(super) fn draw_report(report: &VoyageDebrief, area: Rect) {
         ("GENERATIONS PASSED", report.generations.to_string()),
         ("COMMAND POSTURE", report.command_posture.label().to_owned()),
         (
-            "CUSTODIAN AI",
+            "CUSTODIAN CONDUCT",
             format!(
-                "{} · EMPATHY {:.0}%",
+                "{} · PERCEIVED {:.0}%",
                 report.custodian_disposition(),
                 report.custodian_empathy.clamp(0.0, 1.0) * 100.0
             ),

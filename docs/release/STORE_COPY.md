@@ -2,14 +2,15 @@
 
 ## Short description
 
-Command a colony starship across the generations. Captains age, heirs inherit, and every
-charter, compromise, and promise shapes the people who must carry the voyage home.
+Be the mind of a generation ship. Guide generations of captains and carry their promises
+across the stars.
 
 ## Long description
 
 Stellar Legacy is a generational starship strategy game about what survives a voyage
-longer than a lifetime. Build and provision a ship, choose a charter, appoint officers,
-and guide a changing council through crises, opportunities, debts, and discoveries.
+longer than a lifetime. You are the Custodian, the ship's persistent intelligence:
+operate the vessel, advise its human government, and carry recorded promises through
+captain deaths, retirements, and changing councils.
 
 The ship remembers. Captains grow old. Factions rise and recede. Knowledge can be
 preserved, improvised, or lost. A successful Homecoming becomes part of the Chronicle,
@@ -18,7 +19,7 @@ strengthening the Heritage inherited by the next charter.
 - Command complete voyages spanning multiple generations.
 - Shape a living crew of dynasties, officers, factions, schools, and obligations.
 - Maintain and refit six ship subsystems as condition and knowledge decay.
-- Make consequential council decisions drawn from more than 300 authored events.
+- Make consequential Custodian decisions drawn from more than 300 authored events.
 - Return home to build a persistent Chronicle and launch another charter.
 - Play entirely offline with local saves and touch/click-first controls.
 

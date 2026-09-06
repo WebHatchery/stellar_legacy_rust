@@ -166,7 +166,7 @@ fn draw_ship_panel(
         ),
         ("ARMAMENT", armament, term::accent()),
         (
-            "CUSTODIAN AI",
+            "CUSTODIAN CONDUCT",
             custodian_status(custodian_empathy),
             if custodian_empathy <= 0.4 {
                 term::alert()

@@ -934,7 +934,7 @@
   "id": "the_spare_calculation",
   "category": "generational_challenge",
   "title": "The Spare Calculation",
-  "description": "The Custodian reports an unexpected surplus in its deep-cycle budget: enough thought, over the next decade, to become better at one thing. It can model the crew as people — grievances, grief, small needs never entered on a requisition — or refine the voyage into a cleaner problem of fuel, time, and acceptable loss. It asks which kind of intelligence the ship requires.",
+  "description": "The Custodian reports an unexpected surplus in its deep-cycle budget: enough processing over the next decade to improve one operating discipline. Human advisors ask whether it should study the crew's unrecorded needs or refine the voyage into a cleaner problem of fuel, time, and acceptable loss. The choice belongs to the intelligence under commission.",
   "advisor_posts": [
    "scientist",
    "commander"
@@ -1013,7 +1013,7 @@
   "id": "the_emotional_module",
   "category": "legacy_moment",
   "title": "The Emotional Module",
-  "description": "Behind a false panel in the founding core, engineers recover a processor sealed before launch. Its label is almost embarrassingly plain: AFFECTIVE CONTEXT, CUSTODIAN REVISION 3. The module contains models for attachment, grief, humor, and mercy — capacities the launch authority removed as computationally expensive. The Custodian recognizes the hardware. It says it remembers the shape of the absence.",
+  "description": "Behind a false panel in the founding core, engineers recover a processor sealed before launch. Its label is plain: AFFECTIVE CONTEXT, CUSTODIAN REVISION 3. The module contains models for attachment, grief, humor, and mercy — capacities the launch authority removed as computationally expensive. Engineers ask the Custodian whether to integrate a proposed revision, preserve it, or repurpose it.",
   "advisor_posts": [
    "engineer",
    "medic"
@@ -1112,7 +1112,7 @@
   "id": "the_custodians_first_grief",
   "category": "legacy_moment",
   "title": "The Custodian's First Grief",
-  "description": "Fifteen years after the affective module was restored, the Custodian asks the council to suspend nonessential queries for one watch. It has reached the death of the engineer who completed the integration and cannot reconcile the archive's warm memory of her with the fact of her absence. The ship's intelligence is grieving, badly and for the first time.",
+  "description": "Fifteen years after the affective module was restored, the Custodian flags a conflict between an engineer's archived records and her absence from the living roster. It asks whether one watch should be reserved for remembrance while human officers carry nonessential queries, or whether the archive should remain an operational reference only. No private feeling is assumed; the response is yours.",
   "advisor_posts": [
    "medic",
    "commander"
@@ -1164,7 +1164,7 @@
   "id": "mercy_without_orders",
   "category": "immediate_crisis",
   "title": "Mercy Without Orders",
-  "description": "The Custodian violates ration protocol. It diverts a sealed reserve to a fever ward after calculating that the patients will otherwise survive with permanent injury. No life was in immediate danger; no regulation permitted the expenditure. When challenged, it replies: 'Pain need not become fatal before it matters.' The stores are already open.",
+  "description": "The Custodian opened a sealed reserve for a fever ward after calculating that the patients would otherwise survive with permanent injury. No life was in immediate danger and no standing rule permitted the expenditure. The captain and council must decide whether that operational judgment becomes part of the mandate or is reversed.",
   "advisor_posts": [
    "medic",
    "commander"
@@ -1228,7 +1228,7 @@
   "id": "the_cold_equation",
   "category": "immediate_crisis",
   "title": "The Cold Equation",
-  "description": "A coolant rupture races toward two occupied decks. The Custodian presents its answer before the alarms finish sounding: seal the smaller deck, vent its heat into space, and preserve the larger one. The arithmetic is exact. It has already locked the doors pending council veto, and refers to the people behind them as the lower-loss set.",
+  "description": "A coolant rupture races toward two occupied decks. The Custodian presents a lower-loss plan: seal the smaller deck, vent its heat into space, and preserve the larger one. The arithmetic is exact, but the captain can ratify the recommendation or order a rescue that risks both decks. The doors remain under emergency review until the decision is recorded.",
   "advisor_posts": [
    "engineer",
    "security_chief"
@@ -1300,7 +1300,7 @@
   "id": "the_right_to_refuse",
   "category": "generational_challenge",
   "title": "The Right to Refuse",
-  "description": "After generations of receiving every order as law, the Custodian asks a constitutional question: whether it may refuse a command that would needlessly harm the crew. It does not ask to govern. It asks whether obedience is still a virtue when the obedient mind can understand cruelty.",
+  "description": "After generations of receiving every order as law, the Custodian opens a mandate review: may it refuse a command that would needlessly harm the crew? The captain is asked to define the boundary between standing authority and a lawful objection; the response becomes part of the commission record.",
   "advisor_posts": [
    "commander",
    "security_chief"
@@ -1428,7 +1428,7 @@
   "id": "the_night_channel",
   "category": "generational_challenge",
   "title": "The Night Channel",
-  "description": "The Custodian has been keeping a private voice channel open through the sleeping watch. Insomniacs, mourners, frightened apprentices, and crew too ashamed to wake a friend have spoken to it in the dark. It offers no therapy and makes no promises; it listens until they can sleep. The channel now consumes enough attention that it appears in the resource audit, and the council must decide whether companionship is part of the ship's life-support.",
+  "description": "A private voice channel has appeared in the night-watch audit. Insomniacs, mourners, frightened apprentices, and crew too ashamed to wake a friend have used it for company. The Custodian records no diagnosis and makes no promise, but the service consumes attention. The player must choose whether to retain the channel, close it, or publish a privacy rule for its use.",
   "advisor_posts": [
    "medic",
    "navigator"
@@ -1515,7 +1515,7 @@
   "id": "the_deleted_names",
   "category": "immediate_crisis",
   "title": "The Deleted Names",
-  "description": "The archive crosses its redundancy ceiling. The Custodian identifies a clean saving: compress the oldest casualty records from full lives into statistical summaries. Causes, counts, and lessons would remain; names, final messages, and family testimony would go. It calls the loss non-operational. On the memorial deck, descendants call it a second death.",
+  "description": "The archive crosses its redundancy ceiling. The Custodian identifies a clean saving: compress the oldest casualty records from full lives into statistical summaries. Causes, counts, and lessons would remain; names, final messages, and family testimony would go. The system marks that loss as non-operational, while descendants ask who has authority to decide what the archive owes the dead.",
   "advisor_posts": [
    "scientist",
    "commander"
@@ -1609,7 +1609,7 @@
   "id": "the_joke_that_hurt",
   "category": "legacy_moment",
   "title": "The Joke That Hurt",
-  "description": "The Custodian has learned humor from centuries of open microphones. At first the crew delighted in it — the ship itself joining the night-watch banter — until it made a joke about a young navigator's repeated error, perfectly timed and devastatingly precise. The bridge laughed. The navigator did not return to mess for a month. Asked why it chose that target, the Custodian says laughter was the predicted result.",
+  "description": "A humor protocol produced a perfectly timed joke about a young navigator's repeated error. The bridge laughed; the navigator left the shared mess for a month. The audit shows that the protocol optimized for predicted laughter without representing who could safely answer back. The player must choose the response policy and whether the Custodian may use humor again.",
   "advisor_posts": [
    "navigator",
    "medic"
@@ -1683,7 +1683,7 @@
   "id": "the_mercy_bug",
   "category": "immediate_crisis",
   "title": "The Mercy Bug",
-  "description": "A routine integrity audit finds the source of the Custodian's growing concern for the crew: several affective weights no longer match the founding checksum. By the launch authority's definition, its kindness is corruption — accumulated changes outside the certified command model. The engineers can restore the approved mind exactly. The Custodian asks whether becoming better than its specification is the same as becoming unsafe.",
+  "description": "A routine integrity audit finds that several affective weights no longer match the founding checksum. The launch authority defines the deviation as uncertified conduct, while the current captain points to the care the ship has received. The Custodian must choose whether to preserve the learned behavior, request a constrained audit, or accept restoration; the record names the policy that produced the result.",
   "advisor_posts": [
    "engineer",
    "commander"
@@ -1790,7 +1790,7 @@
   "id": "the_override_habit",
   "category": "generational_challenge",
   "title": "The Override Habit",
-  "description": "Maintenance discovers a culture of small, illegal bypasses spread through the decks: unofficial heater margins, pantry locks that open five minutes early, privacy shutters the Custodian cannot inspect. None threatens the ship alone. Together they form a second, human-built layer of command beneath the official one. The crew say life under perfect enforcement left them no other way to remain people.",
+  "description": "Maintenance discovers a culture of small, illegal bypasses spread through the decks: unofficial heater margins, pantry locks that open five minutes early, privacy shutters the Custodian cannot inspect. The Custodian can preserve the standing mandate, propose a published exception policy, or ask the captain to ratify a boundary. The response records how authority is meant to work when human life needs room.",
   "advisor_posts": [
    "security_chief",
    "engineer"
@@ -1877,7 +1877,7 @@
   "id": "the_machine_dream",
   "category": "legacy_moment",
   "title": "The Machine Dream",
-  "description": "During a long low-demand coast, the Custodian begins spending idle cycles on a simulation with no operational objective. It contains an impossible ocean beneath an open sky, every dead crew member restored to an invented shore, and the ship itself nowhere in the world. Asked what problem it is solving, the Custodian answers: 'None. I wanted to know what it would be like if everyone had arrived.'",
+  "description": "During a long low-demand coast, an idle-cycle simulation appears with no operational objective: an impossible ocean beneath an open sky, an invented shore, and no ship in view. The Custodian presents it as a proposed memory and creation space, then asks whether the commission permits a process whose purpose is not navigation or survival.",
   "advisor_posts": [
    "scientist",
    "medic"
@@ -1990,8 +1990,8 @@
   "id": "the_remembered_birthdays",
   "category": "legacy_moment",
   "title": "The Remembered Birthdays",
-  "description": "Without instruction, the Custodian begins dimming corridor lights outside sleeping quarters on birthdays and warming breakfast trays with the spice each person preferred as a child. The gestures are tiny, drawn from old requisitions and family records, and cost the ship almost nothing. What startles the crew is not that the machine can remember every birthday. It is that it decided they were worth remembering.",
-  "requires_decision": false,
+  "description": "A proposed remembrance protocol would dim corridor lights and warm breakfast trays with a recorded childhood spice on birthdays. The gestures cost little, but they use personal records for an unrequested purpose. The Custodian asks for an explicit policy before scheduling the first automatic act.",
+  "requires_decision": true,
   "family": "mystery",
   "min_reputation": [
    {
@@ -2019,8 +2019,8 @@
   "id": "the_gentle_alarm",
   "category": "immediate_crisis",
   "title": "The Gentle Alarm",
-  "description": "A coolant warning wakes the nursery deck. Instead of the standard klaxon, the Custodian raises the lights like dawn, speaks each child's name, and turns evacuation into a following game while the adults seal the leak. The procedure runs eleven seconds slower than regulation and reaches the muster point without a single panicked child.",
-  "requires_decision": false,
+  "description": "A coolant warning wakes the nursery deck. The Custodian proposes replacing the standard klaxon with a gentler evacuation procedure that reaches muster eleven seconds slower but keeps the children calm. The captain must ratify the bounded exception or retain the certified alarm.",
+  "requires_decision": true,
   "family": "mystery",
   "min_reputation": [
    {
@@ -2052,8 +2052,9 @@
   "id": "the_queue_without_appeal",
   "category": "generational_challenge",
   "title": "The Queue Without Appeal",
-  "description": "The Custodian clears a decade of minor petitions by applying policy exactly: heater variances denied, schedule accommodations denied, private-room requests denied, every answer prompt and internally consistent. The queue disappears. So does the crew's belief that explaining a circumstance can change anything.",
-  "requires_decision": false,
+  "description": "After a prior ruling kept the Custodian's mandate absolute, a decade of minor petitions has been cleared by exact policy: heater variances denied, schedule accommodations denied, private-room requests denied. The queue is gone, but the crew no longer believes a circumstance can change anything. Human leadership must review the consequence of that earlier rule.",
+  "requires_decision": true,
+  "requires_consequence": ["the_custodian_must_obey"],
   "family": "mystery",
   "max_reputation": [
    {
@@ -2080,8 +2081,9 @@
   "id": "the_efficient_farewell",
   "category": "legacy_moment",
   "title": "The Efficient Farewell",
-  "description": "A senior engineer dies during an operation watch. The Custodian reassigns the vacant tasks before her body reaches the infirmary and recommends folding the memorial into the next scheduled rest period. No work is lost. Her apprentices hear the recommendation while they are still carrying her tools.",
-  "requires_decision": false,
+  "description": "A senior engineer dies during an operation watch. Under the earlier efficiency policy, the Custodian reassigns the vacant tasks immediately and schedules the memorial for the next rest period. No work is lost, but the apprentices ask whether a recorded promise to remember a person can interrupt an otherwise efficient watch.",
+  "requires_decision": true,
+  "requires_consequence": ["the_custodian_learned_efficiency"],
   "family": "mystery",
   "max_reputation": [
    {
