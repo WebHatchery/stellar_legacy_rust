@@ -54,6 +54,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     let diagram = Rect::new(subject.x + 24.0, subject.y + 82.0, subject.w - 48.0, 250.0);
     let ship = ship_schematic::build(sim, ctx.data, diagram);
     ship_schematic::draw(diagram, &ship);
+    crate::ui::subsystems::select_compartments(ctx, &ship, pointer, actions, true);
     if term_button(
         Rect::new(subject.x + 20.0, subject.bottom() - 58.0, 250.0, 44.0),
         "Inspect ship & compartments",

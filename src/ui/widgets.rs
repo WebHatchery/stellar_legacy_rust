@@ -34,6 +34,23 @@ pub fn term_panel(rect: Rect, title: Option<&str>) {
 /// cursor is a control a touch player never sees react, so the press state is
 /// what carries the feedback there.
 pub fn term_button(rect: Rect, label: &str, enabled: bool, pointer: Pointer) -> bool {
+    // These legacy labels describe achieved state, not an unavailable action.
+    if !enabled
+        && matches!(
+            label,
+            "SOUND" | "MAX TIER" | "MASTERED" | "INSTALLED" | "FOOD STOCKED" | "REFIT COMPLETE"
+        )
+    {
+        draw_text_centered_in_box_ex(
+            label,
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
+            TextStyle::new(16.0, term::accent()),
+        );
+        return false;
+    }
     let hit = touch_area(rect);
     note_neighbour(rect);
     note_target(label, rect);

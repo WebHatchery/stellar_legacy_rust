@@ -20,7 +20,6 @@ mod readiness_panel;
 use readiness_panel::draw_readiness;
 
 const GUTTER: f32 = 14.0;
-const ROW_H: f32 = 160.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
@@ -43,88 +42,8 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     }
 }
 
-fn draw_work_board(
-    ctx: &GameplayCtx<'_>,
-    area: Rect,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) {
-    let active = ctx.sim.projects.active_count();
-    let waiting = ctx.sim.projects.waiting_count();
-    term_panel(
-        area,
-        Some(&format!(
-            "CUSTODIAN AGENDA // {} ACTIVE · {} WAITING",
-            active, waiting
-        )),
-    );
-    let view = Rect::new(area.x + 16.0, area.y + 44.0, area.w - 32.0, area.h - 60.0);
-    let choices = catalogue_choices(ctx);
-    let content_h =
-        40.0 + ctx.sim.projects.jobs.len() as f32 * ROW_H + 38.0 + choices.len() as f32 * ROW_H;
-    let mut scroll = ctx.agenda_scroll.get();
-    scroll.update_at(view, content_h, pointer.position);
-    let board_pointer = if scroll.absorbs_press() {
-        pointer.suppressed()
-    } else {
-        pointer
-    };
-    let mut y = view.y - scroll.offset();
-    draw_ui_text_ex(
-        "RUNNING & WAITING WORK",
-        view.x,
-        y + 16.0,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    y += 26.0;
-    if ctx.sim.projects.jobs.is_empty() {
-        draw_ui_text_ex(
-            "No projects queued. Start with a useful, eligible choice below.",
-            view.x,
-            y + 20.0,
-            TextStyle::new(12.0, term::dim()).params(),
-        );
-        y += 42.0;
-    } else {
-        for job in &ctx.sim.projects.jobs {
-            let row = Rect::new(view.x, y, view.w - GUTTER, ROW_H - 6.0);
-            if is_fully_visible(row, view) {
-                draw_job(ctx, job, row, board_pointer, actions);
-            }
-            y += ROW_H;
-        }
-    }
-    draw_line(
-        view.x,
-        y - 5.0,
-        view.right() - GUTTER,
-        y - 5.0,
-        1.0,
-        term::faint(),
-    );
-    draw_ui_text_ex(
-        "PROJECT CATALOGUE // QUEUEING COSTS NOTHING",
-        view.x,
-        y + 16.0,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    y += 28.0;
-    for choice in choices {
-        let row = Rect::new(view.x, y, view.w - GUTTER, ROW_H - 6.0);
-        if is_fully_visible(row, view) {
-            draw_choice(ctx, &choice, row, board_pointer, actions);
-        }
-        y += ROW_H;
-    }
-    scroll.draw_scrollbar_with(
-        view,
-        content_h,
-        term::surface_inset(),
-        term::dim(),
-        term::primary(),
-    );
-    ctx.agenda_scroll.set(scroll);
-}
+mod work_board;
+use work_board::draw_work_board;
 
 struct CatalogueChoice {
     project_id: String,
@@ -192,7 +111,7 @@ fn draw_job(
         &title,
         row.x + 10.0,
         row.y + 17.0,
-        TextStyle::new(13.0, term::primary()).params(),
+        TextStyle::new(16.0, term::primary()).params(),
     );
     let status = match job.status {
         ProjectStatus::Running => format!(
@@ -235,7 +154,7 @@ fn draw_job(
         &detail,
         row.x + 10.0,
         row.y + 51.0,
-        TextStyle::new(10.0, term::dim()).params(),
+        TextStyle::new(14.0, term::dim()).params(),
     );
     let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 60.0);
     if matches!(
@@ -284,7 +203,7 @@ fn draw_choice(
         &format!("{}{}", definition.name, target),
         row.x + 10.0,
         row.y + 17.0,
-        TextStyle::new(13.0, term::primary()).params(),
+        TextStyle::new(16.0, term::primary()).params(),
     );
     let cost = format_cost(ProjectAmounts::from_cost(definition.cost.clone()));
     draw_ui_text_ex(
@@ -309,7 +228,11 @@ fn draw_choice(
     let button = Rect::new(row.x + 10.0, row.y + 78.0, 116.0, 60.0);
     if term_button(
         button,
-        if choice.eligible { "QUEUE" } else { "BLOCKED" },
+        if choice.eligible {
+            "QUEUE"
+        } else {
+            "QUEUE · UNAVAILABLE"
+        },
         choice.eligible,
         pointer,
     ) && choice.eligible
@@ -324,7 +247,7 @@ fn draw_choice(
             &choice.reason,
             row.x + 10.0,
             row.y + 149.0,
-            TextStyle::new(10.0, term::alert()).params(),
+            TextStyle::new(14.0, term::alert()).params(),
         );
     }
 }

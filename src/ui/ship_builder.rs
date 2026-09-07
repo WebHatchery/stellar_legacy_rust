@@ -321,6 +321,7 @@ fn draw_underway(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &
     );
     let schematic = ship_schematic::build(ctx.sim, ctx.data, frame);
     ship_schematic::draw(frame, &schematic);
+    crate::ui::subsystems::select_compartments(ctx, &schematic, pointer, actions, true);
     draw_legend(frame);
 
     let status = Rect::new(main.x, layout.bottom() + GAP, main.w, status_h);

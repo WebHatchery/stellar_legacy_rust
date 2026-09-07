@@ -18,34 +18,9 @@ fn priced_action_label(action: &str, cost: i64, available: i64, unit: &str) -> S
     }
 }
 
-pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    const GAP: f32 = 12.0;
-    let col_w = (area.w - GAP) / 2.0;
-    let row_h = (area.h - 2.0 * GAP) / 3.0;
-    let mut blocked_actions = Vec::new();
-    for (i, id) in GameData::sorted_ids(&ctx.data.subsystems)
-        .into_iter()
-        .enumerate()
-    {
-        let col = (i % 2) as f32;
-        let row = (i / 2) as f32;
-        let rect = Rect::new(
-            area.x + col * (col_w + GAP),
-            area.y + row * (row_h + GAP),
-            col_w,
-            row_h,
-        );
-        let action_sink = if ctx.custody_picker.is_some() {
-            &mut blocked_actions
-        } else {
-            &mut *actions
-        };
-        draw_card(ctx, rect, &id, pointer, action_sink);
-    }
-    if let Some(subsystem_id) = ctx.custody_picker {
-        draw_custody_picker(ctx, area, subsystem_id, pointer, actions);
-    }
-}
+mod overview;
+pub use overview::draw;
+pub(crate) use overview::select_compartments;
 
 fn draw_card(
     ctx: &GameplayCtx<'_>,
@@ -77,9 +52,9 @@ fn draw_card(
         def.fitting_name(state.tier),
         content.x,
         y,
-        TextStyle::new(13.0, term::primary()).params(),
+        TextStyle::new(18.0, term::primary()).params(),
     );
-    y += 16.0;
+    y += 26.0;
     let school = ctx
         .sim
         .subsystem_schools
@@ -114,9 +89,9 @@ fn draw_card(
         &detail,
         content.x,
         y,
-        TextStyle::new(11.0, term::dim()).params(),
+        TextStyle::new(14.0, term::dim()).params(),
     );
-    y += 22.0;
+    y += 32.0;
 
     term_bar(
         Rect::new(content.x, y, content.w, 18.0),
@@ -203,14 +178,17 @@ fn draw_card(
         && ctx.sim.ship.spare_parts >= def.repair_parts_cost
         && ctx.sim.resources.minerals >= def.repair_minerals_cost;
     let repair_label = if !can_mend {
-        format!("NEED {:.0}% KNOW", def.repair_knowledge_required * 100.0)
+        format!(
+            "REPAIR · NEED {:.0}% KNOWLEDGE",
+            def.repair_knowledge_required * 100.0
+        )
     } else if state.condition >= ceiling {
         "SOUND".to_owned()
     } else if ctx.sim.ship.spare_parts < def.repair_parts_cost
         || ctx.sim.resources.minerals < def.repair_minerals_cost
     {
         format!(
-            "NEED {}p·{}min",
+            "REPAIR · NEED {} parts / {} minerals",
             def.repair_parts_cost, def.repair_minerals_cost
         )
     } else {
@@ -236,7 +214,10 @@ fn draw_card(
                 && (ctx.sim.resources.credits < t.cost.credits
                     || ctx.sim.resources.minerals < t.cost.minerals) =>
         {
-            format!("NEED {}cr·{}min", t.cost.credits, t.cost.minerals)
+            format!(
+                "UPGRADE · NEED {} credits / {} minerals",
+                t.cost.credits, t.cost.minerals
+            )
         }
         Some(t) if in_port => format!("UPGRADE ({}cr)", t.cost.credits),
         Some(_) => "UPGRADE · PORT".to_owned(),
@@ -265,7 +246,7 @@ fn draw_card(
     let train_label = if training_complete {
         "MASTERED".to_owned()
     } else if ctx.sim.resources.credits < cfg.subsystems.train_cost_credits {
-        format!("NEED {}cr", cfg.subsystems.train_cost_credits)
+        format!("TRAIN · NEED {} credits", cfg.subsystems.train_cost_credits)
     } else {
         format!(
             "TRAIN TO {:.0}% · {}cr",
@@ -411,7 +392,7 @@ fn draw_custody_picker(
             ),
             row.x + 12.0,
             row.y + 48.0,
-            TextStyle::new(11.0, term::dim()).params(),
+            TextStyle::new(14.0, term::dim()).params(),
         );
         let enabled = ctx.sim.resources.influence >= ctx.data.config.crew.custody_influence_cost;
         if term_button(

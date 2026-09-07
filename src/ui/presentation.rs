@@ -4,6 +4,8 @@ use std::cell::Cell;
 
 #[derive(Default)]
 pub struct Presentation {
+    pub selected_system: Cell<usize>,
+    pub selected_agenda: Cell<usize>,
     pub utilities: Cell<bool>,
     pub instruments: Cell<bool>,
     pub event_key: std::cell::RefCell<String>,

@@ -110,3 +110,22 @@ Utilities and Instruments now have explicit capture scenes. Their desktop
 captures were inspected along with the Bridge, Agenda and council overlays.
 
 Increment 3 final publish.ps1 passed for Windows and WebGL, including packaged runtime checks. Navigation tests passed. Instruments was split by responsibility to keep source files comfortably within the 800-line limit.
+
+## Increment 4: ship and work management
+
+Systems now combines a selectable compartment rail, the selected subsystem's
+operating controls, and the class-specific schematic. Tapping a subsystem on
+the Bridge or underway ship opens the matching Systems detail. Condition,
+staffing and running targeted work have explicit labels as well as colours.
+Achieved states such as Sound, Mastered and Installed render as quiet badges.
+
+Agenda uses compact selectable rows with a persistent selected detail. Running
+work shows progress; the original queue, review, reorder, pause/resume and
+cancellation intents and authored accounting are preserved. Critical air still
+has a visible Stabilise air control and its cost before commitment.
+
+Inspected Systems, Agenda, critical recovery, cancellation review and ark,
+corvette and ring hull screenshots at 1280×720. Nine project simulation tests
+passed. This does not yet establish the portrait touch acceptance routes.
+
+Increment 4 publish.ps1 passed, including packaged Windows and WebGL runtime checks.
