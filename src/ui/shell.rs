@@ -121,19 +121,28 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     };
 
     let content = Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0);
+    let content_pointer = if ctx.presentation.utilities.get() {
+        pointer.suppressed()
+    } else {
+        pointer
+    };
     match screen {
-        Screen::Dashboard => bridge::draw(&ctx, content, pointer, &mut actions),
-        Screen::Agenda => agenda::draw(&ctx, content, pointer, &mut actions),
-        Screen::Drydock => contract_systems::draw_drydock(&ctx, content, pointer, &mut actions),
-        Screen::ShipBuilder => ship_builder::draw(&ctx, content, pointer, &mut actions),
-        Screen::Subsystems => subsystems::draw(&ctx, content, pointer, &mut actions),
-        Screen::CrewDynasty => crew_dynasty::draw(&ctx, content, pointer, &mut actions),
-        Screen::Contract => {
-            contract_systems::draw_active_screen(&ctx, content, pointer, &mut actions)
+        Screen::Dashboard => bridge::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Agenda => agenda::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Drydock => {
+            contract_systems::draw_drydock(&ctx, content, content_pointer, &mut actions)
         }
-        Screen::Market => market::draw(&ctx, content, pointer, &mut actions),
-        Screen::Chronicle => chronicle::draw(&ctx, content, pointer, &mut actions),
+        Screen::ShipBuilder => ship_builder::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Subsystems => subsystems::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::CrewDynasty => crew_dynasty::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Contract => {
+            contract_systems::draw_active_screen(&ctx, content, content_pointer, &mut actions)
+        }
+        Screen::Market => market::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Chronicle => chronicle::draw(&ctx, content, content_pointer, &mut actions),
     }
+
+    navigation::draw_utilities(&ctx, pointer, &mut actions);
 
     // A pending authority decision blocks everything else (GDD §9 step 4):
     // discard screen intents and only accept the modal's.
@@ -219,7 +228,7 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
 
     draw_ui_text_ex(
         &format!(
-            "CR {}  EN {}  MIN {}  FOOD {}  INF {}",
+            "Credits {}  Energy {}  Minerals {}  Food {}  Influence {}",
             sim.resources.credits,
             sim.resources.energy,
             sim.resources.minerals,
@@ -228,94 +237,10 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
         ),
         rect.x + 330.0,
         rect.y + 44.0,
-        TextStyle::new(14.0, term::accent()).params(),
+        TextStyle::new(12.0, term::dim()).params(),
     );
 }
 
-/// One chrome button (SAVE / MENU / HELP / DISPLAY) at the right of the tab row.
-const CHROME_BTN_W: f32 = 72.0;
-const CHROME_GAP: f32 = 4.0;
-/// Width the four of them claim from the tab strip.
-const CHROME_W: f32 = CHROME_BTN_W * 4.0 + CHROME_GAP * 3.0;
-
 fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    // The tab set changes with voyage state (real-time loop §5): DRYDOCK + MARKET
-    // in port, CONTRACT under way.
-    let tabs = Screen::tabs(ctx.sim.contract.is_none());
-    let total_w = LOGICAL_WIDTH - 32.0 - CHROME_W - 12.0;
-    let tab_w = (total_w - (tabs.len() as f32 - 1.0) * 6.0) / tabs.len() as f32;
-    for (i, screen) in tabs.iter().enumerate() {
-        let rect = Rect::new(16.0 + i as f32 * (tab_w + 6.0), 78.0, tab_w, 44.0);
-        let hit = touch_area(rect);
-        note_neighbour(rect);
-        note_target(screen.label(), rect);
-        let active = *screen == ctx.screen;
-        let fill = if active || pointer.pressing(hit) {
-            term::surface_active()
-        } else if pointer.hovering_over(hit) {
-            term::surface_hover()
-        } else {
-            term::surface_inset()
-        };
-        draw_surface(
-            rect,
-            &SurfaceStyle::new(fill).with_border(
-                1.0,
-                if active {
-                    term::primary()
-                } else {
-                    term::faint()
-                },
-            ),
-        );
-        // Numbered like terminal menu entries — the digit is also the hotkey.
-        draw_text_centered_in_box_ex(
-            &format!("{} {}", i + 1, screen.label()),
-            rect.x,
-            rect.y,
-            rect.w,
-            rect.h,
-            TextStyle::new(14.0, if active { term::accent() } else { term::dim() }),
-        );
-        if active {
-            draw_rectangle(
-                rect.x + 8.0,
-                rect.bottom() - 3.0,
-                rect.w - 16.0,
-                3.0,
-                term::accent(),
-            );
-        }
-        if !active && pointer.released_on(hit) {
-            actions.push(UiAction::SelectScreen(*screen));
-        }
-    }
-
-    // The chrome row: the two verbs that leave the game, and the two panels that
-    // used to answer only to F1 and F2. A tablet has no function keys, so the
-    // display settings — which carry the council's delegation defaults, not just
-    // the CRT look — and the controls legend were simply unreachable there.
-    let utility_x = LOGICAL_WIDTH - 16.0 - CHROME_W;
-    draw_line(
-        utility_x - 8.0,
-        82.0,
-        utility_x - 8.0,
-        116.0,
-        1.0,
-        term::faint(),
-    );
-    for (i, (label, action)) in [
-        ("SAVE", UiAction::SaveGame),
-        ("MENU", UiAction::ToMenu),
-        ("HELP", UiAction::OpenHelp),
-        ("Display", UiAction::OpenSettings),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        let x = LOGICAL_WIDTH - 16.0 - CHROME_W + i as f32 * (CHROME_BTN_W + CHROME_GAP);
-        if term_button(Rect::new(x, 78.0, CHROME_BTN_W, 44.0), label, true, pointer) {
-            actions.push(action);
-        }
-    }
+    navigation::draw(ctx, pointer, actions);
 }

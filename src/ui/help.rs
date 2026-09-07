@@ -8,14 +8,14 @@ use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
 
 const CONTROLS: &[(&str, &str)] = &[
-    ("TABS", "Tap a numbered tab to switch screens"),
+    ("TABS", "Tap Bridge, Ship, People, Voyage or History"),
     ("TIME", "Tap PAUSE or 1x / 2x / 3x in the top right"),
     (
         "DECISIONS",
-        "Tap an option card in an authority or event modal",
+        "Select a council choice, read its effects, then tap Commit",
     ),
-    ("DISPLAY", "Tap DISPLAY for visual and delegation settings"),
-    ("HELP", "Tap HELP to open this screen"),
+    ("DISPLAY", "Tap Utilities, then Display & sound"),
+    ("HELP", "Tap Utilities, then Help"),
     ("CLOSE", "Tap CLOSE or the visible back button"),
 ];
 
@@ -95,7 +95,7 @@ pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
         );
     }
     draw_text_block(
-        "Mouse or finger works everywhere. Drag a list to scroll it. Tap REVIEW MANDATE on the CONTRACT screen for the authority rules. Keyboard shortcuts are optional.",
+        "Mouse or finger works everywhere. Drag a list to scroll it. Tap REVIEW MANDATE in Voyage / Contract for the authority rules. Keyboard shortcuts are optional.",
         content.x,
         content.y + 362.0,
         content.w,

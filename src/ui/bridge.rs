@@ -4,20 +4,7 @@ use crate::simulation::readiness::{self, ReadinessBand};
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if ctx.presentation.instruments.get() {
-        dashboard::draw(
-            ctx,
-            Rect::new(area.x, area.y + 50.0, area.w, area.h - 50.0),
-            pointer,
-            actions,
-        );
-        if term_button(
-            Rect::new(area.x, area.y, 240.0, 44.0),
-            "Back to Bridge",
-            true,
-            pointer,
-        ) {
-            ctx.presentation.instruments.set(false);
-        }
+        dashboard::draw(ctx, area, pointer, actions);
         return;
     }
     let sim = ctx.sim;
@@ -169,7 +156,7 @@ fn draw_attention(
         .min_by(|a, b| a.score.total_cmp(&b.score));
     let energy_low = sim.resources.energy < ctx.data.config.low_energy_threshold;
     let (heading, detail, label, target) = if energy_low {
-        ("! Energy shortage".to_owned(), format!("{} energy in stores; low-energy threshold {}. Review recovery work and its resource costs.", sim.resources.energy, ctx.data.config.low_energy_threshold), "Review recovery projects", Screen::Agenda)
+        ("! Energy shortage".to_owned(), format!("{} energy in stores; low-energy threshold {}. Trading is available in port; underway, inspect engineering and demand.", sim.resources.energy, ctx.data.config.low_energy_threshold), if sim.contract.is_none() { "Trade energy" } else { "Inspect engineering" }, if sim.contract.is_none() { Screen::Market } else { Screen::Subsystems })
     } else if let Some(row) = concern {
         (
             format!("! {} · {}", row.concern, row.band.label()),

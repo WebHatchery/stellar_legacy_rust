@@ -34,22 +34,22 @@ scars that the next generation must manage.
 
 1. Tap or click **NEW GAME**. Choose a legacy and your founding peoples. Read
    **WHAT THIS CHANGES** to understand the legacy's effects before founding.
-2. Open **DRYDOCK** and compare charters. **Proving Run: Lumen Relay** is the
+2. Open **Voyage / Drydock** and compare charters. **Proving Run: Lumen Relay** is the
    tutorial voyage: 150 years split into 50-year outbound, operation, and return
    legs. Tap **SELECT** to inspect a charter without launching.
 3. Read the departure briefing and the **FOOD**, **PARTS**, and **FUEL** estimates.
    Use the stock-up controls or **MARKET** to provision the ship. Tap
    **PROVISIONS REVIEWED** when the guide asks you to.
-4. Inspect **CREW & DYNASTY**, **SHIP**, and **SUBSYSTEMS**. Check the people,
+4. Inspect **People**, **Ship / Loadout**, and **Ship / Systems**. Check the people,
    loadout, and equipment that must carry the mission. Time stays frozen in port,
    so take time to prepare.
-5. Return to **DRYDOCK** and tap **LAUNCH**. Read any shortage or obligation
+5. Return to **Voyage / Drydock** and tap **LAUNCH**. Read any shortage or obligation
    warning carefully: launching understocked or breaking an existing promise is
    a real commitment.
-6. Under way, use **DASHBOARD** to watch the ship and **CONTRACT** to track the
+6. Under way, use **Bridge** to watch the ship and **Voyage / Contract** to track the
    mission. Start at **1x** and tap **PAUSE** whenever you need to review or act.
    Tap **RESUME** to continue; **2x** and **3x** speed up quieter stretches.
-7. Open **AGENDA**. Read the readiness rows and any aftermath notices, choose a
+7. Open **Ship / Agenda**. Read the readiness rows and any aftermath notices, choose a
    useful project, tap **QUEUE**, and tap **RESUME**. Two projects may run at once;
    queued work waits without charging until it starts.
 8. When a council decision appears, read its choices and tap an option card.
@@ -74,13 +74,13 @@ a keyboard is optional. Drag lists to scroll.
 | --- | --- |
 | Numbered tabs | Switch between the ship's screens. Available tabs change between port and travel. |
 | **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time. |
-| **DASHBOARD** | Review resources, ship condition, and recent developments. |
-| **AGENDA** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
-| **SHIP / SUBSYSTEMS** | Inspect the loadout and manage the systems keeping the vessel running. |
-| **CREW & DYNASTY** | Review your people, captain, and succession. |
-| **DRYDOCK / MARKET** | Choose and prepare charters, and trade while in port. |
-| **CONTRACT** | Follow mission progress; tap **REVIEW MANDATE** for authority rules. |
-| **CHRONICLE** | Read the record of earlier voyages and the legacy they leave. |
+| **Bridge** | Review resources, ship condition, and recent developments. |
+| **Ship / Agenda** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
+| **Ship / Systems** | Inspect the loadout and manage the systems keeping the vessel running. |
+| **People** | Review your people, captain, and succession. |
+| **Voyage / Drydock / Market** | Choose and prepare charters, and trade while in port. |
+| **Voyage / Contract** | Follow mission progress; tap **REVIEW MANDATE** for authority rules. |
+| **History** | Read the record of earlier voyages and the legacy they leave. |
 | **SAVE / MENU** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
 | **HELP / DISPLAY** | Read controls and identity guidance, or adjust presentation, audio, and delegation settings. |
 
@@ -149,7 +149,7 @@ uploading it with:
 ### Ship-work verification
 
 Version 0.2.1 corrects the audited survival, Agenda escrow, readiness, and save
-issues. Open **AGENDA**, then **REVIEW PROJECT** to compare retained deliveries,
+issues. Open **Ship / Agenda**, then **REVIEW PROJECT** to compare retained deliveries,
 remaining work, refunds, and restoration cost before pausing, resuming, or
 confirming cancellation. New quarters recover morale in ten stages. Fractional
 resource change remains in the saved ledger; older quarters retain their original
@@ -160,3 +160,5 @@ which project escrow can be recovered.
 The [verification record](docs/ship_work_validation.md) includes the 864-run
 policy comparison and remaining human acceptance gates. Passing builds and
 publisher checks do not mean those human gates have passed.
+
+Navigation stays in the same order in port and underway: Bridge, Ship, People, Voyage, History. Save, Help and Display & sound are in Utilities. Pause/Resume and speed remain visible above blocking decisions.

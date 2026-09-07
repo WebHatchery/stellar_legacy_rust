@@ -93,3 +93,20 @@ Unit validation: 521 unit tests passed, one pre-existing ignored test, and one
 integration test passed. No simulation or save schema was changed.
 
 Increment 2 final publish.ps1 passed after the layout corrections, including packaged Windows and real-browser WebGL smoke tests. Every project Rust file remains below 800 physical lines. The catalog thumbnail was refreshed from the title capture.
+
+## Increment 3: stable navigation
+
+Bridge, Ship, People, Voyage and History keep identical positions in port and
+underway. Ship holds Loadout, Systems and Agenda; Voyage holds Drydock/Market
+in port and Contract underway. The action map above is now implemented.
+Utilities holds Save game, Help, Display & sound and Return to menu. Project
+counts and due-duty markers remain visible. Bridge warnings link to the related
+work/system view (or the Market for docked energy shortages). The Instruments
+section preserves the original maintenance actions and demographic readouts.
+
+Tutorial, help and README navigation directions were updated in the same
+increment. Two navigation tests cover every old screen and voyage restrictions.
+Utilities and Instruments now have explicit capture scenes. Their desktop
+captures were inspected along with the Bridge, Agenda and council overlays.
+
+Increment 3 final publish.ps1 passed for Windows and WebGL, including packaged runtime checks. Navigation tests passed. Instruments was split by responsibility to keep source files comfortably within the 800-line limit.

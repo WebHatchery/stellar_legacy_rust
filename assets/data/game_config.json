@@ -145,7 +145,7 @@
       {
         "id": "dashboard",
         "label": "Open the charter board",
-        "tip": "Tap DRYDOCK to compare missions. Your ship waits safely in port."
+        "tip": "Tap Voyage, then Drydock to compare missions. Your ship waits safely in port."
       },
       {
         "id": "charter",
@@ -155,32 +155,32 @@
       {
         "id": "provision",
         "label": "Review your provisions",
-        "tip": "Read FOOD, PARTS and FUEL in DRYDOCK, then tap PROVISIONS REVIEWED. Stock shortages before launch."
+        "tip": "Read FOOD, PARTS and FUEL in Voyage / Drydock, then tap PROVISIONS REVIEWED. Stock shortages before launch."
       },
       {
         "id": "people",
         "label": "Meet your people",
-        "tip": "Tap CREW & DYNASTY to inspect the families and specialists aboard."
+        "tip": "Tap People to inspect the families and specialists aboard."
       },
       {
         "id": "systems",
         "label": "Inspect your ship",
-        "tip": "Tap SHIP to inspect your loadout. SUBSYSTEMS also shows your CUSTODIAN AI."
+        "tip": "Tap Ship to inspect your loadout. Tap Systems for condition and knowledge."
       },
       {
         "id": "launch",
         "label": "Begin the crossing",
-        "tip": "Tap DRYDOCK, then LAUNCH. Read any shortage warning before committing."
+        "tip": "Tap Voyage, then Drydock, then LAUNCH. Read any shortage warning before committing."
       },
       {
         "id": "agenda",
         "label": "Open the Custodian Agenda",
-        "tip": "Tap AGENDA to inspect readiness, aftermath issues, and the ship-work catalogue."
+        "tip": "Tap Ship, then Agenda to inspect readiness, aftermath issues, and the ship-work catalogue."
       },
       {
         "id": "queue_project",
         "label": "Queue useful ship work",
-        "tip": "In AGENDA, tap QUEUE beside an eligible project. Queueing is free; the full budget is charged only when work starts."
+        "tip": "In Ship / Agenda, tap QUEUE beside an eligible project. Queueing is free; the full budget is charged only when work starts."
       },
       {
         "id": "pause",

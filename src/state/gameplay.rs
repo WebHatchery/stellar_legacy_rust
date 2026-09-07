@@ -54,20 +54,6 @@ impl Screen {
             &Self::UNDERWAY
         }
     }
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Screen::Dashboard => "DASHBOARD",
-            Screen::Agenda => "AGENDA",
-            Screen::Drydock => "DRYDOCK",
-            Screen::ShipBuilder => "SHIP",
-            Screen::Subsystems => "SUBSYSTEMS",
-            Screen::CrewDynasty => "CREW & DYNASTY",
-            Screen::Contract => "CONTRACT",
-            Screen::Market => "MARKET",
-            Screen::Chronicle => "CHRONICLE",
-        }
-    }
 }
 
 pub struct GameplayState {

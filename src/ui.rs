@@ -18,6 +18,7 @@ pub mod help;
 pub mod main_menu;
 pub mod market;
 pub mod mission;
+pub mod navigation;
 pub mod prep;
 pub mod presentation;
 pub mod recovery_warning;

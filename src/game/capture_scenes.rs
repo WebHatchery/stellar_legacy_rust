@@ -18,6 +18,7 @@ impl Game {
         // Screenshots want the final composed frame, not a mid-type one, and
         // never the boot log. Force canonical amber display so captures are
         // deterministic regardless of any persisted preference.
+        self.presentation = Default::default();
         self.instant_reveal = true;
         self.capture_run_secs = None;
         self.custody_picker = None;
@@ -668,6 +669,8 @@ impl Game {
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
         }
+        self.presentation.utilities.set(scene == "utilities");
+        self.presentation.instruments.set(scene == "instruments");
     }
 
     /// Fly a charter end to end under the autoplay policy and conclude it, so
