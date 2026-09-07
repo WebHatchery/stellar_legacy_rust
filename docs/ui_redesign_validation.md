@@ -136,3 +136,10 @@ People now separates Family, Officers, Factions, and Council. The family view co
 
 Reviewed the five baseline captures (Family, Officers, Factions, Council, event) at 1280×720. Corrected overlapping heir targets found in the first review and regenerated Family. Capture scene aliases were corrected so each new People image shows its intended page. Simulation and save schemas are unchanged.
 Validation: `.\publish.ps1` passed: Windows and WebGL release builds, Preview deployment, packaged native rendering and real-browser WebGL smoke checks.
+
+## Increment 6 — Voyage and living records
+
+Charter summaries compare duration, reward, authored crisis exposure and launch promises, using stable destination emblems. Full selected briefings remain in preparation. History separates the dated decision timeline, obligations and milestones; selecting a deed opens every account at 18px with scrolling. Obligation rows now have readable body text and full-width history access. Homecoming leads with the actual outcome, generations and survivors, then provides scrollable accounting, captains and defining moments. No score or promise is dropped at the bottom of a fixed panel.
+
+Reviewed charter/preparation, timeline, resolved obligations, obligation history, mission archive, and Homecoming outcome/accounting/captains/moments captures at 1280×720. The exposed route hazard is described as ordinary or more crisis-prone, matching its authored additive crisis weight rather than inventing a probability. Portrait acceptance remains pending.
+Validation: two focused Homecoming tests passed. `.\publish.ps1` passed Windows/WebGL builds, Preview deployment and packaged native/browser smoke checks.

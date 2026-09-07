@@ -632,7 +632,9 @@ impl Game {
                 sim.dynasty.extinct = true;
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "debrief" => self.fly_to_homecoming("founding_colony"),
+            "debrief" | "debrief_captains" | "debrief_moments" | "debrief_accounting" => {
+                self.fly_to_homecoming("founding_colony")
+            }
             "dashboard_risk" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
@@ -670,6 +672,23 @@ impl Game {
                 );
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
+        }
+        self.presentation
+            .history_page
+            .set(if scene.starts_with("obligation_") {
+                1
+            } else {
+                0
+            });
+        self.presentation.report_page.set(match scene {
+            "debrief_captains" => 1,
+            "debrief_moments" => 2,
+            _ => 0,
+        });
+        if scene == "debrief_accounting" {
+            let mut scroll = macroquad_toolkit::ui::ScrollArea::new();
+            scroll.set_offset(450.0);
+            self.presentation.report_scroll.set(scroll);
         }
         self.presentation.people_page.set(match scene {
             "people_officers" => 1,

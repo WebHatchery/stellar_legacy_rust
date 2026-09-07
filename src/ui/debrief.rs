@@ -11,6 +11,7 @@
 //! single [`UiAction::FileReport`] when the player is done reading.
 
 mod columns;
+mod report;
 
 use crate::state::sim::debrief::VoyageDebrief;
 use crate::ui::{
@@ -23,8 +24,6 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 /// Column geometry. Three panels under the banner: the report itself, the
 /// chain of command, and the voyage log.
 const MARGIN: f32 = 18.0;
-const GAP: f32 = 12.0;
-const BANNER_H: f32 = 92.0;
 const FOOTER_H: f32 = 54.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
@@ -34,22 +33,35 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     draw_rectangle(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, term::bg());
     draw_banner(report);
 
-    let top = BANNER_H + 8.0;
-    let body_h = LOGICAL_HEIGHT - top - FOOTER_H - MARGIN;
-    let usable = LOGICAL_WIDTH - MARGIN * 2.0 - GAP * 2.0;
-    // The report column carries the numbers and needs the most room; the two
-    // list columns are narrower and scroll.
-    let report_w = (usable * 0.40).floor();
-    let command_w = (usable * 0.26).floor();
-    let log_w = usable - report_w - command_w;
-
-    let report_col = Rect::new(MARGIN, top, report_w, body_h);
-    let command_col = Rect::new(report_col.right() + GAP, top, command_w, body_h);
-    let log_col = Rect::new(command_col.right() + GAP, top, log_w, body_h);
-
-    columns::draw_report(report, report_col);
-    columns::draw_commanders(ctx, report, command_col, pointer);
-    columns::draw_voyage_log(ctx, report, log_col, pointer);
+    for (index, label) in ["Outcome & accounting", "Captains", "Defining moments"]
+        .into_iter()
+        .enumerate()
+    {
+        let button = Rect::new(MARGIN + index as f32 * 414.0, 100.0, 400.0, 44.0);
+        if term_button(button, label, true, pointer) {
+            ctx.presentation.report_page.set(index);
+            ctx.presentation.report_scroll.set(ScrollArea::new());
+        }
+        if ctx.presentation.report_page.get() == index {
+            draw_rectangle(
+                button.x,
+                button.bottom() - 3.0,
+                button.w,
+                3.0,
+                term::primary(),
+            );
+        }
+    }
+    let area = Rect::new(
+        MARGIN,
+        158.0,
+        LOGICAL_WIDTH - MARGIN * 2.0,
+        LOGICAL_HEIGHT - 158.0 - FOOTER_H - MARGIN,
+    );
+    match ctx.presentation.report_page.get() {
+        1 => columns::draw_commanders(ctx, report, area, pointer),
+        _ => report::draw(ctx, report, area, pointer),
+    }
 
     // One way out. Filing the report clears it and returns the ship to the
     // drydock board, where the next charter is chosen.

@@ -332,20 +332,6 @@ fn draw_available(
 }
 
 /// Ellipsis-truncate `text` so it renders within `max_w` at the UI font size.
-fn fit_text(text: &str, size: u16, max_w: f32) -> String {
-    if measure_ui_text(text, None, size, 1.0).width <= max_w {
-        return text.to_owned();
-    }
-    let mut cut: String = text.to_owned();
-    while cut.pop().is_some() {
-        let candidate = format!("{}...", cut.trim_end());
-        if measure_ui_text(&candidate, None, size, 1.0).width <= max_w {
-            return candidate;
-        }
-    }
-    "...".to_owned()
-}
-
 /// One charter's board entry: its id plus the gate verdict, precomputed once so
 /// the list can be grouped and sorted (available-first) before layout.
 struct CharterEntry {
@@ -527,80 +513,63 @@ fn draw_charter_card(
     } else {
         term::primary()
     };
-    let mission_kind = if template.tutorial {
-        "TUTORIAL".to_owned()
-    } else {
-        template.objective.label().to_uppercase()
-    };
-    let meta = format!(
-        "{} · {} YEARS · reward {} cr",
-        mission_kind, template.target_duration_years, template.reward.credits
-    );
-
-    if compact {
-        // Compact card: title / meta / status stacked, the whole card is
-        // the SELECT button.
-        draw_ui_text_ex(
-            &fit_text(&template.name, 13, card.w - 24.0),
-            card.x + 12.0,
-            card.y + 20.0,
-            TextStyle::new(13.0, title_color).params(),
-        );
-        draw_ui_text_ex(
-            &fit_text(&meta, 11, card.w - 24.0),
-            card.x + 12.0,
-            card.y + 40.0,
-            TextStyle::new(11.0, term::dim()).params(),
-        );
-        let (status, status_color) = if locked {
-            (entry.lock_label.clone(), term::faint())
-        } else if selected {
-            ("[ SELECTED ]".to_owned(), term::accent())
-        } else {
-            ("[ SELECT ]".to_owned(), term::dim())
-        };
-        draw_ui_text_ex(
-            &status,
-            card.x + 12.0,
-            card.y + 62.0,
-            TextStyle::new(11.0, status_color).params(),
-        );
-        if live && pointer.released_on(card) {
-            actions.push(UiAction::SelectCharter(entry.id.clone()));
-        }
-        return;
-    }
-
-    draw_ui_text_ex(
-        &template.name,
-        card.x + 14.0,
-        card.y + 22.0,
-        TextStyle::new(16.0, title_color).params(),
-    );
-    draw_ui_text_ex(
-        &meta,
-        card.x + 14.0,
-        card.y + 40.0,
-        TextStyle::new(12.0, term::dim()).params(),
+    crate::ui::identity::emblem(
+        Rect::new(card.x + 12.0, card.y + 12.0, 44.0, 44.0),
+        &entry.id,
     );
     draw_text_block(
-        &template.description,
+        &template.name,
+        card.x + 70.0,
+        card.y + 10.0,
+        card.w - 84.0,
+        52.0,
+        20.0,
+        4.0,
+        title_color,
+    );
+    draw_ui_text_ex(
+        &format!(
+            "{} years · {} · {} credits",
+            template.target_duration_years,
+            template.objective.label(),
+            template.reward.credits
+        ),
         card.x + 14.0,
-        card.y + 46.0,
-        card.w - 190.0,
-        26.0,
-        11.0,
-        2.0,
+        card.y + 84.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    draw_text_block(
+        &format!(
+            "Route: {} · {} launch promises",
+            if template.hazard > 0.0 {
+                "more crisis-prone"
+            } else {
+                "ordinary crisis exposure"
+            },
+            template.launch_obligation_operations.len()
+        ),
+        card.x + 14.0,
+        card.y + 98.0,
+        card.w - 28.0,
+        46.0,
+        16.0,
+        4.0,
         term::dim(),
     );
-    let btn = Rect::new(card.right() - 170.0, card.y + 17.0, 156.0, 44.0);
-    if locked {
-        term_button(btn, &entry.lock_label, false, pointer);
+    let label = if locked {
+        entry.lock_label.as_str()
+    } else if selected {
+        "Selected · review provisions"
     } else {
-        let label = if selected { "SELECTED" } else { "SELECT" };
-        if term_button(btn, label, true, pointer) {
-            actions.push(UiAction::SelectCharter(entry.id.clone()));
-        }
+        "Read briefing & prepare"
+    };
+    if term_button(
+        Rect::new(card.x + 12.0, card.bottom() - 54.0, card.w - 24.0, 44.0),
+        label,
+        !locked,
+        pointer,
+    ) {
+        actions.push(UiAction::SelectCharter(entry.id.clone()));
     }
 }
 
@@ -617,8 +586,8 @@ pub(crate) fn draw_charter_cards(
     actions: &mut Vec<UiAction>,
 ) {
     const GAP: f32 = 16.0;
-    const CARD_H: f32 = 78.0;
-    const ROW_STRIDE: f32 = 82.0;
+    const CARD_H: f32 = 200.0;
+    const ROW_STRIDE: f32 = 212.0;
     const HEADER_H: f32 = 32.0;
     const GROUP_GAP: f32 = 8.0;
     // Right-edge gutter reserved for the scrollbar so cards never sit beneath it.
@@ -626,7 +595,8 @@ pub(crate) fn draw_charter_cards(
 
     let compact = area.w < 900.0;
     let usable_w = area.w - GUTTER;
-    let col_w = (usable_w - GAP) / 2.0;
+    let columns = if compact { 1 } else { 2 };
+    let col_w = (usable_w - GAP * (columns - 1) as f32) / columns as f32;
 
     let groups = grouped_charters(ctx);
     if groups.is_empty() {
@@ -638,7 +608,7 @@ pub(crate) fn draw_charter_cards(
     let content_h: f32 = groups
         .iter()
         .map(|(_, entries)| {
-            let rows = entries.len().div_ceil(2) as f32;
+            let rows = entries.len().div_ceil(columns) as f32;
             HEADER_H + rows * ROW_STRIDE + GROUP_GAP
         })
         .sum();
@@ -661,8 +631,8 @@ pub(crate) fn draw_charter_cards(
         }
         y += HEADER_H;
         for (i, entry) in entries.iter().enumerate() {
-            let col = (i % 2) as f32;
-            let row = (i / 2) as f32;
+            let col = (i % columns) as f32;
+            let row = (i / columns) as f32;
             let card = Rect::new(
                 area.x + col * (col_w + GAP),
                 y + row * ROW_STRIDE,
@@ -675,7 +645,7 @@ pub(crate) fn draw_charter_cards(
                 draw_charter_card(ctx, entry, card, compact, pointer, actions);
             }
         }
-        y += entries.len().div_ceil(2) as f32 * ROW_STRIDE + GROUP_GAP;
+        y += entries.len().div_ceil(columns) as f32 * ROW_STRIDE + GROUP_GAP;
     }
 
     scroll.draw_scrollbar_with(

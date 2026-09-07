@@ -162,3 +162,5 @@ pub enum UiAction {
     /// Resolve the captain's blocking review of a strategic posture.
     ResolveAuthority(crate::state::sim::AuthorityChoice),
 }
+
+mod reading;

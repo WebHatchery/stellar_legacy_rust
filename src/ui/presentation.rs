@@ -4,6 +4,11 @@ use std::cell::Cell;
 
 #[derive(Default)]
 pub struct Presentation {
+    pub history_page: Cell<usize>,
+    pub selected_record: Cell<usize>,
+    pub record_scroll: Cell<ScrollArea>,
+    pub report_page: Cell<usize>,
+    pub report_scroll: Cell<ScrollArea>,
     pub people_page: Cell<usize>,
     pub selected_system: Cell<usize>,
     pub selected_agenda: Cell<usize>,

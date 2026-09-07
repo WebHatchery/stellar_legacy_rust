@@ -117,7 +117,13 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     );
     term_panel(recent, Some("Recent developments"));
     let mut y = recent.y + 44.0;
-    for entry in sim.log.iter().rev().take(3) {
+    for entry in sim
+        .log
+        .iter()
+        .rev()
+        .take(((recent.h - 44.0) / 44.0).floor().max(0.0) as usize)
+        .take(3)
+    {
         let text = format!("Year {} · {}", entry.year, entry.text);
         draw_text_block(
             &text,
@@ -219,6 +225,9 @@ fn draw_attention(
         true,
         pointer,
     ) {
+        if target == Screen::Chronicle {
+            ctx.presentation.history_page.set(1);
+        }
         actions.push(UiAction::SelectScreen(target));
     }
     if term_button(

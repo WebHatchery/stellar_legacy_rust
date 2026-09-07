@@ -120,6 +120,20 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             );
         }
     }
+    if current == Destination::History {
+        for (index, label) in ["Timeline", "Obligations", "Milestones"]
+            .into_iter()
+            .enumerate()
+        {
+            let rect = Rect::new(614.0 + index as f32 * 158.0, 78.0, 150.0, 44.0);
+            if term_button(rect, label, true, pointer) {
+                ctx.presentation.history_page.set(index);
+            }
+            if ctx.presentation.history_page.get() == index {
+                draw_rectangle(rect.x, rect.bottom() - 3.0, rect.w, 3.0, term::accent());
+            }
+        }
+    }
     if current == Destination::People {
         for (index, label) in ["Family", "Officers", "Factions", "Council"]
             .into_iter()
