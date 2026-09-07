@@ -183,3 +183,18 @@ Final `cargo test --quiet`: 523 unit tests passed, one pre-existing test ignored
 Simulation tests cover project accounting, obligations and inheritance, survival grace and one-use stabilisation, terminal outcomes, debrief records, and save round trips. These tests and fixture screenshots are not a claim that every rare campaign path was manually replayed. The remaining live touch walkthroughs are queue reorder with multiple waiting jobs, a complete succession, due-obligation resolution through its resulting history, Homecoming through the next charter, and all critical-air/terminal modal actions. Their screens and authoritative transitions have automated coverage, but the complete chained UI routes remain unchecked.
 
 Fresh human five-second Bridge recognition and council cost/consequence explanation remain pending. A Bridge review was requested during implementation; no observed human result has been supplied. Do not interpret passing builds, screenshot dimensions or the agent's visual review as human discoverability or engagement acceptance.
+
+## Publisher compatibility follow-up
+
+Reproduced the reported `Packaged WebGL browser exited .` failure under Windows
+PowerShell 5.1. The `Start-Process -PassThru` process reported a null exit code
+after waiting; the smoke test treated that as a nonzero code. Browser launch now
+uses a directly owned .NET process, drains stdout/stderr concurrently, checks a
+real exit code, and uses an isolated temporary browser profile. Failure output is
+preserved under `dist/webgl-smoke`, including for exit and timeout errors.
+
+Regression checks cover fast success/nonzero exits, 100 KB on each output pipe,
+and process timeouts in both PowerShell 5.1 and 7. The full parameterless publisher
+passed under Windows PowerShell 5.1, including both packaged Windows rendering
+and packaged WebGL browser initialisation. This follow-up changes validation
+scripts only; it does not change game rendering or the screenshot matrix.

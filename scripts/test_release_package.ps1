@@ -4,6 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "release_browser.ps1")
 
 function Assert-WindowsPackage([string]$Archive) {
     $archivePath = (Resolve-Path -LiteralPath $Archive).Path
@@ -108,9 +109,11 @@ function Assert-WebGLPackage([string]$Directory) {
     $serverErr = Join-Path $temp "stellar-webgl-server-$token.err"
     $browserOut = Join-Path $temp "stellar-webgl-browser-$token.log"
     $browserErr = Join-Path $temp "stellar-webgl-browser-$token.err"
+    $profile = Join-Path $temp "stellar-webgl-profile-$token"
+    $server = $null
     try {
         $server = Start-Process -FilePath "python" -ArgumentList @(
-            "-m", "http.server", "$port", "--bind", "127.0.0.1", "--directory", $siteRoot
+            "-m", "http.server", "$port", "--bind", "127.0.0.1", "--directory", ('"{0}"' -f $siteRoot)
         ) -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -WindowStyle Hidden -PassThru
         $ready = $false
         foreach ($attempt in 1..40) {
@@ -125,27 +128,42 @@ function Assert-WebGLPackage([string]$Directory) {
         if (-not $ready) { throw "Packaged WebGL test server did not start." }
 
         $url = "http://127.0.0.1:$port/stellar_legacy/index.html"
-        $browserProcess = Start-Process -FilePath $browser -ArgumentList @(
+        $browserArguments = @(
             "--headless=new", "--no-first-run", "--disable-extensions",
+            ('--user-data-dir="{0}"' -f $profile),
             "--enable-unsafe-swiftshader", "--use-angle=swiftshader",
             "--window-size=1280,720", "--virtual-time-budget=12000",
             "--dump-dom", $url
-        ) -RedirectStandardOutput $browserOut -RedirectStandardError $browserErr -WindowStyle Hidden -PassThru
-        if (-not $browserProcess.WaitForExit(30000)) {
-            $browserProcess.Kill()
-            throw "Packaged WebGL browser smoke timed out."
-        }
-        if ($browserProcess.ExitCode -ne 0) { throw "Packaged WebGL browser exited $($browserProcess.ExitCode)." }
+        ) -join ' '
+        $exitCode = Invoke-ReleaseBrowser -FilePath $browser -Arguments $browserArguments `
+            -StandardOutput $browserOut -StandardError $browserErr
+        if ($null -eq $exitCode) { throw "Packaged WebGL browser did not report an exit code." }
+        if ($exitCode -ne 0) { throw "Packaged WebGL browser exited $exitCode." }
         $dom = Get-Content -Raw -LiteralPath $browserOut
         if ($dom -notmatch 'data-webgl-runtime="ready"') {
-            Copy-Item -LiteralPath $browserOut -Destination (Join-Path $siteRoot "browser-smoke-failure.html") -Force
-            Copy-Item -LiteralPath $browserErr -Destination (Join-Path $siteRoot "browser-smoke-failure.log") -Force
-            throw "Packaged WebGL runtime did not initialise; diagnostics preserved in $siteRoot."
+            throw "Packaged WebGL runtime did not initialise."
         }
+    }
+    catch {
+        foreach ($diagnostic in @(
+            @($browserOut, "browser-smoke-failure.html"),
+            @($browserErr, "browser-smoke-failure.log"),
+            @($serverErr, "server-smoke-failure.log")
+        )) {
+            if (Test-Path -LiteralPath $diagnostic[0]) {
+                Copy-Item -LiteralPath $diagnostic[0] -Destination (Join-Path $siteRoot $diagnostic[1]) -Force
+            }
+        }
+        throw "$($_.Exception.Message) Diagnostics: $siteRoot"
     }
     finally {
         if ($server -and -not $server.HasExited) { Stop-Process -Id $server.Id -Force }
         Remove-Item -LiteralPath $serverOut,$serverErr,$browserOut,$browserErr -Force -ErrorAction SilentlyContinue
+        $resolvedProfile = [IO.Path]::GetFullPath($profile)
+        $expectedProfile = Join-Path ([IO.Path]::GetFullPath($temp)) "stellar-webgl-profile-$token"
+        if ($resolvedProfile -eq $expectedProfile -and (Test-Path -LiteralPath $resolvedProfile)) {
+            Remove-Item -LiteralPath $resolvedProfile -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
     Write-Host "Packaged WebGL build loaded and rendered in a real browser." -ForegroundColor Green
 }
