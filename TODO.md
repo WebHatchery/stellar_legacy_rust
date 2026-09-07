@@ -3,6 +3,19 @@
 Standing direction for content passes lives in `content_depth.md`; this file holds only
 the discrete open items left behind by finished workstreams.
 
+## UI redesign
+
+Scope, screenshot evidence, dependencies, and acceptance criteria live in the
+[UI redesign plan](docs/ui_redesign_plan.md). Implementation has not started.
+
+- [ ] M0: action inventory and Bridge/council-event prototypes.
+- [ ] M1: readable typography, shared controls, and visual tokens.
+- [ ] M2: stable navigation and actionable Bridge.
+- [ ] M3: interactive ship and compact work management.
+- [ ] M4: recognisable people and clear council decisions.
+- [ ] M5: voyage comparison and living history.
+- [ ] M6: complete touch, responsive, and release acceptance evidence.
+
 ## Ship work (0.2.1 audit corrections)
 
 Implementation details and acceptance gates live in
