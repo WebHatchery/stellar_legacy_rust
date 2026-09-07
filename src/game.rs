@@ -186,6 +186,11 @@ impl Game {
         // unseeded it starts from a fixed default, so every new game came out the
         // same. A `fixed_seed` in game_config still overrides this for testing.
         macroquad_toolkit::rng::srand((macroquad::miniquad::date::now() * 1000.0) as u64);
+        if let Err(error) = macroquad_toolkit::ui::set_default_ui_font_from_bytes(include_bytes!(
+            "../assets/fonts/DejaVuSans.ttf"
+        )) {
+            eprintln!("Body font unavailable; using bundled display fallback: {error}");
+        }
         let data = build_mode::load_data();
         let chronicle = ChronicleStore::load(
             &data.config.game_name,
@@ -555,7 +560,12 @@ impl Game {
             });
 
         // Phosphor-monitor overlay sits on top of everything else.
-        if self.display.crt_enabled {
+        if self.display.crt_enabled
+            && matches!(self.state, GameState::Menu(_))
+            && !self.settings_open
+            && !self.help_open
+            && !self.welcome_open
+        {
             self.crt.draw(get_time() as f32, &self.crt_style);
         }
     }

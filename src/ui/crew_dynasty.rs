@@ -6,7 +6,7 @@ use crate::simulation::crew::post_holder;
 use crate::simulation::legacy::failure_risk;
 use crate::simulation::succession::planned_heir;
 use crate::state::sim::factions::{approval_band_label, mood_band_for};
-use crate::ui::{stat_line, term, term_button, term_panel, GameplayCtx, UiAction};
+use crate::ui::{spec_line, term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, RectExt};
@@ -26,7 +26,7 @@ fn priced_action_label(action: &str, cost: i64, credits: i64) -> String {
     if credits >= cost {
         format!("{action} ({cost} CR)")
     } else {
-        format!("NEED {cost} CR")
+        format!("{action} · NEED {cost} CR")
     }
 }
 
@@ -34,7 +34,7 @@ fn training_label(skill: u32, maximum: u32, gain: u32, cost: i64, credits: i64) 
     if skill >= maximum {
         "MASTERED".to_owned()
     } else if credits < cost {
-        format!("NEED {cost} CR")
+        format!("TRAIN · NEED {cost} CR")
     } else {
         format!("TRAIN TO SK {} · {cost}CR", (skill + gain).min(maximum))
     }
@@ -337,22 +337,22 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     .retirement_age
                     .saturating_sub(holder.age)
                     .saturating_add(1);
-                draw_ui_text_ex(
+                draw_text_block(
                     &format!(
-                        "{} — {} ({} · {}Y LEFT) · SK {}",
+                        "{} · {}\nAge {} · {} years left · Skill {}",
                         archetype.name, holder.name, holder.age, years_left, holder.skill
                     ),
                     content.x,
-                    y,
-                    TextStyle::new(
-                        13.0,
-                        if years_left <= 5 {
-                            term::alert()
-                        } else {
-                            term::accent()
-                        },
-                    )
-                    .params(),
+                    y - 12.0,
+                    content.w - 318.0,
+                    42.0,
+                    13.0,
+                    3.0,
+                    if years_left <= 5 {
+                        term::alert()
+                    } else {
+                        term::dim()
+                    },
                 );
                 let maxed = holder.skill >= archetype.skill_max;
                 let apprentice = ctx
@@ -451,9 +451,10 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
     );
     y += 24.0;
 
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "GENERATION",
         &ctx.sim.dynasty.generation.to_string(),
         term::accent(),
@@ -464,9 +465,10 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
         .config
         .generation_interval_years
         .saturating_sub(ctx.sim.dynasty.years_since_generation);
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "NEXT GENERATION IN",
         &format!("{next_gen} yr"),
         term::primary(),
@@ -484,9 +486,10 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
             }
         },
     );
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "HEIR",
         &succession,
         if planned.is_some() {
@@ -508,9 +511,10 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
     } else {
         format!("{apprentices} APPRENTICES")
     };
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "POSTS",
         &format!("{apprentice_label} · {vacant_posts} VACANT",),
         if vacant_posts > 0 {
@@ -522,7 +526,7 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
     y += 34.0;
 
     draw_text_block(
-        "Delegated event domains auto-resolve via the council's advisors; outcomes are still logged (GDD §5.4).",
+        "Delegated event domains auto-resolve via the council's advisors; outcomes are still logged.",
         content.x,
         y,
         content.w,
@@ -566,7 +570,7 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
         ),
     ];
     for (label, value) in &counters {
-        stat_line(content.x, y, label, value, term::primary());
+        spec_line(content.x, y, content.w, label, value, term::primary());
         y += 22.0;
     }
 
@@ -584,9 +588,10 @@ fn draw_council(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &m
     } else {
         ("STABLE", term::accent())
     };
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         &format!("RISK: {risk_name}"),
         &format!("{} ({status})", risk.total),
         color,

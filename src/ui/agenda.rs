@@ -58,7 +58,7 @@ fn draw_work_board(
             active, waiting
         )),
     );
-    let view = area.inset(16.0);
+    let view = Rect::new(area.x + 16.0, area.y + 44.0, area.w - 32.0, area.h - 60.0);
     let choices = catalogue_choices(ctx);
     let content_h =
         40.0 + ctx.sim.projects.jobs.len() as f32 * ROW_H + 38.0 + choices.len() as f32 * ROW_H;

@@ -135,11 +135,11 @@ fn known_effects(
     let mut effects = Vec::new();
     let r = outcome.resource_delta;
     for (label, value) in [
-        ("CR", r.credits),
-        ("EN", r.energy),
-        ("MIN", r.minerals),
-        ("FOOD", r.food),
-        ("INF", r.influence),
+        ("Credits", r.credits),
+        ("Energy", r.energy),
+        ("Minerals", r.minerals),
+        ("Food", r.food),
+        ("Influence", r.influence),
     ] {
         if value != 0 {
             effects.push(format!("{label} {value:+}"));

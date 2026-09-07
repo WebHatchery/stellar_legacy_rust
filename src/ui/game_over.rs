@@ -1,7 +1,7 @@
 //! Full-screen "voyage terminated" takeover for every authored loss condition.
 
 use crate::ui::{
-    stat_line, term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
+    spec_line, term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -68,7 +68,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     ];
     let mut y = content.y + 30.0;
     for (label, value) in rows {
-        stat_line(content.x, y, label, &value, term::accent());
+        spec_line(content.x, y, content.w, label, &value, term::accent());
         y += 30.0;
     }
 

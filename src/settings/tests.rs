@@ -3,6 +3,8 @@ use super::*;
 #[test]
 fn style_reflects_toggles() {
     let mut s = DisplaySettings::default();
+    assert_eq!(s.crt_style().scanline_alpha, 0.0);
+    s.scanlines = true;
     assert!(s.crt_style().scanline_alpha > 0.0);
     s.scanlines = false;
     s.flicker = false;

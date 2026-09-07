@@ -308,7 +308,7 @@ fn draw_tabs(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction
         ("SAVE", UiAction::SaveGame),
         ("MENU", UiAction::ToMenu),
         ("HELP", UiAction::OpenHelp),
-        ("DISPLAY", UiAction::OpenSettings),
+        ("Display", UiAction::OpenSettings),
     ]
     .into_iter()
     .enumerate()

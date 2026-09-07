@@ -748,11 +748,11 @@ fn draw_milestones(ctx: &GameplayCtx<'_>, area: Rect) {
             content.x + 22.0,
             y + 6.0,
             content.w - 22.0,
-            30.0,
+            46.0,
             12.0,
             2.0,
             term::faint(),
         );
-        y += 46.0;
+        y += 66.0;
     }
 }

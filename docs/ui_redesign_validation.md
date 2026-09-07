@@ -59,3 +59,37 @@ section spacing. Select-and-commit council choices replace simultaneous tall
 cards so their full consequences can be read without reducing text size.
 
 Increment 1 validation: publish.ps1 passed (Windows and WebGL release packaging, preview deployment, packaged Windows render and real-browser WebGL smoke). Four refreshed 1280x720 captures reviewed; schematic caption collision corrected. Full responsive and human acceptance remain pending.
+
+## Increment 2: shared reading layer
+
+DejaVu Sans is embedded locally through the toolkit font API. The font is reused
+from the workspace's released auction_game assets; the upstream DejaVu licence
+is bundled in assets/fonts/LICENSE-DejaVu.txt and registered in assets.zip.
+Upstream licence: https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/LICENSE
+The existing title illustration is retained. No generated portrait asset or new
+runtime dependency is introduced.
+
+Gameplay uses opaque neutral reading panels, warm-white body text, gold identity,
+muted positive status and labelled peach warnings. Title effects never overlay
+gameplay, help, settings or welcome prose. Scanlines and flicker default off.
+Reading-surface contrast, calculated using WCAG relative luminance: body 14.94:1,
+secondary text 9.25:1, warning 9.41:1, panel boundary 4.29:1. These refer to the
+opaque gameplay panel, not arbitrary text over title artwork.
+
+All 54 existing captures were refreshed at actual 1280×720 and reviewed in
+contact sheets; affected Bridge, event, People, Agenda, settings, preparation,
+Homecoming, History, founding and ending screens were also inspected at full
+size. The review corrected officer/action overlap, council stat collisions,
+Agenda header collision, inherited-duty/trait overlap, milestone row spacing,
+settings delegation/close overlap, preparation mandate overlap and founding
+intro/selection overlap. Meter numbers now have their own opaque backing.
+
+Dense secondary panels still use their existing smaller instrument sizes and
+need the later selected-detail migration. Full portrait acceptance is not yet
+claimed. Existing “narrow” filenames were found to capture 1280×720; this is a
+verification gap, not evidence of portrait support.
+
+Unit validation: 521 unit tests passed, one pre-existing ignored test, and one
+integration test passed. No simulation or save schema was changed.
+
+Increment 2 final publish.ps1 passed after the layout corrections, including packaged Windows and real-browser WebGL smoke tests. Every project Rust file remains below 800 physical lines. The catalog thumbnail was refreshed from the title capture.

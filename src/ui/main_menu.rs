@@ -207,7 +207,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     let right_x = content.x + col_w + col_gap;
     // Both columns share a header band: an intro block explaining the choice,
     // then the pickable list below it. `list_top` is where each list starts.
-    let list_top = content.y + 92.0;
+    let list_top = content.y + 106.0;
 
     // --- Left column: the legacy that steers the bloodline ---
     draw_text_block(
@@ -318,7 +318,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     draw_ui_text_ex(
         &format!("Choose {starting} founding peoples  ({chosen}/{starting}):"),
         right_x,
-        content.y + 84.0,
+        content.y + 100.0,
         TextStyle::new(
             14.0,
             if chosen == starting {

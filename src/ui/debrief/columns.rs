@@ -331,7 +331,7 @@ pub(super) fn draw_commanders(
         content.w,
         content.bottom() - (content.y + 18.0),
     );
-    const STRIDE: f32 = 52.0;
+    const STRIDE: f32 = 74.0;
     let content_h = report.commanders.len() as f32 * STRIDE;
     let mut scroll = ctx.debrief_commanders_scroll.get();
     scroll.update_at(view, content_h, pointer.position);
@@ -373,7 +373,7 @@ pub(super) fn draw_commanders(
             draw_ui_text_ex(
                 &format!("  {}", reign.trait_name),
                 row.x,
-                row.y + 45.0,
+                row.y + 61.0,
                 TextStyle::new(11.0, term::faint()).params(),
             );
         }

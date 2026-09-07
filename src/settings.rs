@@ -90,8 +90,8 @@ impl Default for DisplaySettings {
     fn default() -> Self {
         Self {
             crt_enabled: true,
-            scanlines: true,
-            flicker: true,
+            scanlines: false,
+            flicker: false,
             phosphor: Phosphor::Amber,
             audio_volume: 0.35,
             ambience: true,

@@ -8,7 +8,7 @@ use crate::state::sim::DelegationSettings;
 use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude};
 
 /// A change the display overlay is requesting.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -41,9 +41,9 @@ pub fn draw(
     );
     occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
 
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 250.0, 20.0, 500.0, 680.0);
+    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 470.0, 20.0, 940.0, 680.0);
     term_panel(panel, Some("DISPLAY // CRT MONITOR"));
-    let content = panel.inset(28.0);
+    let content = Rect::new(panel.x + 28.0, panel.y + 28.0, 420.0, panel.h - 56.0);
     let mut y = content.y + 30.0;
 
     // On/off rows: label left, a single toggle button right.
@@ -160,12 +160,11 @@ pub fn draw(
         DisplayAction::ToggleTutorial,
         &mut actions,
     );
-    y += 48.0;
-
+    y = content.y + 30.0;
     // Delegation defaults: which council categories auto-resolve in new voyages.
     draw_ui_text_ex(
         "DELEGATION DEFAULTS // NEW VOYAGES",
-        content.x,
+        panel.x + 498.0,
         y,
         TextStyle::new(14.0, term::primary()).params(),
     );
@@ -174,13 +173,13 @@ pub fn draw(
         let delegated = delegation.is_delegated(category);
         draw_ui_text_ex(
             &category.label().to_uppercase(),
-            content.x,
+            panel.x + 498.0,
             y + 21.0,
             TextStyle::new(15.0, term::dim()).params(),
         );
         let bw = 120.0;
         if choice_button(
-            Rect::new(content.right() - bw, y, bw, 44.0),
+            Rect::new(panel.right() - 28.0 - bw, y, bw, 44.0),
             if delegated { "DELEGATED" } else { "COUNCIL" },
             delegated,
             pointer,
@@ -190,7 +189,7 @@ pub fn draw(
         y += 48.0;
     }
     draw_ui_text_ex(
-        "Tap DISPLAY for this panel · HELP for controls · CLOSE to return.",
+        "Title effects stay clear of gameplay text.",
         content.x,
         content.bottom() - 54.0,
         TextStyle::new(13.0, term::faint()).params(),

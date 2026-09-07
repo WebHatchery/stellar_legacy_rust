@@ -14,7 +14,7 @@ fn priced_action_label(action: &str, cost: i64, available: i64, unit: &str) -> S
     if available >= cost {
         format!("{action} ({cost}{unit})")
     } else {
-        format!("NEED {cost}{unit}")
+        format!("{action} · NEED {cost}{unit}")
     }
 }
 

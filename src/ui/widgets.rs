@@ -132,11 +132,15 @@ pub fn term_bar(rect: Rect, frac: f32, fill: Color, label: &str, value: &str) {
         baseline,
         TextStyle::new(font, label_color).params(),
     );
-    let value_color = if frac > 0.9 {
-        term::bg()
-    } else {
-        term::accent()
-    };
+    let value_width = measure_text_size(value, TextStyle::new(font, term::dim())).width;
+    draw_rectangle(
+        rect.right() - value_width - 12.0,
+        rect.y + 1.0,
+        value_width + 10.0,
+        rect.h - 2.0,
+        term::surface_inset(),
+    );
+    let value_color = term::dim();
     draw_text_right(
         value,
         rect.right() - 8.0,
