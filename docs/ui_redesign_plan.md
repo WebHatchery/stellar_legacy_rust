@@ -1,7 +1,7 @@
 # Stellar Legacy UI redesign plan
 
 Date: 2026-09-07
-Status: planned; implementation has not started.
+Status: implementation underway; see ui_redesign_validation.md for verified increments and remaining acceptance work.
 Scope: presentation, navigation, and interaction clarity across the existing game.
 
 ## 1. Intended result
@@ -102,11 +102,11 @@ the next. Checkboxes describe future completion; this document completes none of
 
 ### M0 — Baseline and two representative prototypes
 
-- [ ] Inventory all current destinations, actions, modal variants, and capture scenes.
+- [x] Inventory all current destinations, actions, modal variants, and capture scenes.
 - [ ] Produce reviewable Bridge and council-event mockups using real baseline content.
 - [ ] Cover quiet travel, energy shortage, and an event with long choices/advice.
 - [ ] Establish type, spacing, colour, button, and responsive layout tokens.
-- [ ] Record the chosen direction and differences from this proposal in this document.
+- [x] Record the chosen direction and differences from this proposal in this document.
 
 Exit: both prototypes make the objective/decision and next action immediately
 identifiable, preserve mandatory information, and demonstrate desktop and narrow
@@ -253,3 +253,5 @@ Do not bundle unrelated balance changes into this redesign.
 The first implementation task is M0: produce the Bridge and council-event
 prototypes and complete the action inventory. This planning change itself does
 not alter game behavior, assets, screenshots, or the status of existing human QA.
+
+Implementation direction: in-game Bridge and council prototypes now use the existing ship silhouette and authoritative state. Council options use selection followed by an explicit commitment, with full consequences in a scrollable reading area. See [validation and action inventory](ui_redesign_validation.md). Desktop prototypes precede responsive acceptance; unchecked items remain outstanding.

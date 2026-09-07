@@ -6,6 +6,7 @@
 
 pub mod agenda;
 pub mod authority_modal;
+pub mod bridge;
 pub mod chronicle;
 pub mod contract_systems;
 pub mod crew_dynasty;
@@ -18,6 +19,7 @@ pub mod main_menu;
 pub mod market;
 pub mod mission;
 pub mod prep;
+pub mod presentation;
 pub mod recovery_warning;
 pub mod settings;
 pub mod shell;

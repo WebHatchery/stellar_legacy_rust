@@ -4,6 +4,7 @@
 use super::*;
 
 pub struct GameplayCtx<'a> {
+    pub presentation: &'a presentation::Presentation,
     pub data: &'a GameData,
     pub sim: &'a SimState,
     pub screen: Screen,
@@ -121,7 +122,7 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
 
     let content = Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0);
     match screen {
-        Screen::Dashboard => dashboard::draw(&ctx, content, pointer, &mut actions),
+        Screen::Dashboard => bridge::draw(&ctx, content, pointer, &mut actions),
         Screen::Agenda => agenda::draw(&ctx, content, pointer, &mut actions),
         Screen::Drydock => contract_systems::draw_drydock(&ctx, content, pointer, &mut actions),
         Screen::ShipBuilder => ship_builder::draw(&ctx, content, pointer, &mut actions),

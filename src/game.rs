@@ -176,6 +176,7 @@ pub struct Game {
     /// state, flipped by the on-screen toggle.
     ship_modules_tab: Cell<bool>,
     ship_preview: Cell<(u64, f64)>,
+    presentation: ui::presentation::Presentation,
 }
 
 impl Game {
@@ -269,6 +270,7 @@ impl Game {
             project_cancel_confirm: Cell::new(None),
             ship_modules_tab: Cell::new(false),
             ship_preview: Cell::new((0, -100.0)),
+            presentation: Default::default(),
         }
     }
 
@@ -458,6 +460,7 @@ impl Game {
                     title_art: self.assets.get_texture("title"),
                 }),
                 GameState::Gameplay(gameplay) => ui::draw_gameplay(ui::GameplayCtx {
+                    presentation: &self.presentation,
                     data: &self.data,
                     sim: &gameplay.sim,
                     screen: gameplay.screen,
