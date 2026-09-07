@@ -198,3 +198,8 @@ and process timeouts in both PowerShell 5.1 and 7. The full parameterless publis
 passed under Windows PowerShell 5.1, including both packaged Windows rendering
 and packaged WebGL browser initialisation. This follow-up changes validation
 scripts only; it does not change game rendering or the screenshot matrix.
+
+## Original terminal palette restored
+
+Restored the pre-readability-update amber/yellow and green phosphor colors across text, panels, borders, and controls at the user's request. The newer fonts and responsive layouts remain in place. Refreshed and visually reviewed the menu, Bridge, and green founding-screen captures, and updated the catalog title-screen thumbnail. The parameterless publisher passed Windows and WebGL builds, Preview deployment, packaged native rendering, and real-browser rendering. All Rust files remain below 800 lines.
+
