@@ -203,3 +203,6 @@ scripts only; it does not change game rendering or the screenshot matrix.
 
 Restored the pre-readability-update amber/yellow and green phosphor colors across text, panels, borders, and controls at the user's request. The newer fonts and responsive layouts remain in place. Refreshed and visually reviewed the menu, Bridge, and green founding-screen captures, and updated the catalog title-screen thumbnail. The parameterless publisher passed Windows and WebGL builds, Preview deployment, packaged native rendering, and real-browser rendering. All Rust files remain below 800 lines.
 
+## Selectable color schemes
+
+Settings now names the preference Color scheme and offers Amber, Green, and Slate on desktop and mobile. Amber remains the default; Slate restores the blue-gray panels and neutral prose as an optional style. Choices use the existing immediate-apply and save path. Five settings tests passed, including round trips for every scheme and compatibility with existing Amber/Green preferences. Reviewed refreshed desktop Settings, Slate Settings, and 390px portrait Settings captures; all three choices fit as visible touch controls. The parameterless publisher passed Windows/WebGL builds and packaged rendering checks. All Rust files remain below 800 lines.

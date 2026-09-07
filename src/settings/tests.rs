@@ -36,3 +36,27 @@ fn partial_json_loads_with_defaults() {
     assert_eq!(s.phosphor, Phosphor::Amber);
     assert!(s.tutorial_enabled);
 }
+
+#[test]
+fn every_color_scheme_survives_a_settings_round_trip() {
+    for phosphor in Phosphor::ALL {
+        let settings = DisplaySettings {
+            phosphor,
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&settings).unwrap();
+        let restored: DisplaySettings = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored, settings);
+    }
+}
+
+#[test]
+fn old_terminal_preferences_keep_their_selected_scheme() {
+    for (json, expected) in [
+        (r#"{"phosphor":"Amber"}"#, Phosphor::Amber),
+        (r#"{"phosphor":"Green"}"#, Phosphor::Green),
+    ] {
+        let settings: DisplaySettings = serde_json::from_str(json).unwrap();
+        assert_eq!(settings.phosphor, expected);
+    }
+}

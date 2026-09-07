@@ -73,8 +73,15 @@ pub fn settings(
             action,
         );
     }
-    f.action("Amber identity", true, A::SetPhosphor(Phosphor::Amber));
-    f.action("Green identity", true, A::SetPhosphor(Phosphor::Green));
+    f.heading("Color scheme");
+    for scheme in Phosphor::ALL {
+        let label = if display.phosphor == scheme {
+            format!("{} · selected", scheme.label())
+        } else {
+            format!("{} · tap to apply", scheme.label())
+        };
+        f.action(&label, true, A::SetPhosphor(scheme));
+    }
     f.text(&format!(
         "Audio volume {:.0}%",
         display.audio_volume * 100.0

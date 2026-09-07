@@ -50,7 +50,7 @@ pub fn save_delegation(delegation: &DelegationSettings, game_name: &str) -> Resu
     save_json_key(game_name, DELEGATION_KEY, delegation)
 }
 
-/// Phosphor tube color for the CRT overlay.
+/// UI color scheme, stored under the original phosphor preference for compatibility.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum Phosphor {
     /// Warm amber (P3).
@@ -58,6 +58,20 @@ pub enum Phosphor {
     Amber,
     /// Cool green (P1).
     Green,
+    /// Blue-gray panels with neutral, high-contrast prose.
+    Slate,
+}
+
+impl Phosphor {
+    pub const ALL: [Self; 3] = [Self::Amber, Self::Green, Self::Slate];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Amber => "Amber",
+            Self::Green => "Green",
+            Self::Slate => "Slate",
+        }
+    }
 }
 
 /// User's CRT display preferences. All fields `serde(default)` so older or
@@ -71,7 +85,7 @@ pub struct DisplaySettings {
     pub scanlines: bool,
     /// Apply the subtle whole-screen flicker.
     pub flicker: bool,
-    /// Phosphor tint of the overlay.
+    /// Color scheme for the interface and overlay.
     pub phosphor: Phosphor,
     /// Master mix, deliberately restrained by default.
     pub audio_volume: f32,
@@ -117,6 +131,10 @@ impl DisplaySettings {
         let mut style = match self.phosphor {
             Phosphor::Amber => CrtStyle::amber(),
             Phosphor::Green => CrtStyle::green(),
+            Phosphor::Slate => CrtStyle {
+                tint: macroquad::prelude::Color::new(0.68, 0.78, 0.90, 1.0),
+                ..CrtStyle::amber()
+            },
         };
         // Ease the corner falloff and scanline darkening back from the toolkit
         // presets: the heavy vignette greyed the panels toward the edges and

@@ -44,6 +44,12 @@ impl Game {
         self.tutorial_open = false;
         self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
+        let scene = if scene == "settings_slate" {
+            self.display.phosphor = crate::settings::Phosphor::Slate;
+            "settings"
+        } else {
+            scene
+        };
         self.crt_style = self.display.crt_style();
         ui::term::set_phosphor(self.display.phosphor);
         self.delegation_defaults = crate::state::sim::DelegationSettings::default();

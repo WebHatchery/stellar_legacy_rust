@@ -81,29 +81,24 @@ pub fn draw(
     );
     y += 52.0;
 
-    // Phosphor: two mutually-exclusive choices.
     draw_ui_text_ex(
-        "PHOSPHOR",
+        "COLOR SCHEME",
         content.x,
-        y + 22.0,
+        y + 18.0,
         TextStyle::new(16.0, term::dim()).params(),
     );
-    let bw = 92.0;
-    if choice_button(
-        Rect::new(content.right() - bw * 2.0 - 8.0, y, bw, 44.0),
-        "AMBER",
-        display.phosphor == Phosphor::Amber,
-        pointer,
-    ) {
-        actions.push(DisplayAction::SetPhosphor(Phosphor::Amber));
-    }
-    if choice_button(
-        Rect::new(content.right() - bw, y, bw, 44.0),
-        "GREEN",
-        display.phosphor == Phosphor::Green,
-        pointer,
-    ) {
-        actions.push(DisplayAction::SetPhosphor(Phosphor::Green));
+    y += 28.0;
+    let gap = 8.0;
+    let bw = (content.w - gap * 2.0) / 3.0;
+    for (index, scheme) in Phosphor::ALL.into_iter().enumerate() {
+        if choice_button(
+            Rect::new(content.x + index as f32 * (bw + gap), y, bw, 44.0),
+            &scheme.label().to_uppercase(),
+            display.phosphor == scheme,
+            pointer,
+        ) {
+            actions.push(DisplayAction::SetPhosphor(scheme));
+        }
     }
     y += 62.0;
 
