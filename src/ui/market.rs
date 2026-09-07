@@ -8,7 +8,7 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
-fn held_amount(ctx: &GameplayCtx<'_>, resource: TradeResource) -> i64 {
+pub(crate) fn held_amount(ctx: &GameplayCtx<'_>, resource: TradeResource) -> i64 {
     match resource {
         TradeResource::Energy => ctx.sim.resources.energy,
         TradeResource::Minerals => ctx.sim.resources.minerals,
@@ -53,7 +53,7 @@ fn terms_line(buy: TradeQuote, sell: TradeQuote) -> String {
     )
 }
 
-fn trade_lot_sizes(cargo: i64) -> (i64, i64) {
+pub(crate) fn trade_lot_sizes(cargo: i64) -> (i64, i64) {
     let cargo_lot = cargo.max(50);
     ((cargo_lot / 4).max(10).min(cargo_lot), cargo_lot)
 }

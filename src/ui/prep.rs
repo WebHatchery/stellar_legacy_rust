@@ -18,7 +18,7 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 /// button is drawn.
 const PROVISION_STRIDE: f32 = 64.0;
 
-fn launch_commit_label(conflicts: usize, shortfalls: usize) -> String {
+pub(crate) fn launch_commit_label(conflicts: usize, shortfalls: usize) -> String {
     match (conflicts, shortfalls) {
         (0, 0) => "[ LAUNCH ]".to_owned(),
         (0, shortfalls) => format!("LAUNCH UNDERSTOCKED · {shortfalls}"),

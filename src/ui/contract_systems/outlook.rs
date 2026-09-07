@@ -53,7 +53,7 @@ pub(crate) fn draw_posture(
         TextStyle::new(11.0, term::accent()).params(),
     );
     if term_button(
-        Rect::new(rect.right() - 146.0, rect.y + 68.0, 136.0, 38.0),
+        Rect::new(rect.right() - 146.0, rect.y + 62.0, 136.0, 44.0),
         "REVIEW MANDATE",
         true,
         pointer,

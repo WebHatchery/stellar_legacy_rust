@@ -120,7 +120,8 @@ fn tutorial_steps_cover_the_launch_flow() {
         .iter()
         .find(|step| step.id == "systems")
         .unwrap();
-    assert!(systems.tip.contains("CUSTODIAN AI"));
+    assert!(systems.tip.contains("Tap Ship"));
+    assert!(systems.tip.contains("Tap Systems"));
 }
 
 /// Every registry parses and carries at least the authored minimum.

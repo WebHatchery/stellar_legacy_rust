@@ -36,7 +36,7 @@ scars that the next generation must manage.
    **WHAT THIS CHANGES** to understand the legacy's effects before founding.
 2. Open **Voyage / Drydock** and compare charters. **Proving Run: Lumen Relay** is the
    tutorial voyage: 150 years split into 50-year outbound, operation, and return
-   legs. Tap **SELECT** to inspect a charter without launching.
+   legs. Tap **Read briefing & prepare** to inspect a charter without launching.
 3. Read the departure briefing and the **FOOD**, **PARTS**, and **FUEL** estimates.
    Use the stock-up controls or **MARKET** to provision the ship. Tap
    **PROVISIONS REVIEWED** when the guide asks you to.
@@ -50,9 +50,9 @@ scars that the next generation must manage.
    mission. Start at **1x** and tap **PAUSE** whenever you need to review or act.
    Tap **RESUME** to continue; **2x** and **3x** speed up quieter stretches.
 7. Open **Ship / Agenda**. Read the readiness rows and any aftermath notices, choose a
-   useful project, tap **QUEUE**, and tap **RESUME**. Two projects may run at once;
+   useful project, tap **Queue project** (open **Available projects** first on a narrow screen), and tap **RESUME**. Two projects may run at once;
    queued work waits without charging until it starts.
-8. When a council decision appears, read its choices and tap an option card.
+8. When a council decision appears, read the situation and known consequences, select a choice, then tap its **Commit** button.
    The voyage clock stops for blocking decisions, but the decision countdown can
    still run. Tap **PAUSE** to hold that countdown while you consider the choice.
 9. If life support becomes critical, follow the visible recovery review. Food and
@@ -72,7 +72,7 @@ a keyboard is optional. Drag lists to scroll.
 
 | Control or screen | Use it to |
 | --- | --- |
-| Numbered tabs | Switch between the ship's screens. Available tabs change between port and travel. |
+| **Bridge / Ship / People / Voyage / History** | Stable destinations in port and underway; section controls open their details. |
 | **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time. |
 | **Bridge** | Review resources, ship condition, and recent developments. |
 | **Ship / Agenda** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
@@ -81,8 +81,8 @@ a keyboard is optional. Drag lists to scroll.
 | **Voyage / Drydock / Market** | Choose and prepare charters, and trade while in port. |
 | **Voyage / Contract** | Follow mission progress; tap **REVIEW MANDATE** for authority rules. |
 | **History** | Read the record of earlier voyages and the legacy they leave. |
-| **SAVE / MENU** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
-| **HELP / DISPLAY** | Read controls and identity guidance, or adjust presentation, audio, and delegation settings. |
+| **Utilities / Save game / Return to menu** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
+| **Utilities / Help / Display & sound** | Read controls and identity guidance, or adjust presentation, audio, and delegation settings. |
 
 Saves are local. On Windows, **HELP → OPEN SAVE FOLDER** opens their location.
 The game remains readable with audio muted.

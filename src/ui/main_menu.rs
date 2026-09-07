@@ -8,6 +8,7 @@ use super::*;
 const TITLE_COLUMN_X: f32 = 98.0;
 
 pub struct MenuCtx<'a> {
+    pub presentation: &'a presentation::Presentation,
     pub data: &'a GameData,
     pub menu: &'a MenuState,
     pub legacy_ids: &'a [String],
@@ -22,6 +23,9 @@ pub struct MenuCtx<'a> {
 }
 
 pub fn draw_menu(ctx: MenuCtx<'_>) -> Vec<UiAction> {
+    if mobile::active() {
+        return mobile::draw_menu(&ctx, ctx.presentation);
+    }
     match ctx.menu.phase {
         crate::state::MenuPhase::Main => draw_main_menu(&ctx),
         crate::state::MenuPhase::NewGame => draw_new_game(&ctx),

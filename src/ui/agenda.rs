@@ -45,14 +45,14 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
 mod work_board;
 use work_board::draw_work_board;
 
-struct CatalogueChoice {
-    project_id: String,
-    target_id: Option<String>,
-    eligible: bool,
-    reason: String,
+pub(crate) struct CatalogueChoice {
+    pub(crate) project_id: String,
+    pub(crate) target_id: Option<String>,
+    pub(crate) eligible: bool,
+    pub(crate) reason: String,
 }
 
-fn catalogue_choices(ctx: &GameplayCtx<'_>) -> Vec<CatalogueChoice> {
+pub(crate) fn catalogue_choices(ctx: &GameplayCtx<'_>) -> Vec<CatalogueChoice> {
     let mut choices = Vec::new();
     for project_id in crate::data::GameData::sorted_ids(&ctx.data.projects) {
         let Some(definition) = ctx.data.projects.get(&project_id) else {
@@ -229,9 +229,9 @@ fn draw_choice(
     if term_button(
         button,
         if choice.eligible {
-            "QUEUE"
+            "Queue project"
         } else {
-            "QUEUE · UNAVAILABLE"
+            "Queue project · unavailable"
         },
         choice.eligible,
         pointer,
@@ -385,7 +385,7 @@ fn draw_cancel_preview(
     }
 }
 
-fn format_cost(amounts: ProjectAmounts) -> String {
+pub(crate) fn format_cost(amounts: ProjectAmounts) -> String {
     let mut parts = Vec::new();
     if amounts.credits > 0.0 {
         parts.push(format!("{:.2}cr", amounts.credits));

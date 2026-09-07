@@ -38,7 +38,11 @@ fn report_touch_targets(scene: &str) {
     for (a, b, area) in &clashes {
         println!("touch[{scene}] AMBIGUOUS: \"{a}\" and \"{b}\" share {area:.0}px²");
     }
-    if let Some((width, label)) = smallest_touchable_width(ui::LOGICAL_WIDTH) {
+    if let Some((width, label)) = smallest_touchable_width(if ui::mobile::active() {
+        ui::mobile::size().0
+    } else {
+        ui::LOGICAL_WIDTH
+    }) {
         println!(
             "touch[{scene}] every control clears 44px at {width:.0}px wide (worst: \"{label}\")"
         );

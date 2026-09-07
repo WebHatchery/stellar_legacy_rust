@@ -20,6 +20,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
     let Some(dilemma) = pending_dilemma_def(ctx.sim, ctx.data) else {
         return;
     };
+    macroquad_toolkit::ui::occlude(Rect::new(0.0, 72.0, LOGICAL_WIDTH, LOGICAL_HEIGHT - 72.0));
     let legacy_name = ctx
         .data
         .legacies
@@ -128,7 +129,7 @@ fn impact_label(lo: i64, hi: i64) -> (String, Color) {
     }
 }
 
-fn known_effects(
+pub(crate) fn known_effects(
     outcome: &crate::data::events::EventOutcome,
     population_range: Option<(i64, i64)>,
 ) -> (String, Color) {

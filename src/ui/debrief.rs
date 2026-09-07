@@ -11,7 +11,7 @@
 //! single [`UiAction::FileReport`] when the player is done reading.
 
 mod columns;
-mod report;
+pub(crate) mod report;
 
 use crate::state::sim::debrief::VoyageDebrief;
 use crate::ui::{

@@ -357,7 +357,7 @@ const OBJECTIVE_ORDER: [ContractObjective; 6] = [
 /// Resolve a charter's lock state and the label naming whatever bars it (renown,
 /// loadout, or a required people aboard) — extracted so both the sort key and the
 /// card draw read the same verdict.
-fn charter_lock(
+pub(crate) fn charter_lock(
     ctx: &GameplayCtx<'_>,
     template: &crate::data::contracts::ContractTemplate,
 ) -> (bool, String) {

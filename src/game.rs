@@ -6,6 +6,7 @@ mod actions;
 mod build_mode;
 mod capture_scenes;
 mod realtime;
+mod render;
 mod tutorial;
 
 use crate::audio::{AudioManager, Cue};
@@ -438,138 +439,6 @@ impl Game {
         }
     }
 
-    pub fn draw(&mut self) {
-        clear_background(ui::term::bg());
-
-        let modal_reveal = self.modal_reveal();
-        let log_reveal = self.log_reveal();
-
-        let show_boot = !self.boot.is_done() && matches!(self.state, GameState::Menu(_));
-
-        let virtual_ui = begin_virtual_ui_frame(ui::LOGICAL_WIDTH, ui::LOGICAL_HEIGHT);
-        // One pointer for the whole frame, in logical coordinates — a mouse or a
-        // finger, read the same way. Built here rather than per screen so every
-        // control agrees about where it is and whether it just let go.
-        let pointer = Pointer::read(|p| virtual_ui.screen_to_ui(p));
-        let actions = if show_boot {
-            self.boot.draw();
-            Vec::new()
-        } else {
-            match &self.state {
-                GameState::Menu(menu) => ui::draw_menu(ui::MenuCtx {
-                    data: &self.data,
-                    menu,
-                    legacy_ids: &self.legacy_ids,
-                    chronicle: &self.chronicle,
-                    pointer,
-                    title_art: self.assets.get_texture("title"),
-                }),
-                GameState::Gameplay(gameplay) => ui::draw_gameplay(ui::GameplayCtx {
-                    presentation: &self.presentation,
-                    data: &self.data,
-                    sim: &gameplay.sim,
-                    screen: gameplay.screen,
-                    chronicle: &self.chronicle,
-                    achievements: &self.achievements,
-                    pointer,
-                    modal_reveal,
-                    log_reveal,
-                    run_clock: self.run_clock_for(&gameplay.sim),
-                    decision_remaining: self.decision_remaining(&gameplay.sim),
-                    custody_picker: self.custody_picker.as_deref(),
-                    obligation_detail: self.obligation_detail.as_deref(),
-                    charter_scroll: &self.charter_scroll,
-                    description_scroll: &self.description_scroll,
-                    abort_confirm: &self.abort_confirm,
-                    ship_scroll: &self.ship_scroll,
-                    roster_scroll: &self.roster_scroll,
-                    chronicle_scroll: &self.chronicle_scroll,
-                    chronicle_records_tab: &self.chronicle_records_tab,
-                    obligations_scroll: &self.obligations_scroll,
-                    obligation_resolved_tab: &self.obligation_resolved_tab,
-                    obligation_history_scroll: &self.obligation_history_scroll,
-                    debrief_commanders_scroll: &self.debrief_commanders_scroll,
-                    debrief_log_scroll: &self.debrief_log_scroll,
-                    agenda_scroll: &self.agenda_scroll,
-                    agenda_readiness_scroll: &self.agenda_readiness_scroll,
-                    project_cancel_confirm: &self.project_cancel_confirm,
-                    ship_modules_tab: &self.ship_modules_tab,
-                    ship_preview: &self.ship_preview,
-                    tutorial_enabled: self.display.tutorial_enabled,
-                    tutorial_open: self.tutorial_open,
-                }),
-            }
-        };
-
-        // The F1/F2 panels float above everything and capture their own input.
-        let display_actions = if self.settings_open {
-            ui::settings::draw(&self.display, &self.delegation_defaults, pointer)
-        } else {
-            Vec::new()
-        };
-        let help_action = self
-            .help_open
-            .then(|| ui::help::draw(pointer, &self.data.config.version))
-            .flatten();
-        let mut time_actions = Vec::new();
-        if let GameState::Gameplay(gameplay) = &self.state {
-            ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
-        }
-        for action in time_actions {
-            self.events.push(action);
-        }
-        // First-run welcome overlay, above the menu only; its button dismisses it.
-        let welcome_dismiss = self.welcome_open
-            && matches!(self.state, GameState::Menu(_))
-            && ui::welcome::draw(&self.data.config.welcome, pointer);
-        // Roll this frame's controls into next frame's hit-area growth limits.
-        // Every button grows toward the 44px touch standard only as far as its
-        // neighbours allow, and the neighbours are whatever drew last frame — so
-        // this has to happen once, after everything has drawn.
-        end_frame_neighbours();
-        end_virtual_ui_frame();
-
-        // While a panel or the welcome overlay is open, swallow the underlying
-        // screen's intents.
-        if !self.settings_open && !self.help_open && !self.welcome_open {
-            for action in actions {
-                self.events.push(action);
-            }
-        }
-        for action in display_actions {
-            self.apply_display_action(action);
-        }
-        match help_action {
-            Some(ui::help::HelpAction::Close) => self.help_open = false,
-            Some(ui::help::HelpAction::OpenSaveFolder) => {
-                match crate::support::reveal_save_folder(&self.data.config.game_name) {
-                    Ok(()) => self.notifications.info("Save folder opened."),
-                    Err(error) => self.notifications.warning(error),
-                }
-            }
-            None => {}
-        }
-        if welcome_dismiss {
-            self.dismiss_welcome();
-        }
-
-        self.notifications
-            .draw_with_config(&NotificationRenderConfig {
-                anchor: NotificationAnchor::BottomRight,
-                ..Default::default()
-            });
-
-        // Phosphor-monitor overlay sits on top of everything else.
-        if self.display.crt_enabled
-            && matches!(self.state, GameState::Menu(_))
-            && !self.settings_open
-            && !self.help_open
-            && !self.welcome_open
-        {
-            self.crt.draw(get_time() as f32, &self.crt_style);
-        }
-    }
-
     /// Re-derive the cached CRT style from the current settings and save them.
     fn persist_display(&mut self) {
         self.crt_style = self.display.crt_style();
@@ -764,7 +633,7 @@ impl Game {
                 }
             }
         }
-        if changed {
+        if changed && !self.instant_reveal {
             let _ = crate::achievements::save(&self.achievements, &self.data.config.game_name);
         }
     }

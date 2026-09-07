@@ -19,6 +19,7 @@ pub mod identity;
 pub mod main_menu;
 pub mod market;
 pub mod mission;
+pub mod mobile;
 pub mod navigation;
 pub mod prep;
 pub mod presentation;

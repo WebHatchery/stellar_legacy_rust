@@ -1,7 +1,7 @@
 # Stellar Legacy UI redesign plan
 
 Date: 2026-09-07
-Status: implementation underway; see ui_redesign_validation.md for verified increments and remaining acceptance work.
+Status: M0–M5 implemented; release and screenshot verification passed. M6 human acceptance and the remaining live campaign routes are tracked in ui_redesign_validation.md.
 Scope: presentation, navigation, and interaction clarity across the existing game.
 
 ## 1. Intended result
@@ -103,9 +103,9 @@ the next. Checkboxes describe future completion; this document completes none of
 ### M0 — Baseline and two representative prototypes
 
 - [x] Inventory all current destinations, actions, modal variants, and capture scenes.
-- [ ] Produce reviewable Bridge and council-event mockups using real baseline content.
-- [ ] Cover quiet travel, energy shortage, and an event with long choices/advice.
-- [ ] Establish type, spacing, colour, button, and responsive layout tokens.
+- [x] Produce reviewable Bridge and council-event mockups using real baseline content.
+- [x] Cover quiet travel, energy shortage, and an event with long choices/advice.
+- [x] Establish type, spacing, colour, button, and responsive layout tokens.
 - [x] Record the chosen direction and differences from this proposal in this document.
 
 Exit: both prototypes make the objective/decision and next action immediately
@@ -114,10 +114,10 @@ layout. Review their appearance before rolling the design across every screen.
 
 ### M1 — Reading layer and shared controls
 
-- [ ] Implement tokens, readable body font, semantic colours, and subdued effects.
-- [ ] Separate badges, primary actions, secondary actions, and disabled reasons.
-- [ ] Remove player-facing development references and clarify resource labels.
-- [ ] Inspect every existing screen for wrapping or clipping after typography changes.
+- [x] Implement tokens, readable body font, semantic colours, and subdued effects.
+- [x] Separate badges, primary actions, secondary actions, and disabled reasons.
+- [x] Remove player-facing development references and clarify resource labels.
+- [x] Inspect every existing screen for wrapping or clipping after typography changes.
 
 Starting points: `src/ui/widgets.rs`, `src/ui.rs`, and existing theme/font ownership
 identified during M0. Inspect toolkit capabilities before adding generic UI helpers.
@@ -127,10 +127,10 @@ readable with effects on/off and colour is not the sole indication of state.
 
 ### M2 — Navigation and Bridge
 
-- [ ] Introduce stable destination grouping with a full old-to-new action map.
-- [ ] Implement the ship-centred Bridge, objective, attention, and compact log.
-- [ ] Link warnings directly to the relevant recovery or project action.
-- [ ] Update tutorial, help, and README navigation references with the new labels.
+- [x] Introduce stable destination grouping with a full old-to-new action map.
+- [x] Implement the ship-centred Bridge, objective, attention, and compact log.
+- [x] Link warnings directly to the relevant recovery or project action.
+- [x] Update tutorial, help, and README navigation references with the new labels.
 
 Starting points: `src/ui/shell.rs`, `src/ui/dashboard.rs`,
 `src/ui/dashboard/status.rs`, `src/ui/time_controls.rs`, `src/ui/tutorial.rs`.
@@ -141,12 +141,12 @@ recovery stay reachable in every responsive state and blocking overlay.
 
 ### M3 — Ship and work management
 
-- [ ] Make compartments selectable and distinguish damage, staffing, and active work.
-- [ ] Reuse ship-class silhouettes; use labels/icons as well as status colour.
-- [ ] Put selected subsystem details and valid actions beside or below the schematic.
-- [ ] Replace oversized Agenda cards with progress/status rows and selected details.
-- [ ] Keep queue/pause/resume/reorder/cancel and emergency recovery fully accessible.
-- [ ] Show costs, escrow/waiting reasons, and existing forecast uncertainty truthfully.
+- [x] Make compartments selectable and distinguish damage, staffing, and active work.
+- [x] Reuse ship-class silhouettes; use labels/icons as well as status colour.
+- [x] Put selected subsystem details and valid actions beside or below the schematic.
+- [x] Replace oversized Agenda cards with progress/status rows and selected details.
+- [x] Keep queue/pause/resume/reorder/cancel and emergency recovery fully accessible.
+- [x] Show costs, escrow/waiting reasons, and existing forecast uncertainty truthfully.
 
 Starting points: `src/ui/ship_schematic.rs`, `src/ui/ship_schematic/draw.rs`,
 `src/ui/ship_builder.rs`, `src/ui/subsystems.rs`, `src/ui/agenda.rs`,
@@ -157,11 +157,11 @@ the same work operations and recovery routes function without rule changes.
 
 ### M4 — People and council decisions
 
-- [ ] Give named officers stable portraits or distinctive silhouettes and role icons.
-- [ ] Show captain, heir, vacancies, and succession as a readable connected lineage.
-- [ ] Present factions with distinct emblems and concise current concerns.
-- [ ] Restructure council events into situation, speaker, choices, and optional advice.
-- [ ] Keep known costs/outcomes visible on each choice; preserve authority and timeout.
+- [x] Give named officers stable portraits or distinctive silhouettes and role icons.
+- [x] Show captain, heir, vacancies, and succession as a readable connected lineage.
+- [x] Present factions with distinct emblems and concise current concerns.
+- [x] Restructure council events into situation, speaker, choices, and optional advice.
+- [x] Keep known costs/outcomes visible on each choice; preserve authority and timeout.
 
 Starting points: `src/ui/crew_dynasty.rs`, `src/ui/event_modal.rs`,
 `src/ui/authority_modal.rs`, `src/ui/recovery_warning.rs`.
@@ -172,12 +172,12 @@ Character identity remains stable across screen changes and save/load.
 
 ### M5 — Voyage and living history
 
-- [ ] Give charters comparable duration/reward/risk summaries and destination visuals.
-- [ ] Present the full selected briefing without clipped prose.
-- [ ] Make departure a clear provisions/obligations review with existing launch rules.
-- [ ] Lead Homecoming with outcome, generations, survivors, and defining decisions.
-- [ ] Use a timeline for historical events with full records available on selection.
-- [ ] Keep overdue obligations prominent and archives/milestones accessible.
+- [x] Give charters comparable duration/reward/risk summaries and destination visuals.
+- [x] Present the full selected briefing without clipped prose.
+- [x] Make departure a clear provisions/obligations review with existing launch rules.
+- [x] Lead Homecoming with outcome, generations, survivors, and defining decisions.
+- [x] Use a timeline for historical events with full records available on selection.
+- [x] Keep overdue obligations prominent and archives/milestones accessible.
 
 Starting points: `src/ui/prep.rs`, `src/ui/mission.rs`, `src/ui/market.rs`,
 `src/ui/contract_systems.rs`, `src/ui/chronicle.rs`, `src/ui/debrief.rs`.
@@ -187,11 +187,11 @@ promises, and read the full debrief without losing existing mechanical informati
 
 ### M6 — Complete acceptance and release evidence
 
-- [ ] Run the end-to-end routes and visual matrix below.
-- [ ] Replace affected verification captures and review every capture in the manifest.
-- [ ] Refresh release screenshots only after the presentation has stabilised.
-- [ ] Keep root `catalog_thumbnail.png` aligned with the title screen if it changes.
-- [ ] Update design/help documentation and record validation results and open limitations.
+- [ ] Complete every long-campaign end-to-end touch route below (opening route and the visual matrix passed).
+- [x] Replace affected verification captures and review every capture in the manifest.
+- [x] Refresh release screenshots only after the presentation has stabilised.
+- [x] Keep root `catalog_thumbnail.png` aligned with the title screen if it changes.
+- [x] Update design/help documentation and record validation results and open limitations.
 
 ## 6. Assets and implementation boundaries
 
@@ -254,4 +254,4 @@ The first implementation task is M0: produce the Bridge and council-event
 prototypes and complete the action inventory. This planning change itself does
 not alter game behavior, assets, screenshots, or the status of existing human QA.
 
-Implementation direction: in-game Bridge and council prototypes now use the existing ship silhouette and authoritative state. Council options use selection followed by an explicit commitment, with full consequences in a scrollable reading area. See [validation and action inventory](ui_redesign_validation.md). Desktop prototypes precede responsive acceptance; unchecked items remain outstanding.
+Implementation direction: in-game Bridge and council prototypes now use the existing ship silhouette and authoritative state. Council options use selection followed by an explicit commitment, with full consequences in a scrollable reading area. See [validation and action inventory](ui_redesign_validation.md). Desktop and responsive layouts are implemented. Release captures cover all four target sizes; unchecked acceptance work remains explicitly outstanding.

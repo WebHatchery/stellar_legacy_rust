@@ -150,7 +150,7 @@
       {
         "id": "charter",
         "label": "Choose a charter",
-        "tip": "Tap SELECT on a charter card. This selects the mission without launching."
+        "tip": "Tap Read briefing & prepare on a charter card. This selects the mission without launching."
       },
       {
         "id": "provision",
@@ -180,7 +180,7 @@
       {
         "id": "queue_project",
         "label": "Queue useful ship work",
-        "tip": "In Ship / Agenda, tap QUEUE beside an eligible project. Queueing is free; the full budget is charged only when work starts."
+        "tip": "In Ship / Agenda, select an eligible project, then tap Queue project. On a narrow screen, open Available projects first. Queueing is free; the full budget is charged only when work starts."
       },
       {
         "id": "pause",
@@ -195,7 +195,7 @@
       {
         "id": "council",
         "label": "Answer the council",
-        "tip": "When a council decision appears, read the outcomes and tap a choice. Tap PAUSE to hold the countdown while you review it."
+        "tip": "When a council decision appears, read a choice and its known consequences, then tap its Commit button. Tap PAUSE to hold the countdown while you review it."
       }
     ]
   },
@@ -205,7 +205,7 @@
     "sections": [
       {
         "heading": "YOUR COMMISSION",
-        "body": "The founding society commissioned you to operate the vessel and preserve its mandate. Choose a legacy and founding peoples, then choose a charter. Tap SELECT, review the briefing, and tap LAUNCH when the ship is ready."
+        "body": "The founding society commissioned you to operate the vessel and preserve its mandate. Choose a legacy and founding peoples, then choose a charter. Tap Read briefing & prepare, review the briefing, and tap LAUNCH when the ship is ready."
       },
       {
         "heading": "THE HUMAN PARTNERS",

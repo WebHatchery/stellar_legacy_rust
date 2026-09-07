@@ -172,6 +172,11 @@ impl Game {
         sim.contract = None;
 
         self.chronicle.record(entry);
+        // Screenshot fixtures seal real reports but must never write test
+        // voyages into the player's persistent archive.
+        if self.instant_reveal {
+            return;
+        }
         if let Err(err) = self.chronicle.save(
             &self.data.config.game_name,
             &self.data.config.chronicle_slot,

@@ -143,3 +143,43 @@ Charter summaries compare duration, reward, authored crisis exposure and launch 
 
 Reviewed charter/preparation, timeline, resolved obligations, obligation history, mission archive, and Homecoming outcome/accounting/captains/moments captures at 1280×720. The exposed route hazard is described as ordinary or more crisis-prone, matching its authored additive crisis weight rather than inventing a probability. Portrait acceptance remains pending.
 Validation: two focused Homecoming tests passed. `.\publish.ps1` passed Windows/WebGL builds, Preview deployment and packaged native/browser smoke checks.
+
+
+## Increment 7 — Responsive reading and release verification
+
+The browser package now uses the publisher's full-viewport layout. Below 1100px width or 640px height, the game uses a vertical reading view with 18px body text, persistent time controls, and five 54px-high navigation targets. Section controls, long choices, charter briefings, project accounting, crew, obligations, Homecoming, help, settings, and founding all use toolkit wrapping and scrolling. Ship glyphs reflect the actual hull and modules. Notifications sit above navigation. Overlay dragging no longer scrolls the page beneath it.
+
+All game actions continue through the existing dispatcher and authoritative eligibility, quote, forecast, and project services. Capture fixtures reset their in-memory Chronicle and achievements and do not persist synthetic completion or achievement records into a player's profile. The capture matrix no longer depends on the current Git index or saved history. No save-schema, economy, timing or balance change was introduced.
+
+### Reproducible screenshot matrix
+
+Run `.\publish.ps1` without parameters, then `python scripts/verify_redesign.py`. The latter uses the published release executable and the shared toolkit capture harness, not a development-server substitute. Scene offsets such as `event@520` inspect content below the first portrait page.
+
+| Actual framebuffer | Captures | Result |
+| --- | ---: | --- |
+| 1280 × 720 | 61 | Reviewed all baseline states |
+| 390 × 844 | 27 | Reviewed portrait pages, scrolled choices, accounting, settings, and recovery |
+| 1024 × 768 | 8 | Reviewed compact Bridge, event, preparation, Family, timeline and Agenda |
+| 1920 × 1080 | 8 | Reviewed desktop Bridge, event, preparation, Family, timeline, Homecoming and Agenda |
+
+The script verifies all 104 PNG dimensions, rejects black captures, and fails on overlapping audited targets. The 1080p group requests fullscreen because a decorated Windows window initially produced only 1061px of drawable height. Final captures meet the exact requested sizes. The final touch audit has zero ambiguous target overlaps. All portrait controls are at least 44px; some existing desktop controls draw at 40px with the toolkit's non-overlapping hit-area expansion reaching 44px. Screenshots were reviewed as contact sheets and representative portrait pages at native size; no essential clipping was observed in the captured states. Scrolling intentionally omits partially visible buttons until they fit within the reading area.
+
+Evidence: [manifest](ui_redesign_capture_manifest.json), [measured dimensions](verification/redesign_dimensions.json), [touch audit](verification/redesign_touch_audit.txt), [portrait Bridge](verification/ui_dashboard_risk_portrait.png), [portrait council consequences](verification/ui_event_520_portrait.png), [desktop council](verification/ui_event.png), [portrait Homecoming](verification/ui_debrief_portrait.png). The catalog thumbnail is refreshed from the title-screen capture.
+
+### Browser interaction checks
+
+Used actual clicks and drags against the publisher's packaged browser output at a measured 390 × 844 viewport. The temporary HTTP host served that package only; the required publisher also passed its separate native and real-browser WebGL smoke checks.
+
+- Passed: new game, welcome scrolling and BEGIN BRIEFING, three founding peoples, charter selection, full briefing, PROVISIONS REVIEWED, People and Ship review, launch, Agenda catalogue and Queue project, Pause/Resume, and first council commitment. The council countdown stayed at 34 seconds during paused reading; known consequences were readable without opening advice.
+- Passed: running project review, displayed refund and restoration debt, project pause, resume, and cancellation. The visible state changed after each action.
+- Passed: officer training (skill 72 to 78), apprentice appointment, recruitment into the vacant Scientist post, Family/heir review, and navigation among the five destinations.
+- Passed: dragging Display & sound to its close control, closing it, and seeing the underlying Utilities page retain its position.
+- Passed: Utilities save, browser reload, Continue, and the same captain and selected charter restored. This was a browser-local verification campaign.
+
+### Required validation and open acceptance
+
+Final `cargo test --quiet`: 523 unit tests passed, one pre-existing test ignored, and the integration test passed. `.\publish.ps1` passed Windows and WebGL release builds, Preview deployment, packaged native rendering, and real-browser rendering. Every Rust file is below the 800-line limit (largest: 762). No new dependencies were added.
+
+Simulation tests cover project accounting, obligations and inheritance, survival grace and one-use stabilisation, terminal outcomes, debrief records, and save round trips. These tests and fixture screenshots are not a claim that every rare campaign path was manually replayed. The remaining live touch walkthroughs are queue reorder with multiple waiting jobs, a complete succession, due-obligation resolution through its resulting history, Homecoming through the next charter, and all critical-air/terminal modal actions. Their screens and authoritative transitions have automated coverage, but the complete chained UI routes remain unchecked.
+
+Fresh human five-second Bridge recognition and council cost/consequence explanation remain pending. A Bridge review was requested during implementation; no observed human result has been supplied. Do not interpret passing builds, screenshot dimensions or the agent's visual review as human discoverability or engagement acceptance.

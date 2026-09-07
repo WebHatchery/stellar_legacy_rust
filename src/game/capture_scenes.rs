@@ -16,10 +16,20 @@ mod homecoming;
 impl Game {
     /// Seed a deterministic state for the headless screenshot harness.
     pub fn begin_capture_scene(&mut self, scene: &str) {
+        let (scene, mobile_offset) = scene
+            .split_once('@')
+            .map_or((scene, None), |(name, offset)| {
+                (name, offset.parse::<f32>().ok())
+            });
         // Screenshots want the final composed frame, not a mid-type one, and
         // never the boot log. Force canonical amber display so captures are
         // deterministic regardless of any persisted preference.
         self.presentation = Default::default();
+        self.presentation.capture_mobile_offset.set(
+            mobile_offset.map(|offset| (matches!(scene, "settings" | "help" | "welcome"), offset)),
+        );
+        self.chronicle = Default::default();
+        self.achievements = Achievements::from_definitions(crate::achievements::definitions());
         self.instant_reveal = true;
         self.capture_run_secs = None;
         self.custody_picker = None;
@@ -232,7 +242,9 @@ impl Game {
                 gameplay.screen = Screen::CrewDynasty;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
-            "ship" | "ship_refitted" | "ship_modules" => self.seed_drydock_ship(scene),
+            "ship" | "ship_blueprint" | "ship_refitted" | "ship_modules" => {
+                self.seed_drydock_ship(scene)
+            }
             // The SHIP tab under way (real-time loop §5): the procedural blueprint.
             // Three hull classes share one demo sim so the schematic's adaptation
             // to different outlines can be verified side by side.
@@ -680,6 +692,13 @@ impl Game {
             } else {
                 0
             });
+        if scene == "recovery_warning" {
+            if let crate::state::GameState::Gameplay(g) = &mut self.state {
+                g.sim.ship.life_support = 0.02;
+                g.sim.survival.warning_active = true;
+                g.sim.speed = crate::state::sim::GameSpeed::Paused;
+            }
+        }
         self.presentation.report_page.set(match scene {
             "debrief_captains" => 1,
             "debrief_moments" => 2,
@@ -696,6 +715,17 @@ impl Game {
             "people_council" => 3,
             _ => 0,
         });
+        *self.presentation.mobile_section.borrow_mut() = match scene {
+            "abort" => "abort",
+            "people_officers" => "officers",
+            "people_factions" | "crew_recruitment" => "factions",
+            "people_council" => "council",
+            "obligation_archive" | "obligation_history" => "obligations",
+            "mission_archive" => "archive",
+            "subsystems" => "system:engineering_bay",
+            _ => "",
+        }
+        .to_owned();
         self.presentation.utilities.set(scene == "utilities");
         self.presentation.instruments.set(scene == "instruments");
     }

@@ -10,6 +10,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let Some(event) = ctx.data.events.get(&pending.template_id) else {
         return;
     };
+    macroquad_toolkit::ui::occlude(Rect::new(0.0, 72.0, LOGICAL_WIDTH, LOGICAL_HEIGHT - 72.0));
     let state = ctx.presentation;
     let key = format!("{}:{}", pending.template_id, pending.rolled_month_clock);
     if *state.event_key.borrow() != key {

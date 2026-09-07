@@ -1,0 +1,730 @@
+[
+  {
+    "scene": "abort",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_abort.png"
+  },
+  {
+    "scene": "agenda",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_agenda.png"
+  },
+  {
+    "scene": "agenda_recovery",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_agenda_recovery.png"
+  },
+  {
+    "scene": "agenda_review",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_agenda_review.png"
+  },
+  {
+    "scene": "authority_review",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_authority_review.png"
+  },
+  {
+    "scene": "boot",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_boot.png"
+  },
+  {
+    "scene": "chronicle",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_chronicle.png"
+  },
+  {
+    "scene": "contract_active",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_contract_active.png"
+  },
+  {
+    "scene": "contracts",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_contracts.png"
+  },
+  {
+    "scene": "crew",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_crew.png"
+  },
+  {
+    "scene": "crew_recruitment",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_crew_recruitment.png"
+  },
+  {
+    "scene": "crt_off",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_crt_off.png"
+  },
+  {
+    "scene": "custody",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_custody.png"
+  },
+  {
+    "scene": "dashboard_repair",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_dashboard_repair.png"
+  },
+  {
+    "scene": "dashboard_risk",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_dashboard_risk.png"
+  },
+  {
+    "scene": "debrief",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_debrief.png"
+  },
+  {
+    "scene": "debrief_accounting",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_debrief_accounting.png"
+  },
+  {
+    "scene": "debrief_captains",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_debrief_captains.png"
+  },
+  {
+    "scene": "debrief_moments",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_debrief_moments.png"
+  },
+  {
+    "scene": "dilemma",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_dilemma.png"
+  },
+  {
+    "scene": "dilemma_combat",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_dilemma_combat.png"
+  },
+  {
+    "scene": "drydock",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_drydock.png"
+  },
+  {
+    "scene": "event",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event.png"
+  },
+  {
+    "scene": "event_custodian",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_custodian.png"
+  },
+  {
+    "scene": "event_mascot_succession",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_mascot_succession.png"
+  },
+  {
+    "scene": "event_obligation",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_obligation.png"
+  },
+  {
+    "scene": "event_obligation_due",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_obligation_due.png"
+  },
+  {
+    "scene": "event_obligation_unaffordable",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_obligation_unaffordable.png"
+  },
+  {
+    "scene": "event_succession",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_event_succession.png"
+  },
+  {
+    "scene": "gameover",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_gameover.png"
+  },
+  {
+    "scene": "gameplay",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_gameplay.png"
+  },
+  {
+    "scene": "green",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_green.png"
+  },
+  {
+    "scene": "help",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_help.png"
+  },
+  {
+    "scene": "heritage",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_heritage.png"
+  },
+  {
+    "scene": "instruments",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_instruments.png"
+  },
+  {
+    "scene": "log",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_log.png"
+  },
+  {
+    "scene": "market",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_market.png"
+  },
+  {
+    "scene": "menu",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_menu.png"
+  },
+  {
+    "scene": "mission_archive",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_mission_archive.png"
+  },
+  {
+    "scene": "obligation_archive",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_obligation_archive.png"
+  },
+  {
+    "scene": "obligation_history",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_obligation_history.png"
+  },
+  {
+    "scene": "obligation_watch",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_obligation_watch.png"
+  },
+  {
+    "scene": "people_council",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_people_council.png"
+  },
+  {
+    "scene": "people_factions",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_people_factions.png"
+  },
+  {
+    "scene": "people_officers",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_people_officers.png"
+  },
+  {
+    "scene": "prep",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_prep.png"
+  },
+  {
+    "scene": "recovery_warning",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_recovery_warning.png"
+  },
+  {
+    "scene": "settings",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_settings.png"
+  },
+  {
+    "scene": "ship",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship.png"
+  },
+  {
+    "scene": "ship_blueprint",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_blueprint.png"
+  },
+  {
+    "scene": "ship_modules",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_modules.png"
+  },
+  {
+    "scene": "ship_refitted",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_refitted.png"
+  },
+  {
+    "scene": "ship_underway",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_underway.png"
+  },
+  {
+    "scene": "ship_underway_ark",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_underway_ark.png"
+  },
+  {
+    "scene": "ship_underway_corvette",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_underway_corvette.png"
+  },
+  {
+    "scene": "ship_underway_prow",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_underway_prow.png"
+  },
+  {
+    "scene": "ship_underway_ring",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_ship_underway_ring.png"
+  },
+  {
+    "scene": "subsystems",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_subsystems.png"
+  },
+  {
+    "scene": "tutorial",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_tutorial.png"
+  },
+  {
+    "scene": "utilities",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_utilities.png"
+  },
+  {
+    "scene": "welcome",
+    "viewport": "baseline",
+    "width": 1280,
+    "height": 720,
+    "file": "docs/verification/ui_welcome.png"
+  },
+  {
+    "scene": "menu",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_menu_portrait.png"
+  },
+  {
+    "scene": "welcome",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_welcome_portrait.png"
+  },
+  {
+    "scene": "gameplay",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_gameplay_portrait.png"
+  },
+  {
+    "scene": "dashboard_risk",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_dashboard_risk_portrait.png"
+  },
+  {
+    "scene": "event",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_event_portrait.png"
+  },
+  {
+    "scene": "event@520",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_event_520_portrait.png"
+  },
+  {
+    "scene": "event_custodian",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_event_custodian_portrait.png"
+  },
+  {
+    "scene": "event_obligation_unaffordable",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_event_obligation_unaffordable_portrait.png"
+  },
+  {
+    "scene": "recovery_warning",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_recovery_warning_portrait.png"
+  },
+  {
+    "scene": "gameover",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_gameover_portrait.png"
+  },
+  {
+    "scene": "prep",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_prep_portrait.png"
+  },
+  {
+    "scene": "prep@1050",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_prep_1050_portrait.png"
+  },
+  {
+    "scene": "subsystems",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_subsystems_portrait.png"
+  },
+  {
+    "scene": "people_officers",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_people_officers_portrait.png"
+  },
+  {
+    "scene": "people_factions",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_people_factions_portrait.png"
+  },
+  {
+    "scene": "crew",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_crew_portrait.png"
+  },
+  {
+    "scene": "agenda",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_agenda_portrait.png"
+  },
+  {
+    "scene": "agenda_review",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_agenda_review_portrait.png"
+  },
+  {
+    "scene": "agenda_review@240",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_agenda_review_240_portrait.png"
+  },
+  {
+    "scene": "debrief",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_debrief_portrait.png"
+  },
+  {
+    "scene": "chronicle",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_chronicle_portrait.png"
+  },
+  {
+    "scene": "obligation_history",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_obligation_history_portrait.png"
+  },
+  {
+    "scene": "settings",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_settings_portrait.png"
+  },
+  {
+    "scene": "settings@520",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_settings_520_portrait.png"
+  },
+  {
+    "scene": "help",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_help_portrait.png"
+  },
+  {
+    "scene": "tutorial",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_tutorial_portrait.png"
+  },
+  {
+    "scene": "agenda_recovery",
+    "viewport": "portrait",
+    "width": 390,
+    "height": 844,
+    "file": "docs/verification/ui_agenda_recovery_portrait.png"
+  },
+  {
+    "scene": "gameplay",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_gameplay_compact.png"
+  },
+  {
+    "scene": "dashboard_risk",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_dashboard_risk_compact.png"
+  },
+  {
+    "scene": "event",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_event_compact.png"
+  },
+  {
+    "scene": "prep",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_prep_compact.png"
+  },
+  {
+    "scene": "crew",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_crew_compact.png"
+  },
+  {
+    "scene": "chronicle",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_chronicle_compact.png"
+  },
+  {
+    "scene": "agenda_narrow",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_agenda_narrow.png"
+  },
+  {
+    "scene": "agenda_review_narrow",
+    "viewport": "compact",
+    "width": 1024,
+    "height": 768,
+    "file": "docs/verification/ui_agenda_review_narrow.png"
+  },
+  {
+    "scene": "gameplay",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_gameplay_desktop.png"
+  },
+  {
+    "scene": "dashboard_risk",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_dashboard_risk_desktop.png"
+  },
+  {
+    "scene": "event",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_event_desktop.png"
+  },
+  {
+    "scene": "prep",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_prep_desktop.png"
+  },
+  {
+    "scene": "crew",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_crew_desktop.png"
+  },
+  {
+    "scene": "chronicle",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_chronicle_desktop.png"
+  },
+  {
+    "scene": "debrief",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_debrief_desktop.png"
+  },
+  {
+    "scene": "agenda",
+    "viewport": "desktop",
+    "width": 1920,
+    "height": 1080,
+    "file": "docs/verification/ui_agenda_desktop.png"
+  }
+]

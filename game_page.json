@@ -36,5 +36,6 @@
       "value": "Windows x86-64"
     }
   ],
-  "repository": "https://github.com/WebHatchery/stellar_legacy_rust"
+  "repository": "https://github.com/WebHatchery/stellar_legacy_rust",
+  "layout": "viewport"
 }
