@@ -129,3 +129,10 @@ corvette and ring hull screenshots at 1280×720. Nine project simulation tests
 passed. This does not yet establish the portrait touch acceptance routes.
 
 Increment 4 publish.ps1 passed, including packaged Windows and WebGL runtime checks.
+
+## Increment 5 — People and stable identities
+
+People now separates Family, Officers, Factions, and Council. The family view connects the serving captain to the eligible heir, while the roster retains explicit heir selection. Officer rows show stable, name-derived silhouettes alongside role, age, remaining service, and skill. Faction emblems accompany approval and current relationships. The same captain silhouette appears in council decisions. These are original geometric drawings; no third-party portrait assets or runtime requests are required.
+
+Reviewed the five baseline captures (Family, Officers, Factions, Council, event) at 1280×720. Corrected overlapping heir targets found in the first review and regenerated Family. Capture scene aliases were corrected so each new People image shows its intended page. Simulation and save schemas are unchanged.
+Validation: `.\publish.ps1` passed: Windows and WebGL release builds, Preview deployment, packaged native rendering and real-browser WebGL smoke checks.

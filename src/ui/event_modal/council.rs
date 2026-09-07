@@ -53,11 +53,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         frame.right() - left.right() - 46.0,
         left.h,
     );
+    crate::ui::identity::portrait(Rect::new(left.x, left.y, 54.0, 64.0), captain);
     draw_text_block(
         &event.title,
-        left.x,
+        left.x + 72.0,
         left.y,
-        left.w,
+        left.w - 72.0,
         66.0,
         26.0,
         5.0,

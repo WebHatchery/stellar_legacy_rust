@@ -19,7 +19,7 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, RectExt};
 ///
 /// A 40px visual row with clear gutters lets the shared touch expansion reach
 /// 44px while preserving enough room to show all founding peoples below it.
-const POST_STRIDE: f32 = 44.0;
+const POST_STRIDE: f32 = 70.0;
 const POST_BUTTON_H: f32 = 44.0;
 
 fn priced_action_label(action: &str, cost: i64, credits: i64) -> String {
@@ -40,26 +40,8 @@ fn training_label(skill: u32, maximum: u32, gain: u32, cost: i64, credits: i64) 
     }
 }
 
-pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let left = Rect::new(area.x, area.y, area.w * 0.55, area.h);
-    let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
-    // Posts is sized to exactly one row per archetype — as a fixed ratio its
-    // last TRAIN/RECRUIT button bled into the PEOPLES panel below.
-    let posts_h = 78.0 + (ctx.data.crew_archetypes.len().saturating_sub(1)) as f32 * POST_STRIDE;
-    let roster = Rect::new(left.x, left.y, left.w, 110.0);
-    let posts = Rect::new(left.x, roster.bottom() + 8.0, left.w, posts_h);
-    let factions = Rect::new(
-        left.x,
-        posts.bottom() + 8.0,
-        left.w,
-        left.h - roster.h - posts.h - 16.0,
-    );
-
-    draw_roster(ctx, roster, pointer, actions);
-    draw_posts(ctx, posts, pointer, actions);
-    draw_factions(ctx, factions, pointer, actions);
-    draw_council(ctx, right, pointer, actions);
-}
+mod people;
+pub use people::draw;
 
 /// Factions aboard (W7): name, members, share, status. Lost factions dim out.
 /// In drydock, when short of the founding count, offers to recruit a new people.
@@ -171,9 +153,10 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
             ties.push_str(&format!(" · ALLY {}", allies.join(", ")));
         }
         let mood = mood_band_for(fs.approval);
-        draw_ui_text_ex(
+        crate::ui::identity::emblem(Rect::new(content.x, y - 12.0, 64.0, 64.0), &fs.faction_id);
+        draw_text_block(
             &format!(
-                "{} · {} ({share:.0}%) · {} {:.0}% · CARE {}{}",
+                "{} · {} people ({share:.0}%)\n{} {:.0}% approval · Care: {}{}",
                 faction_name(&fs.faction_id),
                 fs.members,
                 approval_band_label(fs.approval),
@@ -181,19 +164,19 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
                 tended,
                 ties
             ),
-            content.x,
-            y,
-            TextStyle::new(
-                11.0,
-                match mood {
-                    -1 => term::alert(),
-                    1 => term::accent(),
-                    _ => term::primary(),
-                },
-            )
-            .params(),
+            content.x + 86.0,
+            y - 12.0,
+            content.w - 104.0,
+            66.0,
+            18.0,
+            6.0,
+            match mood {
+                -1 => term::alert(),
+                1 => term::accent(),
+                _ => term::dim(),
+            },
         );
-        y += 22.0;
+        y += 88.0;
     }
 
     // Lost peoples dim out below, clamped to the panel — they must never spill
@@ -220,13 +203,13 @@ fn short_people_name(name: &str) -> String {
 }
 
 /// Vertical stride of one roster row.
-const ROSTER_STRIDE: f32 = 38.0;
+const ROSTER_STRIDE: f32 = 58.0;
 /// How much of that stride the row actually occupies: the NAME HEIR button, the
 /// name line and the trait line beneath it. Used to cull a row that would hang
 /// over the panel edge, so it has to cover the descenders of the lower line —
 /// the 2px it leaves the stride is only there to keep neighbouring rows from
 /// touching.
-const ROSTER_ROW_H: f32 = 36.0;
+const ROSTER_ROW_H: f32 = 50.0;
 /// Reserved at the panel's right edge for the scrollbar, so no row sits under it.
 const ROSTER_GUTTER: f32 = 12.0;
 
@@ -337,16 +320,20 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     .retirement_age
                     .saturating_sub(holder.age)
                     .saturating_add(1);
+                crate::ui::identity::portrait(
+                    Rect::new(content.x, y - 12.0, 48.0, 54.0),
+                    &holder.name,
+                );
                 draw_text_block(
                     &format!(
                         "{} · {}\nAge {} · {} years left · Skill {}",
                         archetype.name, holder.name, holder.age, years_left, holder.skill
                     ),
-                    content.x,
+                    content.x + 66.0,
                     y - 12.0,
-                    content.w - 318.0,
-                    42.0,
-                    13.0,
+                    content.w - 384.0,
+                    52.0,
+                    16.0,
                     3.0,
                     if years_left <= 5 {
                         term::alert()

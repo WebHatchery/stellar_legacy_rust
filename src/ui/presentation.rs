@@ -4,6 +4,7 @@ use std::cell::Cell;
 
 #[derive(Default)]
 pub struct Presentation {
+    pub people_page: Cell<usize>,
     pub selected_system: Cell<usize>,
     pub selected_agenda: Cell<usize>,
     pub utilities: Cell<bool>,

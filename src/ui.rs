@@ -15,6 +15,7 @@ pub mod debrief;
 pub mod event_modal;
 pub mod game_over;
 pub mod help;
+pub mod identity;
 pub mod main_menu;
 pub mod market;
 pub mod mission;
