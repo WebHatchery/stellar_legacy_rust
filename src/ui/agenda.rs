@@ -8,7 +8,7 @@ use crate::data::projects::ProjectTarget;
 use crate::simulation::{projects as project_sim, readiness};
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
 use crate::ui::{
-    spec_line, term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
+    logical_height, logical_width, spec_line, term, term_button, term_panel, GameplayCtx, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -266,8 +266,8 @@ fn draw_cancel_preview(
         ctx.project_cancel_confirm.set(None);
         return;
     };
-    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 460.0, 105.0, 920.0, 520.0);
+    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
+    let panel = Rect::new(logical_width() / 2.0 - 460.0, 105.0, 920.0, 520.0);
     term_panel(panel, Some("PROJECT OPTIONS // EXACT ACCOUNTING"));
     let mut content = panel.inset(24.0);
     content.y += 16.0;

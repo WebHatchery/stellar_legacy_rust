@@ -1,6 +1,6 @@
 //! Vertical game document: full prose and explicit intents, backed by toolkit scrolling.
 use super::*;
-use macroquad_toolkit::ui::{is_fully_visible, wrap_text, ScrollArea};
+use macroquad_toolkit::ui::{wrap_text, ScrollArea};
 
 enum Item<A> {
     Text(String, bool),
@@ -14,7 +14,7 @@ enum Item<A> {
     Vessel(ship_schematic::ShipSchematic),
     CloseUtilities,
 }
-pub(super) struct Form<A = UiAction> {
+pub(crate) struct Form<A = UiAction> {
     items: Vec<Item<A>>,
 }
 impl<A> Form<A> {
@@ -97,29 +97,46 @@ impl<A> Form<A> {
         } else {
             &state.mobile_scroll
         };
+        self.draw_scrolled(view, state, pointer, key, actions, scroll_cell, key_cell);
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn draw_scrolled(
+        self,
+        view: Rect,
+        state: &presentation::Presentation,
+        pointer: Pointer,
+        key: &str,
+        actions: &mut Vec<A>,
+        scroll_cell: &std::cell::Cell<ScrollArea>,
+        key_cell: &std::cell::RefCell<String>,
+    ) {
+        let overlay = matches!(key, "settings" | "help" | "welcome");
         if key_cell.borrow().as_str() != key {
             *key_cell.borrow_mut() = key.to_owned();
             scroll_cell.set(ScrollArea::new());
         }
         let width = view.w - 16.0;
+        let text_scale = macroquad_toolkit::ui::ui_text_scale();
         let sizes: Vec<f32> = self
             .items
             .iter()
             .map(|item| match item {
                 Item::Text(text, title) => {
                     wrap_text(text, width, if *title { 24.0 } else { 18.0 }).len() as f32
-                        * if *title { 32.0 } else { 26.0 }
+                        * (if *title { 32.0 } else { 26.0 } * text_scale)
                         + 12.0
                 }
                 Item::Action(text, ..) | Item::Section(text, _) => {
-                    (wrap_text(text, width - 24.0, 18.0).len() as f32 * 26.0 + 20.0).max(48.0)
+                    (wrap_text(text, width - 24.0, 18.0).len() as f32 * 26.0 * text_scale + 20.0)
+                        .max(48.0)
                         + 12.0
                 }
                 Item::Sections(items) => items.len().div_ceil(2) as f32 * 60.0,
                 Item::Actions(_) => 60.0,
                 Item::Portrait(_) => 100.0,
-                Item::Ship | Item::Vessel(_) => 180.0,
-                Item::Art(_) => (width * 9.0 / 16.0).min(260.0) + 12.0,
+                Item::Ship | Item::Vessel(_) => 180.0_f32.min(view.h),
+                Item::Art(_) => ((width * 9.0 / 16.0).min(260.0) + 12.0).min(view.h),
                 Item::CloseUtilities => 60.0,
             })
             .collect();
@@ -134,133 +151,143 @@ impl<A> Form<A> {
                 scroll.set_offset(offset);
             }
         }
-        let tap = if scroll.absorbs_press() {
+        let tap = if scroll.absorbs_press() || !view.contains(pointer.position) {
             pointer.suppressed()
         } else {
             pointer
         };
-        let mut top = view.y - scroll.offset();
-        for (item, h) in self.items.into_iter().zip(sizes) {
-            let rect = Rect::new(view.x, top, width, h - 12.0);
-            top += h;
-            match item {
-                Item::Text(text, title) => {
-                    let size = if title { 24.0 } else { 18.0 };
-                    let stride = if title { 32.0 } else { 26.0 };
-                    for (i, line) in wrap_text(&text, width, size).iter().enumerate() {
-                        let y = rect.y + i as f32 * stride;
-                        if y >= view.y && y + stride <= view.bottom() {
-                            draw_ui_text_ex(
-                                line,
-                                rect.x,
-                                y + size,
-                                TextStyle::new(
-                                    size,
-                                    if title { term::primary() } else { term::dim() },
-                                )
-                                .params(),
-                            );
+        macroquad_toolkit::ui::VirtualUi::responsive().with_clip(view, || {
+            let mut top = view.y - scroll.offset();
+            for (item, h) in self.items.into_iter().zip(sizes) {
+                let rect = Rect::new(view.x, top, width, h - 12.0);
+                top += h;
+                match item {
+                    Item::Text(text, title) => {
+                        let size = if title { 24.0 } else { 18.0 };
+                        let stride = if title { 32.0 } else { 26.0 } * text_scale;
+                        for (i, line) in wrap_text(&text, width, size).iter().enumerate() {
+                            let y = rect.y + i as f32 * stride;
+                            if y + stride > view.y && y < view.bottom() {
+                                draw_ui_text_ex(
+                                    line,
+                                    rect.x,
+                                    y + size * text_scale,
+                                    TextStyle::new(
+                                        size,
+                                        if title { term::primary() } else { term::dim() },
+                                    )
+                                    .params(),
+                                );
+                            }
                         }
                     }
-                }
-                _ if !is_fully_visible(rect, view) => {}
-                Item::Action(label, enabled, action, section) => {
-                    if term_button(rect, &label, enabled, tap) {
-                        if let Some(section) = section {
-                            *state.mobile_section.borrow_mut() = section;
-                        }
-                        actions.push(action);
-                    }
-                }
-                Item::Section(label, section) => {
-                    if term_button(rect, &label, true, tap) {
-                        *state.mobile_section.borrow_mut() = section;
-                    }
-                }
-                Item::CloseUtilities => {
-                    if term_button(rect, "Close utilities", true, tap) {
-                        state.utilities.set(false);
-                    }
-                }
-                Item::Sections(items) => {
-                    for (i, (label, section)) in items.into_iter().enumerate() {
-                        let r = Rect::new(
-                            rect.x + (i % 2) as f32 * (rect.w + 12.0) / 2.0,
-                            rect.y + (i / 2) as f32 * 60.0,
-                            (rect.w - 12.0) / 2.0,
-                            48.0,
-                        );
-                        if nav_button(r, &label, tap) {
-                            *state.mobile_section.borrow_mut() = section;
-                        }
-                    }
-                }
-                Item::Actions(items) => {
-                    let count = items.len() as f32;
-                    let width = (rect.w - 12.0 * (count - 1.0)) / count;
-                    for (i, (label, action)) in items.into_iter().enumerate() {
-                        let r = Rect::new(rect.x + i as f32 * (width + 12.0), rect.y, width, 48.0);
-                        if nav_button(r, &label, tap) {
+                    _ if !rect.overlaps(&view) => {}
+                    Item::Action(label, enabled, action, section) => {
+                        if term_button(rect, &label, enabled, tap) {
+                            if let Some(section) = section {
+                                *state.mobile_section.borrow_mut() = section;
+                            }
                             actions.push(action);
                         }
                     }
-                }
-                Item::Portrait(name) => {
-                    identity::portrait(Rect::new(rect.x, rect.y, 68.0, 80.0), &name);
-                    draw_text_block(
-                        &name,
-                        rect.x + 84.0,
-                        rect.y + 12.0,
-                        rect.w - 84.0,
-                        70.0,
-                        22.0,
-                        6.0,
-                        term::primary(),
-                    );
-                }
-                Item::Vessel(ship) => draw_vessel(rect, &ship),
-                Item::Art(texture) => {
-                    let crop_h = (texture.width() * rect.h / rect.w).min(texture.height());
-                    let source = Rect::new(
-                        0.0,
-                        (texture.height() - crop_h) * 0.5,
-                        texture.width(),
-                        crop_h,
-                    );
-                    draw_texture_ex(
-                        &texture,
-                        rect.x,
-                        rect.y,
-                        WHITE,
-                        DrawTextureParams {
-                            source: Some(source),
-                            dest_size: Some(vec2(rect.w, rect.h)),
-                            ..Default::default()
-                        },
-                    );
-                }
-                Item::Ship => {
-                    let x = rect.x;
-                    let y = rect.y;
-                    let w = rect.w;
-                    draw_line(x + 10.0, y + 80.0, x + 65.0, y + 24.0, 2.0, term::faint());
-                    draw_line(x + 10.0, y + 80.0, x + 65.0, y + 136.0, 2.0, term::faint());
-                    draw_rectangle_lines(x + 65.0, y + 24.0, w - 80.0, 112.0, 2.0, term::faint());
-                    for i in 0..3 {
-                        for j in 0..2 {
-                            draw_rectangle_lines(
-                                x + 82.0 + i as f32 * (w - 115.0) / 3.0,
-                                y + 42.0 + j as f32 * 48.0,
-                                (w - 130.0) / 3.0,
-                                30.0,
-                                2.0,
-                                term::accent(),
+                    Item::Section(label, section) => {
+                        if term_button(rect, &label, true, tap) {
+                            *state.mobile_section.borrow_mut() = section;
+                        }
+                    }
+                    Item::CloseUtilities => {
+                        if term_button(rect, "Close utilities", true, tap) {
+                            state.utilities.set(false);
+                        }
+                    }
+                    Item::Sections(items) => {
+                        for (i, (label, section)) in items.into_iter().enumerate() {
+                            let r = Rect::new(
+                                rect.x + (i % 2) as f32 * (rect.w + 12.0) / 2.0,
+                                rect.y + (i / 2) as f32 * 60.0,
+                                (rect.w - 12.0) / 2.0,
+                                48.0,
                             );
+                            if nav_button(r, &label, tap) {
+                                *state.mobile_section.borrow_mut() = section;
+                            }
+                        }
+                    }
+                    Item::Actions(items) => {
+                        let count = items.len() as f32;
+                        let width = (rect.w - 12.0 * (count - 1.0)) / count;
+                        for (i, (label, action)) in items.into_iter().enumerate() {
+                            let r =
+                                Rect::new(rect.x + i as f32 * (width + 12.0), rect.y, width, 48.0);
+                            if nav_button(r, &label, tap) {
+                                actions.push(action);
+                            }
+                        }
+                    }
+                    Item::Portrait(name) => {
+                        identity::portrait(Rect::new(rect.x, rect.y, 68.0, 80.0), &name);
+                        draw_text_block(
+                            &name,
+                            rect.x + 84.0,
+                            rect.y + 12.0,
+                            rect.w - 84.0,
+                            70.0,
+                            22.0,
+                            6.0,
+                            term::primary(),
+                        );
+                    }
+                    Item::Vessel(ship) => draw_vessel(rect, &ship),
+                    Item::Art(texture) => {
+                        let crop_h = (texture.width() * rect.h / rect.w).min(texture.height());
+                        let source = Rect::new(
+                            0.0,
+                            (texture.height() - crop_h) * 0.5,
+                            texture.width(),
+                            crop_h,
+                        );
+                        draw_texture_ex(
+                            &texture,
+                            rect.x,
+                            rect.y,
+                            WHITE,
+                            DrawTextureParams {
+                                source: Some(source),
+                                dest_size: Some(vec2(rect.w, rect.h)),
+                                ..Default::default()
+                            },
+                        );
+                    }
+                    Item::Ship => {
+                        let x = rect.x;
+                        let y = rect.y;
+                        let w = rect.w;
+                        draw_line(x + 10.0, y + 80.0, x + 65.0, y + 24.0, 2.0, term::faint());
+                        draw_line(x + 10.0, y + 80.0, x + 65.0, y + 136.0, 2.0, term::faint());
+                        draw_rectangle_lines(
+                            x + 65.0,
+                            y + 24.0,
+                            w - 80.0,
+                            112.0,
+                            2.0,
+                            term::faint(),
+                        );
+                        for i in 0..3 {
+                            for j in 0..2 {
+                                draw_rectangle_lines(
+                                    x + 82.0 + i as f32 * (w - 115.0) / 3.0,
+                                    y + 42.0 + j as f32 * 48.0,
+                                    (w - 130.0) / 3.0,
+                                    30.0,
+                                    2.0,
+                                    term::accent(),
+                                );
+                            }
                         }
                     }
                 }
             }
-        }
+        });
         scroll.draw_scrollbar_with(
             view,
             total,

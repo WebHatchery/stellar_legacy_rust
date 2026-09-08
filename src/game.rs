@@ -26,7 +26,7 @@ use macroquad_toolkit::fx::{CrtOverlay, CrtStyle};
 use macroquad_toolkit::notifications::{
     NotificationAnchor, NotificationManager, NotificationRenderConfig,
 };
-use macroquad_toolkit::prelude::{begin_virtual_ui_frame, end_virtual_ui_frame};
+use macroquad_toolkit::prelude::end_virtual_ui_frame;
 use macroquad_toolkit::ui::{end_frame_neighbours, Pointer, ScrollArea};
 use std::cell::Cell;
 
@@ -302,6 +302,7 @@ impl Game {
         }
         if self.boot.is_done() && is_key_pressed(KeyCode::F1) {
             self.settings_open = !self.settings_open;
+            self.presentation.overlay_scroll.set(ScrollArea::new());
             self.help_open = false;
         }
         if self.boot.is_done() && is_key_pressed(KeyCode::F2) {
@@ -475,7 +476,6 @@ impl Game {
             DisplayAction::SetPhosphor(p) => self.display.phosphor = p,
             DisplayAction::SetUiScale(scale) => {
                 self.display.ui_scale = macroquad_toolkit::ui::sanitize_ui_scale(scale);
-                self.presentation.desktop_pan.set(None);
                 self.presentation
                     .overlay_scroll
                     .set(macroquad_toolkit::ui::ScrollArea::new());
@@ -483,8 +483,10 @@ impl Game {
                     .mobile_scroll
                     .set(macroquad_toolkit::ui::ScrollArea::new());
             }
-            DisplayAction::AdjustAudio(delta) => {
-                self.display.audio_volume = (self.display.audio_volume + delta).clamp(0.0, 1.0)
+            DisplayAction::SetAudio(value) => self.display.audio_volume = value.clamp(0.0, 1.0),
+            DisplayAction::SetTextScale(value) => {
+                self.display.text_scale = value.clamp(0.75, 1.5);
+                self.presentation.overlay_scroll.set(ScrollArea::new());
             }
             DisplayAction::ToggleAmbience => self.display.ambience = !self.display.ambience,
             DisplayAction::ToggleTutorial => {

@@ -9,12 +9,13 @@ promises made to people whose descendants will live with your decisions.
 
 ## What you do
 
-In **Display & sound**, use **Smaller** or **Larger** to adjust UI scale from
-75% to 150% in 5% steps. Changes apply immediately and are saved automatically;
-**Reset** restores 100%. Desktop scaling preserves the desktop layout; above
-100%, drag or tap the edge scrollbars to reach enlarged content. Mobile layout
-is selected only by window size. Small mobile windows limit enlargement to fit
-the minimum layout. The preference does not affect the simulation or campaign save.
+In **Display & sound**, UI scale adjusts interface sizes from 75% to 200%
+without shrinking the game into a bordered canvas or changing world-camera zoom.
+HUD panels stay anchored to the window; smaller UI exposes more information,
+and crowded panels wrap or scroll their own contents. **Text size** is a separate
+75–150% preference. Each has a visible **Reset** button, defaults to 100%, and
+saves automatically. The settings dialog keeps **Close settings** fixed while
+its contents scroll. Neither preference changes the simulation or campaign save.
 
 Choose a charter, prepare your vessel, and guide its people through the outbound
 journey, mission operations, and return home. Balance supplies, ship maintenance,

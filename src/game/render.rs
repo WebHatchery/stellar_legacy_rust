@@ -5,46 +5,17 @@ impl Game {
     pub fn draw(&mut self) {
         clear_background(ui::term::bg());
         macroquad_toolkit::ui::set_ui_scale(self.display.ui_scale);
+        macroquad_toolkit::ui::set_ui_text_scale(self.display.text_scale);
 
         let modal_reveal = self.modal_reveal();
         let log_reveal = self.log_reveal();
 
         let show_boot = !self.boot.is_done() && matches!(self.state, GameState::Menu(_));
 
-        let (width, height) = if ui::mobile::active() {
-            ui::mobile::size()
-        } else {
-            (ui::LOGICAL_WIDTH, ui::LOGICAL_HEIGHT)
-        };
-        let screen_pointer = Pointer::read(|p| p);
-        let canvas = if ui::mobile::active() {
-            None
-        } else {
-            let mut pan = self
-                .presentation
-                .desktop_pan
-                .get()
-                .unwrap_or(vec2(0.5, 0.5));
-            let content = vec2(width, height);
-            let canvas = macroquad_toolkit::ui::UiCanvas::new(content, self.display.ui_scale, pan);
-            canvas.navigate(screen_pointer, &mut pan);
-            self.presentation.desktop_pan.set(Some(pan));
-            Some(macroquad_toolkit::ui::UiCanvas::new(
-                content,
-                self.display.ui_scale,
-                pan,
-            ))
-        };
-        // One pointer for the whole frame, in logical coordinates — a mouse or a
-        // finger, read the same way. Built here rather than per screen so every
-        // control agrees about where it is and whether it just let go.
-        let pointer = if let Some(canvas) = canvas {
-            canvas.begin();
-            canvas.pointer(screen_pointer)
-        } else {
-            let virtual_ui = begin_virtual_ui_frame(width, height);
-            Pointer::read(|p| virtual_ui.screen_to_ui(p))
-        };
+        let virtual_ui = macroquad_toolkit::ui::VirtualUi::responsive();
+        let (width, height) = (virtual_ui.logical_width, virtual_ui.logical_height);
+        virtual_ui.begin();
+        let pointer = Pointer::read(|p| virtual_ui.screen_to_ui(p));
         self.presentation
             .overlay_active
             .set(self.settings_open || self.help_open || self.welcome_open);
@@ -123,23 +94,19 @@ impl Game {
 
         // The F1/F2 panels float above everything and capture their own input.
         let display_actions = if self.settings_open {
-            if ui::mobile::active() {
-                ui::mobile::settings(
-                    &self.display,
-                    &self.delegation_defaults,
-                    &self.presentation,
-                    pointer,
-                )
-            } else {
-                ui::settings::draw(&self.display, &self.delegation_defaults, pointer)
-            }
+            ui::settings::draw(
+                &self.display,
+                &self.delegation_defaults,
+                &self.presentation,
+                pointer,
+            )
         } else {
             Vec::new()
         };
         let help_action = self
             .help_open
             .then(|| {
-                if ui::mobile::active() {
+                if ui::mobile::active() || ui::compact() {
                     ui::mobile::help(&self.presentation, pointer)
                 } else {
                     ui::help::draw(pointer, &self.data.config.version)
@@ -148,7 +115,12 @@ impl Game {
             .flatten();
         let mut time_actions = Vec::new();
         if let GameState::Gameplay(gameplay) = &self.state {
-            if !ui::mobile::active() {
+            if !ui::mobile::active()
+                && !ui::compact()
+                && !self.settings_open
+                && !self.help_open
+                && !self.welcome_open
+            {
                 ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
             }
         }
@@ -158,7 +130,7 @@ impl Game {
         // First-run welcome overlay, above the menu only; its button dismisses it.
         let welcome_dismiss = self.welcome_open
             && matches!(self.state, GameState::Menu(_))
-            && if ui::mobile::active() {
+            && if ui::mobile::active() || ui::compact() {
                 ui::mobile::welcome(&self.data.config.welcome, &self.presentation, pointer)
             } else {
                 ui::welcome::draw(&self.data.config.welcome, pointer)
@@ -169,17 +141,6 @@ impl Game {
         // this has to happen once, after everything has drawn.
         end_frame_neighbours();
         end_virtual_ui_frame();
-        if let Some(canvas) = canvas {
-            canvas.draw_navigation(
-                self.presentation
-                    .desktop_pan
-                    .get()
-                    .unwrap_or(vec2(0.5, 0.5)),
-                ui::term::surface_inset(),
-                ui::term::primary(),
-            );
-        }
-
         // While a panel or the welcome overlay is open, swallow the underlying
         // screen's intents.
         if !self.settings_open && !self.help_open && !self.welcome_open {
@@ -204,18 +165,18 @@ impl Game {
             self.dismiss_welcome();
         }
 
-        self.notifications.draw_with_config_and_offset(
+        virtual_ui.begin();
+        macroquad_toolkit::notifications::draw_notifications_in_viewport(
+            self.notifications.get_notifications(),
             &NotificationRenderConfig {
                 anchor: NotificationAnchor::BottomRight,
-                width: if ui::mobile::active() {
-                    width - 32.0
-                } else {
-                    360.0
-                },
+                width: 360.0_f32.min(width - 32.0),
                 ..Default::default()
             },
-            vec2(0.0, if ui::mobile::active() { -76.0 } else { 0.0 }),
+            vec2(width, height),
+            Vec2::ZERO,
         );
+        end_virtual_ui_frame();
 
         // Phosphor-monitor overlay sits on top of everything else.
         if self.display.crt_enabled

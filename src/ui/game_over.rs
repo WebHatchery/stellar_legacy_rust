@@ -1,7 +1,7 @@
 //! Full-screen "voyage terminated" takeover for every authored loss condition.
 
 use crate::ui::{
-    spec_line, term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
+    logical_height, logical_width, spec_line, term, term_button, term_panel, GameplayCtx, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -9,7 +9,7 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let sim = ctx.sim;
-    draw_rectangle(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, term::bg());
+    draw_rectangle(0.0, 0.0, logical_width(), logical_height(), term::bg());
 
     let legacy = ctx
         .data
@@ -26,7 +26,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         .unwrap_or("DYNASTY EXTINCTION");
     draw_text_glow(
         reason,
-        LOGICAL_WIDTH / 2.0 - reason.len() as f32 * 13.0,
+        logical_width() / 2.0 - reason.len() as f32 * 13.0,
         140.0,
         TextStyle::new(46.0, term::alert()),
         0.14,
@@ -37,12 +37,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             "// {} — the founding commission has ended //",
             legacy.to_uppercase()
         ),
-        LOGICAL_WIDTH / 2.0 - 250.0,
+        logical_width() / 2.0 - 250.0,
         175.0,
         TextStyle::new(16.0, term::dim()).params(),
     );
 
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 330.0, 220.0, 660.0, 384.0);
+    let panel = Rect::new(logical_width() / 2.0 - 330.0, 220.0, 660.0, 384.0);
     term_panel(panel, Some("FINAL LOG // DYNASTY REGISTRY SEALED"));
     let content = panel.inset(28.0);
 

@@ -24,6 +24,7 @@ pub mod navigation;
 pub mod prep;
 pub mod presentation;
 pub mod recovery_warning;
+mod responsive;
 pub mod settings;
 pub mod shell;
 pub mod ship_builder;
@@ -53,6 +54,19 @@ use macroquad_toolkit::ui::{
 
 pub const LOGICAL_WIDTH: f32 = 1280.0;
 pub const LOGICAL_HEIGHT: f32 = 720.0;
+
+pub fn logical_width() -> f32 {
+    macroquad_toolkit::ui::VirtualUi::responsive().logical_width
+}
+
+pub fn logical_height() -> f32 {
+    macroquad_toolkit::ui::VirtualUi::responsive().logical_height
+}
+
+/// Reflow crowded panel contents, while retaining the desktop navigation shell.
+pub fn compact() -> bool {
+    logical_width() < 1200.0 || logical_height() < 680.0
+}
 
 pub mod term;
 

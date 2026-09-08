@@ -1,17 +1,21 @@
 //! Persistent top-right controls, drawn above gameplay overlays.
 use crate::state::sim::{GameSpeed, SimState};
-use crate::ui::{term, term_button, UiAction, LOGICAL_WIDTH};
+use crate::ui::{logical_width, term, term_button, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::ui::{occlude, Pointer};
 
 pub fn draw(sim: &SimState, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let x = LOGICAL_WIDTH - 370.0;
-    let panel = Rect::new(x - 6.0, 12.0, 360.0, 58.0);
+    let x = logical_width() - 370.0;
+    draw_at(sim, pointer, actions, x, 19.0);
+}
+
+pub fn draw_at(sim: &SimState, pointer: Pointer, actions: &mut Vec<UiAction>, x: f32, y: f32) {
+    let panel = Rect::new(x - 6.0, y - 7.0, 360.0, 58.0);
     draw_rectangle(panel.x, panel.y, panel.w, panel.h, term::panel());
     occlude(panel);
     let paused = sim.speed == GameSpeed::Paused;
     if term_button(
-        Rect::new(x, 19.0, 114.0, 44.0),
+        Rect::new(x, y, 114.0, 44.0),
         if paused { "RESUME" } else { "PAUSE" },
         true,
         pointer,
@@ -25,7 +29,7 @@ pub fn draw(sim: &SimState, pointer: Pointer, actions: &mut Vec<UiAction>) {
             speed.label().to_owned()
         };
         if term_button(
-            Rect::new(x + 120.0 + i as f32 * 78.0, 19.0, 72.0, 44.0),
+            Rect::new(x + 120.0 + i as f32 * 78.0, y, 72.0, 44.0),
             &label,
             true,
             pointer,

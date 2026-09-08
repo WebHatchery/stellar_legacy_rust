@@ -1,11 +1,11 @@
 //! Narrow screens use a vertical reading view with persistent time and navigation.
 use super::*;
 mod decisions;
-mod form;
+pub(crate) mod form;
 mod history;
 mod menu;
 mod overlays;
-pub use overlays::{help, settings, welcome};
+pub use overlays::{help, welcome};
 mod people;
 mod ship;
 mod voyage;
@@ -16,8 +16,7 @@ pub fn active() -> bool {
     screen_width() < 1100.0 || screen_height() < 640.0
 }
 pub fn size() -> (f32, f32) {
-    let viewport = macroquad_toolkit::ui::VirtualUi::scaled(320.0, 480.0);
-    (viewport.logical_width, viewport.logical_height)
+    (logical_width(), logical_height())
 }
 
 pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
@@ -46,7 +45,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         TextStyle::new(16.0, term::dim()).params(),
     );
     if term_button(
-        Rect::new(width - 114.0, 8.0, 102.0, 48.0),
+        Rect::new(12.0, 64.0, (width - 32.0) * 0.5, 44.0),
         if ctx.sim.speed == GameSpeed::Paused {
             "Resume"
         } else {
@@ -59,7 +58,12 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     }
     for (index, speed) in GameSpeed::ALL.into_iter().skip(1).enumerate() {
         if term_button(
-            Rect::new(12.0 + index as f32 * 64.0, 64.0, 56.0, 44.0),
+            Rect::new(
+                12.0 + index as f32 * ((width - 24.0) / 3.0),
+                116.0,
+                (width - 24.0) / 3.0 - 6.0,
+                44.0,
+            ),
             &format!("{}×", index + 1),
             true,
             pointer,
@@ -68,7 +72,12 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         }
     }
     if term_button(
-        Rect::new(width - 150.0, 64.0, 138.0, 44.0),
+        Rect::new(
+            20.0 + (width - 32.0) * 0.5,
+            64.0,
+            (width - 32.0) * 0.5,
+            44.0,
+        ),
         "Utilities",
         !ctx.sim.has_pending_decision()
             && !ctx.sim.survival.warning_active
@@ -79,6 +88,46 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             .utilities
             .set(!ctx.presentation.utilities.get());
     }
+    actions.extend(draw_content(
+        ctx,
+        Rect::new(12.0, 172.0, width - 24.0, height - 260.0),
+    ));
+    let blocked = ctx.sim.has_pending_decision()
+        || ctx.sim.survival.warning_active
+        || ctx.sim.debrief.is_some();
+    if ctx.sim.debrief.is_some()
+        && nav_button(
+            Rect::new(12.0, height - 62.0, width - 24.0, 54.0),
+            "File the report",
+            pointer,
+        )
+    {
+        actions.push(UiAction::FileReport);
+    }
+    if !blocked {
+        for (index, destination) in navigation::Destination::ALL.into_iter().enumerate() {
+            let rect = Rect::new(
+                4.0 + index as f32 * (width / 5.0),
+                height - 62.0,
+                width / 5.0 - 8.0,
+                54.0,
+            );
+            if nav_button(rect, destination.label(), pointer) {
+                ctx.presentation.mobile_section.borrow_mut().clear();
+                ctx.presentation.utilities.set(false);
+                actions.push(UiAction::SelectScreen(
+                    destination.home(ctx.sim.contract.is_none()),
+                ));
+            }
+        }
+    }
+    actions
+}
+
+/// Shared flow layout for a panel whose available space cannot hold the wide layout.
+pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
+    let pointer = ctx.pointer;
+    let mut actions = Vec::new();
     let section = ctx.presentation.mobile_section.borrow().clone();
     let mut form = Form::new();
     let key = if ctx.presentation.utilities.get() {
@@ -129,42 +178,10 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             ctx.obligation_detail
         )
     };
-    form.draw(
-        Rect::new(12.0, 120.0, width - 24.0, height - 208.0),
-        ctx.presentation,
-        pointer,
-        &key,
-        &mut actions,
-    );
-    let blocked = ctx.sim.has_pending_decision()
-        || ctx.sim.survival.warning_active
-        || ctx.sim.debrief.is_some();
-    if ctx.sim.debrief.is_some()
-        && nav_button(
-            Rect::new(12.0, height - 62.0, width - 24.0, 54.0),
-            "File the report",
-            pointer,
-        )
-    {
-        actions.push(UiAction::FileReport);
+    if ctx.sim.debrief.is_some() {
+        form.action("File the report", true, UiAction::FileReport);
     }
-    if !blocked {
-        for (index, destination) in navigation::Destination::ALL.into_iter().enumerate() {
-            let rect = Rect::new(
-                4.0 + index as f32 * (width / 5.0),
-                height - 62.0,
-                width / 5.0 - 8.0,
-                54.0,
-            );
-            if nav_button(rect, destination.label(), pointer) {
-                ctx.presentation.mobile_section.borrow_mut().clear();
-                ctx.presentation.utilities.set(false);
-                actions.push(UiAction::SelectScreen(
-                    destination.home(ctx.sim.contract.is_none()),
-                ));
-            }
-        }
-    }
+    form.draw(view, ctx.presentation, pointer, &key, &mut actions);
     actions
 }
 
@@ -187,6 +204,11 @@ fn bridge(ctx: &GameplayCtx<'_>, form: &mut Form) {
         },
     ));
     form.vessel(ctx);
+    bridge_details(ctx, form);
+}
+
+pub(crate) fn bridge_details(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    let sim = ctx.sim;
     if sim.resources.energy < ctx.data.config.low_energy_threshold {
         form.heading("! Energy shortage");
         form.text(&format!(

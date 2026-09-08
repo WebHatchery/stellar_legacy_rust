@@ -122,7 +122,6 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         .iter()
         .rev()
         .take(((recent.h - 44.0) / 44.0).floor().max(0.0) as usize)
-        .take(3)
     {
         let text = format!("Year {} · {}", entry.year, entry.text);
         draw_text_block(

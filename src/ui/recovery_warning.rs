@@ -1,15 +1,15 @@
 //! Blocking life-support recovery review.
 
 use crate::ui::{
-    draw_text_block, draw_ui_text_ex, occlude, term, term_button, term_panel, GameplayCtx, Pointer,
-    TextStyle, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
+    draw_text_block, draw_ui_text_ex, logical_height, logical_width, occlude, term, term_button,
+    term_panel, GameplayCtx, Pointer, TextStyle, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::ui::RectExt;
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 370.0, 150.0, 740.0, 410.0);
+    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
+    let panel = Rect::new(logical_width() / 2.0 - 370.0, 150.0, 740.0, 410.0);
     term_panel(panel, Some("LIFE SUPPORT // RECOVERY REVIEW REQUIRED"));
     let content = panel.inset(26.0);
     draw_ui_text_ex(

@@ -2,7 +2,7 @@
 //! dilemmas (GDD §5.5).
 
 use crate::simulation::legacy::pending_dilemma_def;
-use crate::ui::{term, term_button, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH};
+use crate::ui::{logical_height, logical_width, term, term_button, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
@@ -20,7 +20,12 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
     let Some(dilemma) = pending_dilemma_def(ctx.sim, ctx.data) else {
         return;
     };
-    macroquad_toolkit::ui::occlude(Rect::new(0.0, 72.0, LOGICAL_WIDTH, LOGICAL_HEIGHT - 72.0));
+    macroquad_toolkit::ui::occlude(Rect::new(
+        0.0,
+        72.0,
+        logical_width(),
+        logical_height() - 72.0,
+    ));
     let legacy_name = ctx
         .data
         .legacies
@@ -254,8 +259,8 @@ fn modal_frame(
     draw_rectangle(
         0.0,
         0.0,
-        LOGICAL_WIDTH,
-        LOGICAL_HEIGHT,
+        logical_width(),
+        logical_height(),
         Color::new(0.0, 0.0, 0.0, 0.75),
     );
 
@@ -263,8 +268,8 @@ fn modal_frame(
     // frame lets the option labels breathe on two comfortable lines.
     let height = 210.0 + option_count as f32 * 104.0 + extra_height;
     let rect = Rect::new(
-        LOGICAL_WIDTH / 2.0 - 350.0,
-        (LOGICAL_HEIGHT - height) / 2.0,
+        logical_width() / 2.0 - 350.0,
+        (logical_height() - height) / 2.0,
         700.0,
         height,
     );

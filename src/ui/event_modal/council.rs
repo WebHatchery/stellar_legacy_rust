@@ -10,7 +10,12 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let Some(event) = ctx.data.events.get(&pending.template_id) else {
         return;
     };
-    macroquad_toolkit::ui::occlude(Rect::new(0.0, 72.0, LOGICAL_WIDTH, LOGICAL_HEIGHT - 72.0));
+    macroquad_toolkit::ui::occlude(Rect::new(
+        0.0,
+        72.0,
+        logical_width(),
+        logical_height() - 72.0,
+    ));
     let state = ctx.presentation;
     let key = format!("{}:{}", pending.template_id, pending.rolled_month_clock);
     if *state.event_key.borrow() != key {
@@ -25,12 +30,17 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         return;
     }
     let selected = state.event_choice.get().min(available.len() - 1);
-    let frame = Rect::new(24.0, 130.0, LOGICAL_WIDTH - 48.0, LOGICAL_HEIGHT - 146.0);
+    let frame = Rect::new(
+        24.0,
+        130.0,
+        logical_width() - 48.0,
+        logical_height() - 146.0,
+    );
     draw_rectangle(
         0.0,
         72.0,
-        LOGICAL_WIDTH,
-        LOGICAL_HEIGHT - 72.0,
+        logical_width(),
+        logical_height() - 72.0,
         Color::new(0.0, 0.0, 0.0, 0.94),
     );
     crate::ui::term_panel(frame, Some("Council decision"));

@@ -161,7 +161,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         }
     }
     if term_button(
-        Rect::new(1134.0, 78.0, 130.0, 44.0),
+        Rect::new(logical_width() - 146.0, 78.0, 130.0, 44.0),
         "Utilities",
         true,
         pointer,

@@ -2,7 +2,7 @@
 //! the HELP button in the chrome row. Read-only — returns true on the frame the
 //! player asks to close it.
 
-use crate::ui::{draw_text_block, term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
+use crate::ui::{draw_text_block, logical_height, logical_width, term, term_button, term_panel};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
@@ -29,13 +29,13 @@ pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
     draw_rectangle(
         0.0,
         0.0,
-        LOGICAL_WIDTH,
-        LOGICAL_HEIGHT,
+        logical_width(),
+        logical_height(),
         Color::new(0.0, 0.0, 0.0, 0.8),
     );
-    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
+    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
 
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 380.0, 24.0, 760.0, 672.0);
+    let panel = Rect::new(logical_width() / 2.0 - 380.0, 24.0, 760.0, 672.0);
     term_panel(panel, Some("HELP // IDENTITY & CONTROLS"));
     let content = panel.inset(26.0);
     draw_ui_text_ex(

@@ -105,6 +105,9 @@ impl Game {
             UiAction::OpenSettings => {
                 // Reuse the shared display/settings overlay (F1) from the menu.
                 self.settings_open = true;
+                self.presentation
+                    .overlay_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
                 self.help_open = false;
                 None
             }

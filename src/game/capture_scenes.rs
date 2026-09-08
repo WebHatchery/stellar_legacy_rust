@@ -11,6 +11,7 @@ use macroquad_toolkit::achievements::Achievements;
 
 mod agenda;
 pub(crate) mod blueprint;
+mod display;
 mod homecoming;
 
 impl Game {
@@ -44,24 +45,10 @@ impl Game {
         self.tutorial_open = false;
         self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
-        let scene = match scene {
-            "settings_95" => {
-                self.display.ui_scale = 0.95;
-                "settings"
-            }
-            "settings_large" => {
-                self.display.ui_scale = 1.5;
-                "settings"
-            }
-            "settings_small" => {
-                self.display.ui_scale = 0.75;
-                "settings"
-            }
-            _ => scene,
-        };
-        let scene = if scene == "settings_slate" {
-            self.display.phosphor = crate::settings::Phosphor::Slate;
-            "settings"
+        let scene = display::prepare(scene, &mut self.display);
+        let scene = if scene == "settings_gameplay" {
+            self.settings_open = true;
+            "gameplay"
         } else {
             scene
         };

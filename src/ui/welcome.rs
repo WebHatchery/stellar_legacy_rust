@@ -6,7 +6,7 @@
 //! supplemental shortcut. All text is data (`config.welcome`).
 
 use crate::data::WelcomeConfig;
-use crate::ui::{term, term_button, term_panel, LOGICAL_HEIGHT, LOGICAL_WIDTH};
+use crate::ui::{logical_height, logical_width, term, term_button, term_panel};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt};
@@ -17,15 +17,15 @@ pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
     draw_rectangle(
         0.0,
         0.0,
-        LOGICAL_WIDTH,
-        LOGICAL_HEIGHT,
+        logical_width(),
+        logical_height(),
         Color::new(0.0, 0.0, 0.0, 0.82),
     );
-    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
+    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
 
     let panel = Rect::new(
-        LOGICAL_WIDTH / 2.0 - 380.0,
-        LOGICAL_HEIGHT / 2.0 - 300.0,
+        logical_width() / 2.0 - 380.0,
+        logical_height() / 2.0 - 300.0,
         760.0,
         600.0,
     );

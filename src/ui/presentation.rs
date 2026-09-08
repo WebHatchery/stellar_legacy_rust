@@ -4,7 +4,10 @@ use std::cell::Cell;
 
 #[derive(Default)]
 pub struct Presentation {
-    pub desktop_pan: Cell<Option<macroquad::prelude::Vec2>>,
+    pub bridge_subject_scroll: Cell<ScrollArea>,
+    pub bridge_subject_key: std::cell::RefCell<String>,
+    pub bridge_details_scroll: Cell<ScrollArea>,
+    pub bridge_details_key: std::cell::RefCell<String>,
     pub capture_mobile_offset: Cell<Option<(bool, f32)>>,
     pub overlay_active: Cell<bool>,
     pub overlay_key: std::cell::RefCell<String>,

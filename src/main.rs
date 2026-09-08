@@ -41,7 +41,7 @@ fn report_touch_targets(scene: &str) {
     if let Some((width, label)) = smallest_touchable_width(if ui::mobile::active() {
         ui::mobile::size().0
     } else {
-        ui::LOGICAL_WIDTH
+        ui::logical_width()
     }) {
         println!(
             "touch[{scene}] every control clears 44px at {width:.0}px wide (worst: \"{label}\")"

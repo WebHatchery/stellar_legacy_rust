@@ -28,6 +28,7 @@ pub fn draw_menu(ctx: MenuCtx<'_>) -> Vec<UiAction> {
     }
     match ctx.menu.phase {
         crate::state::MenuPhase::Main => draw_main_menu(&ctx),
+        crate::state::MenuPhase::NewGame if compact() => mobile::draw_menu(&ctx, ctx.presentation),
         crate::state::MenuPhase::NewGame => draw_new_game(&ctx),
     }
 }
@@ -64,7 +65,7 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                 0.0,
                 WHITE,
                 DrawTextureParams {
-                    dest_size: Some(vec2(LOGICAL_WIDTH, LOGICAL_HEIGHT)),
+                    dest_size: Some(vec2(logical_width(), logical_height())),
                     ..Default::default()
                 },
             );
@@ -78,7 +79,7 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                         heritage.tier_name, heritage.renown
                     ),
                     TITLE_COLUMN_X,
-                    400.0,
+                    logical_height() - 320.0,
                     TextStyle::new(14.0, term::accent()).params(),
                 );
                 draw_ui_text_ex(
@@ -87,16 +88,19 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                         heritage.credits, heritage.influence, heritage.tradition
                     ),
                     TITLE_COLUMN_X,
-                    419.0,
+                    logical_height() - 301.0,
                     TextStyle::new(14.0, term::accent()).params(),
                 );
             }
-            (TITLE_COLUMN_X, 444.0)
+            (
+                TITLE_COLUMN_X.min(logical_width() * 0.08),
+                logical_height() - 276.0,
+            )
         }
         None => {
             draw_text_glow(
                 "STELLAR LEGACY",
-                LOGICAL_WIDTH / 2.0 - 230.0,
+                logical_width() / 2.0 - 230.0,
                 250.0,
                 TextStyle::new(58.0, term::primary()),
                 0.1,
@@ -104,7 +108,7 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
             );
             draw_text_centered(
                 "// CUSTODIAN // GENERATIONAL STARSHIP INTELLIGENCE //",
-                LOGICAL_WIDTH / 2.0,
+                logical_width() / 2.0,
                 295.0,
                 TextStyle::new(18.0, term::dim()),
             );
@@ -118,12 +122,12 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                         heritage.influence,
                         heritage.tradition
                     ),
-                    LOGICAL_WIDTH / 2.0,
+                    logical_width() / 2.0,
                     325.0,
                     TextStyle::new(14.0, term::accent()),
                 );
             }
-            (LOGICAL_WIDTH / 2.0 - bw / 2.0, 370.0)
+            (logical_width() / 2.0 - bw / 2.0, logical_height() - 250.0)
         }
     };
 
@@ -169,7 +173,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
 
     draw_text_glow(
         "STELLAR LEGACY",
-        LOGICAL_WIDTH / 2.0 - 190.0,
+        logical_width() / 2.0 - 190.0,
         130.0,
         TextStyle::new(48.0, term::primary()),
         0.1,
@@ -177,7 +181,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     );
     draw_ui_text_ex(
         "// generational starship command //",
-        LOGICAL_WIDTH / 2.0 - 165.0,
+        logical_width() / 2.0 - 165.0,
         165.0,
         TextStyle::new(17.0, term::dim()).params(),
     );
@@ -194,7 +198,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
                 heritage.influence,
                 heritage.tradition
             ),
-            LOGICAL_WIDTH / 2.0,
+            logical_width() / 2.0,
             193.0,
             TextStyle::new(14.0, term::accent()),
         );
@@ -202,7 +206,7 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
 
     let starting = ctx.data.config.factions.starting_count as usize;
     let tut = &ctx.data.config.tutorial;
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 430.0, 198.0, 860.0, 508.0);
+    let panel = Rect::new(logical_width() / 2.0 - 430.0, 198.0, 860.0, 508.0);
     term_panel(panel, Some("FOUNDING CHARTER"));
     let content = panel.inset(24.0);
     let col_gap = 24.0;

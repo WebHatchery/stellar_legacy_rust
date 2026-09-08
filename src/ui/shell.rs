@@ -80,6 +80,9 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     if mobile::active() {
         return mobile::draw(&ctx);
     }
+    if compact() {
+        return responsive::draw(&ctx);
+    }
     let mut actions = Vec::new();
     let pointer = ctx.pointer;
 
@@ -91,7 +94,12 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
             draw_tabs(&ctx, pointer, &mut actions);
             chronicle::draw(
                 &ctx,
-                Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0),
+                Rect::new(
+                    16.0,
+                    128.0,
+                    logical_width() - 32.0,
+                    logical_height() - 144.0,
+                ),
                 pointer,
                 &mut actions,
             );
@@ -123,7 +131,12 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
         Screen::Dashboard
     };
 
-    let content = Rect::new(16.0, 128.0, LOGICAL_WIDTH - 32.0, LOGICAL_HEIGHT - 144.0);
+    let content = Rect::new(
+        16.0,
+        128.0,
+        logical_width() - 32.0,
+        logical_height() - 144.0,
+    );
     let content_pointer = if ctx.presentation.utilities.get() {
         pointer.suppressed()
     } else {
@@ -175,7 +188,7 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
 }
 
 fn draw_header(ctx: &GameplayCtx<'_>) {
-    let rect = Rect::new(16.0, 12.0, LOGICAL_WIDTH - 32.0, 58.0);
+    let rect = Rect::new(16.0, 12.0, logical_width() - 32.0, 58.0);
     term_panel(rect, None);
 
     let sim = ctx.sim;

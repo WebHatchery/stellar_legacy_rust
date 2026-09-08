@@ -2,7 +2,7 @@
 //! before the main menu, to sell the old-CRT-monitor feel (GDD §9). Purely
 //! cosmetic — it owns a wall-clock timer and never touches the sim.
 
-use crate::ui::{term, LOGICAL_HEIGHT, LOGICAL_WIDTH};
+use crate::ui::{logical_height, logical_width, term};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::draw_ui_text_ex;
@@ -79,12 +79,12 @@ impl BootScreen {
     /// Draw the streaming log centred on a black screen. The CRT overlay is
     /// applied on top by `Game::draw`, so this already reads as a monitor.
     pub fn draw(&self) {
-        draw_rectangle(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, term::bg());
+        draw_rectangle(0.0, 0.0, logical_width(), logical_height(), term::bg());
 
         // The whole log streams as one shared character budget (toolkit
         // `reveal_block`), so lines fill in order like real console output.
         let reveal = reveal_block(LINES, self.elapsed, CPS);
-        let x = LOGICAL_WIDTH / 2.0 - 320.0;
+        let x = logical_width() / 2.0 - 320.0;
         let mut y = 150.0;
 
         for (i, line) in LINES.iter().enumerate() {

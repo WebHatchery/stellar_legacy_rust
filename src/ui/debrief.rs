@@ -15,7 +15,7 @@ pub(crate) mod report;
 
 use crate::state::sim::debrief::VoyageDebrief;
 use crate::ui::{
-    term, term_button, term_panel, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH,
+    logical_height, logical_width, term, term_button, term_panel, GameplayCtx, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -30,7 +30,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let Some(report) = ctx.sim.debrief.as_ref() else {
         return;
     };
-    draw_rectangle(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT, term::bg());
+    draw_rectangle(0.0, 0.0, logical_width(), logical_height(), term::bg());
     draw_banner(report);
 
     for (index, label) in ["Outcome & accounting", "Captains", "Defining moments"]
@@ -55,8 +55,8 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let area = Rect::new(
         MARGIN,
         158.0,
-        LOGICAL_WIDTH - MARGIN * 2.0,
-        LOGICAL_HEIGHT - 158.0 - FOOTER_H - MARGIN,
+        logical_width() - MARGIN * 2.0,
+        logical_height() - 158.0 - FOOTER_H - MARGIN,
     );
     match ctx.presentation.report_page.get() {
         1 => columns::draw_commanders(ctx, report, area, pointer),
@@ -66,8 +66,8 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     // One way out. Filing the report clears it and returns the ship to the
     // drydock board, where the next charter is chosen.
     let btn = Rect::new(
-        LOGICAL_WIDTH / 2.0 - 190.0,
-        LOGICAL_HEIGHT - FOOTER_H - 2.0,
+        logical_width() / 2.0 - 190.0,
+        logical_height() - FOOTER_H - 2.0,
         380.0,
         44.0,
     );
@@ -91,7 +91,7 @@ fn draw_banner(report: &VoyageDebrief) {
     let band = outcome_tone(&report.outcome);
     draw_text_glow(
         "HOMECOMING",
-        LOGICAL_WIDTH / 2.0 - 148.0,
+        logical_width() / 2.0 - 148.0,
         52.0,
         TextStyle::new(42.0, band),
         0.14,
@@ -108,7 +108,7 @@ fn draw_banner(report: &VoyageDebrief) {
     let width = measure_text(&subtitle, None, 16, 1.0).width;
     draw_ui_text_ex(
         &subtitle,
-        (LOGICAL_WIDTH - width) / 2.0,
+        (logical_width() - width) / 2.0,
         78.0,
         TextStyle::new(16.0, term::dim()).params(),
     );

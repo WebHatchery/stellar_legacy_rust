@@ -1,7 +1,7 @@
 //! Blocking presentation for the one bounded human authority review.
 
 use crate::state::sim::{AuthorityChoice, CommandPosture};
-use crate::ui::{term, term_button, GameplayCtx, UiAction, LOGICAL_HEIGHT, LOGICAL_WIDTH};
+use crate::ui::{logical_height, logical_width, term, term_button, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt};
@@ -13,13 +13,13 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     draw_rectangle(
         0.0,
         0.0,
-        LOGICAL_WIDTH,
-        LOGICAL_HEIGHT,
+        logical_width(),
+        logical_height(),
         Color::new(0.0, 0.0, 0.0, 0.78),
     );
-    occlude(Rect::new(0.0, 0.0, LOGICAL_WIDTH, LOGICAL_HEIGHT));
+    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
 
-    let panel = Rect::new(LOGICAL_WIDTH / 2.0 - 350.0, 120.0, 700.0, 480.0);
+    let panel = Rect::new(logical_width() / 2.0 - 350.0, 120.0, 700.0, 480.0);
     draw_surface(
         panel,
         &SurfaceStyle::new(term::panel())
