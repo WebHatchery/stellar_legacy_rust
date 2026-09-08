@@ -9,6 +9,12 @@ promises made to people whose descendants will live with your decisions.
 
 ## What you do
 
+In **Display & sound**, use **Smaller** or **Larger** to adjust UI scale from
+75% to 150% in 5% steps. Changes apply immediately and are saved automatically;
+**Reset** restores 100%. Adjusted scales use the scrolling interface so content
+remains reachable. Small windows limit the effective enlargement to fit the
+minimum layout. The preference does not affect the simulation or campaign save.
+
 Choose a charter, prepare your vessel, and guide its people through the outbound
 journey, mission operations, and return home. Balance supplies, ship maintenance,
 and crew welfare while responding to crises and competing demands. A successful

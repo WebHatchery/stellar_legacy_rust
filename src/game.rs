@@ -212,6 +212,7 @@ impl Game {
         let display = DisplaySettings::load(&data.config.game_name);
         let crt_style = display.crt_style();
         ui::term::set_phosphor(display.phosphor);
+        macroquad_toolkit::ui::set_ui_scale(display.ui_scale);
         let delegation_defaults = crate::settings::load_delegation(&data.config.game_name);
         let audio = AudioManager::new().await;
 
@@ -443,6 +444,7 @@ impl Game {
     fn persist_display(&mut self) {
         self.crt_style = self.display.crt_style();
         ui::term::set_phosphor(self.display.phosphor);
+        macroquad_toolkit::ui::set_ui_scale(self.display.ui_scale);
         if let Err(err) = self.display.save(&self.data.config.game_name) {
             self.notifications
                 .warning(format!("Display settings not saved: {err}"));
@@ -471,6 +473,15 @@ impl Game {
             DisplayAction::ToggleScanlines => self.display.scanlines = !self.display.scanlines,
             DisplayAction::ToggleFlicker => self.display.flicker = !self.display.flicker,
             DisplayAction::SetPhosphor(p) => self.display.phosphor = p,
+            DisplayAction::SetUiScale(scale) => {
+                self.display.ui_scale = macroquad_toolkit::ui::sanitize_ui_scale(scale);
+                self.presentation
+                    .overlay_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
+                self.presentation
+                    .mobile_scroll
+                    .set(macroquad_toolkit::ui::ScrollArea::new());
+            }
             DisplayAction::AdjustAudio(delta) => {
                 self.display.audio_volume = (self.display.audio_volume + delta).clamp(0.0, 1.0)
             }

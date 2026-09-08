@@ -56,6 +56,19 @@ pub fn settings(
     use crate::ui::settings::DisplayAction as A;
     let mut f = Form::new();
     f.heading("Display & sound");
+    f.heading(&format!("UI scale · {:.0}%", display.ui_scale * 100.0));
+    f.action(
+        "Smaller UI",
+        display.ui_scale > 0.75,
+        A::SetUiScale(display.ui_scale - 0.05),
+    );
+    f.action(
+        "Larger UI",
+        display.ui_scale < 1.5,
+        A::SetUiScale(display.ui_scale + 0.05),
+    );
+    f.action("Reset UI to 100%", true, A::SetUiScale(1.0));
+    f.text("Drag to scroll. On small screens, scaling is limited to keep controls visible.");
     for (label, on, action) in [
         ("Title effects", display.crt_enabled, A::ToggleCrt),
         ("Scanlines", display.scanlines, A::ToggleScanlines),

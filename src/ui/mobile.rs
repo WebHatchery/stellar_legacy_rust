@@ -13,10 +13,13 @@ use form::Form;
 pub use menu::draw_menu;
 
 pub fn active() -> bool {
-    screen_width() < 1100.0 || screen_height() < 640.0
+    screen_width() < 1100.0
+        || screen_height() < 640.0
+        || (macroquad_toolkit::ui::ui_scale() - 1.0).abs() > 0.001
 }
 pub fn size() -> (f32, f32) {
-    (screen_width().max(320.0), screen_height().max(480.0))
+    let viewport = macroquad_toolkit::ui::VirtualUi::scaled(320.0, 480.0);
+    (viewport.logical_width, viewport.logical_height)
 }
 
 pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {

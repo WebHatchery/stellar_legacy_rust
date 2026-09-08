@@ -18,6 +18,7 @@ pub enum DisplayAction {
     ToggleFlicker,
     SetPhosphor(Phosphor),
     AdjustAudio(f32),
+    SetUiScale(f32),
     ToggleAmbience,
     ToggleTutorial,
     /// Flip whether this category is delegated by default in new voyages.
@@ -184,7 +185,35 @@ pub fn draw(
         y += 48.0;
     }
     draw_ui_text_ex(
-        "Title effects stay clear of gameplay text.",
+        &format!("UI SCALE · {:.0}%", display.ui_scale * 100.0),
+        panel.x + 498.0,
+        y + 30.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    for (index, (label, scale)) in [
+        ("Smaller", display.ui_scale - 0.05),
+        ("Reset", 1.0),
+        ("Larger", display.ui_scale + 0.05),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        if term_button(
+            Rect::new(
+                panel.x + 498.0 + index as f32 * 134.0,
+                y + 44.0,
+                126.0,
+                44.0,
+            ),
+            label,
+            true,
+            pointer,
+        ) {
+            actions.push(DisplayAction::SetUiScale(scale));
+        }
+    }
+    draw_ui_text_ex(
+        "Adjusted scales use the scrolling layout.",
         content.x,
         content.bottom() - 54.0,
         TextStyle::new(13.0, term::faint()).params(),

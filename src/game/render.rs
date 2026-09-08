@@ -4,6 +4,7 @@ use super::*;
 impl Game {
     pub fn draw(&mut self) {
         clear_background(ui::term::bg());
+        macroquad_toolkit::ui::set_ui_scale(self.display.ui_scale);
 
         let modal_reveal = self.modal_reveal();
         let log_reveal = self.log_reveal();
