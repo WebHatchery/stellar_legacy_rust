@@ -475,6 +475,7 @@ impl Game {
             DisplayAction::SetPhosphor(p) => self.display.phosphor = p,
             DisplayAction::SetUiScale(scale) => {
                 self.display.ui_scale = macroquad_toolkit::ui::sanitize_ui_scale(scale);
+                self.presentation.desktop_pan.set(None);
                 self.presentation
                     .overlay_scroll
                     .set(macroquad_toolkit::ui::ScrollArea::new());

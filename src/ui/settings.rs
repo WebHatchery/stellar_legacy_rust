@@ -213,7 +213,7 @@ pub fn draw(
         }
     }
     draw_ui_text_ex(
-        "Adjusted scales use the scrolling layout.",
+        "Above 100%, drag the edge scrollbars to move.",
         content.x,
         content.bottom() - 54.0,
         TextStyle::new(13.0, term::faint()).params(),

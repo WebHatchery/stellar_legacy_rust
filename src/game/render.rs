@@ -16,11 +16,35 @@ impl Game {
         } else {
             (ui::LOGICAL_WIDTH, ui::LOGICAL_HEIGHT)
         };
-        let virtual_ui = begin_virtual_ui_frame(width, height);
+        let screen_pointer = Pointer::read(|p| p);
+        let canvas = if ui::mobile::active() {
+            None
+        } else {
+            let mut pan = self
+                .presentation
+                .desktop_pan
+                .get()
+                .unwrap_or(vec2(0.5, 0.5));
+            let content = vec2(width, height);
+            let canvas = macroquad_toolkit::ui::UiCanvas::new(content, self.display.ui_scale, pan);
+            canvas.navigate(screen_pointer, &mut pan);
+            self.presentation.desktop_pan.set(Some(pan));
+            Some(macroquad_toolkit::ui::UiCanvas::new(
+                content,
+                self.display.ui_scale,
+                pan,
+            ))
+        };
         // One pointer for the whole frame, in logical coordinates — a mouse or a
         // finger, read the same way. Built here rather than per screen so every
         // control agrees about where it is and whether it just let go.
-        let pointer = Pointer::read(|p| virtual_ui.screen_to_ui(p));
+        let pointer = if let Some(canvas) = canvas {
+            canvas.begin();
+            canvas.pointer(screen_pointer)
+        } else {
+            let virtual_ui = begin_virtual_ui_frame(width, height);
+            Pointer::read(|p| virtual_ui.screen_to_ui(p))
+        };
         self.presentation
             .overlay_active
             .set(self.settings_open || self.help_open || self.welcome_open);
@@ -145,6 +169,16 @@ impl Game {
         // this has to happen once, after everything has drawn.
         end_frame_neighbours();
         end_virtual_ui_frame();
+        if let Some(canvas) = canvas {
+            canvas.draw_navigation(
+                self.presentation
+                    .desktop_pan
+                    .get()
+                    .unwrap_or(vec2(0.5, 0.5)),
+                ui::term::surface_inset(),
+                ui::term::primary(),
+            );
+        }
 
         // While a panel or the welcome overlay is open, swallow the underlying
         // screen's intents.

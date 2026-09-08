@@ -11,9 +11,10 @@ promises made to people whose descendants will live with your decisions.
 
 In **Display & sound**, use **Smaller** or **Larger** to adjust UI scale from
 75% to 150% in 5% steps. Changes apply immediately and are saved automatically;
-**Reset** restores 100%. Adjusted scales use the scrolling interface so content
-remains reachable. Small windows limit the effective enlargement to fit the
-minimum layout. The preference does not affect the simulation or campaign save.
+**Reset** restores 100%. Desktop scaling preserves the desktop layout; above
+100%, drag or tap the edge scrollbars to reach enlarged content. Mobile layout
+is selected only by window size. Small mobile windows limit enlargement to fit
+the minimum layout. The preference does not affect the simulation or campaign save.
 
 Choose a charter, prepare your vessel, and guide its people through the outbound
 journey, mission operations, and return home. Balance supplies, ship maintenance,

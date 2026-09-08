@@ -45,6 +45,10 @@ impl Game {
         self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
         let scene = match scene {
+            "settings_95" => {
+                self.display.ui_scale = 0.95;
+                "settings"
+            }
             "settings_large" => {
                 self.display.ui_scale = 1.5;
                 "settings"
