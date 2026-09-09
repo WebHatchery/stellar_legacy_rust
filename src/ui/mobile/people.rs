@@ -10,20 +10,35 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let cfg = &ctx.data.config.crew;
     match section {
         "officers" => {
+            f.text(&format!("Available credits: {}", sim.resources.credits));
             for role in &ctx.data.crew_archetypes {
                 f.heading(&role.name);
+                f.text(&role.description);
                 if let Some(p) = crate::simulation::crew::post_holder(sim, &role.id) {
                     f.portrait(&p.name);
                     f.text(&format!(
                         "Age {} · Skill {} / {}",
                         p.age, p.skill, role.skill_max
                     ));
+                    f.text(&format!(
+                        "Retirement age {} · {} years away",
+                        cfg.retirement_age,
+                        cfg.retirement_age.saturating_sub(p.age),
+                    ));
                     if let Some(a) = sim.apprenticeships.iter().find(|a| a.post_id == role.id) {
                         f.text(&format!(
-                            "Apprentice: {} · Skill {}",
+                            "Prepared successor: {} · Skill {}",
                             a.apprentice_name, a.skill
                         ));
+                        f.text("The apprentice takes over when this officer leaves and reduces the loss of expertise.");
                     } else {
+                        f.text("Appoint an apprentice to prepare a successor and preserve more expertise when this officer leaves.");
+                        if sim.resources.credits < cfg.apprentice_cost_credits {
+                            f.text(&format!(
+                                "Apprenticeship needs {} more credits.",
+                                cfg.apprentice_cost_credits - sim.resources.credits
+                            ));
+                        }
                         f.action(
                             &format!(
                                 "Appoint apprentice · {} credits",
@@ -34,8 +49,18 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                         );
                     }
                     if p.skill < role.skill_max {
+                        if sim.resources.credits < cfg.train_cost_credits {
+                            f.text(&format!(
+                                "Training needs {} more credits.",
+                                cfg.train_cost_credits - sim.resources.credits
+                            ));
+                        }
                         f.action(
-                            &format!("Train · {} credits", cfg.train_cost_credits),
+                            &format!(
+                                "Train to skill {} · {} credits",
+                                (p.skill + cfg.train_skill_gain).min(role.skill_max),
+                                cfg.train_cost_credits
+                            ),
                             sim.resources.credits >= cfg.train_cost_credits,
                             UiAction::TrainCrew(role.id.clone()),
                         );
@@ -44,6 +69,12 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                     }
                 } else {
                     f.text("! Officer post vacant");
+                    if sim.resources.credits < cfg.recruit_cost_credits {
+                        f.text(&format!(
+                            "Recruitment needs {} more credits.",
+                            cfg.recruit_cost_credits - sim.resources.credits
+                        ));
+                    }
                     f.action(
                         &format!("Recruit · {} credits", cfg.recruit_cost_credits),
                         sim.resources.credits >= cfg.recruit_cost_credits,

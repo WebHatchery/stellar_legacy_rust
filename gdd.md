@@ -266,6 +266,9 @@ Factions and Council. Voyage offers Drydock/Market in port and Contract underway
 The compact Family view distinguishes the automatically planned successor from
 a named heir, explains the eligible age range and retains a visible current-heir
 marker after designation. Family entries include specialization and trait.
+Compact officer entries explain each post, retirement timing and apprenticeship
+succession. Training names its resulting skill, and unaffordable actions show
+the missing credits alongside the available balance.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

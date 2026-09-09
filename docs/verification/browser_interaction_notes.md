@@ -70,3 +70,10 @@ from the roster and observed Named heir, a disabled Current heir control, and
 the success notice; Xan remained selectable as an alternative. Saved through
 Utilities while paused. This verifies designation feedback, not a completed
 succession or its reload boundary.
+
+After the officer-context revision passed publishing, loaded the saved campaign
+and trained Commander Galen Archivald. The button promised skill 82 for 400
+credits; skill changed from 76 to 82 and credits from 10176 to 9776. Appointed
+an apprentice for 600 credits, observed 9176 credits and prepared successor
+Xan Archivald at skill 62. Saved while paused. This checks training and
+appointment feedback; it does not establish a completed officer handover.
