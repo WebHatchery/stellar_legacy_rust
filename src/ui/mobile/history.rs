@@ -1,14 +1,14 @@
 use super::*;
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
-    f.sections(&[
-        ("Timeline", ""),
-        ("Obligations", "obligations"),
-        ("Mission archive", "archive"),
-        ("Milestones", "milestones"),
-    ]);
     if let Some(id) = ctx.obligation_detail {
+        f.action(
+            "Back to obligations",
+            true,
+            UiAction::CloseObligationHistory,
+        );
         if let Some(o) = ctx.sim.obligations.iter().find(|o| o.id == id) {
             f.heading(&o.title);
+            f.text(&timing(o, ctx.sim.year()));
             f.text(&format!(
                 "{} · To {} · Responsible {}\nMaterial: {}\nReputation: {}",
                 o.status.label(),
@@ -18,16 +18,25 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 o.stakes.reputation
             ));
             for h in &o.history {
-                f.text(&format!("Year {} · {}", h.year, h.note));
+                f.text(&format!(
+                    "Year {} · {} · {}\n{}",
+                    h.year,
+                    h.captain,
+                    h.status.label(),
+                    h.note
+                ));
             }
-            f.action(
-                "Close obligation history",
-                true,
-                UiAction::CloseObligationHistory,
-            );
-            return;
+        } else {
+            f.text("This obligation is no longer available.");
         }
+        return;
     }
+    f.sections(&[
+        ("Timeline", ""),
+        ("Obligations", "obligations"),
+        ("Mission archive", "archive"),
+        ("Milestones", "milestones"),
+    ]);
     if let Some(index) = section
         .strip_prefix("record:")
         .and_then(|i| i.parse::<usize>().ok())
@@ -48,18 +57,47 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     match section {
         "obligations" => {
             f.heading("Obligations");
-            for o in &ctx.sim.obligations {
+            if ctx.sim.obligations.is_empty() {
+                f.text("No obligations recorded. Promises and duties from your decisions will appear here with their deadlines and history.");
+                return;
+            }
+            let active = ctx
+                .sim
+                .obligations
+                .iter()
+                .filter(|o| o.status.is_active())
+                .count();
+            f.text(&format!(
+                "{active} active · {} resolved · {} due",
+                ctx.sim.obligations.len() - active,
+                ctx.sim.due_obligations().len()
+            ));
+            f.text("Active duties appear first. Read an obligation's history to see earlier promises and changes of responsibility.");
+            let mut obligations = ctx.sim.obligations.iter().collect::<Vec<_>>();
+            obligations.sort_by_key(|o| {
+                (
+                    !o.status.is_active(),
+                    o.due_year.unwrap_or(u32::MAX),
+                    o.created_year,
+                )
+            });
+            for o in obligations {
                 f.heading(&o.title);
+                f.text(&timing(o, ctx.sim.year()));
                 f.text(&format!(
-                    "{} · To {}\nResponsible {} · Due {}\nMaterial: {}\nReputation: {}",
+                    "{} · To {}\nResponsible {}\nMaterial: {}\nReputation: {}",
                     o.status.label(),
                     o.beneficiary,
                     o.responsible,
-                    o.due_year
-                        .map_or("open".to_owned(), |y| format!("Year {y}")),
                     o.stakes.material,
                     o.stakes.reputation
                 ));
+                if o.successions_crossed > 0 {
+                    f.text(&format!(
+                        "Inherited across {} successions",
+                        o.successions_crossed
+                    ));
+                }
                 f.action(
                     "Read full obligation history",
                     true,
@@ -104,5 +142,20 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 f.text(&format!("Year {} · {}", e.year, e.text));
             }
         }
+    }
+}
+
+fn timing(o: &crate::state::sim::Obligation, year: u32) -> String {
+    if !o.status.is_active() {
+        return format!(
+            "Closed in Year {}",
+            o.history.last().map_or(o.created_year, |h| h.year)
+        );
+    }
+    match o.due_year {
+        None => "No fixed deadline".to_owned(),
+        Some(due) if due < year => format!("Due Year {due} · {} years overdue", year - due),
+        Some(due) if due == year => format!("Due now · Year {due}"),
+        Some(due) => format!("Due Year {due} · in {} years", due - year),
     }
 }
