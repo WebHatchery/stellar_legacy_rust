@@ -51,6 +51,11 @@ impl Game {
                     .position(|job| job.sequence_id == selected)
                     .unwrap(),
             );
+            if scene == "agenda_catalogue" {
+                self.presentation
+                    .selected_agenda
+                    .set(sim.projects.jobs.len());
+            }
         }
         if scene == "agenda_review_blocked" {
             for _ in 0..self.data.config.projects.pause_grace_months + 2 {

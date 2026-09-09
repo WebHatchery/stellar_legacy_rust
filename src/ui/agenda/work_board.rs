@@ -48,6 +48,10 @@ pub(super) fn draw_work_board(
                 .projects
                 .get(&job.project_id)
                 .map_or(job.project_id.as_str(), |def| def.name.as_str());
+            let name = job.target_id.as_deref().map_or_else(
+                || name.to_owned(),
+                |target| format!("{name} · {}", target_label(ctx.data, Some(target))),
+            );
             if job.status == ProjectStatus::Running {
                 let progress = ctx
                     .data
@@ -67,11 +71,7 @@ pub(super) fn draw_work_board(
             let Some(def) = ctx.data.projects.get(&choice.project_id) else {
                 continue;
             };
-            let target = choice
-                .target_id
-                .as_deref()
-                .map(|id| id.replace('_', " "))
-                .unwrap_or_default();
+            let target = target_label(ctx.data, choice.target_id.as_deref());
             format!(
                 "{} · {}{}",
                 def.name,

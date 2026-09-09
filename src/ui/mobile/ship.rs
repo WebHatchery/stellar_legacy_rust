@@ -199,11 +199,7 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             f.heading(&format!(
                 "{} · {}",
                 def.name,
-                choice
-                    .target_id
-                    .as_deref()
-                    .unwrap_or("Ship")
-                    .replace('_', " ")
+                crate::ui::agenda::target_label(ctx.data, choice.target_id.as_deref())
             ));
             f.text(&format!(
                 "{} months · {}\n{}",
@@ -244,6 +240,10 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         for job in &sim.projects.jobs {
             if let Some(def) = projects::definition_for(job, ctx.data) {
                 f.heading(&def.name);
+                f.text(&format!(
+                    "Target: {}",
+                    crate::ui::agenda::target_label(ctx.data, job.target_id.as_deref())
+                ));
                 f.text(&format!(
                     "{:?} · {:.0}% complete",
                     job.status,

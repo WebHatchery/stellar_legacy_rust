@@ -18,6 +18,18 @@ use readiness_panel::draw_readiness;
 
 const GUTTER: f32 = 14.0;
 
+pub(crate) fn target_label(data: &crate::data::GameData, target: Option<&str>) -> String {
+    target.map_or_else(
+        || "Ship".to_owned(),
+        |id| {
+            data.subsystems.get(id).map_or_else(
+                || id.replace('_', " "),
+                |definition| definition.name.clone(),
+            )
+        },
+    )
+}
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
         review::draw(ctx, sequence_id, pointer, actions);
@@ -111,19 +123,17 @@ fn draw_job(
     };
     draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
     draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
-    let title = format!(
-        "{}{}",
-        definition.name,
-        job.target_id
-            .as_deref()
-            .map(|id| format!(" · {}", id.replace('_', " ")))
-            .unwrap_or_default()
-    );
     draw_ui_text_ex(
-        &title,
+        &definition.name,
         row.x + 10.0,
         row.y + 17.0,
         TextStyle::new(16.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &target_label(ctx.data, job.target_id.as_deref()),
+        row.x + 10.0,
+        row.y + 34.0,
+        TextStyle::new(12.0, term::dim()).params(),
     );
     let status = match job.status {
         ProjectStatus::Running => format!(
@@ -143,7 +153,7 @@ fn draw_job(
     draw_ui_text_ex(
         &status,
         row.x + 10.0,
-        row.y + 34.0,
+        row.y + 51.0,
         TextStyle::new(
             11.0,
             if job.status == ProjectStatus::Paused {
@@ -171,7 +181,7 @@ fn draw_job(
     draw_ui_text_ex(
         &detail,
         row.x + 10.0,
-        row.y + 51.0,
+        row.y + 69.0,
         TextStyle::new(14.0, term::dim()).params(),
     );
     let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 60.0);
@@ -222,22 +232,23 @@ fn draw_choice(
     };
     draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
     draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
-    let target = choice
-        .target_id
-        .as_deref()
-        .map(|id| format!(" · {}", id.replace('_', " ")))
-        .unwrap_or_default();
     draw_ui_text_ex(
-        &format!("{}{}", definition.name, target),
+        &definition.name,
         row.x + 10.0,
         row.y + 17.0,
         TextStyle::new(16.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &target_label(ctx.data, choice.target_id.as_deref()),
+        row.x + 10.0,
+        row.y + 35.0,
+        TextStyle::new(12.0, term::dim()).params(),
     );
     let cost = format_cost(ProjectAmounts::from_cost(definition.cost.clone()));
     draw_ui_text_ex(
         &format!("{} months / {}", definition.duration_months, cost),
         row.x + 10.0,
-        row.y + 35.0,
+        row.y + 52.0,
         TextStyle::new(12.0, term::dim()).params(),
     );
     draw_ui_text_ex(

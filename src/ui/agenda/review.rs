@@ -48,7 +48,10 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, id: u64, form: &mut Form) {
     };
     form.text(status);
     if let Some(target) = &job.target_id {
-        form.text(&format!("Target: {}", target.replace('_', " ")));
+        form.text(&format!(
+            "Target: {}",
+            super::target_label(ctx.data, Some(target))
+        ));
     }
     form.text(&format!(
         "Delivered {} / {} stages · {:.0}% complete\n{} months of work remaining",
