@@ -37,13 +37,13 @@ fn reward_hint(reward: &ResourceDelta) -> String {
 /// fuel before progress is credited, while work on station and the return leg
 /// do not; mirroring that rule here keeps the warning exact rather than treating
 /// every empty tank as a stopped mission.
-fn mission_clock_status(sim: &SimState, data: &GameData) -> (String, bool) {
+pub(crate) fn mission_clock_status(sim: &SimState, data: &GameData) -> (String, bool) {
     let Some(contract) = sim.contract.as_ref() else {
         return ("NO ACTIVE MISSION".to_owned(), false);
     };
     let next_phase = contract.phase_at(contract.months_elapsed + 1).1;
     if next_phase != ContractPhase::Travel {
-        return ("RUNNING · CURRENT LEG NEEDS NO FUEL".to_owned(), false);
+        return ("READY · CURRENT LEG NEEDS NO FUEL".to_owned(), false);
     }
     let burn = data.config.provisioning.fuel_burn_per_travel_month
         * crate::simulation::subsystems::engineering_fuel_burn_factor(sim, data)
@@ -55,7 +55,7 @@ fn mission_clock_status(sim: &SimState, data: &GameData) -> (String, bool) {
         )
     } else {
         (
-            format!("RUNNING · NEXT BURN {:.1}% FUEL", burn * 100.0),
+            format!("READY · NEXT BURN {:.1}% FUEL", burn * 100.0),
             false,
         )
     }

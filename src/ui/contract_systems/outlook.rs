@@ -146,7 +146,9 @@ pub(super) fn draw(
         return;
     };
     term_panel(area, Some("ROUTE & MISSION"));
-    let content = area.inset(20.0);
+    let mut content = area.inset(20.0);
+    content.y += 24.0;
+    content.h -= 24.0;
     let template = ctx.data.contracts.get(&contract.template_id);
     let operation = template
         .map(|t| t.operation_site())
@@ -184,7 +186,7 @@ pub(super) fn draw(
         .unwrap_or_else(|| "All authored milestones reached".to_owned());
     let (clock_status, clock_stalled) = super::mission_clock_status(ctx.sim, ctx.data);
     draw_ui_text_ex(
-        "MISSION CLOCK STATUS",
+        "TRAVEL FUEL CHECK",
         content.x,
         content.y + 20.0,
         TextStyle::new(14.0, term::primary()).params(),

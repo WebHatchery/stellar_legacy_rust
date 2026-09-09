@@ -281,6 +281,10 @@ temporary clock hold; the selected time speed is preserved.
 The phone posture comparison identifies the current policy, explains the 100%
 baseline and annual social tradeoffs, and shows months until another proposal
 is available. The current policy cannot be proposed again.
+The phone voyage report exposes the shared travel fuel check. A fuel stall
+explains current annual scoop recovery or its absence, port-only refuelling,
+and provides a visible link to Agenda readiness. Fuel readiness is distinct
+from whether the player has paused time.
 The guide offers FINISH only after all lessons, including the council response,
 are complete. Its completion message is visible on desktop and phone; advancing
 a lesson returns a scrolling reading view to the next instruction.

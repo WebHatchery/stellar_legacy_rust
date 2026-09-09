@@ -33,6 +33,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             c.objective_target,
             c.objective_unit
         ));
+        fuel_status(ctx, f);
         for m in &c.milestones {
             f.text(&format!(
                 "{} · {}",
@@ -171,6 +172,32 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             "Read briefing & prepare",
             !locked,
             UiAction::SelectCharter(t.id.clone()),
+        );
+    }
+}
+
+fn fuel_status(ctx: &GameplayCtx<'_>, f: &mut Form) {
+    let (status, stalled) = crate::ui::contract_systems::mission_clock_status(ctx.sim, ctx.data);
+    f.heading(&format!("Fuel aboard · {:.1}%", ctx.sim.ship.fuel * 100.0));
+    f.text(&status);
+    if stalled {
+        let scoop = crate::simulation::readiness::forecast(ctx.sim, ctx.data)
+            .fuel
+            .annual_scoop;
+        if scoop > 0.0 {
+            f.text(&format!("Travel waits for fuel while the ship's calendar and upkeep continue. The current scoops can restore up to {:.1}% of a tank each year; engineering condition can change that rate.", scoop * 100.0));
+            f.text(if ctx.sim.speed == GameSpeed::Paused {
+                "Tap Resume to let calendar time and annual fuel recovery advance. Fuel is purchased only in port."
+            } else {
+                "Leave time running for annual fuel recovery. Fuel is purchased only in port."
+            });
+        } else {
+            f.text("The current loadout cannot regenerate fuel. Fuel is purchased only in port. Review fuel readiness for available ship work, or use Review return home below to consider ending the mission early.");
+        }
+        f.action_section(
+            "Review fuel readiness",
+            UiAction::SelectScreen(Screen::Agenda),
+            "readiness",
         );
     }
 }

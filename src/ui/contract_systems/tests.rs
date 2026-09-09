@@ -19,7 +19,7 @@ fn mission_clock_status_only_calls_a_dry_travel_leg_stalled() {
     sim.ship.fuel = 1.0;
     let (status, stalled) = mission_clock_status(&sim, &data);
     assert!(!stalled);
-    assert!(status.starts_with("RUNNING"));
+    assert!(status.starts_with("READY"));
 
     sim.ship.fuel = 0.0;
     let (status, stalled) = mission_clock_status(&sim, &data);
@@ -42,5 +42,5 @@ fn mission_clock_status_only_calls_a_dry_travel_leg_stalled() {
         .unwrap();
     let (status, stalled) = mission_clock_status(&sim, &data);
     assert!(!stalled);
-    assert_eq!(status, "RUNNING · CURRENT LEG NEEDS NO FUEL");
+    assert_eq!(status, "READY · CURRENT LEG NEEDS NO FUEL");
 }
