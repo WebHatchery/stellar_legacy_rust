@@ -695,7 +695,7 @@ impl Game {
                 }
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "dashboard_repair" => {
+            "dashboard_repair" | "ship_repair" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
@@ -707,7 +707,11 @@ impl Game {
                 if let Some(template) = self.data.contracts.get("founding_colony") {
                     sim.contract = Some(contract::start_contract(template, &sim));
                 }
-                self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
+                let mut gameplay = GameplayState::new(sim);
+                if scene == "ship_repair" {
+                    gameplay.screen = Screen::ShipBuilder;
+                }
+                self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
             // "gameplay" and anything else: a fresh campaign on the dashboard.
             _ => {

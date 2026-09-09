@@ -1,6 +1,7 @@
 use super::*;
 use crate::simulation::projects;
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
+mod repairs;
 mod systems;
 
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
@@ -40,44 +41,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         UiAction::SelectScreen(Screen::Subsystems),
     );
     let port = ctx.sim.contract.is_none();
-    if port {
-        let c = &ctx.data.config.repair;
-        f.action(
-            &format!(
-                "Full repair & refit · {} credits · {} minerals",
-                c.full_credits_cost, c.full_minerals_cost
-            ),
-            crate::simulation::ship::full_repair_needed(ctx.sim, &ctx.data.config)
-                && ctx.sim.resources.credits >= c.full_credits_cost
-                && ctx.sim.resources.minerals >= c.full_minerals_cost,
-            UiAction::FullRepair,
-        );
-    }
-    for (label, kind) in [
-        ("Repair hull", crate::simulation::ship::RepairKind::Hull),
-        (
-            "Repair life support",
-            crate::simulation::ship::RepairKind::LifeSupport,
-        ),
-    ] {
-        let c = &ctx.data.config.repair;
-        let condition = if kind == crate::simulation::ship::RepairKind::Hull {
-            s.hull_integrity
-        } else {
-            s.life_support
-        };
-        if condition < c.field_ceiling {
-            f.action(
-                &format!(
-                    "{label} · {} parts · {} minerals",
-                    c.field_parts_cost, c.field_minerals_cost
-                ),
-                s.spare_parts >= c.field_parts_cost
-                    && ctx.sim.resources.minerals >= c.field_minerals_cost,
-                UiAction::FieldRepair(kind),
-            );
-        }
-    }
+    repairs::build(ctx, f);
     if port {
         for kind in [
             ComponentKind::Hull,
