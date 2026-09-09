@@ -7,23 +7,20 @@
 use crate::data::projects::ProjectTarget;
 use crate::simulation::{projects as project_sim, readiness};
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
-use crate::ui::{
-    logical_height, logical_width, spec_line, term, term_button, term_panel, GameplayCtx, UiAction,
-};
+use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{
-    draw_text_block, draw_ui_text_ex, is_fully_visible, occlude, Pointer, RectExt,
-};
+use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, is_fully_visible, Pointer};
 
 mod readiness_panel;
+pub(crate) mod review;
 use readiness_panel::draw_readiness;
 
 const GUTTER: f32 = 14.0;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
-        draw_cancel_preview(ctx, sequence_id, pointer, actions);
+        review::draw(ctx, sequence_id, pointer, actions);
         return;
     }
     let left_w = 420.0;
@@ -38,7 +35,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     draw_work_board(ctx, right, pointer, actions);
 
     if let Some(sequence_id) = ctx.project_cancel_confirm.get() {
-        draw_cancel_preview(ctx, sequence_id, pointer, actions);
+        review::draw(ctx, sequence_id, pointer, actions);
     }
 }
 
@@ -252,166 +249,38 @@ fn draw_choice(
     }
 }
 
-fn draw_cancel_preview(
-    ctx: &GameplayCtx<'_>,
-    sequence_id: u64,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) {
-    let Some(job) = ctx.sim.projects.find(sequence_id) else {
-        ctx.project_cancel_confirm.set(None);
-        return;
-    };
-    let Some(definition) = project_sim::definition_for(job, ctx.data) else {
-        ctx.project_cancel_confirm.set(None);
-        return;
-    };
-    occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
-    let panel = Rect::new(logical_width() / 2.0 - 460.0, 105.0, 920.0, 520.0);
-    term_panel(panel, Some("PROJECT OPTIONS // EXACT ACCOUNTING"));
-    let mut content = panel.inset(24.0);
-    content.y += 16.0;
-    content.h -= 16.0;
-    draw_ui_text_ex(
-        &definition.name,
-        content.x,
-        content.y + 18.0,
-        TextStyle::new(20.0, term::primary()).params(),
-    );
-    draw_text_block(
-        "Delivered stages remain aboard, but unfinished work will not be restored. The remaining escrow is recoverable at the published cancellation rate; any pause debt is deducted from that recovery.",
-        content.x,
-        content.y + 30.0,
-        content.w,
-        48.0,
-        13.0,
-        3.0,
-        term::dim(),
-    );
-    let refund = project_sim::refund_preview(job, ctx.data);
-    let debt = job.restoration_debt;
-    let mut y = content.y + 106.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "DELIVERED",
-        &format!(
-            "{}/{} stages",
-            job.delivered_stages,
-            definition.stage_count()
-        ),
-        term::accent(),
-    );
-    y += 25.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "REMAINING",
-        &format!(
-            "{} months",
-            definition
-                .duration_months
-                .saturating_sub(job.elapsed_months)
-        ),
-        term::primary(),
-    );
-    y += 25.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "REFUND",
-        &format_cost(refund),
-        term::accent(),
-    );
-    y += 25.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "RESTORATION DEBT",
-        &format_cost(debt),
-        if debt.nonzero() {
-            term::alert()
-        } else {
-            term::dim()
-        },
-    );
-    y += 25.0;
-    let next = if job.paused_months < ctx.data.config.projects.pause_grace_months {
-        format!(
-            "after {} more paused months",
-            ctx.data.config.projects.pause_grace_months + 1 - job.paused_months
-        )
-    } else {
-        "accrues each voyage month".to_owned()
-    };
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "PAUSE DETERIORATION",
-        &format!(
-            "{}; cap {:.0}% per unfinished stage",
-            next,
-            ctx.data.config.projects.pause_debt_cap_fraction * 100.0
-        ),
-        term::dim(),
-    );
-    y += 30.0;
-    draw_text_block(
-        "CONTINUE keeps work and escrow. PAUSE releases the slot with no refund; unfinished stages age only during voyage months. RESUME pays the displayed debt once. Fractional change stays in the saved ledger.",
-        content.x, y, content.w, 64.0, 13.0, 3.0, term::dim(),
-    );
-    let bottom = panel.bottom() - 68.0;
-    let keep = Rect::new(content.x, bottom, 180.0, 60.0);
-    if term_button(keep, "CONTINUE", true, pointer) {
-        actions.push(UiAction::DismissCancelProject);
-    }
-    let pivot = Rect::new(content.x + 194.0, bottom, 210.0, 60.0);
-    if job.status == ProjectStatus::Running && term_button(pivot, "PAUSE PROJECT", true, pointer) {
-        actions.push(UiAction::PauseProject(sequence_id));
-        actions.push(UiAction::DismissCancelProject);
-    }
-    if job.status == ProjectStatus::Paused && term_button(pivot, "RESUME PROJECT", true, pointer) {
-        actions.push(UiAction::ResumeProject(sequence_id));
-        actions.push(UiAction::DismissCancelProject);
-    }
-    let confirm = Rect::new(content.right() - 235.0, bottom, 235.0, 60.0);
-    if term_button(confirm, "CONFIRM CANCEL", true, pointer) {
-        actions.push(UiAction::CancelProject(sequence_id));
-    }
+pub(crate) fn format_cost(amounts: ProjectAmounts) -> String {
+    format_amounts(amounts, ["cr", "en", "min", " food", " inf", " parts"])
 }
 
-pub(crate) fn format_cost(amounts: ProjectAmounts) -> String {
-    let mut parts = Vec::new();
-    if amounts.credits > 0.0 {
-        parts.push(format!("{:.2}cr", amounts.credits));
-    }
-    if amounts.energy > 0.0 {
-        parts.push(format!("{:.2}en", amounts.energy));
-    }
-    if amounts.minerals > 0.0 {
-        parts.push(format!("{:.2}min", amounts.minerals));
-    }
-    if amounts.food > 0.0 {
-        parts.push(format!("{:.2} food", amounts.food));
-    }
-    if amounts.influence > 0.0 {
-        parts.push(format!("{:.2} inf", amounts.influence));
-    }
-    if amounts.spare_parts > 0.0 {
-        parts.push(format!("{:.2} parts", amounts.spare_parts));
-    }
+pub(crate) fn format_cost_long(amounts: ProjectAmounts) -> String {
+    format_amounts(
+        amounts,
+        [
+            " credits",
+            " energy",
+            " minerals",
+            " food",
+            " influence",
+            " spare parts",
+        ],
+    )
+}
+
+fn format_amounts(amounts: ProjectAmounts, labels: [&str; 6]) -> String {
+    let parts: Vec<_> = amounts
+        .values()
+        .into_iter()
+        .zip(labels)
+        .filter(|(value, _)| *value > 0.0)
+        .map(|(value, unit)| format!("{value:.2}{unit}"))
+        .collect();
     if parts.is_empty() {
         "none".to_owned()
     } else {
         parts.join(" · ")
     }
 }
-
 fn band_color(band: readiness::ReadinessBand) -> Color {
     match band {
         readiness::ReadinessBand::Critical => term::alert(),

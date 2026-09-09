@@ -52,6 +52,9 @@ scars that the next generation must manage.
 7. Open **Ship / Agenda**. Read the readiness rows and any aftermath notices, choose a
    useful project, tap **Queue project** (open **Available projects** first on a narrow screen), and tap **RESUME**. Two projects may run at once;
    queued work waits without charging until it starts.
+   Tap **Review project** to see delivered stages, remaining work, and pause or
+   resume availability. **Review cancellation** shows the refund before
+   **Confirm cancellation**; **Keep project** returns without cancelling.
 8. When a council decision appears, read the situation and known consequences, select a choice, then tap its **Commit** button.
    The voyage clock stops for blocking decisions, but the decision countdown can
    still run. Tap **PAUSE** to hold that countdown while you consider the choice.

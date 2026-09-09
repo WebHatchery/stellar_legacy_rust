@@ -112,6 +112,7 @@ pub enum UiAction {
         direction: i32,
     },
     PreviewCancelProject(u64),
+    ReviewCancelProject(u64),
     CancelProject(u64),
     DismissCancelProject,
     ReviewRecovery,

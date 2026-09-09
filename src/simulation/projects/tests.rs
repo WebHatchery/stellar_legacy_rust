@@ -63,4 +63,5 @@ fn paused_work_ages_after_grace_and_cancellation_refunds_remaining_escrow() {
     assert!(refund.minerals < 80.0 * data.config.projects.cancellation_refund_fraction as f64);
 }
 
+mod controls;
 mod lifecycle;

@@ -139,22 +139,8 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
 fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let sim = ctx.sim;
     if let Some(id) = ctx.project_cancel_confirm.get() {
-        if let Some(job) = sim.projects.find(id) {
-            if let Some(def) = projects::definition_for(job, ctx.data) {
-                f.heading(&def.name);
-                f.text("Delivered stages remain aboard. Cancellation ends unfinished work. Pause releases the slot without a refund; resume pays the displayed restoration debt.");
-                f.text(&format!("Delivered {} / {} stages\nRemaining {} months\nRefund: {}\nRestoration debt: {}",job.delivered_stages,def.stage_count(),def.duration_months.saturating_sub(job.elapsed_months),crate::ui::agenda::format_cost(projects::refund_preview(job,ctx.data)),crate::ui::agenda::format_cost(job.restoration_debt)));
-                if job.status == ProjectStatus::Running {
-                    f.action("Pause project", true, UiAction::PauseProject(id));
-                }
-                if job.status == ProjectStatus::Paused {
-                    f.action("Resume project", true, UiAction::ResumeProject(id));
-                }
-                f.action("Confirm cancel", true, UiAction::CancelProject(id));
-                f.action("Continue", true, UiAction::DismissCancelProject);
-                return;
-            }
-        }
+        crate::ui::agenda::review::build(ctx, id, f);
+        return;
     }
     f.heading(&format!(
         "Agenda · {} active · {} waiting",

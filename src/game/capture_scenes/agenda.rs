@@ -28,8 +28,19 @@ impl Game {
         }
         projects::pause_project(&mut sim, &self.data, id).unwrap();
         projects::queue_project(&mut sim, &self.data, "restore_hull", None).unwrap();
-        if scene.contains("review") {
+        if scene == "agenda_review_blocked" {
+            for _ in 0..self.data.config.projects.pause_grace_months + 2 {
+                sim.month_clock += 1;
+                let snapshot = projects::capture_month(&sim, &self.data);
+                projects::advance_captured_month(&mut sim, &self.data, snapshot);
+            }
+            sim.resources.minerals = 0;
+        }
+        if scene.contains("review") || scene.contains("cancel") {
             self.project_cancel_confirm.set(Some(id));
+            self.presentation
+                .project_cancellation
+                .set(scene.contains("cancel").then_some(id));
         } else {
             self.project_cancel_confirm.set(None);
         }

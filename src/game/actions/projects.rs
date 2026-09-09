@@ -78,9 +78,18 @@ impl Game {
             }
             UiAction::PreviewCancelProject(sequence_id) => {
                 self.project_cancel_confirm.set(Some(sequence_id));
+                self.presentation.project_cancellation.set(None);
+            }
+            UiAction::ReviewCancelProject(sequence_id) => {
+                if self.project_cancel_confirm.get() == Some(sequence_id) {
+                    self.presentation
+                        .project_cancellation
+                        .set(Some(sequence_id));
+                }
             }
             UiAction::DismissCancelProject => {
                 self.project_cancel_confirm.set(None);
+                self.presentation.project_cancellation.set(None);
             }
             UiAction::CancelProject(sequence_id) => {
                 let result = if let GameState::Gameplay(gameplay) = &mut self.state {

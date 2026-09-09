@@ -60,6 +60,8 @@ impl Game {
             | "agenda_review"
             | "agenda_narrow"
             | "agenda_review_narrow"
+            | "agenda_cancel"
+            | "agenda_review_blocked"
             | "agenda_recovery" => self.capture_agenda(scene),
             "menu" => self.state = crate::state::GameState::Menu(MenuState::new(false)),
             "welcome" => {

@@ -214,12 +214,13 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
             Screen::Chronicle => history::build(ctx, &mut form, &section),
         }
         format!(
-            "{:?}:{section}:{:?}:{:?}:{:?}:{:?}",
+            "{:?}:{section}:{:?}:{:?}:{:?}:{:?}:{:?}",
             ctx.screen,
             ctx.project_cancel_confirm.get(),
             ctx.custody_picker,
             ctx.sim.selected_charter,
-            ctx.obligation_detail
+            ctx.obligation_detail,
+            ctx.presentation.project_cancellation.get()
         )
     };
     if ctx.sim.debrief.is_some() {

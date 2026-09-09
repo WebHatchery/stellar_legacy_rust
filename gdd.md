@@ -275,6 +275,10 @@ scale or limited height, a persistent Navigate control opens the five destinatio
 as a scrollable list; Back returns to the current screen. The phone
 header and time controls reserve space for the selected text size.
 Council choices select a response before explicit Commit; full consequences scroll.
+Agenda project reviews share one reading flow across display sizes. Pause and
+resume show the same availability checks used by the command, including slots,
+port restrictions and exact restoration affordability. Cancellation has a
+separate refund review with Keep project and Confirm cancellation controls.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and
 flicker default off. Master sound and ambience are independently controlled.

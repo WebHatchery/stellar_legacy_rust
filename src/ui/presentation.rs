@@ -4,6 +4,7 @@ use std::cell::Cell;
 
 #[derive(Default)]
 pub struct Presentation {
+    pub project_cancellation: Cell<Option<u64>>,
     pub navigation_open: Cell<bool>,
     pub navigation_scroll: Cell<ScrollArea>,
     pub navigation_key: std::cell::RefCell<String>,

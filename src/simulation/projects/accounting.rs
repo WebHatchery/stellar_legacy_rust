@@ -14,6 +14,21 @@ pub(super) fn multiply_refund(amounts: ProjectAmounts, fraction: f32) -> Project
 /// Settle exact amounts against whole-unit stores, retaining the change in the
 /// saved ledger. Positive deltas refund; negative deltas pay restoration.
 pub(super) fn settle(sim: &mut SimState, delta: ProjectAmounts) -> Result<(), String> {
+    let (resources, parts, balance) = settlement_plan(sim, delta)?;
+    sim.resources.apply(&resources);
+    sim.ship.spare_parts += parts;
+    sim.projects.settlement_balance = balance;
+    Ok(())
+}
+
+pub(super) fn settlement_check(sim: &SimState, delta: ProjectAmounts) -> Result<(), String> {
+    settlement_plan(sim, delta).map(|_| ())
+}
+
+fn settlement_plan(
+    sim: &SimState,
+    delta: ProjectAmounts,
+) -> Result<(ResourceDelta, i64, ProjectAmounts), String> {
     let balance = sim.projects.settlement_balance.values();
     let values = delta.values();
     let mut whole = [0i64; 6];
@@ -33,10 +48,7 @@ pub(super) fn settle(sim: &mut SimState, delta: ProjectAmounts) -> Result<(), St
     if !sim.resources.can_afford(&resources) || sim.ship.spare_parts + whole[5] < 0 {
         return Err("Insufficient stores for the displayed restoration cost (fractional change is retained).".to_owned());
     }
-    sim.resources.apply(&resources);
-    sim.ship.spare_parts += whole[5];
-    sim.projects.settlement_balance = ProjectAmounts::from_values(change);
-    Ok(())
+    Ok((resources, whole[5], ProjectAmounts::from_values(change)))
 }
 
 pub(super) fn refund_to_stores(sim: &mut SimState, refund: ProjectAmounts) {

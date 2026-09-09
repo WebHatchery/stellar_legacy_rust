@@ -191,6 +191,7 @@ impl Game {
             action @ UiAction::ResumeProject(_) => self.apply_project_action(action),
             action @ UiAction::MoveProject { .. } => self.apply_project_action(action),
             action @ UiAction::PreviewCancelProject(_) => self.apply_project_action(action),
+            action @ UiAction::ReviewCancelProject(_) => self.apply_project_action(action),
             action @ UiAction::CancelProject(_) => self.apply_project_action(action),
             UiAction::DismissCancelProject => {
                 self.apply_project_action(UiAction::DismissCancelProject)

@@ -307,26 +307,33 @@ fn try_start(sim: &mut SimState, data: &GameData, sequence_id: u64) -> bool {
     true
 }
 
-pub fn pause_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
+/// The interface and command use the same current-state availability check.
+pub fn pause_check(sim: &SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
     if sim.projects.waiting_count() >= data.config.projects.waiting_cap as usize {
         return Err(
             "Waiting list full: resume or cancel a waiting job before pausing this project."
                 .to_owned(),
         );
     }
-    let Some(job) = sim.projects.find_mut(sequence_id) else {
+    let Some(job) = sim.projects.find(sequence_id) else {
         return Err("Unknown Agenda job.".to_owned());
     };
     if job.status != ProjectStatus::Running {
         return Err("Only a running project can be paused.".to_owned());
     }
+    Ok(())
+}
+
+pub fn pause_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
+    pause_check(sim, data, sequence_id)?;
+    let job = sim.projects.find_mut(sequence_id).expect("checked job");
     job.status = ProjectStatus::Paused;
     job.pause_reason = Some("Paused by the Custodian.".to_owned());
     sim.push_log(format!("Agenda paused job {}.", sequence_id));
     Ok(())
 }
 
-pub fn resume_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
+pub fn resume_check(sim: &SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
     if sim.contract.is_none() {
         return Err("Projects resume on the next voyage, not in port.".to_owned());
     }
@@ -359,8 +366,18 @@ pub fn resume_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> 
     if !check.eligible {
         return Err(check.reason);
     }
+    settlement_check(sim, ProjectAmounts::from_values(debt.values().map(|v| -v)))
+}
+
+pub fn resume_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
+    resume_check(sim, data, sequence_id)?;
+    let debt = sim
+        .projects
+        .find(sequence_id)
+        .expect("checked job")
+        .restoration_debt;
     settle(sim, ProjectAmounts::from_values(debt.values().map(|v| -v)))?;
-    let job = &mut sim.projects.jobs[index];
+    let job = sim.projects.find_mut(sequence_id).expect("checked job");
     let original = job.original_cost.values();
     let committed = job.committed_cost.values();
     let mut escrow = job.remaining_escrow.values();
