@@ -84,24 +84,43 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             }
         }
         "factions" => {
+            f.text(&format!(
+                "Ship approval: {:.0}% · {}",
+                sim.aboard_approval_mean() * 100.0,
+                crate::state::sim::factions::approval_band_label(sim.aboard_approval_mean()),
+            ));
             for people in &sim.factions {
                 if let Some(d) = ctx.data.factions.get(&people.faction_id) {
                     f.heading(&d.name);
+                    f.text(&d.description);
+                    f.text(people.status.label());
+                    if !people.is_aboard() {
+                        continue;
+                    }
                     f.text(&format!(
-                        "{} people · {:.0}% approval\nCare: {}",
+                        "{} people · {:.0}% approval · {}\nCare: {}",
                         people.members,
                         people.approval * 100.0,
-                        d.tended_subsystem.replace('_', " ")
+                        crate::state::sim::factions::approval_band_label(people.approval),
+                        ctx.data
+                            .subsystems
+                            .get(&d.tended_subsystem)
+                            .map_or("No assigned system", |system| system.name.as_str()),
                     ));
                     for (label, ids) in [("Rivals", &d.rivals), ("Allies", &d.allies)] {
+                        let names = ids
+                            .iter()
+                            .filter(|id| sim.is_faction_aboard(id))
+                            .filter_map(|id| ctx.data.factions.get(id))
+                            .map(|d| d.name.as_str())
+                            .collect::<Vec<_>>();
                         f.text(&format!(
-                            "{label}: {}",
-                            ids.iter()
-                                .filter(|id| sim.is_faction_aboard(id))
-                                .filter_map(|id| ctx.data.factions.get(id))
-                                .map(|d| d.name.clone())
-                                .collect::<Vec<_>>()
-                                .join(", ")
+                            "{label} aboard: {}",
+                            if names.is_empty() {
+                                "None aboard".to_owned()
+                            } else {
+                                names.join(", ")
+                            },
                         ));
                     }
                 }
@@ -109,6 +128,8 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             if sim.contract.is_none()
                 && sim.aboard_faction_count() < ctx.data.config.factions.starting_count
             {
+                f.heading("Recruit a people");
+                f.text("Choose a group to fill an open founding berth while in port.");
                 for id in sim.recruitable_faction_ids(ctx.data) {
                     let name = ctx
                         .data
@@ -116,6 +137,10 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                         .get(&id)
                         .map_or(id.as_str(), |d| d.name.as_str());
                     let cost = ctx.data.config.factions.recruit_group_cost_credits;
+                    if let Some(definition) = ctx.data.factions.get(&id) {
+                        f.heading(name);
+                        f.text(&definition.description);
+                    }
                     f.action(
                         &format!("Recruit {name} · {cost} credits"),
                         sim.resources.credits >= cost,

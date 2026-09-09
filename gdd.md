@@ -269,6 +269,9 @@ marker after designation. Family entries include specialization and trait.
 Compact officer entries explain each post, retirement timing and apprenticeship
 succession. Training names its resulting skill, and unaffordable actions show
 the missing credits alongside the available balance.
+Compact faction entries show aboard/departed status, approval bands, authored
+system names and explicit empty relationship states. Recruitment includes each
+group's description before its action.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;
