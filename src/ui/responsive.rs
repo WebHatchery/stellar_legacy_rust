@@ -25,6 +25,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         true,
         pointer,
     ) {
+        actions.push(UiAction::DismissReturnHome);
         ctx.presentation
             .utilities
             .set(!ctx.presentation.utilities.get());
@@ -54,6 +55,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         && panel.w >= 720.0
         && !blocked
         && !ctx.presentation.utilities.get()
+        && !ctx.abort_confirm.get()
         && !(ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed)
     {
         draw_bridge(ctx, panel.inset(12.0), &mut actions);

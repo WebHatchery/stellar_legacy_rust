@@ -573,11 +573,21 @@ pub fn advance_contract(
     out
 }
 
-/// Turn the ship for home early (W2): jump the contract to the start of its
-/// first Return segment, freezing objective progress where it stands. No-op
-/// without a contract, without a Return segment, or already in/past Return.
-/// Returns whether the ship turned back.
+/// Whether the return leg is still ahead, shared by the review and command.
+pub fn can_return_home(sim: &SimState) -> bool {
+    sim.contract.as_ref().is_some_and(|contract| {
+        contract
+            .first_return_index()
+            .is_some_and(|index| contract.months_elapsed < contract.segment_start(index))
+    })
+}
+
+/// Jump to the first Return segment, freezing objective progress where it
+/// stands. No-op without an available early return.
 pub fn jump_to_return(sim: &mut SimState) -> bool {
+    if !can_return_home(sim) {
+        return false;
+    }
     let Some(contract) = sim.contract.as_mut() else {
         return false;
     };

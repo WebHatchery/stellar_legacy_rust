@@ -233,14 +233,11 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
 
     // [ TURN BACK ] (W2): available only underway (Travel/Operation), anchored
     // to the panel bottom so it never collides with the growing metric list.
-    let underway = matches!(
-        contract.phase,
-        ContractPhase::Preparation | ContractPhase::Travel | ContractPhase::Operation
-    );
+    let underway = crate::simulation::contract::can_return_home(ctx.sim);
     let abort = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
     if underway {
         if term_button(abort, "CANCEL MISSION / RETURN HOME", true, pointer) {
-            ctx.abort_confirm.set(true);
+            actions.push(UiAction::ReviewReturnHome);
         }
     } else {
         term_button(abort, "— HOMEBOUND —", false, pointer);

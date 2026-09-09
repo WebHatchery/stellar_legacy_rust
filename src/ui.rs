@@ -125,6 +125,8 @@ pub enum UiAction {
     /// Set the voyage-wide operating philosophy shown on the CONTRACT screen.
     SetPosture(CommandPosture),
     /// Turn the current mission for home early (W2). Only emitted underway.
+    ReviewReturnHome,
+    DismissReturnHome,
     AbortMission,
     ResolveEvent(usize),
     ResolveDilemma(usize),

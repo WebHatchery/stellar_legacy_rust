@@ -2,7 +2,7 @@
 use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, wrap_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, wrap_text_ex, RectExt};
 
 pub fn draw_selected(
     ctx: &GameplayCtx<'_>,
@@ -61,41 +61,57 @@ pub fn draw_selected(
     );
 }
 
-pub fn draw_abort(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let Some(contract) = &ctx.sim.contract else {
-        ctx.abort_confirm.set(false);
+pub(crate) fn build_abort(ctx: &GameplayCtx<'_>, form: &mut crate::ui::mobile::form::Form) {
+    form.heading("Return home early?");
+    form.action("Keep voyaging", true, UiAction::DismissReturnHome);
+    if !crate::simulation::contract::can_return_home(ctx.sim) {
+        form.text("An early return is no longer available. Close this review to continue.");
         return;
-    };
-    let Some(index) = contract.first_return_index() else {
-        ctx.abort_confirm.set(false);
-        return;
-    };
+    }
+    let contract = ctx.sim.contract.as_ref().unwrap();
+    let index = contract.first_return_index().unwrap();
     let years: u32 = contract
         .phases
         .iter()
         .skip(index)
         .map(|phase| phase.years)
         .sum();
-    let panel = Rect::new(300.0, 190.0, 680.0, 330.0);
-    draw_rectangle(0.0, 72.0, 1280.0, 648.0, Color::new(0.0, 0.0, 0.0, 0.82));
-    occlude(Rect::new(0.0, 72.0, 1280.0, 648.0));
-    term_panel(panel, Some("CANCEL MISSION?"));
-    draw_text_block(&format!("Turn {} for home?\n\nObjective work stops now. The return leg still takes {} years. Pay is proportional to the objective banked ({:.0}% now; zero if none). Spent stores, losses and promises remain. There is no instant refund or teleport to port.\n\nThe clock waits while you choose.", contract.name, years, contract.objective_fraction() * 100.0), panel.x + 24.0, panel.y + 58.0, panel.w - 48.0, 196.0, 16.0, 4.0, term::primary());
-    let y = panel.bottom() - 64.0;
-    if term_button(
-        Rect::new(panel.x + 24.0, y, 304.0, 44.0),
-        "KEEP MISSION",
-        true,
+    form.heading(&contract.name);
+    form.text(&format!(
+        "Objective work stops now. The return leg still takes {years} years."
+    ));
+    form.text(&format!("Pay is proportional to the objective banked ({:.0}% now; zero if none). Spent stores, losses and promises remain. There is no instant refund or teleport to port.", contract.objective_fraction() * 100.0));
+    form.text("The clock waits while you choose. Tap Keep voyaging to close this review, or Confirm return home to turn back. Your selected time speed is preserved.");
+    form.action("Confirm return home", true, UiAction::AbortMission);
+}
+
+pub fn draw_abort(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
+    let width = crate::ui::logical_width();
+    let height = crate::ui::logical_height();
+    let shade = Rect::new(0.0, 72.0, width, height - 72.0);
+    draw_rectangle(
+        shade.x,
+        shade.y,
+        shade.w,
+        shade.h,
+        Color::new(0.0, 0.0, 0.0, 0.82),
+    );
+    occlude(shade);
+    let panel_width = (width - 48.0).min(760.0);
+    let panel = Rect::new(
+        (width - panel_width) * 0.5,
+        128.0,
+        panel_width,
+        height - 152.0,
+    );
+    term_panel(panel, None);
+    let mut form = crate::ui::mobile::form::Form::new();
+    build_abort(ctx, &mut form);
+    form.draw(
+        panel.inset(20.0),
+        ctx.presentation,
         pointer,
-    ) {
-        ctx.abort_confirm.set(false);
-    }
-    if term_button(
-        Rect::new(panel.x + 340.0, y, 316.0, 44.0),
-        "CONFIRM RETURN HOME",
-        true,
-        pointer,
-    ) {
-        actions.push(UiAction::AbortMission);
-    }
+        "return-home-review",
+        actions,
+    );
 }

@@ -1,7 +1,7 @@
 use super::*;
 use crate::simulation::{contract, market};
 
-pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
+pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
     let sim = ctx.sim;
     if sim.contract.is_none() {
         f.actions(
@@ -36,21 +36,8 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             ));
         }
         posture(ctx, f);
-        if section == "abort" {
-            ctx.abort_confirm.set(true);
-            let years = c
-                .first_return_index()
-                .map_or(0, |i| c.phases.iter().skip(i).map(|p| p.years).sum::<u32>());
-            f.text(&format!("Objective work stops now. The return leg still takes {years} years. Pay is proportional to the objective banked ({:.0}% now). Spent stores, losses and promises remain. There is no instant refund or teleport to port. The clock waits while you choose.",c.objective_fraction()*100.0));
-            f.action("Confirm return home", true, UiAction::AbortMission);
-            f.section("Keep voyaging", "");
-        } else {
-            ctx.abort_confirm.set(false);
-            if c.first_return_index()
-                .is_some_and(|index| c.phase_index < index)
-            {
-                f.section("Review return home", "abort");
-            }
+        if contract::can_return_home(sim) {
+            f.action("Review return home", true, UiAction::ReviewReturnHome);
         }
         return;
     }

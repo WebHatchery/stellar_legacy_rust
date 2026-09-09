@@ -6,6 +6,7 @@
 mod authority;
 mod completion;
 mod decision;
+mod mission;
 mod projects;
 
 use super::Game;
@@ -22,6 +23,12 @@ use macroquad_toolkit::rng;
 
 impl Game {
     pub(super) fn apply_action(&mut self, action: UiAction) -> Option<StateTransition> {
+        self.abort_confirm.set(match &self.state {
+            GameState::Gameplay(gameplay) => {
+                mission::review_after_action(self.abort_confirm.get(), &action, &gameplay.sim)
+            }
+            _ => false,
+        });
         match action {
             // ---- Menu ----
             UiAction::SelectLegacy(index) => {
@@ -219,8 +226,12 @@ impl Game {
             UiAction::ResolveAuthority(choice) => {
                 self.apply_authority_action(UiAction::ResolveAuthority(choice))
             }
+            UiAction::ReviewReturnHome => {
+                self.presentation.utilities.set(false);
+                None
+            }
+            UiAction::DismissReturnHome => None,
             UiAction::AbortMission => {
-                self.abort_confirm.set(false);
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;
                     // The council turns the ship for home; pay will be prorated

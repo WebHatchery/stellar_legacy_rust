@@ -104,6 +104,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         control_font,
     ) {
         ctx.presentation.navigation_open.set(false);
+        actions.push(UiAction::DismissReturnHome);
         ctx.presentation
             .utilities
             .set(!ctx.presentation.utilities.get());
@@ -183,7 +184,10 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
     let mut actions = Vec::new();
     let section = ctx.presentation.mobile_section.borrow().clone();
     let mut form = Form::new();
-    let key = if ctx.presentation.utilities.get() {
+    let key = if ctx.abort_confirm.get() && !ctx.sim.has_pending_decision() {
+        mission::build_abort(ctx, &mut form);
+        "return-home-review".to_owned()
+    } else if ctx.presentation.utilities.get() {
         form.heading("Utilities");
         for (label, action) in [
             ("Save game", UiAction::SaveGame),
@@ -207,9 +211,7 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
                 ship::build(ctx, &mut form, &section)
             }
             Screen::CrewDynasty => people::build(ctx, &mut form, &section),
-            Screen::Drydock | Screen::Contract | Screen::Market => {
-                voyage::build(ctx, &mut form, &section)
-            }
+            Screen::Drydock | Screen::Contract | Screen::Market => voyage::build(ctx, &mut form),
             Screen::Chronicle => history::build(ctx, &mut form, &section),
         }
         format!(

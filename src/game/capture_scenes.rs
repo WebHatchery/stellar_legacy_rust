@@ -734,7 +734,6 @@ impl Game {
             _ => 0,
         });
         *self.presentation.mobile_section.borrow_mut() = match scene {
-            "abort" => "abort",
             "people_officers" => "officers",
             "people_factions" | "crew_recruitment" => "factions",
             "people_council" => "council",
