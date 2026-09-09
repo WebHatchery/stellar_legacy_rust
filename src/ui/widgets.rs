@@ -46,6 +46,18 @@ pub fn term_panel(rect: Rect, title: Option<&str>) {
 /// cursor is a control a touch player never sees react, so the press state is
 /// what carries the feedback there.
 pub fn term_button(rect: Rect, label: &str, enabled: bool, pointer: Pointer) -> bool {
+    term_button_sized(rect, label, enabled, pointer, 16.0)
+}
+
+/// Caption size belongs to the game layout; shared input and button feedback
+/// remain identical when a compact shell needs a shorter reading measure.
+pub fn term_button_sized(
+    rect: Rect,
+    label: &str,
+    enabled: bool,
+    pointer: Pointer,
+    font_size: f32,
+) -> bool {
     // These legacy labels describe achieved state, not an unavailable action.
     if !enabled
         && matches!(
@@ -86,7 +98,7 @@ pub fn term_button(rect: Rect, label: &str, enabled: bool, pointer: Pointer) -> 
         rect.w - 12.0,
         rect.h,
         TextStyle::new(
-            16.0,
+            font_size,
             if enabled {
                 term::primary()
             } else {

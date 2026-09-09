@@ -735,6 +735,7 @@ impl Game {
         }
         .to_owned();
         self.presentation.utilities.set(scene == "utilities");
+        self.presentation.navigation_open.set(scene == "navigation");
         self.presentation.instruments.set(scene == "instruments");
     }
 }

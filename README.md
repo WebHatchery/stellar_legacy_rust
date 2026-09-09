@@ -69,6 +69,8 @@ demo is limited to that single tutorial voyage.
 
 The game works with a mouse or touch. Use visible buttons and option cards;
 a keyboard is optional. Drag lists to scroll.
+With enlarged text, phone navigation wraps into two rows. If space is too tight,
+tap **Navigate** to open the destinations, then tap the station you want.
 
 | Control or screen | Use it to |
 | --- | --- |

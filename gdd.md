@@ -270,6 +270,10 @@ phone speed controls underline the current running speed. Touch presses visibly
 light navigation targets, and Drydock/Market share a compact section row.
 Section rows reflow to fit enlarged labels. Scrolling documents reserve a footer
 for a reading hint that distinguishes more content from the end of the section.
+Phone navigation uses a second row when enlarged labels need it. At extreme UI
+scale or limited height, a persistent Navigate control opens the five destinations
+as a scrollable list; Back returns to the current screen. The phone
+header and time controls reserve space for the selected text size.
 Council choices select a response before explicit Commit; full consequences scroll.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and

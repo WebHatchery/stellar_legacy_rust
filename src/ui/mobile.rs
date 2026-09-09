@@ -3,6 +3,7 @@ use super::*;
 mod decisions;
 pub(crate) mod form;
 mod history;
+mod layout;
 mod menu;
 mod overlays;
 pub use overlays::{help, welcome};
@@ -23,14 +24,29 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     let (width, height) = size();
     let mut actions = Vec::new();
     let pointer = ctx.pointer;
-    draw_rectangle(0.0, 0.0, width, height, term::bg());
-    draw_ui_text_ex(
-        "STELLAR LEGACY",
-        12.0,
-        25.0,
-        TextStyle::new(22.0, term::primary()).params(),
+    let widest = navigation::Destination::ALL
+        .iter()
+        .map(|d| measure_text_size(d.label(), TextStyle::new(16.0, term::primary())).width)
+        .fold(0.0, f32::max);
+    let layout = layout::Layout::new(
+        width,
+        height,
+        macroquad_toolkit::ui::ui_text_scale(),
+        widest,
     );
-    draw_ui_text_ex(
+    if !layout.compact_navigation {
+        ctx.presentation.navigation_open.set(false);
+    }
+    draw_rectangle(0.0, 0.0, width, height, term::bg());
+    draw_text_centered_in_box_ex(
+        "STELLAR LEGACY",
+        layout.title.x,
+        layout.title.y,
+        layout.title.w,
+        layout.title.h,
+        TextStyle::new(22.0, term::primary()),
+    );
+    draw_text_centered_in_box_ex(
         &if ctx.sim.has_pending_decision() && ctx.sim.debrief.is_none() {
             format!("Captain fallback: {:.0}s", ctx.decision_remaining.ceil())
         } else {
@@ -40,12 +56,15 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
                 ctx.sim.dynasty.generation
             )
         },
-        12.0,
-        49.0,
-        TextStyle::new(16.0, term::dim()).params(),
+        layout.status.x,
+        layout.status.y,
+        layout.status.w,
+        layout.status.h,
+        TextStyle::new(16.0, term::dim()),
     );
-    if term_button(
-        Rect::new(12.0, 64.0, (width - 32.0) * 0.5, 44.0),
+    let control_font = if width < 300.0 { 12.0 } else { 16.0 };
+    if term_button_sized(
+        layout.pause,
         if ctx.sim.speed == GameSpeed::Paused {
             "Resume"
         } else {
@@ -53,16 +72,12 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         },
         true,
         pointer,
+        control_font,
     ) {
         actions.push(UiAction::TogglePause);
     }
     for (index, speed) in GameSpeed::ALL.into_iter().skip(1).enumerate() {
-        let rect = Rect::new(
-            12.0 + index as f32 * ((width - 24.0) / 3.0),
-            116.0,
-            (width - 24.0) / 3.0 - 6.0,
-            44.0,
-        );
+        let rect = layout.speeds[index];
         if term_button(rect, &format!("{}×", index + 1), true, pointer) {
             actions.push(UiAction::SetSpeed(speed));
         }
@@ -70,47 +85,72 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             selection_marker(rect);
         }
     }
-    if term_button(
-        Rect::new(
-            20.0 + (width - 32.0) * 0.5,
-            64.0,
-            (width - 32.0) * 0.5,
-            44.0,
-        ),
+    if term_button_sized(
+        layout.utilities,
         "Utilities",
         !ctx.sim.has_pending_decision()
             && !ctx.sim.survival.warning_active
             && ctx.sim.debrief.is_none(),
         pointer,
+        control_font,
     ) {
+        ctx.presentation.navigation_open.set(false);
         ctx.presentation
             .utilities
             .set(!ctx.presentation.utilities.get());
     }
-    actions.extend(draw_content(
-        ctx,
-        Rect::new(12.0, 172.0, width - 24.0, height - 260.0),
-    ));
     let blocked = ctx.sim.has_pending_decision()
         || ctx.sim.survival.warning_active
         || ctx.sim.debrief.is_some();
-    if ctx.sim.debrief.is_some()
-        && nav_button(
-            Rect::new(12.0, height - 62.0, width - 24.0, 54.0),
-            "File the report",
+    if ctx.presentation.navigation_open.get() && !blocked {
+        let mut form = Form::new();
+        for destination in navigation::Destination::ALL {
+            form.action(
+                destination.label(),
+                true,
+                UiAction::SelectScreen(destination.home(ctx.sim.contract.is_none())),
+            );
+        }
+        // Opening navigation must not replace the current report's reading position.
+        form.draw_scrolled(
+            layout.content,
+            ctx.presentation,
             pointer,
-        )
-    {
+            "navigation",
+            &mut actions,
+            &ctx.presentation.navigation_scroll,
+            &ctx.presentation.navigation_key,
+        );
+        if actions
+            .iter()
+            .any(|action| matches!(action, UiAction::SelectScreen(_)))
+        {
+            ctx.presentation.navigation_open.set(false);
+            ctx.presentation.mobile_section.borrow_mut().clear();
+        }
+    } else {
+        actions.extend(draw_content(ctx, layout.content));
+    }
+    if ctx.sim.debrief.is_some() && nav_button(layout.navigation, "File the report", pointer) {
         actions.push(UiAction::FileReport);
     }
     if !blocked {
+        if layout.compact_navigation {
+            let label = if ctx.presentation.navigation_open.get() {
+                "Back".to_owned()
+            } else {
+                "Navigate".to_owned()
+            };
+            if nav_button(layout.navigation, &label, pointer) {
+                ctx.presentation.utilities.set(false);
+                ctx.presentation
+                    .navigation_open
+                    .set(!ctx.presentation.navigation_open.get());
+            }
+            return actions;
+        }
         for (index, destination) in navigation::Destination::ALL.into_iter().enumerate() {
-            let rect = Rect::new(
-                4.0 + index as f32 * (width / 5.0),
-                height - 62.0,
-                width / 5.0 - 8.0,
-                54.0,
-            );
+            let rect = layout.destination(index);
             if nav_button(rect, destination.label(), pointer) {
                 ctx.presentation.mobile_section.borrow_mut().clear();
                 ctx.presentation.utilities.set(false);

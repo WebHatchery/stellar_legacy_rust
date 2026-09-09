@@ -310,7 +310,11 @@ impl<A> Form<A> {
         scroll_cell.set(scroll);
         if total > view.h {
             draw_text_centered_in_box_ex(
-                if scroll.offset() + view.h >= total - 1.0 {
+                if view.w < 240.0 && scroll.offset() + view.h >= total - 1.0 {
+                    "End · Drag back"
+                } else if view.w < 240.0 {
+                    "Drag for more"
+                } else if scroll.offset() + view.h >= total - 1.0 {
                     "End of section · Drag to go back"
                 } else {
                     "More below · Drag to read"
