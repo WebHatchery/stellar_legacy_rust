@@ -191,45 +191,7 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     }
     if section == "catalogue" {
         for choice in crate::ui::agenda::catalogue_choices(ctx) {
-            let def = ctx
-                .data
-                .projects
-                .get(&choice.project_id)
-                .expect("catalogue id");
-            f.heading(&format!(
-                "{} · {}",
-                def.name,
-                crate::ui::agenda::target_label(ctx.data, choice.target_id.as_deref())
-            ));
-            f.text(&format!(
-                "{} months · {}\n{}",
-                def.duration_months,
-                crate::ui::agenda::format_cost_long(ProjectAmounts::from_cost(def.cost.clone())),
-                if def.divisible {
-                    "Staged deliveries; completed recovery is retained."
-                } else {
-                    "Final delivery only; partial work grants no capability."
-                }
-            ));
-            if !choice.eligible {
-                f.text(&choice.reason);
-            }
-            if let Some(id) = choice.existing_job {
-                f.action(
-                    "Review existing project",
-                    true,
-                    UiAction::PreviewCancelProject(id),
-                );
-            } else {
-                f.action(
-                    "Queue project",
-                    choice.eligible,
-                    UiAction::QueueProject {
-                        project_id: choice.project_id,
-                        target_id: choice.target_id,
-                    },
-                );
-            }
+            crate::ui::agenda::build_choice(ctx, &choice, f);
         }
     } else {
         if sim.projects.jobs.is_empty() {

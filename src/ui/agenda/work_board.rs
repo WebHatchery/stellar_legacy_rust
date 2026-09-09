@@ -23,7 +23,13 @@ pub(super) fn draw_work_board(
         .selected_agenda
         .get()
         .min(count.saturating_sub(1));
-    let view = Rect::new(area.x + 16.0, area.y + 46.0, area.w - 32.0, area.h - 264.0);
+    let detail_height = if selected < jobs.len() { 188.0 } else { 316.0 };
+    let view = Rect::new(
+        area.x + 16.0,
+        area.y + 46.0,
+        area.w - 32.0,
+        area.h - detail_height - 76.0,
+    );
     let content_h = count as f32 * 66.0;
     let mut scroll = ctx.agenda_scroll.get();
     scroll.update_at(view, content_h, pointer.position);
@@ -32,6 +38,7 @@ pub(super) fn draw_work_board(
     } else {
         pointer
     };
+    let mut selected_row = None;
     for index in 0..count {
         let rect = Rect::new(
             view.x,
@@ -87,6 +94,9 @@ pub(super) fn draw_work_board(
         };
         if term_button(rect, &label, true, list_pointer) {
             ctx.presentation.selected_agenda.set(index);
+            if index != selected {
+                selected_row = Some(index);
+            }
         }
         if index == selected {
             draw_rectangle(rect.x, rect.y, 4.0, rect.h, term::primary());
@@ -99,8 +109,17 @@ pub(super) fn draw_work_board(
         term::dim(),
         term::primary(),
     );
+    if let Some(index) = selected_row {
+        // Keep the chosen row in view when the catalogue detail grows next frame.
+        scroll.set_offset(index as f32 * 66.0);
+    }
     ctx.agenda_scroll.set(scroll);
-    let detail = Rect::new(area.x + 16.0, area.bottom() - 204.0, area.w - 32.0, 188.0);
+    let detail = Rect::new(
+        area.x + 16.0,
+        area.bottom() - detail_height - 16.0,
+        area.w - 32.0,
+        detail_height,
+    );
     if let Some(job) = jobs.get(selected) {
         draw_job(ctx, job, detail, pointer, actions);
     } else if let Some(choice) = choices.get(selected.saturating_sub(jobs.len())) {

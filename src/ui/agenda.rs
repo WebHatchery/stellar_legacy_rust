@@ -227,32 +227,39 @@ fn draw_choice(
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
+    draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
+    draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
+    let mut form = crate::ui::mobile::form::Form::new();
+    build_choice(ctx, choice, &mut form);
+    let key = format!("catalogue:{}:{:?}", choice.project_id, choice.target_id);
+    form.draw(
+        Rect::new(row.x + 10.0, row.y + 10.0, row.w - 20.0, row.h - 20.0),
+        ctx.presentation,
+        pointer,
+        &key,
+        actions,
+    );
+}
+
+pub(crate) fn build_choice(
+    ctx: &GameplayCtx<'_>,
+    choice: &CatalogueChoice,
+    form: &mut crate::ui::mobile::form::Form,
+) {
     let Some(definition) = ctx.data.projects.get(&choice.project_id) else {
         return;
     };
-    draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
-    draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
-    draw_ui_text_ex(
-        &definition.name,
-        row.x + 10.0,
-        row.y + 17.0,
-        TextStyle::new(16.0, term::primary()).params(),
-    );
-    draw_ui_text_ex(
-        &target_label(ctx.data, choice.target_id.as_deref()),
-        row.x + 10.0,
-        row.y + 35.0,
-        TextStyle::new(12.0, term::dim()).params(),
-    );
-    let cost = format_cost(ProjectAmounts::from_cost(definition.cost.clone()));
-    draw_ui_text_ex(
-        &format!("{} months / {}", definition.duration_months, cost),
-        row.x + 10.0,
-        row.y + 52.0,
-        TextStyle::new(12.0, term::dim()).params(),
-    );
-    draw_ui_text_ex(
-        &if definition.divisible {
+    form.heading(&format!(
+        "{} · {}",
+        definition.name,
+        target_label(ctx.data, choice.target_id.as_deref()),
+    ));
+    form.text(&definition.description);
+    form.text(&format!(
+        "{} months · {}\n{}",
+        definition.duration_months,
+        format_cost_long(ProjectAmounts::from_cost(definition.cost.clone())),
+        if definition.divisible {
             format!(
                 "{} staged deliveries; completed recovery is retained.",
                 definition.stage_count()
@@ -260,46 +267,26 @@ fn draw_choice(
         } else {
             "Final delivery only; partial work grants no capability.".to_owned()
         },
-        row.x + 10.0,
-        row.y + 69.0,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-    let button = Rect::new(row.x + 10.0, row.y + 78.0, 264.0, 60.0);
-    if term_button(
-        button,
-        if choice.existing_job.is_some() {
-            "Review existing project"
-        } else {
-            "Queue project"
-        },
-        choice.eligible || choice.existing_job.is_some(),
-        pointer,
-    ) {
-        if let Some(id) = choice.existing_job {
-            actions.push(UiAction::PreviewCancelProject(id));
-        } else {
-            actions.push(UiAction::QueueProject {
+    ));
+    if !choice.eligible {
+        form.text(&choice.reason);
+    }
+    if let Some(id) = choice.existing_job {
+        form.action(
+            "Review existing project",
+            true,
+            UiAction::PreviewCancelProject(id),
+        );
+    } else {
+        form.action(
+            "Queue project",
+            choice.eligible,
+            UiAction::QueueProject {
                 project_id: choice.project_id.clone(),
                 target_id: choice.target_id.clone(),
-            });
-        }
-    }
-    if !choice.eligible {
-        draw_text_block(
-            &choice.reason,
-            row.x + 10.0,
-            row.y + 145.0,
-            row.w - 20.0,
-            38.0,
-            12.0,
-            3.0,
-            term::dim(),
+            },
         );
     }
-}
-
-pub(crate) fn format_cost(amounts: ProjectAmounts) -> String {
-    format_amounts(amounts, ["cr", "en", "min", " food", " inf", " parts"])
 }
 
 pub(crate) fn format_cost_long(amounts: ProjectAmounts) -> String {

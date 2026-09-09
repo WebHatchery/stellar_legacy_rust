@@ -29,7 +29,7 @@
   {
     "id": "restore_hull",
     "name": "Restore hull",
-    "description": "Patch the frame in stages; later damage is never erased by an old quote.",
+    "description": "Repair hull damage in stages. Further damage during the work still needs repair.",
     "kind": "restore_hull",
     "target": "none",
     "duration_months": 96,
@@ -105,7 +105,7 @@
   {
     "id": "optimise_hydroponics",
     "name": "Optimise hydroponics",
-    "description": "Tune the growing decks for a capped production lift while they remain workable.",
+    "description": "Improve food production while the growing decks remain in working condition.",
     "kind": "optimise_hydroponics",
     "target": "agriculture",
     "duration_months": 144,
@@ -131,7 +131,7 @@
   {
     "id": "restore_crew_quarters",
     "name": "Restore crew quarters",
-    "description": "Repair the shared living decks for bounded morale and unity recovery.",
+    "description": "Repair the shared living decks to help restore morale and unity.",
     "kind": "restore_crew_quarters",
     "target": "social",
     "duration_months": 60,
@@ -157,7 +157,7 @@
   {
     "id": "sterilise_damaged_growing_systems",
     "name": "Sterilise damaged growing systems",
-    "description": "Clear the blight aftermath and its ongoing penalty without refunding the original loss.",
+    "description": "Remove lingering blight damage so the growing decks can recover. Lost stores are not replaced.",
     "kind": "sterilise_growing_systems",
     "target": "agriculture",
     "duration_months": 48,
@@ -183,7 +183,7 @@
   {
     "id": "establish_seed_programme",
     "name": "Establish seed programme",
-    "description": "Build a disciplined seed reserve that can answer one later authored blight.",
+    "description": "Prepare clean seed stock to unlock a response that contains a future blight.",
     "kind": "establish_seed_programme",
     "target": "agriculture",
     "duration_months": 216,

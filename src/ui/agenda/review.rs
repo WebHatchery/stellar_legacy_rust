@@ -38,6 +38,7 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, id: u64, form: &mut Form) {
     };
     form.heading(&definition.name);
     form.action("Back to Agenda", true, UiAction::DismissCancelProject);
+    form.text(&definition.description);
     let status = match job.status {
         ProjectStatus::Queued => "Queued · awaiting its turn and full starting budget",
         ProjectStatus::Running => "Running · using an Agenda slot",
