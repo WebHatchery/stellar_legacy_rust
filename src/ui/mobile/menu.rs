@@ -44,30 +44,51 @@ pub fn draw_menu(ctx: &MenuCtx<'_>, state: &presentation::Presentation) -> Vec<U
                     }
                 }
             }
+            let required = ctx.data.config.factions.starting_count as usize;
+            let selected_count = ctx.menu.selected_factions.len();
             f.heading(&format!(
-                "Choose {} founding peoples",
-                ctx.data.config.factions.starting_count
+                "Founding peoples · {selected_count} / {required} selected"
             ));
+            f.text(if selected_count >= required {
+                "Your founding group is full. Tap Remove on a selected people before choosing another, or scroll to Begin the voyage."
+            } else {
+                "Read each people's outlook, then tap Choose. These peoples will share the ship across generations."
+            });
             for id in GameData::sorted_ids(&ctx.data.factions) {
                 let d = ctx.data.factions.get(&id).expect("sorted registry id");
+                let selected = ctx.menu.selected_factions.contains(&id);
+                f.heading(&format!(
+                    "{}{}",
+                    d.name,
+                    if selected { " · Selected" } else { "" }
+                ));
+                f.text(&d.description);
+                if let Some(system) = ctx.data.subsystems.get(&d.tended_subsystem) {
+                    f.text(&format!(
+                        "Cares for {}. Neglecting it damages their approval.",
+                        system.name
+                    ));
+                }
                 f.action(
                     &format!(
                         "{}{}",
-                        if ctx.menu.selected_factions.contains(&id) {
-                            "Selected · "
-                        } else {
-                            "Choose · "
-                        },
+                        if selected { "Remove · " } else { "Choose · " },
                         d.name
                     ),
-                    true,
+                    selected || selected_count < required,
                     UiAction::ToggleFaction(id),
                 );
             }
             f.action(
-                "Begin the voyage",
-                ctx.menu.selected_factions.len()
-                    == ctx.data.config.factions.starting_count as usize,
+                &if selected_count == required {
+                    "Begin the voyage".to_owned()
+                } else {
+                    format!(
+                        "Choose {} more to begin",
+                        required.saturating_sub(selected_count)
+                    )
+                },
+                selected_count == required,
                 UiAction::StartNewGame,
             );
             f.action("Back to main menu", true, UiAction::BackToMainMenu);

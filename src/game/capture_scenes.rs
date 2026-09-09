@@ -74,13 +74,18 @@ impl Game {
                 self.state = crate::state::GameState::Menu(menu);
                 self.welcome_open = true;
             }
-            "green" => {
+            "green" | "founding" | "founding_full" => {
                 // The new-game picker on the green (P1) tube, to verify the recolor.
-                self.display.phosphor = crate::settings::Phosphor::Green;
+                if scene == "green" {
+                    self.display.phosphor = crate::settings::Phosphor::Green;
+                }
                 self.crt_style = self.display.crt_style();
                 ui::term::set_phosphor(self.display.phosphor);
                 let mut menu = MenuState::new(true);
                 menu.phase = crate::state::MenuPhase::NewGame;
+                if scene == "founding_full" {
+                    menu.selected_factions = crate::state::sim::founding_faction_ids(&self.data);
+                }
                 self.state = crate::state::GameState::Menu(menu);
             }
             "crt_off" => {

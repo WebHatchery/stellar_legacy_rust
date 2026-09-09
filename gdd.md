@@ -285,6 +285,9 @@ The phone voyage report exposes the shared travel fuel check. A fuel stall
 explains current annual scoop recovery or its absence, port-only refuelling,
 and provides a visible link to Agenda readiness. Fuel readiness is distinct
 from whether the player has paused time.
+The narrow founding picker shows each people's outlook and cared-for subsystem
+before selection. It counts selected peoples, names Remove explicitly, disables
+additional selections when full, and explains how many more are needed to begin.
 The guide offers FINISH only after all lessons, including the council response,
 are complete. Its completion message is visible on desktop and phone; advancing
 a lesson returns a scrolling reading view to the next instruction.
