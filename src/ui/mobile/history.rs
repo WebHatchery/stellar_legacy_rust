@@ -106,13 +106,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             }
         }
         "archive" => {
-            f.heading("Mission archive");
-            for e in &ctx.chronicle.entries {
-                f.text(&format!(
-                    "{} · {} · Score {:.2}",
-                    e.contract_name, e.outcome, e.score
-                ));
-            }
+            crate::ui::chronicle::archive::build(ctx, f);
         }
         "milestones" => {
             f.heading("Milestones");

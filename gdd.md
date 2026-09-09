@@ -280,6 +280,9 @@ and closed duties. Full histories start with Back to obligations and show the
 captain and status of each entry; empty lists explain what belongs there.
 Timeline selections retain the same decision when new records arrive, in both
 the desktop and compact reading layouts.
+Both archive layouts show recent voyages first with captain, duration, posture
+and percentage scores. Heritage explains the current and next new-dynasty bonus;
+an empty archive explains when voyage reports are recorded.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

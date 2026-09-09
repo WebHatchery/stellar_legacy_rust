@@ -84,3 +84,9 @@ observed Perr Steadfast as named heir, delegated Mission Milestone events and
 then returned them to council review. Each control updated its current mode
 and next action, with feedback. Phone captures reach the final legacy section.
 The final extracted build is covered by the full suite and publisher gates.
+
+Archive presentation follow-up: the packaged browser's saved Year 2 campaign
+shows the empty archive, Founding heritage at zero renown, and the next tier's
+100-renown threshold and bonuses. Populated desktop and portrait fixtures show
+all six records newest first; the portrait end capture reaches the oldest record.
+This checks archive presentation, not the full Homecoming-to-second-charter route.
