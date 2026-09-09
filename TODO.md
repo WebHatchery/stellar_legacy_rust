@@ -1,47 +1,59 @@
-# TODO — Stellar Legacy
+# Open work
 
-Standing direction for content passes lives in `content_depth.md`; this file holds only
-the discrete open items left behind by finished workstreams.
+Current behavior is documented in [gdd.md](gdd.md). The Custodian identity pass,
+obligations, officers/institutions, Agenda and responsive five-destination UI are
+implemented. Completed milestone diaries are not open tasks.
 
-## UI redesign
+## Acceptance still required
 
-Scope, screenshot evidence, dependencies, and acceptance criteria live in the
-[UI redesign plan](docs/ui_redesign_plan.md). Implementation has not started.
+- Complete live touch/click routes for multiple-job reorder, full succession,
+  due-obligation resolution into history, Homecoming into a second charter, and
+  all critical-air/terminal controls. Include save/reload at each major boundary.
+- Obtain fresh-player five-second Bridge recognition and council
+  cost/consequence comprehension results. Measure meaningful choices during
+  ordinary 30–90 second stretches at 1x and total human voyage duration.
+- Complete clean-profile, display/DPI, hardware/audio/focus, accessibility and
+  store-client install/update/save-survival checks on the exact candidate.
+- Refresh and approve store screenshots for the final presentation. Existing
+  captures and historical audits are not blanket approval of the current build.
+- Resolve owner release decisions, support contact, rights/notice review,
+  hardware claims and final storefront approval in
+  [release QA](docs/release/QA_AND_OPERATIONS.md).
 
-- [ ] M0: action inventory and Bridge/council-event prototypes.
-- [ ] M1: readable typography, shared controls, and visual tokens.
-- [ ] M2: stable navigation and actionable Bridge.
-- [ ] M3: interactive ship and compact work management.
-- [ ] M4: recognisable people and clear council decisions.
-- [ ] M5: voyage comparison and living history.
-- [ ] M6: complete touch, responsive, and release acceptance evidence.
+## Known static-check failures
 
-## Ship work (0.2.1 audit corrections)
+The September 9 documentation-cleanup check with Clippy and warnings denied found
+three existing UI diagnostics: nested formatting in
+[debrief/report.rs](src/ui/debrief/report.rs) and
+[mobile/history.rs](src/ui/mobile/history.rs), plus an unnecessary reference in
+[responsive.rs](src/ui/responsive.rs). Resolve these before claiming a clean
+Clippy gate. Default/demo tests, formatting and the normal publisher passed;
+those results do not waive these diagnostics.
 
-Implementation details and acceptance gates live in
-[the ship work plan](docs/ship_work_implementation_plan.md).
+## Balance analysis maintenance
 
-- [x] Correct audited survival timer, project suspension/accounting, readiness, and save-validation defects.
-- [x] Run the comparable 864-campaign cohort and deterministic neglect/recovery and seed-payoff scenarios.
-- [x] Inspect desktop/narrow Agenda and project-review captures.
-- [ ] Complete human touch/click acceptance routes and 30-90 second choice-timing measurements.
-- [ ] Complete clean-profile/accessibility/storefront gates before claiming full milestone E acceptance.
+The saved 22-charter matrix predates the 23-charter registry, 1-second monthly
+clock and ship-work survival rules. The ignored matrix generator still contains
+a 22-charter assertion and hard-coded historical interpretation prose. Update
+those before regenerating or treating the full matrix as release evidence.
+Keep the ordinary test suite and comparable ship-work policies as separate
+checks; neither demonstrates final human pacing or balance. See
+[balance evidence](balance_report.md).
 
-Measured results and limitations: [ship-work validation](docs/ship_work_validation.md).
+## Deferred design intent
 
-Protected reserves, named development programmes, standing orders, and additional
-project slots remain deferred until this core is validated in human play.
+These are retained design directions, not scheduled releases or implemented
+features. Reconsider them after the current core passes human acceptance.
 
-## Identity implementation record
+| Direction | What remains beyond current behavior | Required boundary |
+| --- | --- | --- |
+| Charter-specific approaches | Authored doctrine selection with requirements, tradeoffs and effects on at least two voyage systems across the six objective families; selected doctrine retained through debrief/history | Reuse global posture, gates, officers and obligations; compare paired policies and avoid a universally best approach |
+| Compartment culture | A compact local custodian, descriptor, remembered event and grievance, with at least two tradeoff-bearing descriptors per subsystem | Derive from existing people/institutions; no second resident simulation, room placement or unlimited trait stacking |
+| Homecoming recovery | A consequential context-sensitive social/institutional recovery choice between voyages, preserving unresolved wounds and historical facts | Extend the sealed debrief and existing port rules; current underway projects do not implement this planned choice |
+| Competing historical accounts | Official, dynasty and affected-people interpretations of a single authoritative deed, distinguishable in the Chronicle | Keep mechanics factual; do not duplicate mechanical history or hide consequences behind unreliable prose |
+| Further work-management options | Protected reserves, named development programmes/trainees, standing orders and additional project slots | Add only after measured scarcity and choice quality justify more complexity |
 
-The Custodian identity pass is implemented in the current release: the welcome, help,
-shell, captain panel, tutorial, dashboard, debrief, extinction ending, mystery events,
-authority review, deterministic human fallback, succession callback, and save-default
-paths use the authority contract in `docs/player_ai_identity_plan.md`. Future content
-passes should preserve these completion criteria:
-
-- new and migrated saves identify the player as the persistent Custodian;
-- every human objection and timeout names its actor and legal response;
-- succession memories cite `Reign` and `Obligation` records without duplicating log text;
-- screenshots under `docs/verification/` cover changed screens and contain no clipped or
-  overlapping copy.
+Every accepted extension needs typed data, save compatibility, deterministic
+behavior tests, touch-accessible controls and its own publisher validation.
+The completed visual redesign already supplies ship/person/faction identity;
+do not restart it from the retired plans.

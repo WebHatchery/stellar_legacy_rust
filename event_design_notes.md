@@ -1,100 +1,109 @@
-# Event-System Design Notes
+# Event and content authoring
 
-## Identity and authority authoring contract
+Use [gdd.md](gdd.md) for implemented systems and [TODO.md](TODO.md) for open
+work. This is the authoring contract for current event data, not a content-pass
+history or a request to add more events indefinitely.
 
-The player is the persistent Custodian AI. Captains and councils are human actors;
-their priorities, objections, and fallback actions must be attributed in the text and
-the log. A description may state observed ship facts and recorded policy outcomes, but
-it must not invent a private Custodian feeling or an unchosen human thought.
+## Ownership and voice
 
-Every identity-sensitive event must answer three questions before it is added:
+The player is the persistent Custodian. Captains, councils and officers are human
+actors. Attribute speech, objections and fallback actions explicitly. Describe
+observed state, selected policy and recorded consequences; do not invent private
+Custodian feelings, unchosen conduct or human thoughts.
 
-1. Does the Custodian act under standing mandate, propose an action for human
-   ratification, or invoke an explicitly authored emergency power?
-2. If the timer expires, which legal human office acts, and why is that response safe?
-3. Which durable flag, obligation, or reputation change records the choice so a later
-   callback can cite it without reconstructing trimmed log text?
+For every identity-sensitive choice, establish:
 
-Automatic acts such as remembered alarms or birthdays require an established policy
-gate, or they become selectable decisions. A severe outcome must be tied to an event
-flag or prior policy choice; a reputation value alone can weight content but cannot
-invent a consequential action. Preserve event IDs and compatible consequence flags
-when revising authored voice so existing saves still resolve.
+1. Whether it uses standing mandate, human ratification or authored emergency power.
+2. Which human office acts on timeout, and which available outcome the resolver can select.
+3. The durable consequence, obligation or reputation record used by later callbacks.
 
-*Living content-authoring reference: the working map onto the shipped
-`family × phase × gate` system. All event content lives under `assets/events/`,
-**one file per family** (`assets/events/<family>.json`, e.g. `comedy.json`),
-merged into one registry at load with a duplicate-id guard; add a new event to
-its family's file (add a new family = a new file + one line in `EVENT_FILES` in
-`src/data.rs`). Only the phase-pool table (mechanics) lives in code.*
+Automatic acts require an established policy gate or a selectable decision.
+Severe actions need an actual prior choice/flag; a reputation score alone cannot
+invent one. Preserve event IDs and compatible flags when rewriting prose because
+pending events and chains can survive save upgrades. Use Reign/Obligation facts
+for memory, with neutral archival wording when old saves lack provenance.
 
-## Principle: generate scenarios from **families × complications × outcomes**, not one-offs
+## Data layout and inventory
 
-An event = a **family** + optional **complication/twist** + **outcome branches**.
-A handful of authored families cover a centuries-long voyage without visible
-repetition — critical now that a single mission spans 300–600 years and dozens of
-decisions. `EventCategory` (`ImmediateCrisis` / `GenerationalChallenge` /
-`MissionMilestone` / `LegacyMoment`) stays the **scoring/weighting axis**; the
-`family` tag is the **content-organisation + gating axis**.
+[GameData](src/data.rs) embeds each family file and merges it into one registry
+with a duplicate-ID guard. Add events to the correct file; a new family also
+requires registration in `EVENT_FILES`. All files are embedded on native/WASM,
+so changing JSON requires rebuilding. Generic parsing belongs to toolkit
+`data_loader`; game-specific schema and validation remain here.
 
-## The ten families (canonical strings)
+| Family/file under `assets/events/` | Events |
+| --- | ---: |
+| biology_medical | 26 |
+| comedy | 17 |
+| diplomacy | 38 |
+| engineering | 35 |
+| ethics | 16 |
+| exploration_first_contact | 16 |
+| legacy_drift | 80 |
+| mystery | 35 |
+| obligations | 12 |
+| science_anomaly | 18 |
+| survival | 50 |
+| **Total** | **343** |
 
-| Family | Maps to category (guidance) | Buffering subsystem (W5) | Notes |
-| --- | --- | --- | --- |
-| `exploration_first_contact` | LegacyMoment / MissionMilestone | — | Mostly Travel; big branching decisions |
-| `diplomacy` | GenerationalChallenge | `security` | Travel & on-station; influence/piracy ties |
-| `engineering` | ImmediateCrisis | `engineering_bay` | Any phase; core ship faults |
-| `biology_medical` | ImmediateCrisis | `medical_bay` | The medical-bay upgrade loop |
-| `science_anomaly` | LegacyMoment / MissionMilestone | — | Travel; risk/reward; can shift voyage length |
-| `survival` | ImmediateCrisis | `agriculture` | Pressure-tests provisioning (food/fuel) |
-| `mystery` | MissionMilestone | — | Ghost signals, derelicts, artifacts; salvage hooks |
-| `comedy` | LegacyMoment / MissionMilestone | — | Tension-breakers, low stakes ("Lobites") |
-| `ethics` | GenerationalChallenge | — | The "soul" — moral dilemmas |
-| `legacy_drift` | GenerationalChallenge | `education_culture` | **Headline family** — only makes sense at century scale |
+These are the current authored counts, not expansion quotas. EventCategory has
+four values: immediate crisis, generational challenge, mission milestone and
+legacy moment. Category controls scoring/delegation; family organizes content
+and selection. [data/events.rs](src/data/events.rs) defines the exact schema.
 
-## The Long-Term Expedition family (`legacy_drift`) is the signature of this redesign
+## Families, complications and gates
 
-The century-scale beats a 300-year no-cryo voyage unlocks and short missions cannot,
-**gated on year / generation / voyage-drift** so they read as *consequences* of the
-long voyage rather than random rolls:
+Build situations from reusable families, state-dependent complications and
+meaningfully different outcomes. Gate century-specific writing by year,
+generation, drift or durable history. Complications use the first matching gate;
+`applies_to_outcomes` can attach the extra toll only to named choices while the
+twist remains visible. Keep unknown rolls distinct from known costs/effects.
 
-- `home_silence` (`min_year: 100`) — the home civilization stops answering; the
-  mission stops being an errand for someone else.
-- `the_faith` (`min_generation: 5`, `min_cultural_drift: 0.5`) — the mission becomes
-  a religion; the charter is read as scripture.
-- `the_schism_deepens` (`min_cultural_drift: 0.6`) — the ship splits into two peoples;
-  the "let them part" branch carries `faction_loss: departed`.
-- `cultural_schism` (W7) — the earlier, ungated schism; also `faction_loss: departed`.
-- `returning_signal` (`min_year: 100`) — a changed voice from a changed home.
+Outcome requirements can read expertise, reputation, consequences and capabilities.
+Check affordability and authority at dispatch, not just in the UI. Preserve a
+legal escape path for blocking decisions, and test automatic policies against
+unavailable/unaffordable branches. Keep deliberate force-return and faction-loss
+branches out of the first default outcome. Do not rely on array order as proof
+that an outcome is legal.
 
-## Phase-aware weighting — the campaign skeleton (W6)
+The campaign skeleton's phase and era pools are authored in
+`game_config.json` under `campaign_skeleton`; they are **not a hard-coded Rust
+family table**. [skeleton.rs](src/simulation/event_resolver/skeleton.rs) combines
+those pools with charter biases and seeded placement. Current windows are 240
+months and skip the first 60 months. Threshold/recovery beats, scheduled follow-ups
+and dead-air handling supplement that schedule. An over-gated family can fall
+through to normal selection; test reachability rather than counting templates.
 
-At LAUNCH, `event_resolver::skeleton::generate_beats` lays out one major beat per full
-20 years of mission duration (skipping the first 5 years), each placed randomly within
-its own 20-year window and drawn from the phase-appropriate pool for the month it
-falls in. Same seed ⇒ same schedule. The monthly loop fires each beat when its month
-arrives; a beat **replaces** that month's reactive/filler roll, and falls through to a
-normal roll if its family is over-gated.
+## Persistent consequences
 
-Phase pools (mechanics — the code table in `skeleton.rs`; the families are content):
+Use consequence flags for historical facts, obligations for duties with ownership
+and lifecycle, and issue records for ongoing aftermath. Include correct creator,
+beneficiary, timing and succession facts. Do not duplicate the full general log.
+Authored `food_production_penalty` applies while an issue is active; clearing the
+issue does not refund the initiating event's loss. Project capabilities should
+unlock a concrete authored response only after valid completion.
 
-- **Travel:** `exploration_first_contact`, `science_anomaly`, `diplomacy`, `mystery`, `engineering`
-- **Operation:** `survival`, `diplomacy`, `engineering`, `mystery`
-- **Return:** `legacy_drift`, `ethics`, `mystery`
-- **Any phase (always added):** `biology_medical`, `comedy`
+Give prepared and neglected ships recognizably different choices and aftermath.
+Costs must be connected to existing production, consumption, training, maintenance
+and scarcity. Do not introduce a second economy, speculative meters or reward
+buttons whose effects are only flavor. Use local typed schemas and reusable
+simulation operations rather than chain-specific branches in Rust.
 
-## Force-return & faction-loss beats
+## Review and validation
 
-- Catastrophic `force_return` (Operation-gated): `crop_blight`; plus W2's `reactor_scram`.
-- Fortunate `force_return` (Travel-gated windfall): `the_lodestar`; plus W2's `resupply_cache`.
-- `faction_loss: settled`: `garden_world` (the canonical garden-world stop), `berth_lottery` (W7).
-- `faction_loss: departed`: `cultural_schism` (W7), `the_schism_deepens`.
-- **House rule:** `force_return` / `faction_loss` are never the first outcome (index 0), so the
-  autoplay's dumb first-choice policy keeps the mission on-course; they are the deliberate,
-  dramatic branch.
+For a content pass, select one weakness in existing play: recurring situations,
+weak consequence chains, flat charter differences, succession without payoff,
+or unclear faction/ship relationships. Read the relevant complete chain before
+editing. Prefer richer branches and cross-system effects over filler volume.
 
+Check unique IDs, valid references, family registration, phase/era reachability,
+legal choices, identity attribution, staged effects and save compatibility in the
+separate child tests under `src/data/tests/` and the relevant simulation module.
+Use deterministic paired scenarios where preparation is meant to change an outcome.
+See [balance_report.md](balance_report.md) for current evidence limitations.
 
-## Current inventory
-
-The per-family template counts and the schema features in use are tracked in the
-baseline table in `content_depth.md`; keep that one current rather than a second copy here.
+Run `.\publish.ps1` without parameters after meaningful changes. Review changed
+screens at their actual dimensions, including full prose, long names, scrollable
+consequences and touch-only recovery. Store captures directly in
+`docs/verification/`, replacing earlier examples of the same state. Follow
+[AGENTS.md](AGENTS.md) for commit boundaries; no separate rotation diary is needed.

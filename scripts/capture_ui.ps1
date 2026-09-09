@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Headless screenshot harness for the game template.
+    Headless screenshot harness for Stellar Legacy.
 
 .DESCRIPTION
     Thin wrapper around the shared macroquad-toolkit capture script. Builds the

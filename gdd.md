@@ -1,684 +1,312 @@
-# Stellar Legacy — Game Design Document
-
-*Draft v0.1 — living document.*
-
-> A generational starship strategy game about sending a living ship-civilization on
-> missions that take decades or centuries to complete. You don't command a disposable
-> crew — you build a legacy. Captains age out, children inherit roles, promises outlive
-> the people who made them, and every voyage reshapes the society aboard your vessel.
-
-Sources: `game_apps/stellar_legacy/` (React/PHP original), `RustGames/migration_candidates.md`,
-`RustGames/standing.md`, `RustGames/docs/GAME_DEVELOPMENT_GUIDE.md`,
-`RustGames/docs/CODE_STANDARDS.md`, `RustGames/docs/MACROQUAD_TOOLKIT.md`.
-
----
-
-## 0. Migration Snapshot
-
-- **Old game:** `game_apps/stellar_legacy/` — a React 19 + Zustand frontend with a thin
-  PHP/Slim backend that does nothing but persist an opaque JSON save blob behind the
-  shared WebHatchery login. All game rules live client-side in `frontend/src/services/*`.
-- **Why it was picked:** `migration_candidates.md` Tier 3 — "generational dynasty-management
-  strategy; conceptually close to `apartment`'s succession/portfolio mechanic, different
-  setting." Not a zero-art-liability slam dunk like the Tier 1 picks, but it turns out to
-  have **no art liability at all** (see below) and fills a genre the Rust catalog doesn't
-  have: nothing else in `standing.md` is a multi-generation succession sim built around a
-  single ship-civilization rather than a multi-building/multi-settlement portfolio.
-
-- **Art-liability audit.** This is the unusual case the template asks to call out
-  explicitly: the old game commissioned **zero art**. A full source grep for
-  `.png/.jpg/.jpeg/.svg/.gif/.webp` under `frontend/src` returns nothing, there's no
-  `assets/`/`public/` art directory, and no canvas/WebGL/icon library is even a
-  dependency. The entire UI is a deliberate **text/CSS "terminal" aesthetic** — monospace
-  font, amber/green/red phosphor palette (`--terminal-primary:#FFB000`,
-  `--terminal-success:#00FF66`, ASCII box-drawing borders). That look ports almost
-  verbatim:
-
-  | Old asset (web) | Art cost | Rust replacement |
-  | --- | --- | --- |
-  | Terminal chrome (`TerminalWindow`, ASCII borders, phosphor palette) | None (CSS only) | `ui` `SurfaceStyle`/`TextStyle` + a monospace bitmap font; reuse the same hex palette via `colors` |
-  | Ship/crew/dynasty/planet iconography | None (text labels only) | Keep as text/short glyphs; no icon commissioning needed |
-  | Galaxy map | None (a list, not a rendered map) | Toolkit `math`/simple 2D node layout if a literal starmap view is kept (see §7); otherwise stays a list panel |
-
-  Nothing here requires an artist. The entire "port" is a systems/content problem, not an
-  art problem — which also means there's no cost saved by *cutting* systems for art
-  reasons; every cut below is a scope/complexity call, not an art-avoidance call.
-
-- **Mechanic carry-over table.**
-
-  | Old mechanic | Disposition | Notes |
-  | --- | --- | --- |
-  | Resources/ship/crew/market "Phase 0" loop | Keep, redesign | The unbounded browser `setInterval` loop becomes a deterministic month simulation driven by a player-facing real-time clock. While under way it auto-advances at Pause / 1× / 2× / 3×; in drydock it is frozen. Ship/crew/market data lives in `assets/*.json`. |
-  | Star system explore/colonize ("Galaxy Map", up to 50 systems + trade routes) | Redesign, scope down | The multi-system empire-building framing overlaps `frontier`/`realmseed`/`empire_builder`'s genre slot and was never implemented past a system list + one boost stat. Ported as: the ship's current mission has a handful of relevant systems (origin, waypoints, destination), not a sprawling colonial empire. |
-  | 4-resource market buy/sell w/ price trends | Keep as-is | Already fully implemented, simple, fine. |
-  | Generational Mission sim (population, resources, phases, milestones, success metrics) | Keep — this is the core system | This *is* the game. Ported wholesale but content-expanded (only 4 event templates existed — see §8) and with the dead colonization-boost code path (§5.1) actually fixed. |
-  | Dynasty succession (age, leader handoff at 70, 25-year generation tick) | Keep as-is | Solid, simple, working formula (see §5.3). |
-  | 3 Legacy factions (Preservers/Adaptors/Wanderers) + per-legacy dilemmas | Keep, fix | Dilemma resolution math is real and good; several inputs (`traditionPoints`, `bodyHorrorEvents`, `existentialDread`, `piracyReputation`) were hardcoded placeholders never actually tracked — port makes these real tracked state. |
-  | Dynasty Hall / Legacy Relations / Cultural Evolution actions (~15 buttons, ~13 of them cosmetic no-ops) | Redesign | Collapse to ~5–6 actions that actually move real `Population`/`Dynasty` stats (unity, culturalDrift, legacyLoyalty, influence already exist in the data model — just weren't wired to most buttons). No flavor-text-only actions in the port. |
-  | Legacy Deck (narrative card meta-game) | Cut for v1 | Fully scaffolded in types/services but **unreachable in play** — every card-content generator except one returns `null`/stub, and no `LegacyCard` is ever created in a real playthrough. Revisit only as a post-v1 stretch (§12). |
-  | Chronicle + Heritage (cross-playthrough meta-progression) | Redesign, scope down | The Chronicle is a lightweight persistent log. Its cumulative renown selects the highest unlocked Heritage tier automatically when a new dynasty is founded; that tier grants a small, deterministic resource/tradition head start. There is no modifier-selection screen. |
-  | Pacing/"AI director" (time acceleration, engagement scoring, emergent event scheduling) | Redesign, scope down | The "engagement score" heuristic isn't derived from real telemetry and most of its methods are stubs. Replaced with explicit player-facing time controls (step 1 year / step to next decision) and a simple rule: always pause on a decision-required event. |
-  | Automation/Council delegation (auto-resolve events via advisor AI) | Keep, simplified | The outcome-scoring auto-resolver (`evaluateOutcomeScore`) is real and reasonable; keep as an optional per-domain delegation so late-game "century-scale" ticking doesn't require manual resolution of every event. |
-  | Phase1SimulationService ("vertical slice" demo tab) | Cut as a separate screen; keep its design | Isolated from the rest of the game in the original. Its shape — monthly tick, seeded LCG RNG, contract-due-date scoring, banded event outcomes — is the cleanest, most tractable model in the whole codebase and becomes the blueprint for the unified simulation tick (§5), not a standalone demo mode. |
-  | PHP backend, WebHatchery shared login, server-side save slots | Cut | Confirmed to contain zero game rules — it's a JSON-blob store behind auth. A standalone Rust/Steam/itch game doesn't want an online account system; local save slots via `macroquad-toolkit::persistence` replace it entirely (see §7). |
-
-- **Explicitly out of scope for the port:** multiplayer/netcode, real-money mechanics
-  (none existed), the Legacy Deck card meta-game (v1), any server-authoritative or
-  account-gated save system, literal galaxy-spanning multi-system empire management
-  (that's `frontier`/`realmseed`/`empire_builder`'s job).
-
----
-
-## 1. High Concept
-
-- **Pitch:** You are the Custodian, the persistent ship intelligence aboard a generation
-  ship — a vessel that is also a city, a company, and a dynasty. Captains and councils
-  are human partners with changing priorities; the Custodian carries the commission and
-  its recorded promises across centuries.
-- **Genre:** Generational strategy / succession sim. Distinct from the catalog's existing
-  kingdom-builders (`realmseed`, `frontier`) and city-management sims (`apartment`) —
-  those manage *places*; this manages *one vessel's bloodline* across unbroken decades.
-- **Perspective & presentation:** UI-only, no world/map rendering in the traditional
-  sense — a text/log-driven "terminal" interface (retained wholesale from the original,
-  see §0) with panels, meters, and an event log. No `camera`/`sprite` work needed; this
-  is almost entirely the toolkit's `ui` module.
-- **Tone:** Dry, procedural, slightly cold — a ship's log and a corporate ledger that
-  happen to contain human tragedy and triumph. Understatement over melodrama; let the
-  numbers (a population that "diminished," a dynasty that "went extinct") carry weight.
-- **Comparables:** *Reigns* (succession-by-decision at a remove from any individual
-  character), *FTL* (long-haul crisis events under resource pressure), *Star Traders:
-  Frontiers* (text-forward sci-fi systems depth without character art).
-- **Audience:** Strategy/sim players who want systems depth and long-arc consequence over
-  spectacle — the same audience `realmseed`'s chronicle-driven campaign appeals to, but
-  wanting a tighter single-vessel focus instead of a multi-settlement realm.
-- **Scope:** Full game (not a vertical slice) — see §13 for staged milestones.
-- **Platforms:** itch.io + Steam via WebGL and native Windows (standard for this catalog).
-
----
-
-## 2. Design Pillars
-
-1. **Generations, not runs.** A single playthrough is meant to span multiple leaders,
-   multiple completed contracts, multiple event chains — not one mission and done. A
-   system that only matters for one leader's lifetime is a candidate for cutting.
-2. **Every decision is a debt someone else pays.** Resource choices, dilemma resolutions,
-   and delegation settings should have consequences that surface turns or generations
-   later (unpaid maintenance, a resentful cohort, a legacy grudge) — this is the whole
-   point of "Legacy and Consequence" from the original pitch, and it must be backed by
-   real state changes, not the old build's flavor-text no-ops.
-3. **The log is honest.** If a system isn't deep enough to show real numbers changing,
-   it doesn't get a panel that implies otherwise. The original's Legacy Deck and Chronicle
-   analytics looked rich in the type system and were empty in play — the port doesn't
-   repeat that mistake (§0 redesigns exist specifically to close this gap).
-4. **Centuries move at the speed of decisions, not a clock.** ~~No background real-time
-   ticking (the original's `setInterval` resource loop). Time advances only when the
-   player asks it to, so a "century-scale mission" is legible and deterministic, not a
-   race against a wall-clock timer.~~
-   **Superseded (real-time loop).** Time now auto-advances while a mission is under way
-   (1 month per 0.25 s at 1×, `real_time.seconds_per_month`), controllable with a
-   Pause / 1× / 2× / 3× selector; **docked, time is frozen** so refit and charter choice
-   are unhurried. A blocked decision holds the clock and **uses its authored human
-   fallback after 30 s** (`real_time.decision_timeout_secs`). The fallback names the
-   acting captain or office and never invents a Custodian conviction. The *sim internals*
-   stay seeded (event rolls and ranged impacts draw from `sim.rng`), so a manual
-   `advance_*` still replays deterministically — but the live wall-clock pace and
-   player-timed choices mean a played session is no longer a strict seed replay.
-   The decision still *matters*; it just no longer waits forever.
-5. **Succession is a mechanic, not a screen transition.** Leader death/retirement,
-   heir selection, and generational aging (§5.3) drive real gameplay stakes — new leaders
-   bring different skills, and the player should feel the loss of a specialist captain.
-
----
-
-## 3. Core Loop
-
-**Session loop** (month-precise while a charter is active):
-
-1. Review the ship/colony dashboard — resources, population, hull/life-support health,
-   any pending decision-required events.
-2. Allocate the turn: assign crew/cohort focus, spend resources on ship components,
-   crew training, or colony development; adjust delegation settings.
-3. Let the underway clock auto-advance at 1× / 2× / 3×, or pause it. Monthly ticks
-   apply production, population change, dynasty aging, and event rolls.
-4. Resolve any event that requires a decision (or let a delegated advisor or captain
-   fallback resolve it, per §5.4). Automatic results still name the acting authority
-   and log the selected outcome.
-5. Repeat until the active mission/contract reaches its target duration or fails outright.
-
-**Campaign loop** (spans the whole playthrough, mirrors `realmseed/gdd.md`'s
-prototype/full split):
-
-1. Accept a long-term contract (mission objective + target system + duration).
-2. Prepare the ship, crew, and finances for it (§3 session loop, steps 1–2).
-3. Survive the contract's duration through the session loop, generation after
-   generation.
-4. Resolve the contract (complete / partial / pyrrhic / failure — §5.2) and record it to
-   the Chronicle.
-5. Use the outcome — resources, reputation, a surviving dynasty — to prepare the next
-   contract or expand the ship itself.
-6. Continue until the ship's dynasty goes extinct or the player chooses to retire the
-   save. On the next founding, Chronicle renown automatically grants the highest
-   unlocked Heritage tier (§7).
-
-### 3.1 The Voyage-and-Return Refit Loop (v2 direction, 2026-07-19)
-
-*Owner-directed refinement of the campaign loop above. The intent: make one **mission
-run** the unit of play, felt as a departure-and-homecoming arc, with a between-missions
-refit economy that gives past success somewhere to go.*
-
-- **A run = one mission (charter) flown by a persistent ship.** The ship is a single
-  continuous `SimState` across missions — it is not rebuilt between charters. Accepting a
-  charter is *casting off*; the contract's `return → completion` phases are the ship
-  *arriving back*; the moment `contract == None` again is *in drydock*.
-- **The arc within a run — hope in, wear out.** A ship leaves port fresh and whole
-  (pristine hull/life-support, high morale and unity, a population still close to the
-  founders). Over the mission's decades the hull decays, spare parts are spent, and — new
-  in v2 — the *people themselves drift* year over year: adaptation and cultural drift rise,
-  legacy loyalty shifts toward the faction's pull, and the strain of a long voyage erodes
-  morale and unity. The crew that comes home is measurably not the crew that left; the ship
-  comes home "held together on hope and prayers." Legacy flavors the rate (Adaptors embrace
-  the drift and change fastest; Preservers resist it; Wanderers wear it as identity).
-- **Underway vs. in port — two toolsets, and the split is the point.** *During a mission*
-  (`contract == Some`) the ship can only be kept limping: **field repairs** patch hull and
-  life support using what the ship *carries* (spare parts, minerals) and never restore it to
-  pristine, and a component **found on the voyage** (salvaged from a derelict or an event)
-  *may* be field-installed — but only if the crew and the part allow it: a capable engineer
-  aboard, a part that tolerates a field swap, and the spare parts to do it. There is no
-  catalog shopping in the black. A long mission is therefore a slow problem of keeping a
-  decaying ship alive on what you brought and what you find. *In port* everything opens up
-  (next bullet).
-- **Homecoming → drydock → cast off again.** On arrival the run resolves to a *Homecoming*
-  summary (years elapsed, hull and population change since departure, reward banked). Only in
-  **drydock** (`contract == None`) can the ship be fully set right, spending the reward on:
-  - **Full repair** — restore hull integrity, life support, fuel, and spare parts to whole
-    (port-only; the field kit underway can't reach pristine).
-  - **Full loadout** — install any hull/engine/weapon from the whole component catalog
-    (the existing Ship Builder), plus freely fit any parts salvaged underway. Port-only.
-  - **Commission a new ship** — a large purchase that swaps the hull and returns the vessel
-    to pristine condition with a one-time morale/hope lift, for when repairs can no longer
-    keep the old hull flying. Port-only. A new *ship*, never new *people*: cultural drift does
-    not reset — the dynasty and its changed population always carry forward.
-- **What persists, what ends — carry on success, reset only on game-over.** When a run
-  ends in *success* (the mission completes), the ship, its loadout, resources, and above all
-  the **dynasty and its drifted population carry across** to the next mission — the people
-  continue to build the legacy (they already live in the one saved `SimState`; unrepaired
-  wear compounds run over run). The *only* thing that resets is **game-over: dynasty
-  extinction**, which ends that run early and starts the player over with a **new ship and
-  new people** (a fresh `SimState`). Renown still accrues to the Chronicle across all of it
-  and can gate larger, richer charters for later runs (escalation, not reset).
-- **Pacing — ~1 hour soft cap, ~30 min floor.** One successful mission run should pace to
-  roughly **30–60 minutes** of real play: ~1 hour is a soft cap, and a run should *not* come
-  in **under 30 minutes** — the only way a run ends sooner is game-over (extinction). Reached
-  by tuning mission length (in-game years) against decision density (events, dilemmas) plus
-  the drydock phase, **and** the real-time auto-advance cadence (`real_time.seconds_per_month`
-  × the 1×/2×/3× selector — Pillar 4, superseded). A cosmetic wall-clock run timer surfaces so
-  the floor/cap can be measured and felt; the mission must be sized so even brisk play at 3×
-  cannot clear it in under ~30 minutes.
-
-The voyage-and-return refit loop this describes is built; see `content_depth.md` for the
-standing direction of further deepening passes.
-
----
-
-## 4. Player Role & Verbs
-
-- **The player is:** the Custodian, the standing intelligence aboard the ship. No avatar,
-  biological body, or player-character death; captain succession changes the human
-  partner and authority context around the same persistent AI.
-- **Human authority:** the serving captain and council ratify major commitments and can
-  object to strategic posture under authored conditions. The Custodian executes resource
-  allocation, repairs, trade, training, and other routine operations under its standing
-  mandate. A narrow emergency override appears only when an authored emergency permits it.
-- **The player directly controls:** resource allocation, ship component purchases, crew
-  training/recruitment and charter-authorized heir nomination, contract proposals,
-  event decisions within the current mandate, delegation settings, and visible time
-  controls.
-- **The player does NOT control:** private human thoughts, individual non-leader daily
-  behavior, or a human fallback after a decision timer expires. Human actions are named
-  in the log; the Custodian's conduct is measured as perceived conduct, not an assertion
-  about private feelings.
-- **Core verb list:** *Allocate*, *Advance*, *Propose*, *Execute*, *Review Mandate*,
-  *Delegate*, *Build*, *Recruit/Train*, *Nominate Heir*, *Accept/Abandon*, and *Trade*.
-
-### 4.1 Authority and continuity contract
-
-| Action | Custodian authority | Human authority |
-| --- | --- | --- |
-| Resources, repairs, trade, training | Execute under standing mandate | Existing rules still bind the action |
-| Charter acceptance or abandonment | Propose and prepare | Captain/council ratification and cancellation rules |
-| Strategic posture | Propose and implement after review | Captain can object; compromise or a legal emergency override is shown |
-| Social and ethical events | Advise or exercise delegated authority | Authored event metadata determines ratification |
-| Heir designation | Nominate an eligible successor | Charter rules select from the existing eligible pool |
-| Delegation | Entrust a domain to an office | Timeout names that office or captain and records its result |
-
-One Custodian persists across captain deaths, retirement, voyages, and drydock. Reign
-records and obligation histories preserve what can be known; they do not create private
-memories for conversations the archive never recorded. If the dynasty becomes extinct,
-the founding commission ends and the Custodian is archived with the vessel's records.
-The next campaign commissions a new instance; Chronicle and Heritage are inherited
-archives, not proof that the current Custodian personally lived another campaign.
-
-Narrative convention: “you” means the Custodian; “captain” and “council” mean human
-actors; “we” appears only in attributed collective speech. Empathy values describe the
-ship's perceived conduct built from recorded choices, not a privileged reading of the
-player's inner state.
-
----
-
-## 5. Systems & Mechanics
-
-### 5.1 Resource Economy
-
-| Resource | Meaning | Notes |
-| --- | --- | --- |
-| Credits | General currency | Spent on components, crew, contracts |
-| Energy | Ship power | Consumed by systems, gates exploration actions |
-| Minerals | Raw material | Spent on components, colony development |
-| Food | Population upkeep | Population penalty below a threshold |
-| Influence | Political/reputation currency | Gates diplomacy/contract options |
-| Population, Unity, Stability, Legacy Loyalty, Adaptation, Cultural Drift | Colony-scale simulation stats (0–1 or count) | Drive event weighting and dilemma risk (§5.3–5.4) |
-| Hull Integrity, Life Support, Fuel, Spare Parts | Ship-condition stats (0–1 or count) | Below-threshold values increase crisis-event weight |
-
-```text
-per_turn_generated[resource] = floor(production_rate[resource] * years_elapsed)
-production_rate starts from ship/component base rates + colony development bonuses
-```
-
-Carried over from the original, **with the fix applied**: colonizing a planet whose
-resource list matches a tracked resource actually increases that resource's
-`production_rate` (the original computed this bonus against a fresh object where the key
-was never pre-populated, so the boost silently never applied — a genuine dead-code bug,
-not a design choice, and the port initializes the rate table with all tracked keys up
-front so the bonus lands).
-
-### 5.2 Contract (Mission) Progression
-
-| Field | Meaning |
-| --- | --- |
-| `objective` | mining / colonization / exploration / rescue |
-| `target_duration` | years to reach 100% phase progress |
-| `current_phase` | preparation → travel → operation → return → completion |
-| `success_metrics` | weighted 0–1 targets (population survival, mission completion, resource efficiency, social cohesion) |
-
-```text
-success_score = Σ( min(1, metric.current / metric.target) * metric.weight )
-score >= 0.9 -> complete
-score >= 0.75 -> partial
-score >= 0.45 -> pyrrhic
-else         -> failure
-```
-
-Kept as-is from the original — this formula is sound and doesn't need redesign, only
-more contract *content* (objective-specific milestones/risks — currently 2 base +
-1 objective-specific milestone, 4 base + 1 objective-specific success metric, 3 base +
-1 legacy-specific failure risk; see §8 for expansion targets).
-
-#### Command posture
-
-Before launch, and once per year while under way, the Custodian may propose one of three
-voyage-wide operating philosophies. **Steady** preserves the authored baseline;
-**Expeditionary** works the objective 12% faster and raises event pressure 18%, at 8%
-extra travel fuel and a small annual social cost; **Civic** works 8% slower, lowers
-event pressure 8%, and burns 5% less travel fuel while recovering morale, unity,
-stability, and founder-loyalty each year. The choice is shown in the PREP dossier,
-active CONTRACT outlook, dashboard instrument strip, Homecoming report, and the
-cross-playthrough Chronicle. Underway changes lock until the next annual council so
-the policy is a meaningful strategic commitment rather than a frame-by-frame toggle.
-
-### 5.3 Dynasty & Succession
-
-~~Every 25 years members age by 25, elders past `member_max_age` pass on, a leader past
-70 hands off, and 1-3 new members join.~~ **Superseded (real-time loop): aging and death
-are now continuous.**
-
-```text
-Founding Day (each year-end): everyone shares one birthday, whatever their true
-  birthdate — every living dynasty member and crew officer ages += 1. Officers past
-  their term (68) stand down; a line below its target size (8), with ≥2 members left
-  to carry it on, sees young adults come of age (annual_birth_chance per open slot).
-
-Each month (mortality::monthly_tick): every character faces a death roll —
-  chance = accident_floor + (age >= 50 ? base * 2^((age-50)/doubling) : 0), certain
-  at member_max_age (90). A dead leader (or one past 70 with an heir ready) hands off
-  to the eligible heir (age 30-50, highest leadership; designated heir first; failing
-  the band, the best survivor — a ship is never uncaptained while anyone lives).
-  The last of the line gone = extinction (§7).
-
-Plus: a heavy population-loss event may claim a named crew officer or relative
-  (mortality::event_claim).
-```
-
-The lore: on a sealed generation ship the calendar, not the cradle, marks the years —
-so **everyone celebrates on Founding Day** and ages together. Death, though, comes when
-it comes, a low monthly hazard that climbs with age. Continuous mortality means the crew
-the player commands genuinely turns over across a centuries-long voyage; the yearly
-renewal is its counterweight, and a line worn down faster than it renews dies out. This
-is the mechanical heart of "Generational Command." All rolls flow through the seeded RNG,
-so a hand-stepped `advance_*` still replays — but the live real-time run does not (§Pillar 4).
-
-### 5.4 Event System
-
-```text
-event_chance = min(0.8, 0.3 + years_elapsed * 0.1 + (current_year / target_duration) * 0.2)
-effective_event_chance = event_chance * command_posture.event_pressure_factor
-
-category weights:
-  immediate_crisis      base, scales up when food<500, energy<1000,
-                         hull_integrity<0.7, life_support<0.8,
-                         morale<0.5, unity<0.4
-  generational_challenge flat 0.3
-  mission_milestone      0.4 near phase boundaries (progress>80% or <20%), else 0.15
-  legacy_moment           min(0.1 + floor(year/25)*0.05, 0.3)
-```
-
-If an event doesn't require a player decision (or a domain has been delegated, §4), it
-auto-resolves: each legal outcome is scored and the highest-scoring one is applied. A
-timed identity-sensitive decision uses the authored legal human fallback; it never
-attributes an unselected response to the Custodian.
-
-```text
-outcome_score = food_weight(x2 if food<500) + hull/life_support penalty (x1000 if below threshold)
-              + credits*0.1 + energy*0.2 + minerals*0.3 + morale*500 + unity*600
-              - 100 per long-term negative consequence
-```
-
-Delegation is intentionally legacy-neutral. Legacy identity changes event availability,
-dilemmas, drift, and tracked state elsewhere; the advisor ranks the immediate material
-outcomes shown here without a hidden legacy preference.
-
-**Content gap to close:** the original ships **4 hardcoded event templates** total
-(`system_failure`, `population_growth`, `arrival_at_target`, `cultural_schism`) for a
-system meant to carry a century-scale campaign. See §8 for the port's target count.
-
-### 5.5 Legacy Factions & Dilemmas
-
-Three player-selected legacies, each with a distinct dilemma set and failure condition:
-
-| Legacy | Dilemma flavor | Failure risk name |
-| --- | --- | --- |
-| Preservers | Tradition vs. adaptation pressure | `cultural_collapse` |
-| Adaptors | Genetic/cybernetic/biological modification (weighted success rolls, e.g. 70%/75%/60%) | `humanity_loss` |
-| Wanderers | Raiding/piracy (payout scales with a severity roll: `1000 + severity*2000` success vs. `-500` failure) | `fleet_dissolution` |
-
-```text
-risk += 30 if culturalDrift > 0.7
-risk += 25 if unity < 0.3
-risk += 35 if tradition_points < 20
-at-risk if total_risk > 50
-```
-
-Kept — the math is real and good. **Fixed in the port:** the original hardcoded several
-of these inputs (`traditionPoints`, `bodyHorrorEvents`, `existentialDread`,
-`piracyReputation`) as constants that were never actually updated by play (e.g.
-`traditionPoints` was always 50). The port tracks these as real per-dynasty/per-legacy
-state, updated by the relevant dilemmas and events, so the failure-risk system means
-something.
-
-### 5.6 Randomness & Determinism
-
-- **What's randomized:** event category/outcome selection, dilemma success rolls, random
-  crew/dynasty-member generation, planet generation.
-- **What must stay deterministic:** the whole simulation tick, for saves/replay/tests.
-  The original's `Phase1SimulationService` already modeled this correctly with a seeded
-  LCG (`state = (1664525*state + 1013904223) >>> 0`) — the port standardizes on the
-  toolkit's `rng` module seeded the same way, isolated from `macroquad::rand`, per
-  `CODE_STANDARDS.md` §5.
-
----
-
-## 6. Data Model (`assets/*.json`)
-
-```json
-// assets/ship_components.json — hulls/engines/weapons and their cost/stat deltas
-{
-  "hulls": [{ "id": "light_corvette", "cost": { "credits": 500 }, "stats": { "cargo": 100, "crew_capacity": 6 } }],
-  "engines": [{ "id": "ion_drive", "cost": { "credits": 800, "minerals": 50 }, "stats": { "speed": 2 } }],
-  "weapons": [{ "id": "pulse_cannon", "cost": { "credits": 600 }, "stats": { "combat": 3 } }]
-}
-```
-
-```json
-// assets/events.json — weighted event templates by category, with per-outcome effects
-{
-  "id": "reactor_breach",
-  "category": "immediate_crisis",
-  "legacy_modifiers": { "adaptors": 1.2 },
-  "outcomes": [
-    { "id": "emergency_vent", "resource_delta": { "energy": -200 }, "population_effect": { "morale": -5 } }
-  ]
-}
-```
-
-```json
-// assets/legacies.json — the 3 legacy factions, their dilemmas and failure-risk weights
-{ "id": "preservers", "dilemmas": ["...":"..."], "failure_risk": "cultural_collapse" }
-```
-
-| File | Defines | Loaded via |
-| --- | --- | --- |
-| `assets/ship_components.json` | Hulls/engines/weapons + cost/stat deltas | `data_loader::load_json_file` |
-| `assets/events.json` | Event templates, categories, outcomes, legacy modifiers | `DataRegistry` |
-| `assets/legacies.json` | 3 legacy factions, dilemma sets, failure-risk weights | `DataRegistry` |
-| `assets/dynasty_names.json` | Name pools, specializations, traits per legacy | `data_loader::load_json_file` |
-| `assets/contracts.json` | Objective templates: milestones, success metrics, failure risks | `DataRegistry` |
-| `assets/crew_archetypes.json` | Roles, background strings, starting skill ranges | `data_loader::load_json_file` |
-| `assets/data/texture_manifest.json` | (empty/minimal — no sprite art; kept for toolkit consistency) | `AssetManager` |
-| `assets/data/game_config.json` | Tunable constants: tick costs, thresholds, notification limits | `data_loader::load_json_file` |
-
-Native builds read `assets/` from disk with an `include_str!` fallback for WASM — this
-game has no hot-reload requirement beyond normal balance iteration, so embed-only
-(like `template/`) is sufficient; no need for live disk reload during play.
-
----
-
-## 7. World & Progression Structure
-
-- **World layout:** no rendered map/tilemap. A short list of systems relevant to the
-  active contract (origin, waypoints, destination) presented as a panel, not a
-  `FlatGrid`/camera-driven view. If a literal starmap ever gets added it's a simple
-  static node layout via `math`, not a scrolling `camera`-driven world.
-- **Session/campaign length:** one contract spans decades to a century of in-game years;
-  a full playthrough spans multiple contracts and multiple dynasty generations, ending
-  only at dynasty extinction or player retirement.
-- **Progression stages:**
-
-  | Stage | Trigger | What changes |
-  | --- | --- | --- |
-  | Preparation | Contract accepted | Resource/crew allocation phase, no time pressure |
-  | Travel → Operation → Return | Time advances | Event rolls active, milestones progress |
-  | Completion | `current_year >= target_duration` | Success level computed (§5.2), Chronicle entry recorded |
-  | Dynasty extinction / retirement | No eligible heir, or player choice | Playthrough ends; Chronicle renown sets the next dynasty's automatic Heritage tier |
-
-- **Save/persistence model:** local save slots via `macroquad_toolkit::persistence`
-  (`save_to_slot_with_version` / `load_from_slot_with_migration`) — this fully replaces
-  the original's server-side JSON-blob store; there is no server-authoritative state to
-  preserve (§0). Chronicle history (for Heritage modifiers) persists alongside the save
-  slots as its own versioned file, since it must survive across separate playthroughs/
-  save slots rather than living inside one slot.
-
----
-
-## 8. Content Inventory
-
-| Content type | Prototype target | Full target |
+# Stellar Legacy — current game design
+
+This is the implemented design for version **0.2.1**, checked against the Rust
+state, simulation, UI and authored data. It describes the full game and its
+feature-gated tutorial demo. Unimplemented extensions and unresolved acceptance
+work belong in [TODO.md](TODO.md), not in the current rules.
+
+## 1. High concept
+
+The player is the Custodian, the persistent intelligence aboard a generation
+ship. Human captains age, councils change and promises outlive their creators.
+One ship and its society travel through repeated departure, voyage, Homecoming
+and drydock cycles. This is a single-player expedition strategy game, presented
+through a command terminal with a ship schematic, dossiers, people and records.
+It has no tactical combat, spatial empire simulation or account service.
+
+## 2. Design pillars
+
+- Generations create consequences: succession changes expertise, authority and
+  inherited duties while the Custodian persists.
+- Every choice must change real state. The log names what happened and who acted.
+- Preparation and underway work compete for limited stores, time and project slots.
+- Failures remain legible and recoverable while survival is still possible;
+  terminal outcomes end that campaign.
+- The interface supports complete touch/click play. Keyboard shortcuts supplement
+  visible controls; neither sound nor color carries essential information alone.
+
+## 3. Core loop and time
+
+Found a dynasty by choosing a legacy and founding peoples. In port, compare a
+charter, review its briefing and mandate, provision, recruit/train, service and
+refit. Launch begins travel, followed by operation and return. Homecoming seals
+the outcome and returns the same ship, people, obligations and damage to drydock.
+A new hull purchase does not reset society. A new campaign creates new people;
+Chronicle renown supplies its automatic Heritage head start.
+
+The authoritative simulation advances in months, with annual economy/birthdays.
+The live driver uses **1 real second per month at 1x**, half a second at 2x and
+one third at 3x. In port, on explicit pause, or during a tutorial hold, simulation
+time is frozen. Blocking decisions stop voyage advancement. Their separate
+**90-second** countdown also stops on explicit pause. Pending authority reviews,
+recovery notices and terminal outcomes are handled through their own visible
+flows. Returning from a stop does not spend a hidden backlog of months.
+
+There is no offline progress. The 30–60 minute ordinary-voyage experience remains
+a pacing goal requiring human measurement, not an enforced duration. Charter
+length, speed, reading time and pauses all matter; the tutorial is intentionally
+shorter than the long campaign charters.
+
+## 4. Identity, authority and commands
+
+The Custodian performs routine operations and proposes strategic command posture.
+The human captain may object when the proposed posture conflicts with that
+captain's priority and the current ship state. The authority review offers
+retaining the current policy, an available compromise, or a narrowly gated
+emergency override. Eligibility is rechecked when the action is dispatched.
+Ordinary repairs, allocation, trade and training do not all require ratification.
+
+Captains' priorities derive deterministically from their authored identity.
+Succession replaces the human partner while retaining mandate/history. Automatic
+council choices name the acting officer or captain. Timed events choose the
+highest-scoring available, affordable outcome; if none qualifies, the resolver
+attempts the first outcome and dispatch validation can reject it. Authors must
+provide a valid escape path. Dilemmas select the best success odds; posture
+reviews accept an available compromise or retain the current posture. Delegation is category-based and legacy-neutral.
+
+Memories cite durable Reign and Obligation records, not trimmed general log text.
+Missing provenance produces neutral archival language. Perceived Custodian
+conduct is not a claim about the player's private emotions. See
+[event authoring](event_design_notes.md) for voice and authority requirements.
+
+## 5. Simulation systems
+
+### 5.1 Economy and ship
+
+Credits, energy, minerals, food and influence are separate resource fields; fuel
+and spare parts belong to ship state. The market trades credits against energy,
+minerals, food and influence in port. Annual production, population consumption, farming,
+spoilage, power shortages, maintenance, social state and fitted components affect
+one another. Forecasts reuse authoritative calculations and cannot predict future
+random events or population changes.
+
+New campaigns start with 10,000 credits, 5,000 energy, 2,000 minerals, 1,500 food,
+100 influence, 1,000 people and 300 spare parts. Heritage can add bonuses. Exact
+rates and limits live in [game_config.json](assets/data/game_config.json).
+Six subsystems have condition and institutional knowledge: life support,
+engineering, agriculture, medical, education/culture and security. Underway
+service/training uses ship projects; port service is immediate. Full refits,
+component shopping and commissioning hulls are port actions. Salvage/fitting
+eligibility remains governed by the ship and subsystem services.
+
+### 5.2 Charters and posture
+
+The full registry contains 23 charters across mining, colonization, exploration,
+rescue, diplomacy and salvage. The tutorial, **Proving Run: Lumen Relay**, lasts
+150 years: 50 travel, 50 operation and 50 return. The `demo` build offers only this
+charter and ends its tutorial loop after Homecoming; the full build offers the
+broader registry subject to normal eligibility gates.
+
+Charters own their phases, route, loadout/reputation/deed requirements, milestones,
+objective accrual, success metrics, rewards and content biases. Outcome scoring
+combines normalized weighted metrics into complete, partial, pyrrhic or failure
+bands; consult [contract simulation](src/simulation/contract.rs) and data for
+exact scoring. Launch warnings distinguish hard eligibility gates from risks the
+player may accept, including shortages and conflicting obligations.
+
+Steady, Expeditionary and Civic are implemented **global command postures**.
+They affect objective work, event pressure, fuel and social change, and appear in
+preparation, the active voyage and sealed records. Underway posture changes have
+an annual lock and can trigger captain review. They are not the proposed
+charter-specific operating-approach system described in the backlog.
+
+### 5.3 Dynasty, crew and institutions
+
+Living relatives and officers age on annual Founding Day. Mortality is checked
+monthly with an age-dependent hazard, and severe events can claim named people.
+Retirement, death, eligible/designated heirs and surviving family determine
+succession. A depleted line can become extinct. Founding peoples, faction
+membership, approval and relationships continue to evolve during the voyage.
+
+Seven crew archetypes supply named expertise. Vacancies and untrained posts have
+real effects. Relevant serving officers provide state-aware council advice;
+advice does not claim an optimal choice. Apprenticeships preserve some expertise
+through turnover. Schools, archives and faction custody support subsystem
+knowledge with their costs and political tradeoffs. Homecoming retains important
+appointments, losses and continuity outcomes.
+
+### 5.4 Events, obligations and aftermath
+
+Events combine category, family, gates, complications and outcomes. The registry
+is embedded from eleven family files, guarded against duplicate IDs. At launch,
+a seeded campaign skeleton schedules major beats using configured phase/era
+pools and charter biases; monthly reactive rolls and threshold, recovery,
+succession and scheduled consequences add state-dependent encounters.
+
+Outcomes can affect resources, social state, reputation, components, knowledge,
+faction loss, force-return, obligations and persistent issues. Eligibility,
+affordability and authority determine which responses can be committed.
+Complications can target particular outcomes, and later events read durable facts.
+
+Obligations are structured duties with creator, responsible captain/office,
+beneficiary, due date, status and history. They can cross succession, constrain a
+later charter, and be fulfilled, renegotiated, defaulted or voided. They are distinct
+from historical consequence flags. Event aftermath is likewise distinct: active
+issues can impose ongoing penalties and require specific recovery projects.
+Clearing an issue does not refund losses from the original event.
+
+### 5.5 Legacies and society
+
+Preservers, Adaptors and Wanderers each have six authored dilemmas and distinct
+social pressure. Tradition, adaptation, loyalty, cultural drift, unity, reputation
+and other tracked values affect real gates and consequences. The six founding
+peoples are a separate faction system; founding selection, migration, births,
+losses, mood and political relationships change who lives aboard.
+
+### 5.6 Determinism
+
+`SimState` owns a serializable toolkit `SeededRng`. Simulation rolls, choices and
+month advancement must replay from the same state and inputs. Rendering and
+previews do not consume that stream. Seed alone does not reproduce a live played
+session because action timing changes its inputs. The cosmetic elapsed-voyage
+clock and display settings do not feed simulation results.
+
+### 5.7 Custodian Agenda
+
+The current limit is **two running jobs and four waiting jobs**; queued and
+suspended work share the waiting cap. Queueing is free. Starting rechecks the
+target, knowledge, affordability and capability limits, then escrows the full
+cost. Work commits materials monthly and delivers stages exactly once. A blocked
+job remains visible with its reason. Eligible waiting jobs follow player priority.
+
+| Project | Duration (months) | Delivery stages |
 | --- | ---: | ---: |
-| Event templates (across 4 categories) | 12 | **327 authored** |
-| Ship hulls / engines / weapons | 3 / 3 / 3 (as original) | 5 / 5 / 5 |
-| Contract objective templates | 4 (as original) | **22 across 6 objective families** |
-| Legacy factions | 3 (fixed — Preservers/Adaptors/Wanderers) | 3 |
-| Per-legacy dilemmas | 3–4 each (as original) | 6 each |
-| Dynasty name/specialization/trait pools | as original (10 names/legacy, 10 specializations, 5 traits/legacy) | roughly doubled |
-| Crew roles | 7 (as original) | 7 |
-| Heritage tiers | 4 | **4 automatic renown tiers** |
+| Service subsystem | 72 | 2 |
+| Restore hull | 96 | 2 |
+| Overhaul life support | 96 | 2 |
+| Train replacement cohort | 96 | 2 |
+| Optimise hydroponics | 144 | 2 |
+| Restore crew quarters | 60 | 10 |
+| Sterilise damaged growing systems | 48 | 1 |
+| Establish seed programme | 216 | 3; capability at completion |
 
-The original's content is thin almost everywhere except the mechanics that consume it
-(4 event templates trying to carry a century-scale campaign is the clearest gap) — the
-full targets above are sized to make repeat playthroughs not feel like the same 4 events
-on loop, not to invent new systems.
+[projects.json](assets/projects.json) owns costs, requirements, refund masks and
+effects. Pause releases the slot and keeps investment. Expertise loss also
+suspends affected jobs. Paused work has a 12-month grace, then configured
+restoration debt; the current debt rate is 1% per month, capped at 25%.
+Cancellation keeps delivered results and refunds the configured recoverable
+uncommitted escrow (80% before per-resource eligibility), not the whole purchase.
+The review shows refund, retained deliveries, remaining work and restoration cost.
+Fractional settlement is persisted; repeated actions must not mint or lose stores
+through rounding. The housing/food-work pivot retains only legitimate delivery.
 
----
+Work advances only on voyage months. Homecoming suspends unfinished work; port
+has no clock-driven deterioration or instant project completion. Repair effects
+apply bounded gains to current damage. Hydroponics affects actual production;
+seed preparation unlocks its authored blight response only when complete.
+Readiness compares food, fuel, engineering, air, knowledge and cohesion using
+shared forecasts, issue state, observed trends and recovery hysteresis.
 
-## 9. UI/UX & Screen Flow
+### 5.8 Survival
 
-| Screen | Purpose | Toolkit pieces |
-| --- | --- | --- |
-| Main Menu | New/continue/load slot, settings | `VirtualUi`, `SurfaceStyle`, buttons |
-| Dashboard | Resources, ship status, crew summary, pending-event banner | `GridLayout`, meters, badges, `NotificationManager` |
-| Ship Builder | Hull/engine/weapon purchase + current loadout | `GridLayout`, `TextStyle`, tooltips |
-| Crew & Dynasty | Roster, train/recruit/heir actions, dynasty detail (merges the original's separate Crew Quarters + Dynasty Hall — dynasty actions are now real, not cosmetic, see §0) | `ScrollTabs`, meters |
-| Contract & Systems | Active contract progress/milestones, relevant systems, scheduled-beat outlook, and annual command-posture review (replaces the original's sprawling 50-system galaxy map, §0) | `GridLayout`, progress meters, touch buttons |
-| Market | Buy/sell the 4 tradeable resources with price trend | `TextStyle`, simple table layout |
-| Event/Decision modal | Resolve a triggered event or dilemma; shows outcome preview | `NotificationManager` / modal surface |
-| Homecoming debrief | Full-screen takeover on contract conclusion: authored outcome prose, the pay actually banked, the scorecard behind the band, every captain the voyage passed through, the chosen command posture, and the voyage log (marks, legs, council decisions). The success counterpart to the extinction takeover | `ScrollArea`, `term_bar`, panels |
-| Chronicle & Heritage | Cross-playthrough voyage log, renown, and the automatic tier inherited by a new dynasty | `ScrollTabs`, `TextStyle` |
-| Pause/Settings | Time-advance pace, delegation toggles, save/load | `VirtualUi` |
+Dynasty extinction, zero hull, zero population and sustained zero life support
+are terminal conditions. Zero-air grace is **12 voyage months**, counted once per
+month. The critical threshold is 20%; its review stops the real-time burst.
+Emergency stabilisation adds 15% life support at a cost of 300 energy,
+50 minerals and 10 spare parts. It is limited within an air crisis and rearmed
+when warning/countdown recovery clears its used flag. It buys time rather than
+curing every failure.
+The Agenda retains a recovery path after the first warning is reviewed.
+Terminal results are sealed and recorded; recovery controls do not revive a dead
+campaign. Food/fuel warnings are forecasts, with shortages feeding other damage.
 
-Interaction flow (mirrors `realmseed/gdd.md`'s numbered turn structure):
+## 6. Data and assets
 
-1. Player reviews Dashboard; if a decision-required event is pending, it interrupts here.
-2. Player allocates the turn (Ship Builder / Crew & Dynasty / Market as needed).
-3. The underway clock advances at the selected pace (§5), producing resource/population
-   deltas and possibly a new event; Pause freezes it immediately.
-4. If the event needs a decision, the modal opens and blocks further advancement until
-   resolved (or handled by a delegated advisor, which logs the outcome without
-   blocking).
-5. On contract completion, the Homecoming debrief takes the screen — the run's climax
-   is read, not scrolled past — and filing the report lands the ship on the Drydock
-   board for its next charter. The Chronicle keeps the across-playthrough record.
+[GameData](src/data.rs) embeds typed JSON through `macroquad_toolkit::data_loader`
+and include macros on both native and WASM. Editing loose JSON does not hot-reload
+rules into a compiled build. Games own schema/semantic validation; the toolkit
+owns generic loading. Sources are:
 
-The debrief is built from state captured *while the voyage runs*, not read back
-afterwards: the ship's log is trimmed to `log_limit` and `sim.contract` is cleared on
-conclusion, so a 450-year charter would otherwise have forgotten its own departure by
-the time it docks. Notable beats accrue onto the active contract
-(`ActiveContract::highlights`, capped by `voyage_highlight_limit`, giving up council
-decisions before marks and legs so the whole voyage stays represented), captaincies
-accrue onto `Dynasty::reigns`, and conclusion seals a `VoyageDebrief` snapshot that
-outlives both. The report is serialized, so quitting mid-read returns to it.
+- `assets/events/*.json`: 343 events across 11 families.
+- `assets/contracts.json`, `legacies.json`, `factions.json`, `subsystems.json`:
+  charters, legacies, peoples and six systems.
+- `assets/projects.json`: eight project definitions.
+- `assets/ship_components.json`, `crew_archetypes.json`, `dynasty_names.json`:
+  equipment, seven crew roles and name/identity pools.
+- `assets/data/game_config.json`: tuning and shared authored interface/flavor text.
+- `assets/data/texture_manifest.json`: title texture; runtime images are packaged.
 
----
+The UI uses the bundled DejaVu font and procedural ship/person/faction graphics.
+Title and store imagery have separate provenance records. Art is not absent merely
+because the game is primarily a terminal interface.
 
-## 10. Toolkit Mapping
+## 7. Persistence and progression
 
-| Need | Toolkit module | Using it? | Notes |
-| --- | --- | --- | --- |
-| Input handling | `input` | Yes | Menu/button interaction only — no world input |
-| Widgets/layout/text | `ui` (`VirtualUi`, `GridLayout`, `SurfaceStyle`, `TextStyle`, meters, badges, tabs, scroll) | Yes | Carries nearly the entire UI; this is a text/panel game |
-| Textures/manifest | `assets` (`AssetManager`) | Minimal | No sprite art (§0); manifest kept minimal/empty for consistency |
-| Camera/pan/zoom | `camera` | No | No rendered world/map (§7) |
-| Cross-system messaging | `events` (`EventBus<UiAction>`) | Yes | Event/dilemma resolution, delegation toggles |
-| Palette | `colors` | Yes | Reuse the original's amber/green/red terminal palette values |
-| Vector/grid math | `math` | Maybe | Only if a literal starmap node layout is added |
-| Frame timing | `timing` | Yes | Drives the real-time month auto-advance while under way (Pillar 4, superseded); frozen while docked |
-| Particles/juice | `fx` | Minimal | A terminal-log game has little use for particles; maybe subtle text-flicker/typewriter effects |
-| User settings | `settings` | Yes | Time-advance pace, delegation defaults |
-| Unlocks/achievements | `achievements` | Maybe | Could back Chronicle milestones |
-| Dev overlay | `debug` | Yes | Standard |
-| Deterministic randomness | `rng` | Yes | Seeded LCG per §5.6 |
-| Sprite animation | `sprite` | No | No sprites |
-| Procedural images | `raster` | No | Not needed given the text-only presentation |
-| Headless screenshot capture | `capture` | Yes (required for every game) | See `docs/screenshot_capture_harness_guide.md` |
-| Save/load | `persistence` (`save_to_slot_with_version`, etc.) | Yes | Replaces the original's server-side save entirely (§7) |
-| Tile grid / fog / pathing | `FlatGrid`, `FogState`, line-of-sight, flood-fill | No | No spatial world to model |
+The full game uses the `stellar_legacy` storage namespace and one `autosave`
+campaign slot. Chronicle history uses its own slot and survives new campaigns.
+Display, delegation and onboarding preferences use separate keys. The demo adds
+`_demo` to the namespace, isolating saves and preferences.
 
-The near-total lean on `ui` with almost nothing from `camera`/`sprite`/`raster`/`FlatGrid`
-is a direct consequence of the original having no world-rendering surface at all — this
-is the leanest toolkit footprint of any port in this catalog, not a gap to fill.
+Version 0.2.1 accepts 0.1.0 and 0.2.0 campaigns through explicit migration and
+validation. Version 0.2.0 quarters investments retain final-only delivery;
+0.1.0 survival state receives recovery migration. Unsupported or invalid saves
+produce errors and attempt quarantine rather than silently replacing progress.
+See [support](docs/release/SUPPORT_AND_PRIVACY.md) for storage and recovery.
 
----
+Chronicle renown automatically chooses the highest unlocked of four Heritage
+tiers when a dynasty is founded. There is no Heritage modifier-selection screen.
+Sealed Homecoming records preserve departure/return comparisons, captain reigns,
+obligations, institutions, posture and notable decisions after the active contract
+and general log have changed. Saving during the report retains that report.
 
-## 11. Architecture Skeleton
+## 8. Content quality
 
-```
-src/
-├── main.rs
-├── game.rs             # Game struct, update()/draw() loop
-├── state.rs             # GameState enum + re-exports
-├── state/
-│   ├── menu.rs
-│   └── gameplay.rs       # active save: dashboard/contract/dynasty/event-modal sub-state
-├── data.rs               # data module root
-├── data/
-│   ├── ship_components.rs
-│   ├── events.rs
-│   ├── legacies.rs
-│   ├── contracts.rs
-│   └── crew.rs
-├── simulation.rs         # stateless services root
-├── simulation/
-│   ├── tick.rs           # per-year resource/population/dynasty advance
-│   ├── succession.rs     # dynasty aging + heir selection (§5.3)
-│   ├── event_resolver.rs # event roll, outcome scoring, dilemma resolution (§5.4-5.5)
-│   ├── contract.rs       # success-metric scoring (§5.2)
-│   └── market.rs         # trade validation
-├── chronicle.rs          # cross-playthrough summary + heritage modifiers (§7)
-├── ui.rs
-├── ui/
-│   ├── dashboard.rs
-│   ├── ship_builder.rs
-│   ├── crew_dynasty.rs
-│   ├── contract_systems.rs
-│   ├── market.rs
-│   ├── event_modal.rs
-│   └── chronicle.rs
-└── save.rs
-```
+Prefer distinct situations and delayed consequences to larger counts. Couple
+existing systems, preserve phase/year/generation gates, and vary recurring events
+with meaningful complications. Avoid filler options, anonymous authority and
+fake history. [Event authoring](event_design_notes.md) is the content contract;
+[balance evidence](balance_report.md) distinguishes automation from human results.
 
-- **`GameState` variants:** `Menu`, `Gameplay` (with an internal screen enum matching
-  §9's tab list), `EventModal` (or nested inside `Gameplay` as a blocking sub-state).
-- **Key stateless services (`simulation`):** `tick::advance_year`,
-  `succession::process_generation`, `event_resolver::roll_and_resolve`,
-  `contract::score_success`.
-- **State that must persist across frames but never leak into UI:** the RNG stream
-  state, the active contract's full `ExtendedResources`/`Population`/`Dynasty` data —
-  UI panels read snapshots via accessors, never mutate directly (per
-  `CODE_STANDARDS.md` §7's `UiAction` pattern).
+## 9. Presentation and navigation
 
----
+Bridge, Ship, People, Voyage and History stay in a stable order in port and underway.
+Ship contains Loadout, Systems and Agenda; People separates Family, Officers,
+Factions and Council. Voyage offers Drydock/Market in port and Contract underway.
+Utilities contains Save game, Help, Display & sound and Return to menu.
+Pause/Resume and speed controls remain reachable above blocking decisions.
+Council choices select a response before explicit Commit; full consequences scroll.
 
-## 12. Non-Goals / Open Questions
+Amber is the default color scheme, with Green and Slate available. Scanlines and
+flicker default off. Master sound and ambience are independently controlled.
+UI scale is 75–200% and text size 75–150%, separately saved with visible resets.
+Full-window responsive coordinates reflow/scroll panels; scale does not zoom a
+world camera or force desktop into mobile navigation. Settings retains a fixed
+Close settings control. Touch-only long-route acceptance remains open in release QA.
 
-- **Explicitly not building (v1):** the Legacy Deck card meta-game, any server/account
-  system, a literal scrolling galaxy map, real-time background simulation, per-character
-  portraits or any commissioned art.
-- **Differentiation note:** this sits closest to `apartment` (Second Story) in the
-  catalog — both are succession/portfolio management sims. The differentiator is scope
-  of "portfolio": `apartment` manages a growing set of *buildings* with independent
-  tenants; Stellar Legacy manages *one vessel's bloodline* across centuries — no
-  building-to-building comparison shopping, no multi-property expansion loop. If a
-  system ever starts to feel like "manage N independent colonies," that's a signal it's
-  drifted into `apartment`'s or `realmseed`'s territory and should be pulled back.
-- **Open questions**, in priority order:
+## 10. Shared toolkit boundary
 
-  1. Does a literal (even minimal) starmap node view earn its keep, or does the
-     Contract & Systems panel stay a plain list permanently? Leaning list-only per
-     Pillar 3 (don't build a panel that implies more depth than exists) unless multi-leg
-     journeys become a real mechanic.
-  2. Should the Legacy Deck concept return post-v1, or is its role (narrative color from
-     past decisions) fully covered by the redesigned Chronicle/Heritage system? Leaning
-     toward "Chronicle covers it" — revisit only if playtesting shows the Chronicle
-     summary feels thin.
-  3. Exact automation/delegation UI — how many domains can be delegated simultaneously,
-     and does delegating everything trivialize the "century-scale" pacing goal?
-  4. **(v2, §3.1) RESOLVED 2026-07-19 — owner confirmed the persistent-ship model.** A run
-     is one mission on a persistent ship; on success the people/dynasty carry across and
-     continue to build the legacy, and only game-over (extinction) resets to a new ship and
-     new people. This needs no new persistence channel (the ship already lives in one saved
-     `SimState`; "between missions" is `contract == None`). Also settled: ~1 hour is a soft
-     cap and a run has a ~30-minute floor (sub-30 only via game-over); and the repair/loadout
-     split — **underway** allows only field repairs (from carried consumables, never to
-     pristine) and gated install of parts *found* on the voyage (if crew + part allow),
-     while **full repair, full loadout, and commissioning a new ship are port-only**.
+Use toolkit input/UI/text, assets, persistence, RNG, capture and procedural audio
+helpers. Game-specific screen composition, authority, simulation and saves stay
+here. The dependency's [module guide](../macroquad-toolkit/MACROQUAD_TOOLKIT.md)
+is authoritative for generic API usage; do not maintain a copied guide here.
 
----
+## 11. Code ownership
 
-## 13. Milestones
+| Source | Responsibility |
+| --- | --- |
+| [main.rs](src/main.rs), [boot.rs](src/boot.rs), [game.rs](src/game.rs) | Startup, loaded assets, frame loop and coordination |
+| [game/actions.rs](src/game/actions.rs) and children | Dispatch player intents; recheck operations |
+| [game/realtime.rs](src/game/realtime.rs) | Live clock and decision countdown |
+| [state/sim.rs](src/state/sim.rs) and children | Serializable campaign state |
+| [simulation.rs](src/simulation.rs) and children | Month/annual rules, events, projects, contracts and people |
+| [data.rs](src/data.rs) and children | Embedded schemas and content validation |
+| [ui.rs](src/ui.rs) and children | Read state, lay out screens, return actions |
+| [save.rs](src/save.rs), [chronicle.rs](src/chronicle.rs), [heritage.rs](src/heritage.rs) | Local persistence, sealed history and new-campaign bonuses |
+| [settings.rs](src/settings.rs), [audio.rs](src/audio.rs) | Local presentation preferences and synthesized playback |
 
-| Milestone | Proves | Target content |
-| --- | --- | --- |
-| M1 — Mechanical proof | One contract playable start-to-finish: allocate → advance → event → succession → completion scoring, with placeholder data | 1 contract objective, 4 event templates (parity with original), 1 legacy |
-| M2 — Playable prototype | Full turn loop with delegation, market, ship builder, dynasty actions all wired to real state (no cosmetic no-ops); a full playthrough can end in dynasty extinction and produce a Chronicle entry | Prototype content targets from §8 |
-| M3 — Content-complete | All 3 legacies, full event/contract library, Heritage modifiers feeding a second playthrough, terminal UI/palette fully ported | Full targets from §8 |
+## 12. Scope boundaries
 
-After M1, follow the standard per-game loop: `cargo clippy --all-targets --all-features -- -D warnings`,
-`cargo test`, then `.\publish.ps1` from the game directory to verify at the shared preview
-root — same validation path as every other game in this repo, no exceptions for being new.
+No runtime generative AI, accounts, network simulation, cloud saves, tactical
+crew movement, freeform deck building or galactic empire management is implemented.
+Global command posture, the current Homecoming report and procedural emblems do
+not imply that the deferred approach, compartment-culture or competing-record
+systems exist. See [TODO.md](TODO.md) for their bounded retained intent.
+
+## 13. Validation
+
+Run `.\publish.ps1` with no parameters from this project. It builds/packages and
+deploys Preview, then checks the exact Windows and browser packages. Unit tests,
+source-size checks, deterministic cohorts and screenshot inspection complement
+that path. No automated result is a substitute for clean-machine, store-client or
+human pacing/quality acceptance. Procedures and open gates are in
+[release QA](docs/release/QA_AND_OPERATIONS.md).

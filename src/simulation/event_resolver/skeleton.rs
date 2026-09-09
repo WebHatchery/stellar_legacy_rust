@@ -2,9 +2,8 @@
 //! LAUNCH from the mission seed so a centuries-long voyage reads as a generated
 //! campaign rather than a random-event stream. Same seed ⇒ same schedule.
 //!
-//! The families themselves are authored content (JSON); only the *pool
-//! structure* — which families belong to which phase — is mechanics, and lives
-//! here as a constant table.
+//! Families and phase pools are authored in JSON. This module combines the
+//! configured pools with charter biases and seeded placement.
 
 use crate::data::contracts::ContractPhase;
 use crate::data::CampaignSkeletonConfig;

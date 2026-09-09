@@ -9,14 +9,6 @@ promises made to people whose descendants will live with your decisions.
 
 ## What you do
 
-In **Display & sound**, UI scale adjusts interface sizes from 75% to 200%
-without shrinking the game into a bordered canvas or changing world-camera zoom.
-HUD panels stay anchored to the window; smaller UI exposes more information,
-and crowded panels wrap or scroll their own contents. **Text size** is a separate
-75–150% preference. Each has a visible **Reset** button, defaults to 100%, and
-saves automatically. The settings dialog keeps **Close settings** fixed while
-its contents scroll. Neither preference changes the simulation or campaign save.
-
 Choose a charter, prepare your vessel, and guide its people through the outbound
 journey, mission operations, and return home. Balance supplies, ship maintenance,
 and crew welfare while responding to crises and competing demands. A successful
@@ -122,51 +114,64 @@ The game remains readable with audio muted.
 - **Read the Homecoming report.** Use the last voyage's losses and achievements
   to decide what the next departure needs.
 
-## Development and release notes
+## Display and sound
 
-Built with Rust, Macroquad, and the shared `macroquad-toolkit`. Game rules and
-content run locally; no account is required.
+In **Display & sound**, UI scale adjusts interface sizes from 75% to 200%
+without shrinking the game into a bordered canvas or changing world-camera zoom.
+HUD panels stay anchored to the window; smaller UI exposes more information,
+and crowded panels wrap or scroll their own contents. **Text size** is a separate
+75–150% preference. Each has a visible **Reset** button, defaults to 100%, and
+saves automatically. The settings dialog keeps **Close settings** fixed while
+its contents scroll. Neither preference changes the simulation or campaign save.
 
-Design and contributor references:
+Color scheme offers Amber (default), Green and Slate. Scanlines and flicker
+start disabled; sound remains optional. These preferences are separate from
+campaign state.
 
-- [Game design](gdd.md): systems, rules, and design goals.
-- [Content direction](content_depth.md): guidelines for deepening the game.
-- [Event authoring](event_design_notes.md): event structure and content rules.
-- [Open work](TODO.md): outstanding tasks.
-- [UI redesign plan](docs/ui_redesign_plan.md): screenshot findings, visual direction,
-  phased screen improvements, and acceptance criteria.
-- [Ship work implementation plan](docs/ship_work_implementation_plan.md): proposed
-  semi-idle projects, readiness, aftermath, and survival rules.
-- [Release documentation](docs/release/): packaging, QA, and release records.
+## Development
 
-From the project directory, build, validate, and deploy the normal Windows and
-WebGL release with:
+Version **0.2.1** uses Rust edition 2021, Macroquad 0.4 and the sibling
+`macroquad-toolkit` path dependency. The game runs locally without an account,
+analytics or runtime AI service. Windows and WebGL are built by the project
+publisher; the `demo` feature limits charters and isolates saves for the tutorial.
+
+The documentation set has separate, current purposes:
+
+- [Game design and architecture](gdd.md): implemented rules, ownership and data.
+- [Event authoring](event_design_notes.md): schema, voice and content quality.
+- [Open work](TODO.md): unfinished acceptance and deferred design intent.
+- [Balance evidence](balance_report.md): reproducible cohorts and their limits.
+- [Coding standards](CODE_STANDARDS.md) and [agent instructions](AGENTS.md).
+- [Release operations and gates](docs/release/QA_AND_OPERATIONS.md), with links
+  to support, store copy, rights and provenance records.
+- [Shared toolkit reference](../macroquad-toolkit/MACROQUAD_TOOLKIT.md): generic
+  APIs maintained with the dependency rather than copied into this game.
+
+From this project directory, run the required build, package, Preview deployment
+and exact-package Windows/browser smoke checks with:
 
 ```powershell
 .\publish.ps1
 ```
 
-After validating the normal release, package the itch.io tutorial demo without
-uploading it with:
+This delegates to the RustGames parent publisher and requires that workspace
+infrastructure. Preview is the default; production/store uploads are separate
+operations. Additional checks scoped to this game are:
 
 ```powershell
-.\publish-itch.ps1 -Channel html5 -DryRun
+cargo test -p stellar_legacy
+cargo test -p stellar_legacy --features demo
+cargo clippy -p stellar_legacy --all-targets --all-features -- -D warnings
+cargo fmt -p stellar_legacy -- --check
 ```
 
+CI checks formatting, Clippy, tests and WebGL on Linux, and builds Windows with a
+sibling toolkit checkout. It does not establish a public storefront release.
+After the full publisher succeeds, package the tutorial demo without uploading:
 
-### Ship-work verification
+```powershell
+.\publish-itch.ps1 -Channel html5 -UserVersion 0.2.1 -DryRun
+```
 
-Version 0.2.1 corrects the audited survival, Agenda escrow, readiness, and save
-issues. Open **Ship / Agenda**, then **REVIEW PROJECT** to compare retained deliveries,
-remaining work, refunds, and restoration cost before pausing, resuming, or
-confirming cancellation. New quarters recover morale in ten stages. Fractional
-resource change remains in the saved ledger; older quarters retain their original
-single delivery. Authored issue `food_production_penalty` values affect current
-production only while the issue is active; `refundable` resource masks define
-which project escrow can be recovered.
-
-The [verification record](docs/ship_work_validation.md) includes the 864-run
-policy comparison and remaining human acceptance gates. Passing builds and
-publisher checks do not mean those human gates have passed.
-
-Navigation stays in the same order in port and underway: Bridge, Ship, People, Voyage, History. Save, Help and Display & sound are in Utilities. Pause/Resume and speed remain visible above blocking decisions.
+The wrapper restores the full WebGL output after packaging the demo. See release
+operations for prerequisites, capture tools, candidate manifests and sign-off.

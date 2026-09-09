@@ -1,29 +1,35 @@
-# Rights, credits, and notices — approval draft
+# Rights, credits and notices
 
-Copyright holder and project licence: **OWNER/LEGAL INPUT REQUIRED**. No licence is
-granted by this draft. Do not infer ownership from repository access.
+This is an unresolved release record, not a license grant. Copyright holder,
+project license and approved credit names require owner input; no rights or
+public distribution approval are inferred from repository access.
 
-## Credits draft
+## Sources to review
 
-- Game design, writing, art direction, programming, publishing: owner-supplied names
-  required.
-- Macroquad runtime and Rust dependencies: their respective authors; see
-  `THIRD_PARTY_LICENSES.md`.
-- Store/title art and generative-AI assistance: see `STORE_MEDIA_PROVENANCE.md` and
-  `ASSET_PROVENANCE.csv`; owner must verify source prompts, model terms, edits, and rights.
+- Runtime dependencies: [generated inventory](THIRD_PARTY_LICENSES.md) and
+  [upstream notice texts](THIRD_PARTY_NOTICES.txt).
+- Bundled DejaVu font: [LICENSE-DejaVu.txt](../../assets/fonts/LICENSE-DejaVu.txt).
+- Game assets/content: [asset provenance inventory](ASSET_PROVENANCE.csv).
+- Title/store imagery and source-edit history: [media provenance](STORE_MEDIA_PROVENANCE.md).
 
-## Third-party notices
+The inventory script walks the Windows dependency graph from Cargo metadata and
+its lockfile, and assembles locally available upstream license/notice texts.
+It cannot establish project ownership or resolve missing notices. Review every
+UNKNOWN, missing notice and distribution requirement for the final artifact.
+Regeneration replaces inventory files; preserve verified provenance separately
+before running it. Bundled notices retain their upstream text.
 
-`THIRD_PARTY_LICENSES.md` is generated from the exact `Cargo.lock` dependency graph.
-`THIRD_PARTY_NOTICES.txt` assembles and deduplicates the licence/notice files published
-inside those exact dependency packages and explicitly lists packages that did not ship
-one locally. Before publication, the owner/legal reviewer must resolve every `UNKNOWN`
-or missing notice, verify attribution and notice requirements, and approve the candidate.
+## Credits and disclosure
 
-## AI disclosure facts for owner review
+Supply approved design, writing, programming, art, publishing and other credit
+names. Attribute dependencies and fonts according to their verified terms.
+The title/store image source history includes AI-assisted edits; source rights,
+prompts, model terms and subsequent edits need owner review. Authored event prose,
+name data and other content also need creation-history review. Procedural runtime
+silhouettes and synthesized audio are not evidence that all shipped content lacks
+AI assistance.
 
-The repository contains bitmap title/store art for which generative-AI assistance must
-be assumed unless the owner supplies contrary provenance. The game’s event prose and
-other authored content also require an owner review of creation history. No runtime
-generative-AI system is implemented in the scoped build. The owner must personally make
-the Steam and itch disclosures; this document does not answer their legal/policy survey.
+No runtime generative-AI service is implemented. That fact is distinct from
+pre-generated content provenance. Store disclosure, content-rating, privacy and
+rights statements remain owner-approved release decisions recorded in
+[release QA](QA_AND_OPERATIONS.md).

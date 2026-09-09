@@ -1,9 +1,8 @@
 //! Cross-playthrough chronicle (GDD §7).
 //!
 //! Persists outside any save slot so it survives across playthroughs.
-//! v1 scope: an honest completed-contract log. Heritage modifiers (small
-//! bonuses for a new dynasty derived from past entries) are the next step —
-//! see PLAN.md M2/M3.
+//! Records completed contracts and their legacy/command history. The heritage
+//! module derives automatic new-dynasty bonuses from these entries.
 
 use crate::state::sim::CommandPosture;
 use macroquad_toolkit::persistence::{

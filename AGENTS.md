@@ -1,6 +1,18 @@
 # RustGames Agent Instructions
 
-These instructions apply to all Rust game projects in this workspace.
+These workspace rules apply to Stellar Legacy.
+
+## Repository scope and documentation
+
+This project is `stellar_legacy`; keep commands and edits scoped to its directory.
+The sibling `macroquad-toolkit` is a dependency, not a replacement working repository.
+Use [README.md](README.md) for play/setup, [gdd.md](gdd.md) for current design,
+[event_design_notes.md](event_design_notes.md) for content, [TODO.md](TODO.md) for
+open work and [release QA](docs/release/QA_AND_OPERATIONS.md) for packaging/gates.
+Generic toolkit API guidance lives in the sibling dependency's module guide.
+The workspace bulk documentation sync copies generic guides and replaces these
+project-specific instructions/standards; do not use it to maintain this project's
+docs. Update the scoped documents and link to shared API guidance instead.
 
 ## Project Standards
 

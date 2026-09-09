@@ -1,4 +1,4 @@
-//! Heritage modifiers (GDD §7, PLAN item 7).
+//! Heritage modifiers (GDD §7).
 //!
 //! The cross-playthrough [`ChronicleStore`](crate::chronicle::ChronicleStore)
 //! outlives any single save. Its recorded contract scores accumulate into a

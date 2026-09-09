@@ -1,4 +1,4 @@
-//! Authored ship-work catalogue (ship-work plan §3/§6).
+//! Authored ship-work catalogue (GDD §5.7).
 //!
 //! The catalogue describes intent, cost, eligibility, and staged effects. Runtime
 //! progress and accounting live in `state::sim::projects`; this module contains no

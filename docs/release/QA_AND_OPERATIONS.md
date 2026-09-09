@@ -1,67 +1,156 @@
-# Release-candidate QA and operations
+# Release operations and acceptance
 
-## Severity ledger
+Current source version: **0.2.1** in Cargo and game configuration. This document
+records available tooling and open gates; a successful build is not public-release
+approval. There is no completed final store/clean-machine sign-off in the retained
+repository records.
 
-| ID | Severity | Status | Summary |
-| --- | --- | --- | --- |
-| RC-001 | P0 | Fixed + regression tested | Duplicate `the_seized_works` ID prevented startup |
-| RC-002 | P1 | Fixed | Publisher did not launch the exact packaged executable |
-| RC-003 | P1 | Human gate | Clean-machine/store-client/save-survival matrix unperformed |
-| RC-004 | P2 | Human gate | Hardware requirements unmeasured |
-| RC-005 | P0 | Fixed + regression tested | Balance policy could choose an unaffordable outcome and stall a voyage |
+## Build scope
 
-## Agent validation record
+The game builds native Windows and full WebGL packages. The itch HTML5 channel is
+a single-charter tutorial demo; the normal Windows build is the full game.
+Language is English. Runtime progress is local, with no accounts, telemetry,
+multiplayer, cloud saves or live generative-AI service. In-game achievements exist;
+Steam achievements and other Steamworks features are not implemented promises.
 
-- 501 active unit tests and the source-size integration gate pass. The ignored
-  49,500-voyage comparative balance job remains a separate release gate; it was
-  started for this pass but stopped after an extended CPU-bound run without a result.
-- Formatting passes; no Rust file exceeds 800 lines. Clippy with warnings denied is
-  retained as a release check and was not rerun in this implementation pass.
-- The parameterless `publish.ps1` run passed Windows and WebGL builds, packaging,
-  Preview deployment, packaged Windows rendering, and real-browser WebGL rendering.
-- The prior candidate's 44-scene capture audit, two-build comparison, and Defender
-  scan remain useful operational procedures but require rerunning against the 0.2.0
-  artifact before public release.
-- Windows executable metadata reports Stellar Legacy and version 0.2.0.
-- The Agenda/readiness/recovery capture set covers queued work, staged delivery,
-  persistent aftermath, critical-air review, and terminal Chronicle recovery.
+The recorded PC distribution intent is a portable Windows x86-64 ZIP. Price,
+legal publisher/copyright, support commitment, final hardware/Windows requirements,
+signing and public release date still need owner decisions. The repository has
+Steam app/depot templates and an itch target, but their existence does not prove
+account approval, an upload or a public release. `itch.json` currently targets
+`webhatchery/stellar-legacy` with `html5-demo` and `windows` channels; its default
+`user_version` remains 0.1.0, so pass the candidate version explicitly when packaging.
 
-P0: crash/data loss/cannot progress. P1: release-blocking install, launch, save, or severe
-usability problem. P2/P3 may be scheduled only after explicit owner review.
+## Required validation
 
-## RC test record
+Run from the Stellar Legacy project directory:
 
-| Tester/date | Artifact SHA-256 | Machine/Windows | GPU | Resolution/DPI | Input | Save scenario | Result/defects |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| UNASSIGNED | FROM MANIFEST | UNTESTED | UNTESTED | UNTESTED | UNTESTED | create/update/corrupt/reinstall | PENDING |
+```powershell
+.\publish.ps1
+```
 
-Required profiles/seeds: smoke `1001`; ordinary `2027`; harsh `99001`; succession
-`314159`; forced-return `271828`; extinction stress `8675309`; second-charter `424242`.
-The checked-in capture scenes provide deterministic UI states; the release balance test
-provides deterministic voyage cohorts. Human play must use clean profiles without debug
-commands.
+The wrapper delegates to the RustGames parent publisher. With no parameters it
+builds/packages Windows and WebGL and deploys Preview, then runs
+[test_release_package.ps1](../../scripts/test_release_package.ps1) against
+`dist/stellar_legacy_windows.zip` and `dist/webgl`. Package checks include the exact
+Windows executable's rendered capture and real-browser initialization, not just
+compilation. `-Production` is a separate deployment choice; `-DryRun` avoids the
+normal deployment path. Do not substitute a local development server for this gate.
 
-## Reviewer route
+Use the package-scoped tests/Clippy/formatting commands in [README](../../README.md).
+The normal suite includes the comparable ship-work cohort and the 800-line source
+gate. The separate ignored full balance matrix needs maintenance before use;
+see [balance evidence](../../balance_report.md). Test logs/captures from an older
+commit do not certify the candidate being submitted.
 
-1. Launch `stellar_legacy.exe`; tap/click through the welcome and choose NEW GAME.
-2. Select a legacy and founding choices using visible controls.
-3. Open CHARTERS, choose a starter charter, provision in PREP, and tap LAUNCH.
-4. Use the visible pace controls until an authority decision appears; choose an available
-   option by clicking it and verify the named actor in the log.
-5. Open AGENDA during travel and verify a project can be queued, paused, resumed,
-   reordered, and cancelled with the disclosed refund preview.
-6. Return to port, verify Homecoming and Chronicle, quit, relaunch, and choose CONTINUE.
+## Captures and media
 
-## Rollback/hotfix procedure
+[scripts/capture_ui.ps1](../../scripts/capture_ui.ps1) wraps the toolkit batch
+capture API with prefix `STELLAR_LEGACY`. It accepts actual game scene names,
+frame count and window dimensions. Example supplemental capture command:
 
-Never edit a store artifact. Rebuild from the known-good commit, run the full validation
-and package smoke, compare SHA-256, then assign the recorded Steam manifest or itch build
-to the restricted branch/channel. Public promotion, rollback, messaging, and visibility
-remain explicit human actions. Hotfix branches use `codex/hotfix-<issue>` and must preserve
-the 0.2.0 save shape or add a tested migration.
+```powershell
+.\scripts\capture_ui.ps1 -Scenes gameplay,event -WindowWidth 1280 -WindowHeight 720
+```
 
-## Release stop line
+The scene registry is [capture_scenes.rs](../../src/game/capture_scenes.rs) and its
+children. Store verification images directly in `docs/verification/`, replacing
+the same state; inspect actual PNG dimensions rather than trusting names such as
+`narrow`. Review 1280x720, 1920x1080, 1024x768 and 390x844, long names, full/empty
+queues, all schemes, UI scale 75–200%, text size 75–150% and reachable modal controls.
 
-The agent may stage, checksum, preview, and upload only when specifically authorised.
-It stops before public Steam release, itch visibility changes, pricing, legal surveys,
-content-rating attestations, announcements, or irreversible promotion controls.
+The repository retains screenshots and measurement artifacts from earlier UI
+passes. These show sampled states; they do not establish every current interaction,
+scale combination, human comprehension or full campaign route. Regenerate affected
+store screenshots only after final presentation is stable. See
+[media provenance](STORE_MEDIA_PROVENANCE.md) for source masters and generation.
+
+## Candidate and distribution tooling
+
+After ordinary validation, from a clean committed tree:
+
+```powershell
+.\scripts\create_release_candidate.ps1
+```
+
+This builds/checks Windows using the publisher's Windows-only dry-run mode, then
+writes a versioned archive and manifest under `dist/releases/`. The manifest
+records game/toolkit commits, dirty state, Rust version, lockfile hash, artifact
+size/hash and build time. `-AllowDirty` is available for investigation, not a
+clean release claim; `-ScanWithDefender` requests a local scan and records its result.
+[compare_release_builds.ps1](../../scripts/compare_release_builds.ps1) builds Windows twice and compares the packaged payloads. It requires a clean
+commit unless passed -AllowDirty; ZIP timestamps may differ without payload changes.
+
+[generate_release_inventories.ps1](../../scripts/generate_release_inventories.ps1)
+regenerates Windows dependency licenses, upstream notices and asset inventory from
+Cargo metadata and repository files. It replaces inventory files: preserve any
+owner-reviewed provenance before regeneration. Unknown permissions remain open.
+
+[prepare_steam_build.ps1](../../scripts/prepare_steam_build.ps1) requires actual
+`-AppId` and `-DepotId`, validates the archive and stages credential-free content
+and templates. It does not infer IDs or approve a branch. Upload requires explicit
+`-Upload` and `-TestBranch`; its output instructs the operator to record the Build
+ID and assign it in Steamworks. Signing is optional through
+[sign_windows_artifact.ps1](../../scripts/sign_windows_artifact.ps1), with the
+owner's certificate authorization and subsequent signature verification.
+
+To package the itch tutorial without uploading after the full build:
+
+```powershell
+.\publish-itch.ps1 -Channel html5 -UserVersion 0.2.1 -DryRun
+```
+
+Use `-Channel windows` for the normal Windows package. The HTML5 wrapper builds
+with `demo`, uses `itch-index.html`, temporarily swaps package output and restores
+the full WebGL package. Packaging does not change page visibility or approve
+public distribution. Check current store requirements in the authenticated store
+workflow before submission; old fee/timing/specification estimates are not kept
+as project rules.
+
+## Outstanding acceptance
+
+These items have no final sign-off recorded here. Prior agent walkthroughs and
+screenshots are not substitutes for these observations on the candidate hash.
+
+1. New profile: welcome → founding → Voyage/Drydock → briefing/provisions → People
+   and Ship reviews → Launch → first council choice and explicit Commit.
+2. Ship work: Bridge risk → Systems/Agenda → queue multiple jobs → review → pause,
+   resume, reorder and cancel; compare actual refunds, retained stages and debt.
+3. People/history: fill a vacancy, train, appoint an apprentice, review an heir,
+   experience a full succession, resolve a due obligation and inspect its history.
+4. Campaign: Homecoming report → next charter; save/reload in port, underway,
+   during a decision and during Homecoming. Preserve resources, authority and jobs.
+5. Survival: all critical-air actions, stabilisation and its reset after air recovery, each terminal route,
+   and return to title/History without reviving the ended campaign.
+6. Fresh-player judgment: identify Bridge objective/risk/next action within five
+   seconds; explain council costs without optional advice. Measure choice cadence,
+   full voyage duration, repetition, recovery clarity and audio fatigue.
+7. Clean machines: supported Windows/GPU/DPI combinations, mouse/trackpad/touch,
+   window/fullscreen, focus/minimize/sleep, monitor/audio changes, muted play,
+   non-admin/non-ASCII paths, antivirus and abrupt-exit recovery.
+8. Store-delivered builds: install, launch offline, update, uninstall/reinstall and
+   confirm save survival. Include uninvolved strategy and novice testers.
+
+Record tester/date, exact artifact SHA-256, game/toolkit commits, machine/OS/GPU,
+resolution/DPI, input, scenario, result and defect for each run. P0 means crash,
+data loss or inability to progress; P1 covers release-blocking launch, save or
+severe usability defects. Resolve known P0/P1 defects before approval.
+
+## Owner decisions and release record
+
+Keep price/business model, legal identity, rights, AI/content disclosures, privacy,
+support contact, hardware promises, store copy/media, signing and release timing
+under explicit owner review. [Rights/notices](RIGHTS_AND_NOTICES.md),
+[store copy](STORE_COPY.md) and [support/privacy](SUPPORT_AND_PRIVACY.md) contain
+useful drafts; unknowns are unresolved decisions, not permission to invent values.
+
+For the approved candidate record legal publisher, public version, game/toolkit
+commits, archive hash, store App/Depot/Build/channel IDs, test results, approved
+notices/media, price, support and rollback owner, known issues and final go/no-go
+name/date. No empty sign-off table is treated as completed evidence.
+
+Public uploads, promotion, visibility, pricing and announcements are separate
+authorized actions. Do not claim storefront completion from Preview deployment.
+For rollback/hotfix, rebuild the known-good source, preserve or explicitly migrate
+saves, rerun validation and hash the artifact. Never edit a store archive by hand;
+record the replacement store build and obtain approval for public promotion.
