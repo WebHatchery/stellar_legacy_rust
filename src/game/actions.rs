@@ -527,9 +527,7 @@ impl Game {
             UiAction::ReviewProvisions => None,
             UiAction::NextTutorial => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
-                    if gameplay.sim.tutorial_step + 1
-                        == self.data.config.tutorial.guided_steps.len()
-                    {
+                    if gameplay.sim.tutorial_step >= self.data.config.tutorial.guided_steps.len() {
                         gameplay.sim.tutorial_dismissed = true;
                         self.tutorial_open = false;
                     }

@@ -402,7 +402,7 @@ impl Game {
                 gameplay.screen = Screen::Drydock;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
-            "prep" | "tutorial" => {
+            "prep" | "tutorial" | "tutorial_complete" | "tutorial_navigation" => {
                 // A charter under consideration in port (W4): the PREP screen,
                 // with deliberately mixed provisioning so shortfalls show red.
                 let mut sim = SimState::new_campaign(
@@ -416,10 +416,16 @@ impl Game {
                         &mut sim, &self.data, &event, 0,
                     );
                 }
-                if scene == "tutorial" {
+                if scene.starts_with("tutorial") {
                     self.tutorial_open = true;
                     self.display.tutorial_enabled = true;
-                    sim.tutorial_step = 2;
+                    sim.tutorial_step = if scene == "tutorial_complete" {
+                        self.data.config.tutorial.guided_steps.len()
+                    } else if scene == "tutorial_navigation" {
+                        0
+                    } else {
+                        2
+                    };
                 }
                 sim.selected_charter = Some("the_hard_contract".to_owned());
                 sim.ship.fuel = 0.6;

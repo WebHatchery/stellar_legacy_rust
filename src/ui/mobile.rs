@@ -20,20 +20,29 @@ pub fn size() -> (f32, f32) {
     (logical_width(), logical_height())
 }
 
-pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
+fn shell_layout() -> layout::Layout {
     let (width, height) = size();
-    let mut actions = Vec::new();
-    let pointer = ctx.pointer;
     let widest = navigation::Destination::ALL
         .iter()
         .map(|d| measure_text_size(d.label(), TextStyle::new(16.0, term::primary())).width)
         .fold(0.0, f32::max);
-    let layout = layout::Layout::new(
+    layout::Layout::new(
         width,
         height,
         macroquad_toolkit::ui::ui_text_scale(),
         widest,
-    );
+    )
+}
+
+pub(crate) fn navigation_is_compact() -> bool {
+    active() && shell_layout().compact_navigation
+}
+
+pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
+    let (width, height) = size();
+    let mut actions = Vec::new();
+    let pointer = ctx.pointer;
+    let layout = shell_layout();
     if !layout.compact_navigation {
         ctx.presentation.navigation_open.set(false);
     }
@@ -190,17 +199,7 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
         key
     } else {
         if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
-            if let Some(step) = ctx
-                .data
-                .config
-                .tutorial
-                .guided_steps
-                .get(ctx.sim.tutorial_step)
-            {
-                form.heading(&format!("Tutorial · {}", step.label));
-                form.text(&step.tip);
-                form.action("Skip tutorial", true, UiAction::SkipTutorial);
-            }
+            tutorial::form(ctx, &mut form);
         }
         match ctx.screen {
             Screen::Dashboard => bridge(ctx, &mut form),
@@ -214,13 +213,14 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
             Screen::Chronicle => history::build(ctx, &mut form, &section),
         }
         format!(
-            "{:?}:{section}:{:?}:{:?}:{:?}:{:?}:{:?}",
+            "{:?}:{section}:{:?}:{:?}:{:?}:{:?}:{:?}:{:?}",
             ctx.screen,
             ctx.project_cancel_confirm.get(),
             ctx.custody_picker,
             ctx.sim.selected_charter,
             ctx.obligation_detail,
-            ctx.presentation.project_cancellation.get()
+            ctx.presentation.project_cancellation.get(),
+            tutorial::reading_step(ctx)
         )
     };
     if ctx.sim.debrief.is_some() {

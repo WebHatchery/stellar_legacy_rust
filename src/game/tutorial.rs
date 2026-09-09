@@ -11,7 +11,17 @@ fn completed(step: usize, action: &UiAction, sim: &SimState) -> bool {
         (4, UiAction::SelectScreen(Screen::ShipBuilder)) => true,
         (5, UiAction::Launch) => sim.contract.is_some(),
         (6, UiAction::SelectScreen(Screen::Agenda)) => true,
-        (7, UiAction::QueueProject { .. }) => !sim.projects.jobs.is_empty(),
+        (
+            7,
+            UiAction::QueueProject {
+                project_id,
+                target_id,
+            },
+        ) => sim
+            .projects
+            .jobs
+            .iter()
+            .any(|job| &job.project_id == project_id && &job.target_id == target_id),
         (8, UiAction::TogglePause | UiAction::SetSpeed(GameSpeed::Paused)) => {
             sim.speed == GameSpeed::Paused
         }

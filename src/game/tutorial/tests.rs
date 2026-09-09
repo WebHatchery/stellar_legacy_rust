@@ -37,6 +37,14 @@ fn guide_requires_the_named_action_and_successful_state() {
             0,
         ));
     assert!(completed(7, &project, &sim));
+    assert!(!completed(
+        7,
+        &UiAction::QueueProject {
+            project_id: "restore_hull".into(),
+            target_id: None,
+        },
+        &sim
+    ));
     sim.toggle_pause();
     assert!(completed(8, &UiAction::TogglePause, &sim));
     assert!(!completed(9, &UiAction::TogglePause, &sim));

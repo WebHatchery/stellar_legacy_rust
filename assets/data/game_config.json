@@ -165,7 +165,7 @@
       {
         "id": "systems",
         "label": "Inspect your ship",
-        "tip": "Tap Ship to inspect your loadout. Tap Systems for condition and knowledge."
+        "tip": "Tap Ship to inspect your loadout. Systems is available there for condition and knowledge."
       },
       {
         "id": "launch",
@@ -185,12 +185,12 @@
       {
         "id": "pause",
         "label": "Take control of time",
-        "tip": "Tap PAUSE in the time controls at the top right. The voyage clock waits while you review the ship-work plan."
+        "tip": "Tap PAUSE in the time controls at the top. The voyage clock waits while you review the ship-work plan."
       },
       {
         "id": "resume",
         "label": "Resume your voyage",
-        "tip": "Tap RESUME in the time controls at the top right. The ship will run at your selected speed."
+        "tip": "Tap RESUME in the time controls at the top. The ship will run at your selected speed."
       },
       {
         "id": "council",

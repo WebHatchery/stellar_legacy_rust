@@ -121,7 +121,7 @@ fn tutorial_steps_cover_the_launch_flow() {
         .find(|step| step.id == "systems")
         .unwrap();
     assert!(systems.tip.contains("Tap Ship"));
-    assert!(systems.tip.contains("Tap Systems"));
+    assert!(systems.tip.contains("Systems"));
 }
 
 /// Every registry parses and carries at least the authored minimum.
