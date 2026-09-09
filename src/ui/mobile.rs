@@ -57,7 +57,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     );
     draw_text_centered_in_box_ex(
         &if ctx.sim.has_pending_decision() && ctx.sim.debrief.is_none() {
-            format!("Captain fallback: {:.0}s", ctx.decision_remaining.ceil())
+            time_controls::fallback_label(ctx.sim.speed, ctx.decision_remaining)
         } else {
             format!(
                 "Year {} · Generation {}",

@@ -277,6 +277,8 @@ header and time controls reserve space for the selected text size.
 Council choices select a response before explicit Commit; full consequences scroll.
 Immediate council fuel consequences show the tank before and after subsystem
 protection and capacity limits, rather than an uncapped authored percentage.
+Decision countdowns explicitly say when fallback is paused, alongside the
+remaining seconds, consistently across council, mandate and legacy decisions.
 Return-home reviews share a scrolling consequence summary across display sizes.
 Keep voyaging, station navigation and Utilities close the review and release its
 temporary clock hold; the selected time speed is preserved.

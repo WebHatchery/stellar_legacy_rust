@@ -36,7 +36,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
     let header = format!("LEGACY DILEMMA — {}", legacy_name.to_uppercase());
     let content = modal_frame(
         &header,
-        countdown_secs(ctx.decision_remaining),
+        &crate::ui::time_controls::fallback_label(ctx.sim.speed, ctx.decision_remaining),
         dilemma.options.len(),
         0.0,
         term::primary(),
@@ -111,12 +111,6 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
         }
         y += 104.0;
     }
-}
-
-/// Whole seconds left on the auto-resolve countdown, floored at 0 (real-time
-/// loop §2).
-fn countdown_secs(remaining: f32) -> i32 {
-    remaining.ceil().max(0.0) as i32
 }
 
 /// Human phrasing of a population-impact band (real-time loop §3), with a tone:
@@ -255,7 +249,7 @@ pub(crate) fn known_effects(
 /// above the gameplay shell (real-time loop §2); returns the content rect.
 fn modal_frame(
     header: &str,
-    countdown: i32,
+    countdown: &str,
     option_count: usize,
     extra_height: f32,
     accent: Color,
@@ -302,7 +296,7 @@ fn modal_frame(
         rect.y + header_h * 0.5 + 4.0
     };
     draw_text_right(
-        &format!("CAPTAIN FALLBACK {countdown}s"),
+        countdown,
         rect.right() - 16.0,
         countdown_y,
         TextStyle::new(11.0, accent),

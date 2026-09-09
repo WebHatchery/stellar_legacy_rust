@@ -176,14 +176,18 @@ impl Game {
             | "event_succession"
             | "event_mascot_succession"
             | "event_custodian"
-            | "event_fuel" => {
+            | "event_fuel"
+            | "event_fuel_paused" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                let template_id = if scene == "event_fuel" {
+                if scene == "event_fuel_paused" {
+                    sim.speed = crate::state::sim::GameSpeed::Paused;
+                }
+                let template_id = if scene.starts_with("event_fuel") {
                     sim.ship.fuel = 0.5;
                     "relativity_pocket"
                 } else if scene == "event_custodian" {

@@ -87,8 +87,8 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
         f.heading("Captain reviews the mandate");
         f.portrait(&review.captain);
         f.text(&format!(
-            "Fallback in {:.0}s · {} priority\n{}",
-            ctx.decision_remaining.ceil(),
+            "{} · {} priority\n{}",
+            time_controls::fallback_label(sim.speed, ctx.decision_remaining),
             review.priority.label(),
             review.reason
         ));
@@ -125,9 +125,9 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
         if let Some(event) = ctx.data.events.get(&pending.template_id) {
             f.heading(&event.title);
             f.portrait(sim.dynasty.leader().map_or("Captain", |p| p.name.as_str()));
-            f.text(&format!(
-                "Captain fallback in {:.0}s",
-                ctx.decision_remaining.ceil()
+            f.text(&time_controls::fallback_label(
+                sim.speed,
+                ctx.decision_remaining,
             ));
             f.text(&crate::simulation::event_resolver::shown_description(
                 sim, event,
@@ -178,9 +178,9 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
     if let Some(pending) = &sim.pending_dilemma {
         if let Some(d) = crate::simulation::legacy::pending_dilemma_def(sim, ctx.data) {
             f.heading(&d.title);
-            f.text(&format!(
-                "Captain fallback in {:.0}s",
-                ctx.decision_remaining.ceil()
+            f.text(&time_controls::fallback_label(
+                sim.speed,
+                ctx.decision_remaining,
             ));
             f.text(&d.description);
             for (index, o) in d.options.iter().enumerate() {

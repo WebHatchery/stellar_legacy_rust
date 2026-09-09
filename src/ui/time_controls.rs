@@ -4,6 +4,15 @@ use crate::ui::{logical_width, term, term_button, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::ui::{occlude, Pointer};
 
+pub(crate) fn fallback_label(speed: GameSpeed, remaining: f32) -> String {
+    let seconds = remaining.ceil().max(0.0) as u32;
+    if speed == GameSpeed::Paused {
+        format!("Fallback paused · {seconds}s")
+    } else {
+        format!("Fallback in {seconds}s")
+    }
+}
+
 pub fn draw(sim: &SimState, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let x = logical_width() - 370.0;
     draw_at(sim, pointer, actions, x, 19.0);

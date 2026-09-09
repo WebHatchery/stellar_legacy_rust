@@ -36,10 +36,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         TextStyle::new(15.0, term::alert()),
     );
     draw_ui_text_ex(
-        &format!(
-            "CAPTAIN FALLBACK {}s",
-            ctx.decision_remaining.max(0.0).floor() as i32
-        ),
+        &crate::ui::time_controls::fallback_label(ctx.sim.speed, ctx.decision_remaining),
         panel.right() - 178.0,
         panel.y + 27.0,
         TextStyle::new(11.0, term::accent()).params(),

@@ -51,8 +51,8 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         .map_or("Captain", |p| p.name.as_str());
     draw_text_right(
         &format!(
-            "{captain} · fallback in {}s",
-            countdown_secs(ctx.decision_remaining)
+            "{captain} · {}",
+            crate::ui::time_controls::fallback_label(ctx.sim.speed, ctx.decision_remaining)
         ),
         frame.right() - 18.0,
         frame.y + 25.0,
