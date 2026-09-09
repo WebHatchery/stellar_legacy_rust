@@ -58,6 +58,33 @@ fn emergency_stabilisation_is_one_use_and_restores_air() {
 }
 
 #[test]
+fn full_air_cannot_spend_emergency_stores() {
+    let (data, mut sim) = campaign();
+    let resources = serde_json::to_value(sim.resources).unwrap();
+    let parts = sim.ship.spare_parts;
+    assert!(emergency_availability(&sim, &data).is_err());
+    assert!(emergency_stabilise(&mut sim, &data).is_err());
+    assert_eq!(serde_json::to_value(sim.resources).unwrap(), resources);
+    assert_eq!(sim.ship.spare_parts, parts);
+    assert!(!sim.survival.emergency_used);
+}
+
+#[test]
+fn emergency_availability_matches_missing_stores_and_used_rescue() {
+    let (data, mut sim) = campaign();
+    sim.ship.life_support = 0.1;
+    sim.ship.spare_parts = 0;
+    assert!(emergency_availability(&sim, &data).is_err());
+    sim.ship.spare_parts = data.config.survival.emergency_parts_cost;
+    sim.resources.energy = 0;
+    assert!(emergency_availability(&sim, &data).is_err());
+    sim.resources.energy = data.config.survival.emergency_resource_cost.energy;
+    assert!(emergency_availability(&sim, &data).is_ok());
+    emergency_stabilise(&mut sim, &data).unwrap();
+    assert!(emergency_availability(&sim, &data).is_err());
+}
+
+#[test]
 fn observing_damage_does_not_spend_air_grace() {
     let (data, mut sim) = campaign();
     sim.ship.life_support = 0.0;

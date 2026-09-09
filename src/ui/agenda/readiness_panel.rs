@@ -46,7 +46,12 @@ pub(super) fn draw_readiness(
             {
                 let cfg = &ctx.data.config.survival;
                 let button = Rect::new(rect.x, rect.y + 82.0, rect.w, 60.0);
-                if term_button(button, "STABILISE AIR", true, pointer) {
+                if term_button(
+                    button,
+                    "STABILISE AIR",
+                    crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).is_ok(),
+                    pointer,
+                ) {
                     actions.push(UiAction::EmergencyStabilise);
                 }
                 draw_ui_text_ex(

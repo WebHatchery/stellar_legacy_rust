@@ -37,10 +37,10 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             "ZERO-AIR CLOCK: {}/{} months · EMERGENCY: {}",
             ctx.sim.survival.air_zero_months,
             ctx.data.config.survival.air_grace_months,
-            if ctx.sim.survival.emergency_used {
-                "USED"
-            } else {
+            if crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).is_ok() {
                 "AVAILABLE"
+            } else {
+                "UNAVAILABLE"
             }
         ),
         content.x,
@@ -58,7 +58,14 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         content.y + 150.0,
         TextStyle::new(12.0, term::faint()).params(),
     );
-    if let Some(notice) = &ctx.sim.survival.migration_notice {
+    let unavailable = crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).err();
+    if let Some(notice) = ctx
+        .sim
+        .survival
+        .migration_notice
+        .as_ref()
+        .or(unavailable.as_ref())
+    {
         draw_text_block(
             notice,
             content.x,
@@ -80,7 +87,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     if term_button(
         rescue,
         "STABILISE AIR",
-        !ctx.sim.survival.emergency_used,
+        crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).is_ok(),
         pointer,
     ) {
         actions.push(UiAction::EmergencyStabilise);
@@ -88,4 +95,44 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     if term_button(resume, "RESUME VOYAGE", true, pointer) {
         actions.push(UiAction::ResumeAfterWarning);
     }
+}
+
+pub(crate) fn build_stabilisation(ctx: &GameplayCtx<'_>, form: &mut crate::ui::mobile::form::Form) {
+    let cfg = &ctx.data.config.survival;
+    let cost = &cfg.emergency_resource_cost;
+    form.heading("Emergency stabilisation");
+    form.text(
+        "One use per air crisis. This buys recovery time; it does not repair the underlying cause.",
+    );
+    let price = [
+        ("credits", cost.credits),
+        ("energy", cost.energy),
+        ("minerals", cost.minerals),
+        ("food", cost.food),
+        ("influence", cost.influence),
+        ("spare parts", cfg.emergency_parts_cost),
+    ]
+    .into_iter()
+    .filter(|(_, amount)| *amount > 0)
+    .map(|(unit, amount)| format!("{amount} {unit}"))
+    .collect::<Vec<_>>()
+    .join(" · ");
+    form.text(&format!(
+        "Cost: {}",
+        if price.is_empty() { "Free" } else { &price }
+    ));
+    let available = crate::simulation::survival::emergency_availability(ctx.sim, ctx.data);
+    if let Err(reason) = &available {
+        form.text(reason);
+    }
+    let target = (ctx.sim.ship.life_support + cfg.emergency_air_gain).clamp(0.0, 1.0);
+    form.action(
+        &format!(
+            "Stabilise air · {:.0}% → {:.0}%",
+            ctx.sim.ship.life_support * 100.0,
+            target * 100.0
+        ),
+        available.is_ok(),
+        UiAction::EmergencyStabilise,
+    );
 }

@@ -75,14 +75,7 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 response(ctx, f, &id, row.recommended_target);
             }
         }
-        if !sim.survival.emergency_used {
-            let cost = &ctx.data.config.survival.emergency_resource_cost;
-            f.text(&format!(
-                "Emergency stabilisation: {} energy, {} minerals, {} spare parts.",
-                cost.energy, cost.minerals, ctx.data.config.survival.emergency_parts_cost
-            ));
-            f.action("Stabilise air", true, UiAction::EmergencyStabilise);
-        }
+        crate::ui::recovery_warning::build_stabilisation(ctx, f);
         f.heading("Persistent aftermath");
         for issue in &sim.issues.active {
             f.text(&format!(

@@ -112,7 +112,7 @@ pub fn resume_after_warning(sim: &mut SimState) {
 
 /// One bounded stabilisation per air crisis. It is intentionally available at
 /// zero expertise: recovery must not deadlock behind the training project.
-pub fn emergency_stabilise(sim: &mut SimState, data: &GameData) -> Result<(), String> {
+pub fn emergency_availability(sim: &SimState, data: &GameData) -> Result<(), String> {
     if sim.terminal.is_some() {
         return Err("The vessel is already lost; no recovery action remains.".to_owned());
     }
@@ -120,6 +120,9 @@ pub fn emergency_stabilise(sim: &mut SimState, data: &GameData) -> Result<(), St
         return Err(
             "The emergency stabiliser has already been used in this air crisis.".to_owned(),
         );
+    }
+    if sim.ship.life_support >= 1.0 {
+        return Err("Air is already at 100%; emergency stores are not needed.".to_owned());
     }
     let cfg = &data.config.survival;
     let cost = ResourceDelta {
@@ -138,6 +141,19 @@ pub fn emergency_stabilise(sim: &mut SimState, data: &GameData) -> Result<(), St
             cfg.emergency_parts_cost
         ));
     }
+    Ok(())
+}
+
+pub fn emergency_stabilise(sim: &mut SimState, data: &GameData) -> Result<(), String> {
+    emergency_availability(sim, data)?;
+    let cfg = &data.config.survival;
+    let cost = ResourceDelta {
+        credits: -cfg.emergency_resource_cost.credits,
+        energy: -cfg.emergency_resource_cost.energy,
+        minerals: -cfg.emergency_resource_cost.minerals,
+        food: -cfg.emergency_resource_cost.food,
+        influence: -cfg.emergency_resource_cost.influence,
+    };
     sim.resources.apply(&cost);
     sim.ship.spare_parts -= cfg.emergency_parts_cost;
     sim.ship.life_support = (sim.ship.life_support + cfg.emergency_air_gain).clamp(0.0, 1.0);

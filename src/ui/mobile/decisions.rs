@@ -69,17 +69,11 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
             sim.survival.air_zero_months,
             ctx.data.config.survival.air_grace_months
         ));
-        let cost = &ctx.data.config.survival.emergency_resource_cost;
-        f.text(&format!("Emergency stabilisation costs {} energy, {} minerals and {} spare parts. Emergency rescue {}.",cost.energy,cost.minerals,ctx.data.config.survival.emergency_parts_cost,if sim.survival.emergency_used{"already used"}else{"available"}));
         if let Some(notice) = &sim.survival.migration_notice {
             f.text(notice);
         }
         f.action_section("Review Agenda", UiAction::ReviewRecovery, "readiness");
-        f.action(
-            "Stabilise air",
-            !sim.survival.emergency_used,
-            UiAction::EmergencyStabilise,
-        );
+        crate::ui::recovery_warning::build_stabilisation(ctx, f);
         f.action("Resume voyage", true, UiAction::ResumeAfterWarning);
         return Some("recovery".to_owned());
     }
