@@ -32,16 +32,17 @@ docs. Update the scoped documents and link to shared API guidance instead.
 ## Macroquad Conventions
 
 - Use `macroquad` for the runtime loop, input, drawing, textures, audio, and timing.
-- Ship browser games touch-first. A player must be able to start a new game and complete every required tutorial, core interaction, and recovery action using visible tap/click targets alone; a physical keyboard is never required.
-- Keyboard shortcuts may supplement touch controls, but they must not be the only path to an action. Do not show keyboard-command strings in player-facing HUDs, prompts, menus, notices, or tutorials unless the same text also names the visible touch control that performs the action.
-- Tutorial prompts must state the exact visible control or direct touch gesture needed next (for example, “Tap CONTINUE” or “Drag the map”). Never ask players to “dismiss,” “confirm,” or perform another action without a tappable target or an explicit touch instruction.
+- At this stage, target desktop play and assume the player always runs the game in fullscreen. Mobile, phone, and tablet layouts and interactions are outside the current scope.
+- A player must be able to start a new game and complete every required tutorial, core interaction, and recovery action using visible click targets alone. Keyboard shortcuts may supplement these controls; player-facing shortcut text must also name the visible control that performs the action.
+- Tutorial prompts must state the exact visible control or mouse gesture needed next (for example, “Click CONTINUE” or “Drag the map”). Never ask players to “dismiss” or “confirm” without naming a visible control.
 - Keep drawing code separate from state mutation where possible.
-- Treat screen size, scaling, and camera transforms as first-class concerns. Games should remain playable at common desktop browser sizes.
+- Treat screen size, scaling, and camera transforms as first-class concerns across desktop fullscreen resolutions. Windowed and small browser viewport layouts are not required at this stage.
 - Avoid hard-coded absolute positions unless they are intentionally tied to a fixed virtual resolution.
 - Load assets through project-local asset paths and keep missing asset behavior obvious during publishing.
 
 ## Testing And Validation
 
+- At this stage, test only the desktop version in fullscreen. Do not run mobile, phone, or tablet tests, device emulation, or touch-specific QA. Do not require windowed-mode or small-viewport validation. This scope applies to manual playtesting, screenshots, and release QA until the user expands it.
 - Store unit tests in separate child files, never inline in implementation files. Use `#[cfg(test)] mod tests;` in `foo.rs` with the tests in `foo/tests.rs` so `use super::*` and private-item access continue to work. See `CODE_STANDARDS.md` §11.3.
 - Keep every test `.rs` file at or below 800 total lines. Split larger test suites into focused child modules before they reach the limit.
 - Use each project's `publish.ps1` script as the validation path.
