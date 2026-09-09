@@ -20,16 +20,6 @@ implemented. Completed milestone diaries are not open tasks.
   hardware claims and final storefront approval in
   [release QA](docs/release/QA_AND_OPERATIONS.md).
 
-## Known static-check failures
-
-The September 9 documentation-cleanup check with Clippy and warnings denied found
-three existing UI diagnostics: nested formatting in
-[debrief/report.rs](src/ui/debrief/report.rs) and
-[mobile/history.rs](src/ui/mobile/history.rs), plus an unnecessary reference in
-[responsive.rs](src/ui/responsive.rs). Resolve these before claiming a clean
-Clippy gate. Default/demo tests, formatting and the normal publisher passed;
-those results do not waive these diagnostics.
-
 ## Balance analysis maintenance
 
 The obsolete matrix and report have been removed. The ignored

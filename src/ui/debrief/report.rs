@@ -93,15 +93,12 @@ pub(crate) fn accounting(r: &VoyageDebrief) -> String {
     }
     for i in &r.institutions {
         text.push_str(&format!(
-            "Y{} · {}\n",
+            "Y{} · {:?} · {} · {} · knowledge {:+.0}%\n",
             i.year,
-            format!(
-                "{:?} · {} · {} · knowledge {:+.0}%",
-                i.kind,
-                i.subject,
-                i.discipline,
-                i.knowledge_change * 100.0
-            )
+            i.kind,
+            i.subject,
+            i.discipline,
+            i.knowledge_change * 100.0
         ));
     }
     text

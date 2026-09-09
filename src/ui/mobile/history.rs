@@ -80,16 +80,13 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             f.heading("Milestones");
             for a in ctx.achievements.iter() {
                 f.text(&format!(
-                    "{} · {}",
-                    format!(
-                        "{}{}",
-                        if a.unlocked {
-                            "Reached · "
-                        } else {
-                            "Not reached · "
-                        },
-                        a.name
-                    ),
+                    "{}{} · {}",
+                    if a.unlocked {
+                        "Reached · "
+                    } else {
+                        "Not reached · "
+                    },
+                    a.name,
                     a.description
                 ));
             }
