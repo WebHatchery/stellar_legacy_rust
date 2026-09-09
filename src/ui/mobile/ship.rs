@@ -4,11 +4,18 @@ use crate::state::sim::{ProjectAmounts, ProjectStatus};
 mod systems;
 
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
-    f.actions(vec![
-        ("Loadout", UiAction::SelectScreen(Screen::ShipBuilder)),
-        ("Systems", UiAction::SelectScreen(Screen::Subsystems)),
-        ("Agenda", UiAction::SelectScreen(Screen::Agenda)),
-    ]);
+    f.actions(
+        vec![
+            ("Loadout", UiAction::SelectScreen(Screen::ShipBuilder)),
+            ("Systems", UiAction::SelectScreen(Screen::Subsystems)),
+            ("Agenda", UiAction::SelectScreen(Screen::Agenda)),
+        ],
+        match ctx.screen {
+            Screen::Subsystems => 1,
+            Screen::Agenda => 2,
+            _ => 0,
+        },
+    );
     if ctx.screen == Screen::Agenda {
         agenda(ctx, f, section);
         return;

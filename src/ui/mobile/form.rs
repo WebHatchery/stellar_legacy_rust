@@ -8,7 +8,7 @@ enum Item<A> {
     Section(String, String),
     Portrait(String),
     Sections(Vec<(String, String)>),
-    Actions(Vec<(String, A)>),
+    Actions(Vec<(String, A)>, usize),
     Ship,
     Art(Texture2D),
     Vessel(ship_schematic::ShipSchematic),
@@ -51,12 +51,13 @@ impl<A> Form<A> {
                 .collect(),
         ));
     }
-    pub fn actions(&mut self, items: Vec<(&str, A)>) {
+    pub fn actions(&mut self, items: Vec<(&str, A)>, selected: usize) {
         self.items.push(Item::Actions(
             items
                 .into_iter()
                 .map(|(label, a)| (label.to_owned(), a))
                 .collect(),
+            selected,
         ));
     }
     pub fn portrait(&mut self, name: &str) {
@@ -133,7 +134,7 @@ impl<A> Form<A> {
                         + 12.0
                 }
                 Item::Sections(items) => items.len().div_ceil(2) as f32 * 60.0,
-                Item::Actions(_) => 60.0,
+                Item::Actions(..) => 60.0,
                 Item::Portrait(_) => 100.0,
                 Item::Ship | Item::Vessel(_) => 180.0_f32.min(view.h),
                 Item::Art(_) => ((width * 9.0 / 16.0).min(260.0) + 12.0).min(view.h),
@@ -210,10 +211,12 @@ impl<A> Form<A> {
                             );
                             if nav_button(r, &label, tap) {
                                 *state.mobile_section.borrow_mut() = section;
+                            } else if state.mobile_section.borrow().as_str() == section {
+                                selection_marker(r);
                             }
                         }
                     }
-                    Item::Actions(items) => {
+                    Item::Actions(items, selected) => {
                         let count = items.len() as f32;
                         let width = (rect.w - 12.0 * (count - 1.0)) / count;
                         for (i, (label, action)) in items.into_iter().enumerate() {
@@ -221,6 +224,9 @@ impl<A> Form<A> {
                                 Rect::new(rect.x + i as f32 * (width + 12.0), rect.y, width, 48.0);
                             if nav_button(r, &label, tap) {
                                 actions.push(action);
+                            }
+                            if i == selected {
+                                selection_marker(r);
                             }
                         }
                     }

@@ -18,7 +18,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         30.0,
         TextStyle::new(18.0, term::primary()),
     );
-    time_controls::draw_at(&ctx.sim, pointer, &mut actions, 12.0, 42.0);
+    time_controls::draw_at(ctx.sim, pointer, &mut actions, 12.0, 42.0);
     if term_button(
         Rect::new(width - 132.0, 42.0, 120.0, 44.0),
         "Utilities",
@@ -34,17 +34,18 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         || ctx.sim.debrief.is_some();
     let step = (width - 24.0) / 5.0;
     for (i, destination) in navigation::Destination::ALL.into_iter().enumerate() {
-        if term_button(
-            Rect::new(12.0 + i as f32 * step, 94.0, step - 6.0, 44.0),
-            destination.label(),
-            !blocked,
-            pointer,
-        ) {
+        let rect = Rect::new(12.0 + i as f32 * step, 94.0, step - 6.0, 44.0);
+        if term_button(rect, destination.label(), !blocked, pointer) {
             ctx.presentation.mobile_section.borrow_mut().clear();
             ctx.presentation.utilities.set(false);
             actions.push(UiAction::SelectScreen(
                 destination.home(ctx.sim.contract.is_none()),
             ));
+        }
+        if destination == navigation::Destination::of(ctx.screen)
+            && !ctx.presentation.utilities.get()
+        {
+            selection_marker(rect);
         }
     }
     let panel = Rect::new(12.0, 146.0, width - 24.0, logical_height() - 158.0);

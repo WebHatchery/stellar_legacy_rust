@@ -57,18 +57,17 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         actions.push(UiAction::TogglePause);
     }
     for (index, speed) in GameSpeed::ALL.into_iter().skip(1).enumerate() {
-        if term_button(
-            Rect::new(
-                12.0 + index as f32 * ((width - 24.0) / 3.0),
-                116.0,
-                (width - 24.0) / 3.0 - 6.0,
-                44.0,
-            ),
-            &format!("{}×", index + 1),
-            true,
-            pointer,
-        ) {
+        let rect = Rect::new(
+            12.0 + index as f32 * ((width - 24.0) / 3.0),
+            116.0,
+            (width - 24.0) / 3.0 - 6.0,
+            44.0,
+        );
+        if term_button(rect, &format!("{}×", index + 1), true, pointer) {
             actions.push(UiAction::SetSpeed(speed));
+        }
+        if ctx.sim.speed == speed {
+            selection_marker(rect);
         }
     }
     if term_button(
@@ -118,6 +117,11 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
                 actions.push(UiAction::SelectScreen(
                     destination.home(ctx.sim.contract.is_none()),
                 ));
+            }
+            if destination == navigation::Destination::of(ctx.screen)
+                && !ctx.presentation.utilities.get()
+            {
+                selection_marker(rect);
             }
         }
     }
@@ -310,7 +314,14 @@ pub(crate) fn bridge_details(ctx: &GameplayCtx<'_>, form: &mut Form) {
 fn nav_button(rect: Rect, label: &str, pointer: Pointer) -> bool {
     macroquad_toolkit::ui::note_neighbour(rect);
     macroquad_toolkit::ui::note_target(label, rect);
-    draw_rectangle(rect.x, rect.y, rect.w, rect.h, term::surface());
+    let fill = if pointer.pressing(rect) {
+        term::surface_active()
+    } else if pointer.hovering_over(rect) {
+        term::surface_hover()
+    } else {
+        term::surface()
+    };
+    draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 1.0, term::faint());
     draw_text_centered_in_box_ex(
         label,

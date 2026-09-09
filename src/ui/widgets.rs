@@ -3,6 +3,18 @@
 
 use super::*;
 
+/// Persistent selection uses a shape as well as color, so touch navigation
+/// remains legible without a hover state or a particular color scheme.
+pub fn selection_marker(rect: Rect) {
+    draw_rectangle(
+        rect.x + 8.0,
+        rect.bottom() - 4.0,
+        rect.w - 16.0,
+        3.0,
+        term::primary(),
+    );
+}
+
 pub fn term_panel(rect: Rect, title: Option<&str>) {
     let style = SurfaceStyle::new(term::panel())
         .with_border(1.0, term::border())

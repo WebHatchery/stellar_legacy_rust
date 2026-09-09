@@ -4,8 +4,13 @@ use crate::simulation::{contract, market};
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let sim = ctx.sim;
     if sim.contract.is_none() {
-        f.action("Drydock", true, UiAction::SelectScreen(Screen::Drydock));
-        f.action("Market", true, UiAction::SelectScreen(Screen::Market));
+        f.actions(
+            vec![
+                ("Drydock", UiAction::SelectScreen(Screen::Drydock)),
+                ("Market", UiAction::SelectScreen(Screen::Market)),
+            ],
+            usize::from(ctx.screen == Screen::Market),
+        );
     }
     if ctx.screen == Screen::Market {
         trade(ctx, f);
