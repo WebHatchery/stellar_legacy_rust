@@ -272,6 +272,9 @@ the missing credits alongside the available balance.
 Compact faction entries show aboard/departed status, approval bands, authored
 system names and explicit empty relationship states. Recruitment includes each
 group's description before its action.
+Council uses a shared scrolling brief across display sizes. Delegation controls
+name both the current mode and the next action, followed by captain, succession,
+staffing and legacy-risk context. No risk factors are clipped below the panel.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

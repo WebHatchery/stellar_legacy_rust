@@ -77,3 +77,10 @@ credits; skill changed from 76 to 82 and credits from 10176 to 9776. Appointed
 an apprentice for 600 credits, observed 9176 credits and prepared successor
 Xan Archivald at skill 62. Saved while paused. This checks training and
 appointment feedback; it does not establish a completed officer handover.
+
+The shared council brief was checked in the published build before the
+behavior-preserving progression-module extraction. Loaded the paused save,
+observed Perr Steadfast as named heir, delegated Mission Milestone events and
+then returned them to council review. Each control updated its current mode
+and next action, with feedback. Phone captures reach the final legacy section.
+The final extracted build is covered by the full suite and publisher gates.

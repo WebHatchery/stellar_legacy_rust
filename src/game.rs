@@ -5,6 +5,7 @@
 mod actions;
 mod build_mode;
 mod capture_scenes;
+mod progression;
 mod realtime;
 mod render;
 mod tutorial;

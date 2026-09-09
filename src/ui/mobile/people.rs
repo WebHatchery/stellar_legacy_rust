@@ -149,25 +149,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 }
             }
         }
-        "council" => {
-            f.heading("Custodian & captain");
-            f.text("Routine operations follow the standing mandate. Delegated event domains resolve through the council's advisors; outcomes remain in History.");
-            for category in EventCategory::ALL {
-                f.action(
-                    &format!(
-                        "{} · {} · tap to change",
-                        category.label(),
-                        if sim.delegation.is_delegated(category) {
-                            "delegated"
-                        } else {
-                            "council"
-                        }
-                    ),
-                    true,
-                    UiAction::ToggleDelegation(category),
-                );
-            }
-        }
+        "council" => crate::ui::crew_dynasty::council::build(ctx, f),
         _ => {
             f.heading("Serving captain");
             if let Some(p) = sim.dynasty.leader() {
