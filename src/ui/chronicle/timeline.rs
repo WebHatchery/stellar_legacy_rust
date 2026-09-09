@@ -21,11 +21,7 @@ pub(super) fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: 
         );
         return;
     }
-    let selected = ctx
-        .presentation
-        .selected_record
-        .get()
-        .min(records.len() - 1);
+    let selected = ctx.presentation.record_index(records.len()).unwrap();
     let height = records.len() as f32 * 80.0;
     let mut scroll = ctx.chronicle_scroll.get();
     scroll.update_at(view, height, pointer.position);
@@ -34,10 +30,10 @@ pub(super) fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: 
     } else {
         pointer
     };
-    for (index, record) in records.iter().rev().enumerate() {
+    for (row_index, (index, record)) in records.iter().enumerate().rev().enumerate() {
         let row = Rect::new(
             view.x + 14.0,
-            view.y + index as f32 * 80.0 - scroll.offset(),
+            view.y + row_index as f32 * 80.0 - scroll.offset(),
             view.w - 34.0,
             70.0,
         );
@@ -51,7 +47,7 @@ pub(super) fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: 
             true,
             list_pointer,
         ) {
-            ctx.presentation.selected_record.set(index);
+            ctx.presentation.selected_record.set(Some(index));
             ctx.presentation.record_scroll.set(ScrollArea::new());
         }
         if selected == index {
@@ -66,7 +62,7 @@ pub(super) fn draw_decision_records(ctx: &GameplayCtx<'_>, area: Rect, pointer: 
         term::primary(),
     );
     ctx.chronicle_scroll.set(scroll);
-    let record = &records[records.len() - 1 - selected];
+    let record = &records[selected];
     let mut text = format!(
         "{}\nDecision: {}\n\nFACT\n{}\n\nCOMMAND LOG\n{}\n\n{}'S HOUSE\n{}",
         record.event_title,

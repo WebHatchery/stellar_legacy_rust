@@ -20,7 +20,7 @@ pub struct Presentation {
     pub mobile_key: std::cell::RefCell<String>,
     pub mobile_scroll: Cell<ScrollArea>,
     pub history_page: Cell<usize>,
-    pub selected_record: Cell<usize>,
+    pub selected_record: Cell<Option<usize>>,
     pub record_scroll: Cell<ScrollArea>,
     pub report_page: Cell<usize>,
     pub report_scroll: Cell<ScrollArea>,
@@ -35,3 +35,17 @@ pub struct Presentation {
     pub event_advice: Cell<bool>,
     pub event_scroll: Cell<ScrollArea>,
 }
+
+impl Presentation {
+    /// Decision records are append-only; store their original index, not their
+    /// position in the newest-first list, so incoming deeds cannot move a reader.
+    pub fn record_index(&self, count: usize) -> Option<usize> {
+        let latest = count.checked_sub(1)?;
+        let selected = self.selected_record.get().unwrap_or(latest).min(latest);
+        self.selected_record.set(Some(selected));
+        Some(selected)
+    }
+}
+
+#[cfg(test)]
+mod tests;

@@ -41,7 +41,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         .strip_prefix("record:")
         .and_then(|i| i.parse::<usize>().ok())
     {
-        if let Some(r) = ctx.sim.decision_records.iter().rev().nth(index) {
+        if let Some(r) = ctx.sim.decision_records.get(index) {
             f.section("Back to timeline", "");
             f.heading(&r.event_title);
             f.text(&format!(
@@ -131,7 +131,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         }
         _ => {
             f.heading("Voyage timeline");
-            for (index, r) in ctx.sim.decision_records.iter().rev().enumerate() {
+            for (index, r) in ctx.sim.decision_records.iter().enumerate().rev() {
                 f.section(
                     &format!("Year {} · {}", r.year, r.event_title),
                     &format!("record:{index}"),
