@@ -174,6 +174,17 @@ impl ProjectState {
         self.jobs.iter().filter(|job| job.is_waiting()).count()
     }
 
+    /// One-based position among waiting jobs; running and ended work do not
+    /// take positions in the reorderable list.
+    pub fn waiting_position(&self, sequence_id: u64) -> Option<(usize, usize)> {
+        let position = self
+            .jobs
+            .iter()
+            .filter(|job| job.is_waiting())
+            .position(|job| job.sequence_id == sequence_id)?;
+        Some((position + 1, self.waiting_count()))
+    }
+
     pub fn find(&self, sequence_id: u64) -> Option<&ProjectInstance> {
         self.jobs.iter().find(|job| job.sequence_id == sequence_id)
     }
@@ -191,3 +202,6 @@ pub struct ReadinessSample {
     pub band: u8,
     pub trend: String,
 }
+
+#[cfg(test)]
+mod tests;

@@ -28,6 +28,30 @@ impl Game {
         }
         projects::pause_project(&mut sim, &self.data, id).unwrap();
         projects::queue_project(&mut sim, &self.data, "restore_hull", None).unwrap();
+        if scene == "agenda_queue" {
+            projects::queue_project(&mut sim, &self.data, "overhaul_life_support", None).unwrap();
+            let selected = projects::queue_project(
+                &mut sim,
+                &self.data,
+                "train_replacement_cohort",
+                Some("agriculture".into()),
+            )
+            .unwrap();
+            projects::queue_project(
+                &mut sim,
+                &self.data,
+                "optimise_hydroponics",
+                Some("agriculture".into()),
+            )
+            .unwrap();
+            self.presentation.selected_agenda.set(
+                sim.projects
+                    .jobs
+                    .iter()
+                    .position(|job| job.sequence_id == selected)
+                    .unwrap(),
+            );
+        }
         if scene == "agenda_review_blocked" {
             for _ in 0..self.data.config.projects.pause_grace_months + 2 {
                 sim.month_clock += 1;

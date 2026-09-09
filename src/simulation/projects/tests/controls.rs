@@ -78,3 +78,32 @@ fn pause_preview_explains_a_full_waiting_list_without_mutation() {
     assert_eq!(pause_project(&mut sim, &data, id).unwrap_err(), reason);
     assert_eq!(serde_json::to_string(&sim).unwrap(), before);
 }
+
+#[test]
+fn reordering_waiting_work_skips_active_and_ended_jobs_without_charging() {
+    let (data, mut sim, id) = paused_hull();
+    let mut running = ProjectInstance::queued(100, "restore_hull", None, 0);
+    running.status = ProjectStatus::Running;
+    sim.projects.jobs.push(running);
+    sim.projects.jobs.push(ProjectInstance::queued(
+        101,
+        "overhaul_life_support",
+        None,
+        0,
+    ));
+    let mut ended = ProjectInstance::queued(102, "restore_hull", None, 0);
+    ended.status = ProjectStatus::Completed;
+    sim.projects.jobs.push(ended);
+    let before = serde_json::to_string(&sim.resources).unwrap();
+    move_project(&mut sim, 101, -1).unwrap();
+    assert_eq!(sim.projects.waiting_position(101), Some((1, 2)));
+    assert_eq!(sim.projects.waiting_position(id), Some((2, 2)));
+    assert_eq!(sim.projects.jobs[1].sequence_id, 100);
+    assert_eq!(sim.projects.jobs[3].sequence_id, 102);
+    assert_eq!(serde_json::to_string(&sim.resources).unwrap(), before);
+    let ordered = serde_json::to_string(&sim.projects).unwrap();
+    move_project(&mut sim, 101, -1).unwrap();
+    assert_eq!(serde_json::to_string(&sim.projects).unwrap(), ordered);
+    // Reordering does not change the resumed project's eligibility.
+    assert!(resume_check(&sim, &data, id).is_ok());
+}

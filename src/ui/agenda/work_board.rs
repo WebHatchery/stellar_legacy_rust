@@ -55,6 +55,10 @@ pub(super) fn draw_work_board(
                     .get(&job.project_id)
                     .map_or(0.0, |def| job.progress(def.duration_months));
                 format!("{name} · Running {:.0}%", progress * 100.0)
+            } else if let Some((position, count)) =
+                ctx.sim.projects.waiting_position(job.sequence_id)
+            {
+                format!("{name} · Waiting {position}/{count} · {:?}", job.status)
             } else {
                 format!("{} · {:?}", name, job.status)
             }

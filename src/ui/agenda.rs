@@ -112,11 +112,17 @@ fn draw_job(
     );
     let status = match job.status {
         ProjectStatus::Running => format!(
-            "RUNNING · {}%",
+            "RUNNING · {:.0}%",
             job.progress(definition.duration_months) * 100.0
         ),
-        ProjectStatus::Paused => format!("PAUSED · {} months", job.paused_months),
-        ProjectStatus::Queued => "WAITING FOR A SLOT".to_owned(),
+        ProjectStatus::Paused | ProjectStatus::Queued => {
+            let (position, count) = ctx
+                .sim
+                .projects
+                .waiting_position(job.sequence_id)
+                .expect("waiting job");
+            format!("WAITING {position}/{count} · {:?}", job.status)
+        }
         _ => format!("{:?}", job.status).to_uppercase(),
     };
     draw_ui_text_ex(
@@ -161,21 +167,31 @@ fn draw_job(
     {
         actions.push(UiAction::PreviewCancelProject(job.sequence_id));
     }
-    if job.is_waiting() {
+    if let Some((position, count)) = ctx.sim.projects.waiting_position(job.sequence_id) {
         let up = Rect::new(row.x + 184.0, row.y + 76.0, 116.0, 60.0);
         let down = Rect::new(row.x + 310.0, row.y + 76.0, 136.0, 60.0);
-        if term_button(up, "MOVE UP", true, pointer) {
+        if term_button(up, "MOVE UP", position > 1, pointer) {
             actions.push(UiAction::MoveProject {
                 sequence_id: job.sequence_id,
                 direction: -1,
             });
         }
-        if term_button(down, "MOVE DOWN", true, pointer) {
+        if term_button(down, "MOVE DOWN", position < count, pointer) {
             actions.push(UiAction::MoveProject {
                 sequence_id: job.sequence_id,
                 direction: 1,
             });
         }
+        draw_text_block(
+            "Unavailable jobs are skipped. To resume paused work, tap REVIEW PROJECT.",
+            row.x + 10.0,
+            row.y + 145.0,
+            row.w - 20.0,
+            38.0,
+            12.0,
+            3.0,
+            term::dim(),
+        );
     }
 }
 

@@ -147,9 +147,11 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         sim.projects.active_count(),
         sim.projects.waiting_count()
     ));
-    f.section("Project queue", "");
-    f.section("Available projects", "catalogue");
-    f.section("Readiness & aftermath", "readiness");
+    f.sections(&[
+        ("Project queue", ""),
+        ("Available projects", "catalogue"),
+        ("Readiness", "readiness"),
+    ]);
     if section == "readiness" {
         let forecast = crate::simulation::readiness::forecast(sim, ctx.data);
         for row in forecast.rows {
@@ -228,6 +230,8 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     } else {
         if sim.projects.jobs.is_empty() {
             f.text("No projects queued. Tap Available projects to choose ship work.");
+        } else if sim.projects.waiting_count() > 0 {
+            f.text("Queued jobs are checked in waiting-list order; unavailable jobs are skipped. To resume paused work, tap Review project.");
         }
         for job in &sim.projects.jobs {
             if let Some(def) = projects::definition_for(job, ctx.data) {
@@ -250,11 +254,16 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                         UiAction::PreviewCancelProject(job.sequence_id),
                     );
                 }
-                if job.is_waiting() {
+                if let Some((position, count)) = sim.projects.waiting_position(job.sequence_id) {
+                    f.text(&format!("Waiting position {position} of {count}"));
                     for (label, direction) in [("Move up", -1), ("Move down", 1)] {
                         f.action(
                             label,
-                            true,
+                            if direction < 0 {
+                                position > 1
+                            } else {
+                                position < count
+                            },
                             UiAction::MoveProject {
                                 sequence_id: job.sequence_id,
                                 direction,

@@ -69,10 +69,34 @@ impl Game {
                 direction,
             } => {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
-                    if let Err(error) =
-                        projects::move_project(&mut gameplay.sim, sequence_id, direction)
-                    {
-                        self.notifications.warning(error);
+                    let before = gameplay.sim.projects.waiting_position(sequence_id);
+                    match projects::move_project(&mut gameplay.sim, sequence_id, direction) {
+                        Err(error) => self.notifications.warning(error),
+                        Ok(()) => {
+                            if let Some(index) = gameplay
+                                .sim
+                                .projects
+                                .jobs
+                                .iter()
+                                .position(|job| job.sequence_id == sequence_id)
+                            {
+                                self.presentation.selected_agenda.set(index);
+                            }
+                            let after = gameplay.sim.projects.waiting_position(sequence_id);
+                            if after != before {
+                                if let Some((position, count)) = after {
+                                    let name = gameplay
+                                        .sim
+                                        .projects
+                                        .find(sequence_id)
+                                        .and_then(|job| self.data.projects.get(&job.project_id))
+                                        .map_or("Project", |definition| definition.name.as_str());
+                                    self.notifications.info(format!(
+                                        "{name}: waiting position {position} of {count}."
+                                    ));
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -55,6 +55,8 @@ scars that the next generation must manage.
    Tap **Review project** to see delivered stages, remaining work, and pause or
    resume availability. **Review cancellation** shows the refund before
    **Confirm cancellation**; **Keep project** returns without cancelling.
+   Waiting positions show reorder priority. Use **Move up** or **Move down**;
+   unavailable queued jobs are skipped, and paused jobs require **Resume project**.
 8. When a council decision appears, read the situation and known consequences, select a choice, then tap its **Commit** button.
    The voyage clock stops for blocking decisions, but the decision countdown can
    still run. Tap **PAUSE** to hold that countdown while you consider the choice.

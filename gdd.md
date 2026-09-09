@@ -279,6 +279,10 @@ Agenda project reviews share one reading flow across display sizes. Pause and
 resume show the same availability checks used by the command, including slots,
 port restrictions and exact restoration affordability. Cancellation has a
 separate refund review with Keep project and Confirm cancellation controls.
+Waiting positions count queued and paused jobs, skipping running and ended work.
+Reorder buttons stop at the list boundaries, and desktop selection follows the
+moved job. The queue explains that unavailable jobs are skipped and paused work
+requires an explicit resume.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and
 flicker default off. Master sound and ambience are independently controlled.
