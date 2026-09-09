@@ -88,6 +88,14 @@ fn underway_posture_reviews_are_once_per_year() {
     sim.command_posture_locked_until = next_review_month(&sim);
     assert_eq!(sim.command_posture_locked_until, 36);
     assert!(!posture_change_allowed(&sim));
+    assert_eq!(review_wait_months(&sim), 12);
+    sim.month_clock = 35;
+    assert_eq!(review_wait_months(&sim), 1);
     sim.month_clock = 36;
     assert!(posture_change_allowed(&sim));
+    assert_eq!(review_wait_months(&sim), 0);
+    sim.command_posture_locked_until = 100;
+    sim.contract = None;
+    assert!(posture_change_allowed(&sim));
+    assert_eq!(review_wait_months(&sim), 0);
 }

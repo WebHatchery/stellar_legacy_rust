@@ -15,9 +15,7 @@ impl Game {
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;
                     if !crate::simulation::command::posture_change_allowed(sim) {
-                        let months = sim
-                            .command_posture_locked_until
-                            .saturating_sub(sim.month_clock);
+                        let months = crate::simulation::command::review_wait_months(sim);
                         self.notifications
                             .warning(format!("Command review locked for {months} more months."));
                     } else if sim.command_posture != posture {

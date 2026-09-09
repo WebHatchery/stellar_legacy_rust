@@ -464,7 +464,7 @@ impl Game {
                 gameplay.screen = Screen::Drydock;
                 self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
             }
-            "contract_active" => {
+            "contract_active" | "posture" => {
                 // A charter a dozen years in, to show progress + drive assist.
                 let mut sim = SimState::new_campaign(
                     &self.data,
@@ -734,6 +734,7 @@ impl Game {
             _ => 0,
         });
         *self.presentation.mobile_section.borrow_mut() = match scene {
+            "posture" => "posture",
             "people_officers" => "officers",
             "people_factions" | "crew_recruitment" => "factions",
             "people_council" => "council",

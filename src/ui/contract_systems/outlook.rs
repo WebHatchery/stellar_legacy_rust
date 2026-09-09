@@ -65,9 +65,7 @@ pub(crate) fn draw_posture(
         draw_ui_text_ex(
             &format!(
                 "REVIEW LOCKED · NEXT COUNCIL IN {}M",
-                ctx.sim
-                    .command_posture_locked_until
-                    .saturating_sub(ctx.sim.month_clock)
+                crate::simulation::command::review_wait_months(ctx.sim)
             ),
             rect.x + 10.0,
             rect.y + 75.0,
@@ -87,13 +85,11 @@ pub(crate) fn draw_posture(
             44.0,
         );
         let active = ctx.sim.command_posture == posture;
-        let label = if active {
-            format!("[ {} ]", posture.label())
-        } else {
-            posture.label().to_owned()
-        };
-        if term_button(button, &label, can_change || active, pointer) && !active && can_change {
+        if term_button(button, posture.label(), can_change && !active, pointer) {
             actions.push(UiAction::SetPosture(posture));
+        }
+        if active {
+            crate::ui::selection_marker(button);
         }
     }
 }

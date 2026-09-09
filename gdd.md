@@ -278,6 +278,9 @@ Council choices select a response before explicit Commit; full consequences scro
 Return-home reviews share a scrolling consequence summary across display sizes.
 Keep voyaging, station navigation and Utilities close the review and release its
 temporary clock hold; the selected time speed is preserved.
+The phone posture comparison identifies the current policy, explains the 100%
+baseline and annual social tradeoffs, and shows months until another proposal
+is available. The current policy cannot be proposed again.
 The guide offers FINISH only after all lessons, including the council response,
 are complete. Its completion message is visible on desktop and phone; advancing
 a lesson returns a scrolling reading view to the next instruction.

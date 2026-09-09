@@ -38,7 +38,17 @@ pub fn fuel_burn_factor(posture: CommandPosture) -> f32 {
 /// Whether the council can call a new posture review right now. Port is always
 /// flexible; an underway change is a once-per-year strategic commitment.
 pub fn posture_change_allowed(sim: &SimState) -> bool {
-    sim.contract.is_none() || sim.month_clock >= sim.command_posture_locked_until
+    review_wait_months(sim) == 0
+}
+
+/// Remaining commitment, with no lock while docked.
+pub fn review_wait_months(sim: &SimState) -> u32 {
+    if sim.contract.is_none() {
+        0
+    } else {
+        sim.command_posture_locked_until
+            .saturating_sub(sim.month_clock)
+    }
 }
 
 /// The next review date after an underway posture change.

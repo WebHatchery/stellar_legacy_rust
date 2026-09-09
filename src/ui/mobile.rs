@@ -211,7 +211,9 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
                 ship::build(ctx, &mut form, &section)
             }
             Screen::CrewDynasty => people::build(ctx, &mut form, &section),
-            Screen::Drydock | Screen::Contract | Screen::Market => voyage::build(ctx, &mut form),
+            Screen::Drydock | Screen::Contract | Screen::Market => {
+                voyage::build(ctx, &mut form, &section)
+            }
             Screen::Chronicle => history::build(ctx, &mut form, &section),
         }
         format!(

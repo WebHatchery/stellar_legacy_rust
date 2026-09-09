@@ -1,7 +1,7 @@
 use super::*;
 use crate::simulation::{contract, market};
 
-pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
+pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let sim = ctx.sim;
     if sim.contract.is_none() {
         f.actions(
@@ -14,6 +14,11 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
     }
     if ctx.screen == Screen::Market {
         trade(ctx, f);
+        return;
+    }
+    if section == "posture" {
+        f.section("Back to voyage", "");
+        posture(ctx, f);
         return;
     }
     if let Some(c) = &sim.contract {
@@ -35,7 +40,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
                 if m.reached { "Reached" } else { "Ahead" }
             ));
         }
-        posture(ctx, f);
+        posture_summary(ctx, f);
         if contract::can_return_home(sim) {
             f.action("Review return home", true, UiAction::ReviewReturnHome);
         }
@@ -106,7 +111,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
             UiAction::Refuel,
         );
         f.action("PROVISIONS REVIEWED", true, UiAction::ReviewProvisions);
-        posture(ctx, f);
+        posture_summary(ctx, f);
         let conflicts = contract::obligation_conflicts(sim, t);
         for obligation in &conflicts {
             f.text(&format!(
@@ -170,23 +175,56 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) {
     }
 }
 
+fn posture_summary(ctx: &GameplayCtx<'_>, f: &mut Form) {
+    f.heading(&format!(
+        "Command posture · {}",
+        ctx.sim.command_posture.label()
+    ));
+    f.text(ctx.sim.command_posture.description());
+    f.section("Compare command postures", "posture");
+}
+
 fn posture(ctx: &GameplayCtx<'_>, f: &mut Form) {
     f.heading(&format!(
         "Command posture · {}",
         ctx.sim.command_posture.label()
     ));
     f.action("REVIEW MANDATE", true, UiAction::OpenHelp);
+    let wait = crate::simulation::command::review_wait_months(ctx.sim);
+    if wait > 0 {
+        f.text(&format!("Current posture is committed. Another proposal becomes available in {wait} months. Advance voyage time to reach the next review."));
+    } else if ctx.sim.contract.is_some() {
+        f.text("A ratified change commits the ship for 12 months. The captain may require a mandate review before accepting a proposal.");
+    } else {
+        f.text("Postures can change freely in port. The captain may require a mandate review before accepting a proposal.");
+    }
+    f.text("Percentages compare each posture with STEADY at 100%. Work applies during operations; fuel use applies during travel.");
     for p in CommandPosture::ALL {
-        f.text(&format!(
-            "{} · Work {:.0}% · Event chance {:.0}% · Fuel use {:.0}%",
+        let current = p == ctx.sim.command_posture;
+        f.heading(&format!(
+            "{}{}",
             p.label(),
+            if current { " · Current" } else { "" }
+        ));
+        f.text(p.description());
+        f.text(&format!(
+            "Work {:.0}% · Event chance {:.0}% · Fuel use {:.0}%",
             crate::simulation::command::objective_factor(p) * 100.0,
             crate::simulation::command::event_chance_factor(p) * 100.0,
             crate::simulation::command::fuel_burn_factor(p) * 100.0
         ));
+        f.text(match p {
+            CommandPosture::Steady => "No additional annual social adjustment.",
+            CommandPosture::Expeditionary => "Each year underway, this posture also reduces morale, unity and legacy loyalty.",
+            CommandPosture::Civic => "Each year underway, this posture also improves morale, unity, stability and legacy loyalty.",
+        });
         f.action(
-            &format!("Propose {}", p.label()),
-            crate::simulation::command::posture_change_allowed(ctx.sim),
+            &format!(
+                "{} {}",
+                if current { "Current:" } else { "Propose" },
+                p.label()
+            ),
+            !current && wait == 0,
             UiAction::SetPosture(p),
         );
     }
