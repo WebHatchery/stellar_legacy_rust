@@ -78,6 +78,8 @@ pub(super) fn draw_work_board(
                 target,
                 if choice.eligible {
                     ""
+                } else if choice.existing_job.is_some() {
+                    " · on Agenda"
                 } else {
                     " · unavailable"
                 }

@@ -181,8 +181,12 @@ pub fn eligibility(
     ProjectEligibility::ready()
 }
 
-fn duplicate_job(sim: &SimState, project_id: &str, target_id: Option<&str>) -> bool {
-    sim.projects.jobs.iter().any(|job| {
+pub fn live_job<'a>(
+    sim: &'a SimState,
+    project_id: &str,
+    target_id: Option<&str>,
+) -> Option<&'a ProjectInstance> {
+    sim.projects.jobs.iter().find(|job| {
         job.project_id == project_id
             && job.target_id.as_deref() == target_id
             && matches!(
@@ -190,6 +194,26 @@ fn duplicate_job(sim: &SimState, project_id: &str, target_id: Option<&str>) -> b
                 ProjectStatus::Queued | ProjectStatus::Running | ProjectStatus::Paused
             )
     })
+}
+
+/// Availability to add new work, as distinct from a running job's continued
+/// eligibility. A starting budget may be unavailable: unpaid work may wait.
+pub fn queue_check(
+    sim: &SimState,
+    data: &GameData,
+    definition: &ProjectDefinition,
+    target_id: Option<&str>,
+) -> ProjectEligibility {
+    if sim.projects.waiting_count() >= data.config.projects.waiting_cap as usize {
+        return ProjectEligibility::blocked(format!(
+            "The waiting list is full ({}). Resume or cancel waiting work first.",
+            data.config.projects.waiting_cap,
+        ));
+    }
+    if live_job(sim, &definition.id, target_id).is_some() {
+        return ProjectEligibility::blocked("That exact project is already queued or underway.");
+    }
+    eligibility(sim, data, definition, target_id)
 }
 
 pub fn queue_project(
@@ -201,16 +225,7 @@ pub fn queue_project(
     let Some(definition) = data.projects.get(project_id) else {
         return Err("Unknown Agenda project.".to_owned());
     };
-    if sim.projects.waiting_count() >= data.config.projects.waiting_cap as usize {
-        return Err(format!(
-            "The waiting list is full ({}) — reorder, resume, or cancel a job first.",
-            data.config.projects.waiting_cap
-        ));
-    }
-    if duplicate_job(sim, project_id, target_id.as_deref()) {
-        return Err("That exact project is already queued or underway.".to_owned());
-    }
-    let check = eligibility(sim, data, definition, target_id.as_deref());
+    let check = queue_check(sim, data, definition, target_id.as_deref());
     if !check.eligible {
         return Err(check.reason);
     }

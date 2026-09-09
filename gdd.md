@@ -283,6 +283,9 @@ Waiting positions count queued and paused jobs, skipping running and ended work.
 Reorder buttons stop at the list boundaries, and desktop selection follows the
 moved job. The queue explains that unavailable jobs are skipped and paused work
 requires an explicit resume.
+Catalogue and recovery controls check live duplicates and queue capacity before
+offering new work. Existing jobs instead expose a direct review action. A missing
+starting budget alone does not prevent creating an unpaid waiting job.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and
 flicker default off. Master sound and ambience are independently controlled.

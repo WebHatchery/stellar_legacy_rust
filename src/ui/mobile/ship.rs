@@ -208,7 +208,7 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             f.text(&format!(
                 "{} months · {}\n{}",
                 def.duration_months,
-                crate::ui::agenda::format_cost(ProjectAmounts::from_cost(def.cost.clone())),
+                crate::ui::agenda::format_cost_long(ProjectAmounts::from_cost(def.cost.clone())),
                 if def.divisible {
                     "Staged deliveries; completed recovery is retained."
                 } else {
@@ -218,14 +218,22 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             if !choice.eligible {
                 f.text(&choice.reason);
             }
-            f.action(
-                "Queue project",
-                choice.eligible,
-                UiAction::QueueProject {
-                    project_id: choice.project_id,
-                    target_id: choice.target_id,
-                },
-            );
+            if let Some(id) = choice.existing_job {
+                f.action(
+                    "Review existing project",
+                    true,
+                    UiAction::PreviewCancelProject(id),
+                );
+            } else {
+                f.action(
+                    "Queue project",
+                    choice.eligible,
+                    UiAction::QueueProject {
+                        project_id: choice.project_id,
+                        target_id: choice.target_id,
+                    },
+                );
+            }
         }
     } else {
         if sim.projects.jobs.is_empty() {
@@ -278,13 +286,32 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
 
 fn response(ctx: &GameplayCtx<'_>, f: &mut Form, id: &str, target: Option<String>) {
     if let Some(def) = ctx.data.projects.get(id) {
-        let check = projects::eligibility(ctx.sim, ctx.data, def, target.as_deref());
+        let target = if matches!(
+            def.target,
+            crate::data::projects::ProjectTarget::None
+                | crate::data::projects::ProjectTarget::Social
+        ) {
+            None
+        } else {
+            target
+        };
+        let check = projects::queue_check(ctx.sim, ctx.data, def, target.as_deref());
+        let existing = projects::live_job(ctx.sim, id, target.as_deref());
         f.text(&format!(
             "{} · {} months · {}",
             def.name,
             def.duration_months,
-            crate::ui::agenda::format_cost(ProjectAmounts::from_cost(def.cost.clone()))
+            crate::ui::agenda::format_cost_long(ProjectAmounts::from_cost(def.cost.clone()))
         ));
+        if let Some(job) = existing {
+            f.text("Recovery is already on the Agenda.");
+            f.action(
+                "Review existing project",
+                true,
+                UiAction::PreviewCancelProject(job.sequence_id),
+            );
+            return;
+        }
         if !check.eligible {
             f.text(&check.reason);
         }

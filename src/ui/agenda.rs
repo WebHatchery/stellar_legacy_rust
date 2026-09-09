@@ -47,6 +47,7 @@ pub(crate) struct CatalogueChoice {
     pub(crate) target_id: Option<String>,
     pub(crate) eligible: bool,
     pub(crate) reason: String,
+    pub(crate) existing_job: Option<u64>,
 }
 
 pub(crate) fn catalogue_choices(ctx: &GameplayCtx<'_>) -> Vec<CatalogueChoice> {
@@ -65,12 +66,20 @@ pub(crate) fn catalogue_choices(ctx: &GameplayCtx<'_>) -> Vec<CatalogueChoice> {
         };
         for target_id in targets {
             let check =
-                project_sim::eligibility(ctx.sim, ctx.data, definition, target_id.as_deref());
+                project_sim::queue_check(ctx.sim, ctx.data, definition, target_id.as_deref());
+            let existing_job = project_sim::live_job(ctx.sim, &project_id, target_id.as_deref())
+                .map(|job| job.sequence_id);
             choices.push(CatalogueChoice {
                 project_id: project_id.clone(),
                 target_id,
                 eligible: check.eligible,
-                reason: check.reason,
+                reason: if existing_job.is_some() {
+                    "Already on the Agenda. Review the existing project's progress and options."
+                        .to_owned()
+                } else {
+                    check.reason
+                },
+                existing_job,
             });
         }
     }
@@ -78,6 +87,12 @@ pub(crate) fn catalogue_choices(ctx: &GameplayCtx<'_>) -> Vec<CatalogueChoice> {
         right
             .eligible
             .cmp(&left.eligible)
+            .then_with(|| {
+                right
+                    .existing_job
+                    .is_some()
+                    .cmp(&left.existing_job.is_some())
+            })
             .then_with(|| left.project_id.cmp(&right.project_id))
             .then_with(|| left.target_id.cmp(&right.target_id))
     });
@@ -238,29 +253,36 @@ fn draw_choice(
         row.y + 69.0,
         TextStyle::new(11.0, term::dim()).params(),
     );
-    let button = Rect::new(row.x + 10.0, row.y + 78.0, 116.0, 60.0);
+    let button = Rect::new(row.x + 10.0, row.y + 78.0, 264.0, 60.0);
     if term_button(
         button,
-        if choice.eligible {
-            "Queue project"
+        if choice.existing_job.is_some() {
+            "Review existing project"
         } else {
-            "Queue project · unavailable"
+            "Queue project"
         },
-        choice.eligible,
+        choice.eligible || choice.existing_job.is_some(),
         pointer,
-    ) && choice.eligible
-    {
-        actions.push(UiAction::QueueProject {
-            project_id: choice.project_id.clone(),
-            target_id: choice.target_id.clone(),
-        });
+    ) {
+        if let Some(id) = choice.existing_job {
+            actions.push(UiAction::PreviewCancelProject(id));
+        } else {
+            actions.push(UiAction::QueueProject {
+                project_id: choice.project_id.clone(),
+                target_id: choice.target_id.clone(),
+            });
+        }
     }
     if !choice.eligible {
-        draw_ui_text_ex(
+        draw_text_block(
             &choice.reason,
             row.x + 10.0,
-            row.y + 149.0,
-            TextStyle::new(14.0, term::alert()).params(),
+            row.y + 145.0,
+            row.w - 20.0,
+            38.0,
+            12.0,
+            3.0,
+            term::dim(),
         );
     }
 }

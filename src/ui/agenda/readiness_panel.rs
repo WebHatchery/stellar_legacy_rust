@@ -140,29 +140,50 @@ fn queue_response(
     } else {
         target
     };
-    let check = project_sim::eligibility(ctx.sim, ctx.data, definition, target.as_deref());
+    let existing = project_sim::live_job(ctx.sim, id, target.as_deref());
+    let check = project_sim::queue_check(ctx.sim, ctx.data, definition, target.as_deref());
     let button = Rect::new(rect.x, rect.y, rect.w, 60.0);
     if term_button(
         button,
-        &format!("QUEUE {}", definition.name.to_uppercase()),
-        check.eligible,
+        &format!(
+            "{} {}",
+            if existing.is_some() {
+                "REVIEW"
+            } else {
+                "QUEUE"
+            },
+            definition.name.to_uppercase()
+        ),
+        check.eligible || existing.is_some(),
         pointer,
     ) {
-        actions.push(UiAction::QueueProject {
-            project_id: id.into(),
-            target_id: target,
-        });
+        if let Some(job) = existing {
+            actions.push(UiAction::PreviewCancelProject(job.sequence_id));
+        } else {
+            actions.push(UiAction::QueueProject {
+                project_id: id.into(),
+                target_id: target,
+            });
+        }
     }
     if !check.eligible {
         draw_text_block(
-            &check.reason,
+            if existing.is_some() {
+                "Recovery is already on the Agenda."
+            } else {
+                &check.reason
+            },
             rect.x,
             rect.y + 62.0,
             rect.w,
             28.0,
             11.0,
             1.0,
-            term::alert(),
+            if existing.is_some() {
+                term::dim()
+            } else {
+                term::alert()
+            },
         );
     }
 }

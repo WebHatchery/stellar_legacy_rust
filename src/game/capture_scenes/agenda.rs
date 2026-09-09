@@ -28,7 +28,7 @@ impl Game {
         }
         projects::pause_project(&mut sim, &self.data, id).unwrap();
         projects::queue_project(&mut sim, &self.data, "restore_hull", None).unwrap();
-        if scene == "agenda_queue" {
+        if matches!(scene, "agenda_queue" | "agenda_catalogue") {
             projects::queue_project(&mut sim, &self.data, "overhaul_life_support", None).unwrap();
             let selected = projects::queue_project(
                 &mut sim,

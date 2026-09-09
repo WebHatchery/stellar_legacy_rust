@@ -63,6 +63,7 @@ impl Game {
             | "agenda_cancel"
             | "agenda_review_blocked"
             | "agenda_queue"
+            | "agenda_catalogue"
             | "agenda_recovery" => self.capture_agenda(scene),
             "menu" => self.state = crate::state::GameState::Menu(MenuState::new(false)),
             "welcome" => {
@@ -734,6 +735,7 @@ impl Game {
             "obligation_archive" | "obligation_history" => "obligations",
             "mission_archive" => "archive",
             "subsystems" => "system:engineering_bay",
+            "agenda_catalogue" => "catalogue",
             _ => "",
         }
         .to_owned();
