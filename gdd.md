@@ -301,6 +301,8 @@ Agenda project reviews share one reading flow across display sizes. Pause and
 resume show the same availability checks used by the command, including slots,
 port restrictions and exact restoration affordability. Cancellation has a
 separate refund review with Keep project and Confirm cancellation controls.
+Station navigation, Utilities and campaign transitions close project reviews
+and release their temporary clock hold without changing the chosen game speed.
 Waiting positions count queued and paused jobs, skipping running and ended work.
 Reorder buttons stop at the list boundaries, and desktop selection follows the
 moved job. The queue explains that unavailable jobs are skipped and paused work

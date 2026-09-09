@@ -43,3 +43,11 @@ click route across the inspected packages, including one save/reload boundary.
 Fuel preview tests compare displayed results with actual resolution at tank
 limits and with subsystem protection. Authored fuel deltas and gameplay balance
 were not changed by the display correction.
+
+Project review navigation exposed an invisible clock hold: Review project →
+Bridge → Open project queue restored the old review. After the lifecycle fix
+passed publishing, saved and reloaded the paused campaign, then repeated that
+route and observed the queue. Review project → Utilities → Close utilities also
+returned to the queue. The Resume control remained visible throughout, preserving
+the player's pause. Focused tests cover both ordinary review and cancellation
+state on navigation, while project pause/resume keep the review open.

@@ -566,6 +566,8 @@ impl Game {
     }
 
     fn transition(&mut self, transition: StateTransition) {
+        self.project_cancel_confirm.set(None);
+        self.presentation.project_cancellation.set(None);
         // Any state change clears the session-local run timer (PLAN M4.7).
         self.mission_started = None;
         self.last_mission_real_secs = None;

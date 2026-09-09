@@ -26,6 +26,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         pointer,
     ) {
         actions.push(UiAction::DismissReturnHome);
+        actions.push(UiAction::DismissCancelProject);
         ctx.presentation
             .utilities
             .set(!ctx.presentation.utilities.get());

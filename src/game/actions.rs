@@ -23,6 +23,17 @@ use macroquad_toolkit::rng;
 
 impl Game {
     pub(super) fn apply_action(&mut self, action: UiAction) -> Option<StateTransition> {
+        let (review, cancellation) = if matches!(self.state, GameState::Gameplay(_)) {
+            projects::review_after_action(
+                self.project_cancel_confirm.get(),
+                self.presentation.project_cancellation.get(),
+                &action,
+            )
+        } else {
+            (None, None)
+        };
+        self.project_cancel_confirm.set(review);
+        self.presentation.project_cancellation.set(cancellation);
         self.abort_confirm.set(match &self.state {
             GameState::Gameplay(gameplay) => {
                 mission::review_after_action(self.abort_confirm.get(), &action, &gameplay.sim)
