@@ -283,6 +283,8 @@ the desktop and compact reading layouts.
 Both archive layouts show recent voyages first with captain, duration, posture
 and percentage scores. Heritage explains the current and next new-dynasty bonus;
 an empty archive explains when voyage reports are recorded.
+Milestones scroll in both layouts and show current progress toward unreached
+goals, distinguishing dynasty-specific years and generations from archive totals.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

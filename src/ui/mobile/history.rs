@@ -109,19 +109,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             crate::ui::chronicle::archive::build(ctx, f);
         }
         "milestones" => {
-            f.heading("Milestones");
-            for a in ctx.achievements.iter() {
-                f.text(&format!(
-                    "{}{} · {}",
-                    if a.unlocked {
-                        "Reached · "
-                    } else {
-                        "Not reached · "
-                    },
-                    a.name,
-                    a.description
-                ));
-            }
+            crate::ui::chronicle::milestones::build(ctx, f);
         }
         _ => {
             f.heading("Voyage timeline");

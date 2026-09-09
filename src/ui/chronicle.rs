@@ -2,6 +2,7 @@
 //! roster (GDD §7, §10).
 
 pub(crate) mod archive;
+pub(crate) mod milestones;
 use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -22,7 +23,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     };
     match ctx.presentation.history_page.get() {
         1 => draw_obligations(ctx, area, base_pointer, actions),
-        2 => draw_milestones(ctx, area),
+        2 => milestones::draw(ctx, area, base_pointer),
         _ => draw_archive(ctx, area, base_pointer),
     }
     if let Some(obligation_id) = ctx.obligation_detail {
@@ -487,43 +488,3 @@ fn draw_obligation_history(
 }
 
 use archive::draw as draw_mission_archive;
-
-fn draw_milestones(ctx: &GameplayCtx<'_>, area: Rect) {
-    let (unlocked, total) = ctx.achievements.progress();
-    term_panel(area, Some("MILESTONES"));
-    let content = area.inset(20.0);
-    let mut y = content.y + 42.0;
-
-    draw_ui_text_ex(
-        &format!("UNLOCKED {unlocked} / {total}"),
-        content.x,
-        y,
-        TextStyle::new(14.0, term::accent()).params(),
-    );
-    y += 28.0;
-
-    for achievement in ctx.achievements.iter() {
-        let (mark, name_color) = if achievement.unlocked {
-            ("[x]", term::accent())
-        } else {
-            ("[ ]", term::dim())
-        };
-        draw_ui_text_ex(
-            &format!("{mark} {}", achievement.name),
-            content.x,
-            y,
-            TextStyle::new(15.0, name_color).params(),
-        );
-        draw_text_block(
-            &achievement.description,
-            content.x + 22.0,
-            y + 6.0,
-            content.w - 22.0,
-            46.0,
-            12.0,
-            2.0,
-            term::faint(),
-        );
-        y += 66.0;
-    }
-}

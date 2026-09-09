@@ -561,7 +561,8 @@ impl Game {
                 });
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "chronicle" | "mission_archive" | "obligation_history" | "obligation_archive" => {
+            "chronicle" | "mission_archive" | "obligation_history" | "obligation_archive"
+            | "milestones" => {
                 // Seed a storied Chronicle and unlock the matching milestones.
                 self.achievements =
                     Achievements::from_definitions(crate::achievements::definitions());
@@ -749,6 +750,9 @@ impl Game {
             "people_council" => 3,
             _ => 0,
         });
+        if scene == "milestones" {
+            self.presentation.history_page.set(2);
+        }
         *self.presentation.mobile_section.borrow_mut() = match scene {
             "posture" => "posture",
             "people_officers" => "officers",
@@ -756,6 +760,7 @@ impl Game {
             "people_council" => "council",
             "obligation_archive" | "obligation_history" => "obligations",
             "mission_archive" => "archive",
+            "milestones" => "milestones",
             "subsystems" => "system:engineering_bay",
             "agenda_catalogue" => "catalogue",
             _ => "",

@@ -17,7 +17,7 @@ pub fn definitions() -> Vec<Achievement> {
         Achievement::new(
             "first_charter",
             "First Charter",
-            "Complete your first contract.",
+            "Record your first voyage in the mission archive.",
         ),
         Achievement::new(
             "flawless",
@@ -37,7 +37,7 @@ pub fn definitions() -> Vec<Achievement> {
         Achievement::new(
             "against_the_void",
             "Against the Void",
-            "Keep a voyage alive to year 100.",
+            "Reach Year 100 with a dynasty.",
         ),
         Achievement::new(
             "storied_house",

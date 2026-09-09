@@ -90,3 +90,9 @@ shows the empty archive, Founding heritage at zero renown, and the next tier's
 100-renown threshold and bonuses. Populated desktop and portrait fixtures show
 all six records newest first; the portrait end capture reaches the oldest record.
 This checks archive presentation, not the full Homecoming-to-second-charter route.
+
+Milestone presentation follow-up: the packaged browser's saved campaign shows
+0/6 reached, zero recorded voyages and Complete outcomes, generation 1/5,
+Year 2/100 and renown 0/250. Dragging reaches the final milestone. The populated
+fixture reaches all six, including the final descriptions at 150% text on a
+390px portrait capture. This checks presentation; no new unlock was simulated.
