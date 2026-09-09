@@ -2,6 +2,7 @@ use super::*;
 use crate::simulation::projects;
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
 mod catalogue;
+mod institutions;
 mod repairs;
 mod salvage;
 mod systems;

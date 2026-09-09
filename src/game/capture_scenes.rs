@@ -289,7 +289,7 @@ impl Game {
             "ship_underway_ring" => {
                 self.state = self.underway_blueprint_state(Some("habitat_ring"))
             }
-            "subsystems" => {
+            "subsystems" | "institutions" => {
                 // The underway subsystems screen (W5) with mixed tiers, worn
                 // condition, and knowledge dipping below a repair threshold.
                 let mut sim = SimState::new_campaign(
@@ -766,6 +766,7 @@ impl Game {
             "mission_archive" => "archive",
             "milestones" => "milestones",
             "subsystems" => "system:engineering_bay",
+            "institutions" => "system:agriculture",
             "agenda_catalogue" => "catalogue",
             _ => "",
         }

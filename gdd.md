@@ -296,6 +296,9 @@ spend stores at full air. Compact recovery reviews show costs, the resulting air
 level and the one-use-per-crisis limit before the action.
 Compartment upgrades identify the next fitting and distinguish purchased tiers
 from mission rewards, with full costs and explicit port-only installation.
+Compact discipline controls show school funding dates, knowledge-preservation
+benefits, existing archives and custodians. Custody explains its lasting choice
+and stops offering another appointment once a custodian exists.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

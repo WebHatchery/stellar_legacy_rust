@@ -3,7 +3,16 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let sim = ctx.sim;
     let cfg = &ctx.data.config;
     if let Some(id) = ctx.custody_picker {
+        f.action(
+            "Cancel custody selection",
+            true,
+            UiAction::CancelDisciplineCustody,
+        );
         f.heading("Choose the discipline's custodians");
+        if let Some(def) = ctx.data.subsystems.get(id) {
+            f.text(&def.name);
+        }
+        f.text("Choose one people aboard to care for this discipline. Their approval affects care while the school is funded; this appointment cannot be reassigned here.");
         f.text(&format!(
             "Grant costs {} influence",
             cfg.crew.custody_influence_cost
@@ -23,11 +32,6 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 },
             );
         }
-        f.action(
-            "Cancel custody selection",
-            true,
-            UiAction::CancelDisciplineCustody,
-        );
         return;
     }
     f.heading("Compartments");
@@ -119,44 +123,6 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 UiAction::TrainSubsystemKnowledge(id.clone()),
             );
         }
-        let school = sim
-            .subsystem_schools
-            .iter()
-            .find(|school| school.subsystem_id == id);
-        let archive = sim.procedure_archives.iter().any(|a| a.subsystem_id == id);
-        let cost = if school.is_some() {
-            cfg.crew.school_upkeep_credits
-        } else {
-            cfg.crew.school_cost_credits
-        };
-        f.action(
-            &format!(
-                "{} school · {cost} credits",
-                if school.is_some() {
-                    "Support"
-                } else {
-                    "Establish"
-                }
-            ),
-            sim.resources.credits >= cost,
-            UiAction::EstablishSchool(id.clone()),
-        );
-        if school.is_some() && !archive {
-            f.action(
-                &format!(
-                    "Compile archive · {} credits",
-                    cfg.crew.archive_cost_credits
-                ),
-                sim.resources.credits >= cfg.crew.archive_cost_credits,
-                UiAction::CompileProcedureArchive(id.clone()),
-            );
-        }
-        if school.is_some() {
-            f.action(
-                "Choose discipline custodians",
-                sim.resources.influence >= cfg.crew.custody_influence_cost,
-                UiAction::BeginDisciplineCustody(id.clone()),
-            );
-        }
+        super::institutions::build(ctx, f, &id);
     }
 }
