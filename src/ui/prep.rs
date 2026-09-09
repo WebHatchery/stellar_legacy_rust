@@ -278,17 +278,25 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     };
     draw_ui_text_ex(
         &format!(
-            "FUEL  — tank {:.0}%  ·  burn {:.2} over {} travel yrs · regen up to {:.2}/yr",
+            "FUEL  — tank {:.0}%  ·  {} travel years · total burn {:.2} full tanks",
             sim.ship.fuel * 100.0,
-            forecast.fuel_burn,
             forecast.travel_years,
-            forecast.fuel_regen_per_year
+            forecast.fuel_burn
         ),
         content.x,
         y,
         TextStyle::new(13.0, fuel_color).params(),
     );
-    y += 8.0;
+    draw_ui_text_ex(
+        &format!(
+            "Scoops replenish up to {:.1}% of a tank per year; capacity is one full tank.",
+            forecast.fuel_regen_per_year * 100.0
+        ),
+        content.x,
+        y + 18.0,
+        TextStyle::new(12.0, term::dim()).params(),
+    );
+    y += 26.0;
 
     if ctx.tutorial_enabled
         && ctx.tutorial_open

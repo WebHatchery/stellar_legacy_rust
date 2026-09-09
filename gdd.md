@@ -285,6 +285,8 @@ The phone voyage report exposes the shared travel fuel check. A fuel stall
 explains current annual scoop recovery or its absence, port-only refuelling,
 and provides a visible link to Agenda readiness. Fuel readiness is distinct
 from whether the player has paused time.
+Departure fuel forecasts name total burn in full tanks and annual scoop recovery
+as a percentage of one tank, making replenishment across long voyages explicit.
 The narrow founding picker shows each people's outlook and cared-for subsystem
 before selection. It counts selected peoples, names Remove explicitly, disables
 additional selections when full, and explains how many more are needed to begin.

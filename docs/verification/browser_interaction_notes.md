@@ -20,3 +20,14 @@ are layout evidence, not a live replay of the revised route.
 Full voyage, save/reload, succession, terminal recovery and fresh-player
 comprehension acceptance remain open in TODO.md. This check does not close
 those gates.
+
+Continued the same loaded package through Provisions Reviewed → People → Ship →
+Voyage → Launch → Ship / Agenda → Available projects → Queue project → Pause →
+Resume. Each lesson advanced and returned its instruction to the top. The first
+council event, The Slow Pocket, appeared; Pause changed to Resume and stopped
+the countdown. Its displayed fuel consequences were +20000% and -18000%, which
+need investigation before treating the council consequence display as accepted.
+
+The departure report also mixed tank percentages with unlabelled fractions.
+The next revision explicitly names full tanks and percentage recovery; its
+desktop capture keeps Provisions Reviewed and Launch visible.

@@ -101,7 +101,13 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 UiAction::BuyParts(parts),
             );
         }
-        f.text(&format!("Fuel {:.0}% · Travel {} years\nTotal burn {:.2} · regeneration up to {:.2}/year\nRoute hull {:+.0}% · air {:+.0}%",sim.ship.fuel*100.0,forecast.travel_years,forecast.fuel_burn,forecast.fuel_regen_per_year,forecast.route_hull_change*100.0,forecast.route_life_support_change*100.0));
+        f.text(&format!("Fuel aboard {:.0}% · Travel {} years\nTotal travel burn: {:.2} full tanks\nAnnual scoops: up to {:.1}% of a tank",sim.ship.fuel*100.0,forecast.travel_years,forecast.fuel_burn,forecast.fuel_regen_per_year * 100.0));
+        f.text("The tank holds 100%. Scoops replenish fuel during the voyage, so total travel needs can exceed one tank. This baseline assumes current engineering condition.");
+        f.text(&format!(
+            "Route hull {:+.0}% · air {:+.0}%",
+            forecast.route_hull_change * 100.0,
+            forecast.route_life_support_change * 100.0
+        ));
         let fuel_cost = (ctx.data.config.provisioning.fuel_cost_credits_per_point as f32
             * (1.0 - sim.ship.fuel)
             * 100.0)
