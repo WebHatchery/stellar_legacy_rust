@@ -1,8 +1,0 @@
-{
-  "target": "OWNER/STELLAR-LEGACY",
-  "channels": {
-    "html5": "html5-demo",
-    "windows": "windows"
-  },
-  "user_version": "0.1.0"
-}

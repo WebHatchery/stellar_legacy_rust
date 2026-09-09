@@ -32,13 +32,19 @@ those results do not waive these diagnostics.
 
 ## Balance analysis maintenance
 
-The saved 22-charter matrix predates the 23-charter registry, 1-second monthly
-clock and ship-work survival rules. The ignored matrix generator still contains
-a 22-charter assertion and hard-coded historical interpretation prose. Update
-those before regenerating or treating the full matrix as release evidence.
-Keep the ordinary test suite and comparable ship-work policies as separate
-checks; neither demonstrates final human pacing or balance. See
-[balance evidence](balance_report.md).
+The obsolete matrix and report have been removed. The ignored
+[generate_release_balance_report test](src/simulation/balance/tests.rs) still
+contains a 22-charter assertion and hard-coded historical interpretation prose,
+although the current registry has 23 charters. It also writes its generated files
+to the repository root. Update those assumptions and choose an appropriate output
+location before running it again or treating its results as release evidence.
+
+The ordinary suite includes comparable ship-work policies; the retained
+[September 7 cohort](docs/ship_work_cohort.csv) is historical comparison data,
+not current human balance or pacing acceptance. Detailed cohort rows can be
+generated through STELLAR_SHIP_WORK_REPORT. Automated policies do not establish
+human success rates or voyage duration; use the candidate-specific routes in
+[release QA](docs/release/QA_AND_OPERATIONS.md).
 
 ## Deferred design intent
 

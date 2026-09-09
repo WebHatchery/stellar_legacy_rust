@@ -40,7 +40,7 @@ normal deployment path. Do not substitute a local development server for this ga
 Use the package-scoped tests/Clippy/formatting commands in [README](../../README.md).
 The normal suite includes the comparable ship-work cohort and the 800-line source
 gate. The separate ignored full balance matrix needs maintenance before use;
-see [balance evidence](../../balance_report.md). Test logs/captures from an older
+see [balance analysis maintenance](../../TODO.md#balance-analysis-maintenance). Test logs/captures from an older
 commit do not certify the candidate being submitted.
 
 ## Captures and media

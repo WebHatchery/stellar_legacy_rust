@@ -140,7 +140,6 @@ The documentation set has separate, current purposes:
 - [Game design and architecture](gdd.md): implemented rules, ownership and data.
 - [Event authoring](event_design_notes.md): schema, voice and content quality.
 - [Open work](TODO.md): unfinished acceptance and deferred design intent.
-- [Balance evidence](balance_report.md): reproducible cohorts and their limits.
 - [Coding standards](CODE_STANDARDS.md) and [agent instructions](AGENTS.md).
 - [Release operations and gates](docs/release/QA_AND_OPERATIONS.md), with links
   to support, store copy, rights and provenance records.

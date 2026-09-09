@@ -100,7 +100,7 @@ Check unique IDs, valid references, family registration, phase/era reachability,
 legal choices, identity attribution, staged effects and save compatibility in the
 separate child tests under `src/data/tests/` and the relevant simulation module.
 Use deterministic paired scenarios where preparation is meant to change an outcome.
-See [balance_report.md](balance_report.md) for current evidence limitations.
+See [release QA](docs/release/QA_AND_OPERATIONS.md) for human acceptance requirements.
 
 Run `.\publish.ps1` without parameters after meaningful changes. Review changed
 screens at their actual dimensions, including full prose, long names, scrollable

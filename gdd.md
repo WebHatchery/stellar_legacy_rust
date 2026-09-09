@@ -255,7 +255,8 @@ Prefer distinct situations and delayed consequences to larger counts. Couple
 existing systems, preserve phase/year/generation gates, and vary recurring events
 with meaningful complications. Avoid filler options, anonymous authority and
 fake history. [Event authoring](event_design_notes.md) is the content contract;
-[balance evidence](balance_report.md) distinguishes automation from human results.
+[release QA](docs/release/QA_AND_OPERATIONS.md) distinguishes automated checks
+from human acceptance.
 
 ## 9. Presentation and navigation
 
