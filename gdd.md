@@ -294,6 +294,8 @@ resource cost and distinguishes component fitting from hull commissioning.
 Emergency stabilisation controls share the action's availability check and cannot
 spend stores at full air. Compact recovery reviews show costs, the resulting air
 level and the one-use-per-crisis limit before the action.
+Compartment upgrades identify the next fitting and distinguish purchased tiers
+from mission rewards, with full costs and explicit port-only installation.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

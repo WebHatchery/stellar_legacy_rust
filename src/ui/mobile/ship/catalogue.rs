@@ -84,7 +84,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
     }
 }
 
-fn purchase(
+pub(super) fn purchase(
     ctx: &GameplayCtx<'_>,
     form: &mut Form,
     label: &str,
@@ -118,7 +118,7 @@ fn purchase(
             "{label} · {}",
             if price.is_empty() { "Free" } else { &price }
         ),
-        missing.is_empty(),
+        missing.is_empty() && ctx.sim.contract.is_none(),
         action,
     );
 }

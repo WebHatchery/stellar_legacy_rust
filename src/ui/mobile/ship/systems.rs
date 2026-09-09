@@ -51,6 +51,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             s.knowledge * 100.0,
             def.repair_knowledge_required * 100.0
         ));
+        f.text(&def.description);
         let target = crate::simulation::subsystems::repair_target_condition(sim, ctx.data, &id)
             .unwrap_or(s.condition);
         if target > s.condition {
@@ -70,24 +71,40 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             f.text("Condition sound for current repair capability");
         }
         if let Some(next) = def.next_fitting(s.tier) {
-            if next.acquisition.is_mission_only() && sim.ship.unlocked_fittings.contains(&next.id) {
-                f.action(
-                    "Install recovered fitting",
-                    sim.contract.is_none(),
-                    UiAction::InstallFitting(id.clone()),
+            f.heading(&format!(
+                "Next fitting: {} · Tier {}",
+                next.name,
+                s.tier + 1
+            ));
+            if !next.description.is_empty() {
+                f.text(&next.description);
+            }
+            f.text("Installing an upgrade changes the fitting's tier; it does not restore condition or knowledge.");
+            if sim.contract.is_some() {
+                f.text("Install in port between voyages.");
+            }
+            if next.acquisition.is_mission_only() {
+                if sim.ship.unlocked_fittings.contains(&next.id) {
+                    f.text("Recovered fitting available. Installation is free in port.");
+                    f.action(
+                        "Install recovered fitting",
+                        sim.contract.is_none(),
+                        UiAction::InstallFitting(id.clone()),
+                    );
+                } else {
+                    f.text("This fitting must be recovered as a mission reward. It is not sold in drydock.");
+                }
+            } else {
+                super::catalogue::purchase(
+                    ctx,
+                    f,
+                    "Upgrade in port",
+                    next.cost,
+                    UiAction::UpgradeSubsystem(id.clone()),
                 );
             }
-
-            f.action(
-                &format!(
-                    "Upgrade in port · {} credits · {} minerals",
-                    next.cost.credits, next.cost.minerals
-                ),
-                sim.contract.is_none()
-                    && sim.resources.credits >= next.cost.credits
-                    && sim.resources.minerals >= next.cost.minerals,
-                UiAction::UpgradeSubsystem(id.clone()),
-            );
+        } else {
+            f.text("Highest fitting tier reached.");
         }
         let train = crate::simulation::subsystems::training_target_knowledge(sim, ctx.data, &id)
             .unwrap_or(s.knowledge);
