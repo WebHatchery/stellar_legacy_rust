@@ -155,7 +155,10 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
                 let range = crate::simulation::event_resolver::outcome_pop_impact_range(
                     sim, ctx.data, event, index,
                 );
-                f.text(&event_modal::known_effects(option, range).0);
+                let fuel = crate::simulation::event_resolver::outcome_fuel_preview(
+                    sim, ctx.data, event, index,
+                );
+                f.text(&event_modal::known_effects(option, range, fuel).0);
                 let ok = crate::simulation::event_resolver::outcome_affordable(sim, option);
                 if !ok {
                     f.text("Unavailable: insufficient stores for this choice.");

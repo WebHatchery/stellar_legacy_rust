@@ -137,6 +137,7 @@ fn impact_label(lo: i64, hi: i64) -> (String, Color) {
 pub(crate) fn known_effects(
     outcome: &crate::data::events::EventOutcome,
     population_range: Option<(i64, i64)>,
+    fuel_preview: Option<(f32, f32)>,
 ) -> (String, Color) {
     let mut effects = Vec::new();
     let r = outcome.resource_delta;
@@ -152,17 +153,20 @@ pub(crate) fn known_effects(
         }
     }
     let s = outcome.ship_delta;
-    for (label, value) in [
-        ("hull", s.hull_integrity),
-        ("life", s.life_support),
-        ("fuel", s.fuel),
-    ] {
+    for (label, value) in [("hull", s.hull_integrity), ("life", s.life_support)] {
         if value.abs() > f32::EPSILON {
             effects.push(format!("{label} {:+.0}%", value * 100.0));
         }
     }
     if s.spare_parts != 0 {
         effects.push(format!("parts {:+}", s.spare_parts));
+    }
+    if let Some((before, after)) = fuel_preview {
+        effects.push(format!(
+            "fuel tank {:.1}% → {:.1}%",
+            before * 100.0,
+            after * 100.0
+        ));
     }
     let p = outcome.population_delta;
     for (label, value) in [

@@ -128,12 +128,33 @@ pub fn outcome_affordable(sim: &SimState, outcome: &EventOutcome) -> bool {
     !outcome.requires_full_payment || sim.resources.can_afford(&outcome.resource_delta)
 }
 
-/// The band of population impact an outcome may land (real-time loop §3), as a
-/// signed `(low, high)` head-count delta — negative for lives lost, positive for
-/// arrivals/births. Derived from the outcome's *buffered* `population_delta.count`
-/// (the same value `apply_outcome` rolls within, since the sim is paused, so the
-/// shown band and the rolled result agree). `None` when the magnitude is below
-/// `impact_min_magnitude_for_range` — a small, specific effect shown exactly.
+/// Tank levels before and after the immediate fuel effect, using the same
+/// subsystem protection and capacity limits as resolution.
+pub fn outcome_fuel_preview(
+    sim: &SimState,
+    data: &GameData,
+    template: &EventTemplate,
+    outcome_index: usize,
+) -> Option<(f32, f32)> {
+    let outcome = template.outcomes.get(outcome_index)?;
+    if outcome.ship_delta.fuel.abs() <= f32::EPSILON {
+        return None;
+    }
+    let (_, delta, _) = subsystems::buffered_deltas(
+        sim,
+        data,
+        &template.family,
+        outcome.resource_delta,
+        outcome.ship_delta,
+        outcome.population_delta,
+    );
+    let mut ship = sim.ship.clone();
+    ship.apply(&delta);
+    Some((sim.ship.fuel, ship.fuel))
+}
+
+/// Buffered population impact band, matching the range used by resolution.
+/// Small effects below the configured range threshold return None.
 pub fn outcome_pop_impact_range(
     sim: &SimState,
     data: &GameData,

@@ -172,14 +172,21 @@ impl Game {
                 }
                 self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
             }
-            "event" | "event_succession" | "event_mascot_succession" | "event_custodian" => {
+            "event"
+            | "event_succession"
+            | "event_mascot_succession"
+            | "event_custodian"
+            | "event_fuel" => {
                 let mut sim = SimState::new_campaign(
                     &self.data,
                     "preservers",
                     0xC0FFEE,
                     &crate::state::sim::founding_faction_ids(&self.data),
                 );
-                let template_id = if scene == "event_custodian" {
+                let template_id = if scene == "event_fuel" {
+                    sim.ship.fuel = 0.5;
+                    "relativity_pocket"
+                } else if scene == "event_custodian" {
                     sim.dynasty.generation = 3;
                     "the_emotional_module"
                 } else if scene == "event_mascot_succession" {

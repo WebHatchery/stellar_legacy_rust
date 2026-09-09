@@ -129,7 +129,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let population = crate::simulation::event_resolver::outcome_pop_impact_range(
         ctx.sim, ctx.data, event, index,
     );
-    let (effects, _) = known_effects(outcome, population);
+    let fuel =
+        crate::simulation::event_resolver::outcome_fuel_preview(ctx.sim, ctx.data, event, index);
+    let (effects, _) = known_effects(outcome, population, fuel);
     let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
     let briefing = format!(
         "{}\n\n{}{}",

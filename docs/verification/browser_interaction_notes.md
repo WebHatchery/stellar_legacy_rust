@@ -17,7 +17,7 @@ outlooks, cared-for subsystems, a selected count, explicit Remove controls,
 and disabled excess choices. Phone captures cover the revised picker; they
 are layout evidence, not a live replay of the revised route.
 
-Full voyage, save/reload, succession, terminal recovery and fresh-player
+Full voyage, save/reload at all major boundaries, succession, terminal recovery and fresh-player
 comprehension acceptance remain open in TODO.md. This check does not close
 those gates.
 
@@ -26,8 +26,20 @@ Voyage → Launch → Ship / Agenda → Available projects → Queue project →
 Resume. Each lesson advanced and returned its instruction to the top. The first
 council event, The Slow Pocket, appeared; Pause changed to Resume and stopped
 the countdown. Its displayed fuel consequences were +20000% and -18000%, which
-need investigation before treating the council consequence display as accepted.
+triggered the fuel-preview correction below.
 
 The departure report also mixed tank percentages with unlabelled fractions.
 The next revision explicitly names full tanks and percentage recovery; its
 desktop capture keeps Provisions Reviewed and Launch visible.
+
+After the fuel-preview correction passed publishing, used Utilities / Save game,
+reloaded the page and clicked Continue. The paused campaign and pending Slow
+Pocket decision survived; the fallback countdown restarted at 90 seconds. Both
+choices displayed the current 97.5% tank changing to 100% or 0%. Committed Cut
+through the fold, observed 100% fuel and the guide-complete message, then tapped
+FINISH and returned to the ordinary Bridge. This completes the sampled tutorial
+click route across the inspected packages, including one save/reload boundary.
+
+Fuel preview tests compare displayed results with actual resolution at tank
+limits and with subsystem protection. Authored fuel deltas and gameplay balance
+were not changed by the display correction.
