@@ -51,3 +51,15 @@ route and observed the queue. Review project → Utilities → Close utilities a
 returned to the queue. The Resume control remained visible throughout, preserving
 the player's pause. Focused tests cover both ordinary review and cancellation
 state on navigation, while project pause/resume keep the review open.
+
+In the paused campaign, added Optimise hydroponics to fill the second active
+slot, then queued Restore crew quarters and agriculture replacement training.
+Moved training from waiting position 2 to 1; quarters moved to 2. Saved through
+Utilities, reloaded the published queue-flow revision and observed the same
+two active projects and waiting order. This samples a live reorder/save boundary.
+
+The original catalogue moved another Queue project control beneath the pointer
+after each addition. With the success-route correction, adding Schools & Archives
+training returned to Project queue, raised waiting work from 2 to 3, and named
+the added project in feedback. Pause remained active. Saved this five-project
+campaign for subsequent interaction checks. Other acceptance routes remain open.

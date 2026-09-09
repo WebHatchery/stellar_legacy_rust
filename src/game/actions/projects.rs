@@ -55,7 +55,34 @@ impl Game {
                     Err("No active campaign.".to_owned())
                 };
                 match result {
-                    Ok(_) => self.notifications.success("Project added to the Agenda."),
+                    Ok(id) => {
+                        if let GameState::Gameplay(gameplay) = &mut self.state {
+                            gameplay.screen = crate::state::Screen::Agenda;
+                            if let Some(index) = gameplay
+                                .sim
+                                .projects
+                                .jobs
+                                .iter()
+                                .position(|job| job.sequence_id == id)
+                            {
+                                self.presentation.selected_agenda.set(index);
+                                let mut scroll = self.agenda_scroll.get();
+                                scroll.set_offset(index as f32 * 66.0);
+                                self.agenda_scroll.set(scroll);
+                            }
+                        }
+                        self.presentation.mobile_section.borrow_mut().clear();
+                        self.presentation.utilities.set(false);
+                        self.project_cancel_confirm.set(None);
+                        self.presentation.project_cancellation.set(None);
+                        let name = self
+                            .data
+                            .projects
+                            .get(&project_id)
+                            .map_or(project_id.as_str(), |definition| definition.name.as_str());
+                        self.notifications
+                            .success(format!("{name} added to the Agenda."));
+                    }
                     Err(error) => self.notifications.warning(error),
                 }
             }

@@ -308,6 +308,9 @@ as the Systems screen, so the player can identify each project's target.
 Project choices and reviews include their authored purpose. Desktop catalogue
 details and phone entries share a scrolling description, budget and delivery
 schedule before the queue action.
+Successful additions return to the project queue and name the added work.
+The desktop selection follows the new job; failed additions keep the current
+choice visible with the failure reason.
 Waiting positions count queued and paused jobs, skipping running and ended work.
 Reorder buttons stop at the list boundaries, and desktop selection follows the
 moved job. The queue explains that unavailable jobs are skipped and paused work
