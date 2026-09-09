@@ -63,3 +63,10 @@ after each addition. With the success-route correction, adding Schools & Archive
 training returned to Project queue, raised waiting work from 2 to 3, and named
 the added project in feedback. Pause remained active. Saved this five-project
 campaign for subsequent interaction checks. Other acceptance routes remain open.
+
+The compact Family revision showed Xan Wardhome as the automatic successor,
+with age and leadership plus the eligible 30–50 age band. Named Perr Steadfast
+from the roster and observed Named heir, a disabled Current heir control, and
+the success notice; Xan remained selectable as an alternative. Saved through
+Utilities while paused. This verifies designation feedback, not a completed
+succession or its reload boundary.

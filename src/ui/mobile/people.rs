@@ -123,19 +123,46 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 crate::simulation::succession::planned_heir(&sim.dynasty, &ctx.data.config)
             {
                 f.portrait(&p.name);
+                f.text(&format!("Age {} · Leadership {}", p.age, p.leadership));
+                f.text(if sim.dynasty.designated_heir == Some(p.id) {
+                    "Named heir · the council's choice for the next captain."
+                } else {
+                    "Automatic successor · highest leadership among eligible family members."
+                });
             } else {
                 f.text("No eligible successor.");
             }
             f.heading("Family roster");
+            f.text(&format!(
+                "Tap Name heir to choose the next captain; the serving captain remains in command. Eligible ages: {}–{}. The choice must still be alive and eligible at succession.",
+                ctx.data.config.heir_min_age, ctx.data.config.heir_max_age,
+            ));
             for p in &sim.dynasty.members {
                 {
                     f.portrait(&p.name);
                     f.text(&format!("Age {} · Leadership {}", p.age, p.leadership));
+                    f.text(&format!("{} · {}", p.specialization, p.trait_name));
+                    if p.is_leader {
+                        f.text("Serving captain");
+                    } else if sim.dynasty.designated_heir == Some(p.id) {
+                        f.text("Named heir");
+                    }
                     if !p.is_leader
                         && p.age >= ctx.data.config.heir_min_age
                         && p.age <= ctx.data.config.heir_max_age
                     {
-                        f.action("Name heir", true, UiAction::SelectHeir(p.id));
+                        let named = sim.dynasty.designated_heir == Some(p.id);
+                        f.action(
+                            if named { "Current heir" } else { "Name heir" },
+                            !named,
+                            UiAction::SelectHeir(p.id),
+                        );
+                    } else if !p.is_leader {
+                        f.text(if p.age < ctx.data.config.heir_min_age {
+                            "Too young to be named heir."
+                        } else {
+                            "Outside the age range for naming an heir."
+                        });
                     }
                 }
             }
