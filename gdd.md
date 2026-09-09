@@ -287,6 +287,8 @@ Milestones scroll in both layouts and show current progress toward unreached
 goals, distinguishing dynasty-specific years and generations from archive totals.
 Compact loadout repairs show their resulting condition, field-repair ceiling,
 material shortfalls and full-refit benefits before the player spends resources.
+Recovered fittings use authored names, identify the replaced part and explain
+installation costs, engineer requirements and drydock-only restrictions.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;

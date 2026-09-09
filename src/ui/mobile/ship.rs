@@ -2,6 +2,7 @@ use super::*;
 use crate::simulation::projects;
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
 mod repairs;
+mod salvage;
 mod systems;
 
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
@@ -89,15 +90,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             }
         }
     }
-    for id in &ctx.sim.ship.salvage {
-        let eligibility = crate::simulation::ship::install_eligibility(ctx.sim, ctx.data, id);
-        f.text(&format!("Recovered fitting: {eligibility:?}"));
-        f.action(
-            &format!("Install recovered {}", id.replace('_', " ")),
-            eligibility == crate::simulation::ship::InstallEligibility::Ready,
-            UiAction::InstallSalvage(id.clone()),
-        );
-    }
+    salvage::build(ctx, f);
 }
 
 fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
