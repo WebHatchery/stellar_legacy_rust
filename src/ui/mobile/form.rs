@@ -1,6 +1,8 @@
 //! Vertical game document: full prose and explicit intents, backed by toolkit scrolling.
 use super::*;
 use macroquad_toolkit::ui::{wrap_text, ScrollArea};
+mod layout;
+use layout::GroupLayout;
 
 enum Item<A> {
     Text(String, bool),
@@ -133,8 +135,12 @@ impl<A> Form<A> {
                         .max(48.0)
                         + 12.0
                 }
-                Item::Sections(items) => items.len().div_ceil(2) as f32 * 60.0,
-                Item::Actions(..) => 60.0,
+                Item::Sections(items) => {
+                    group_layout(items.iter().map(|(label, _)| label.as_str()), width, 2).height()
+                }
+                Item::Actions(items, _) => {
+                    group_layout(items.iter().map(|(label, _)| label.as_str()), width, 3).height()
+                }
                 Item::Portrait(_) => 100.0,
                 Item::Ship | Item::Vessel(_) => 180.0_f32.min(view.h),
                 Item::Art(_) => ((width * 9.0 / 16.0).min(260.0) + 12.0).min(view.h),
@@ -142,6 +148,10 @@ impl<A> Form<A> {
             })
             .collect();
         let total = sizes.iter().sum();
+        // Keep the reading hint inside its own footer instead of painting it
+        // against the last line of the document or outside the owning panel.
+        let outer = view;
+        let view = layout::reading_view(outer, total, text_scale);
         let mut scroll = scroll_cell.get();
         if overlay || !state.overlay_active.get() {
             scroll.update_at(view, total, pointer.position);
@@ -168,7 +178,7 @@ impl<A> Form<A> {
                         let stride = if title { 32.0 } else { 26.0 } * text_scale;
                         for (i, line) in wrap_text(&text, width, size).iter().enumerate() {
                             let y = rect.y + i as f32 * stride;
-                            if y + stride > view.y && y < view.bottom() {
+                            if y >= view.y && y + stride <= view.bottom() {
                                 draw_ui_text_ex(
                                     line,
                                     rect.x,
@@ -202,13 +212,10 @@ impl<A> Form<A> {
                         }
                     }
                     Item::Sections(items) => {
+                        let grid =
+                            group_layout(items.iter().map(|(label, _)| label.as_str()), rect.w, 2);
                         for (i, (label, section)) in items.into_iter().enumerate() {
-                            let r = Rect::new(
-                                rect.x + (i % 2) as f32 * (rect.w + 12.0) / 2.0,
-                                rect.y + (i / 2) as f32 * 60.0,
-                                (rect.w - 12.0) / 2.0,
-                                48.0,
-                            );
+                            let r = grid.cell(rect, i);
                             if nav_button(r, &label, tap) {
                                 *state.mobile_section.borrow_mut() = section;
                             } else if state.mobile_section.borrow().as_str() == section {
@@ -217,11 +224,10 @@ impl<A> Form<A> {
                         }
                     }
                     Item::Actions(items, selected) => {
-                        let count = items.len() as f32;
-                        let width = (rect.w - 12.0 * (count - 1.0)) / count;
+                        let grid =
+                            group_layout(items.iter().map(|(label, _)| label.as_str()), rect.w, 3);
                         for (i, (label, action)) in items.into_iter().enumerate() {
-                            let r =
-                                Rect::new(rect.x + i as f32 * (width + 12.0), rect.y, width, 48.0);
+                            let r = grid.cell(rect, i);
                             if nav_button(r, &label, tap) {
                                 actions.push(action);
                             }
@@ -303,14 +309,41 @@ impl<A> Form<A> {
         );
         scroll_cell.set(scroll);
         if total > view.h {
-            draw_ui_text_ex(
-                "Drag to read",
+            draw_text_centered_in_box_ex(
+                if scroll.offset() + view.h >= total - 1.0 {
+                    "End of section · Drag to go back"
+                } else {
+                    "More below · Drag to read"
+                },
                 view.x,
-                view.bottom() + 14.0,
-                TextStyle::new(14.0, term::faint()).params(),
+                view.bottom() + 4.0,
+                view.w,
+                outer.bottom() - view.bottom() - 4.0,
+                TextStyle::new(14.0, term::dim()),
             );
         }
     }
+}
+
+fn group_layout<'a>(
+    labels: impl Iterator<Item = &'a str>,
+    width: f32,
+    max_columns: usize,
+) -> GroupLayout {
+    let labels: Vec<_> = labels.collect();
+    let widest = labels
+        .iter()
+        .map(|label| measure_text_size(label, TextStyle::new(16.0, term::primary())).width)
+        .fold(0.0, f32::max);
+    let mut grid = GroupLayout::new(width, labels.len(), max_columns, widest);
+    let lines = labels
+        .iter()
+        .map(|label| wrap_text(label, grid.cell_width - 24.0, 16.0).len())
+        .max()
+        .unwrap_or(1);
+    grid.row_height =
+        (lines as f32 * 26.0 * macroquad_toolkit::ui::ui_text_scale() + 20.0).max(48.0);
+    grid
 }
 
 fn draw_vessel(rect: Rect, ship: &ship_schematic::ShipSchematic) {

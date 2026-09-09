@@ -268,6 +268,8 @@ Pause/Resume and speed controls remain reachable above blocking decisions.
 Responsive and phone navigation underline the active destination and section;
 phone speed controls underline the current running speed. Touch presses visibly
 light navigation targets, and Drydock/Market share a compact section row.
+Section rows reflow to fit enlarged labels. Scrolling documents reserve a footer
+for a reading hint that distinguishes more content from the end of the section.
 Council choices select a response before explicit Commit; full consequences scroll.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and
