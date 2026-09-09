@@ -1,6 +1,7 @@
 use super::*;
 use crate::simulation::projects;
 use crate::state::sim::{ProjectAmounts, ProjectStatus};
+mod catalogue;
 mod repairs;
 mod salvage;
 mod systems;
@@ -44,51 +45,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let port = ctx.sim.contract.is_none();
     repairs::build(ctx, f);
     if port {
-        for kind in [
-            ComponentKind::Hull,
-            ComponentKind::Engine,
-            ComponentKind::Weapon,
-        ] {
-            for part in ctx
-                .data
-                .ship_components
-                .list(kind)
-                .iter()
-                .filter(|p| !p.acquisition.is_mission_only())
-            {
-                f.heading(&part.name);
-                f.text(&part.description);
-                f.text(&format!(
-                    "Cargo {} · Crew {} · Speed {} · Combat {}\n{} credits · {} minerals",
-                    part.stats.cargo,
-                    part.stats.crew_capacity,
-                    part.stats.speed,
-                    part.stats.combat,
-                    part.cost.credits,
-                    part.cost.minerals
-                ));
-                if kind == ComponentKind::Hull {
-                    let c = &ctx.data.config.commission;
-                    f.action(
-                        &format!(
-                            "Commission with full refit · {} credits · {} minerals",
-                            part.cost.credits + c.premium_credits,
-                            part.cost.minerals + c.premium_minerals
-                        ),
-                        ctx.sim.resources.credits >= part.cost.credits + c.premium_credits
-                            && ctx.sim.resources.minerals
-                                >= part.cost.minerals + c.premium_minerals,
-                        UiAction::CommissionShip(part.id.clone()),
-                    );
-                }
-                f.action(
-                    "Purchase and fit",
-                    ctx.sim.resources.credits >= part.cost.credits
-                        && ctx.sim.resources.minerals >= part.cost.minerals,
-                    UiAction::PurchaseComponent(kind, part.id.clone()),
-                );
-            }
-        }
+        catalogue::build(ctx, f);
     }
     salvage::build(ctx, f);
 }
