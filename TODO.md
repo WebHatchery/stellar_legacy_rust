@@ -4,6 +4,16 @@ Current behavior is documented in [gdd.md](gdd.md). The Custodian identity pass,
 obligations, officers/institutions, Agenda and responsive five-destination UI are
 implemented. Completed milestone diaries are not open tasks.
 
+## UI/UX visual redesign
+
+- Redesign the visual hierarchy so primary actions, urgent conditions and key
+  information are immediately distinguishable.
+- Rework screen layouts to make better use of desktop fullscreen space.
+- Improve information density through clear grouping, spacing and prioritization.
+- Improve navigation so destinations, current location and return paths are clear.
+- Show an early before-and-after of the redesigned screens to make the visual
+  changes reviewable; wording and button-behavior fixes alone do not complete this work.
+
 ## Acceptance still required
 
 - Complete live touch/click routes for multiple-job reorder, full succession,
@@ -51,5 +61,5 @@ features. Reconsider them after the current core passes human acceptance.
 
 Every accepted extension needs typed data, save compatibility, deterministic
 behavior tests, touch-accessible controls and its own publisher validation.
-The completed visual redesign already supplies ship/person/faction identity;
-do not restart it from the retired plans.
+Existing visuals supply ship/person/faction identity. Build on those assets for
+the UI/UX visual redesign above rather than restarting retired plans.
