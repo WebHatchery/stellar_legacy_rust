@@ -48,6 +48,9 @@ pub(crate) fn accounting(r: &VoyageDebrief) -> String {
             "Payout received"
         }
     ));
+    text.push_str("\nHOMECOMING RECOVERY\n");
+    text.push_str(&recovery_accounting(r));
+    text.push('\n');
     let p = &r.payout;
     text.push_str(&format!("\nPAID\nCredits {:+} · Energy {:+} · Minerals {:+} · Food {:+} · Influence {:+}\n\nSCORE ACCOUNTING\n",p.credits,p.energy,p.minerals,p.food,p.influence));
     for m in &r.metrics {
@@ -103,3 +106,30 @@ pub(crate) fn accounting(r: &VoyageDebrief) -> String {
     }
     text
 }
+
+pub(crate) fn recovery_accounting(r: &VoyageDebrief) -> String {
+    let Some(recovery) = r.recovery.as_ref() else {
+        return "No recovery brief recorded.".to_owned();
+    };
+    if recovery.resolved {
+        return format!(
+            "Recorded · {} · {}\nTarget: {}",
+            recovery.focus.label(),
+            recovery
+                .choice
+                .map_or("Choice unavailable".to_owned(), |choice| choice
+                    .label()
+                    .to_owned()),
+            recovery.target_label
+        );
+    }
+    format!(
+        "Pending review · {}\nTarget: {}\n{}",
+        recovery.focus.label(),
+        recovery.target_label,
+        recovery.situation
+    )
+}
+
+#[cfg(test)]
+mod tests;
