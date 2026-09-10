@@ -100,6 +100,9 @@ pub enum UiAction {
     /// Dismiss the homecoming debrief: clear the sealed report and hand the
     /// ship back to the drydock board for its next charter.
     FileReport,
+    /// Apply the one bounded social or institutional intervention offered by
+    /// the homecoming report.
+    ChooseHomecomingRecovery(crate::state::sim::HomecomingChoice),
     SelectScreen(Screen),
     QueueProject {
         project_id: String,

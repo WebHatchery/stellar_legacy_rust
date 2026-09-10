@@ -6,6 +6,7 @@
 mod authority;
 mod completion;
 mod decision;
+mod homecoming;
 mod mission;
 mod projects;
 
@@ -175,6 +176,17 @@ impl Game {
                 // where the next charter is chosen. Autosave so a filed report
                 // does not come back on the next load.
                 if let GameState::Gameplay(gameplay) = &mut self.state {
+                    if gameplay
+                        .sim
+                        .debrief
+                        .as_ref()
+                        .and_then(|report| report.recovery.as_ref())
+                        .is_some_and(|recovery| !recovery.resolved)
+                    {
+                        self.notifications
+                            .warning("Choose or defer the homecoming recovery before filing.");
+                        return None;
+                    }
                     gameplay.sim.debrief = None;
                     gameplay.screen = crate::state::Screen::Drydock;
                 }
@@ -188,6 +200,10 @@ impl Game {
                     self.notifications
                         .success("Demo complete. The Chronicle remembers your voyage.");
                 }
+                None
+            }
+            UiAction::ChooseHomecomingRecovery(choice) => {
+                self.apply_homecoming_recovery(choice);
                 None
             }
             UiAction::SelectScreen(screen) => {

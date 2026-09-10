@@ -38,6 +38,13 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
         f.heading(&format!("Homecoming · {}", report.outcome));
         f.text(&report.contract_name);
         f.text(&debrief::report::accounting(report));
+        if let Some(recovery) = report
+            .recovery
+            .as_ref()
+            .filter(|recovery| !recovery.resolved)
+        {
+            build_homecoming_recovery(ctx, f, recovery);
+        }
         f.heading("Captains");
         for captain in &report.commanders {
             f.portrait(&captain.name);
@@ -195,4 +202,40 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form) -> Option<String> {
         }
     }
     None
+}
+
+fn build_homecoming_recovery(
+    ctx: &GameplayCtx<'_>,
+    form: &mut Form,
+    recovery: &crate::state::sim::HomecomingRecovery,
+) {
+    form.heading(&format!("Recovery review · {}", recovery.focus.label()));
+    form.text(&format!(
+        "{}\nTarget: {}",
+        recovery.situation, recovery.target_label
+    ));
+    for choice in crate::state::sim::HomecomingChoice::ALL {
+        let available = crate::simulation::homecoming::choice_available(ctx.sim, ctx.data, choice);
+        let cost = crate::simulation::homecoming::choice_cost(ctx.sim, ctx.data, choice);
+        let bill = if choice == crate::state::sim::HomecomingChoice::Defer {
+            "no immediate cost".to_owned()
+        } else {
+            format!(
+                "{} credits · {} influence",
+                cost.credits.abs(),
+                cost.influence.abs()
+            )
+        };
+        form.heading(choice.label());
+        form.text(&format!("{}\n{}", choice.description(), bill));
+        form.action(
+            if available {
+                "Commit recovery"
+            } else {
+                "Unavailable"
+            },
+            available,
+            UiAction::ChooseHomecomingRecovery(choice),
+        );
+    }
 }

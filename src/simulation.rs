@@ -11,6 +11,7 @@ pub mod contract;
 pub mod crew;
 pub mod debrief;
 pub mod event_resolver;
+pub mod homecoming;
 pub mod institutions;
 pub mod issues;
 pub mod legacy;

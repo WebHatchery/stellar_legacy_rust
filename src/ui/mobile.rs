@@ -228,8 +228,12 @@ pub fn draw_content(ctx: &GameplayCtx<'_>, view: Rect) -> Vec<UiAction> {
             tutorial::reading_step(ctx)
         )
     };
-    if ctx.sim.debrief.is_some() {
-        form.action("File the report", true, UiAction::FileReport);
+    if let Some(report) = &ctx.sim.debrief {
+        let recovery_ready = report
+            .recovery
+            .as_ref()
+            .is_none_or(|recovery| recovery.resolved);
+        form.action("File the report", recovery_ready, UiAction::FileReport);
     }
     form.draw(view, ctx.presentation, pointer, &key, &mut actions);
     actions

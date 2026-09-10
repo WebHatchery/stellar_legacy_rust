@@ -11,7 +11,9 @@
 //! it).
 
 use crate::data::ResourceDelta;
-use crate::state::sim::{dynasty::Reign, CommandPosture, InstitutionRecord, Obligation};
+use crate::state::sim::{
+    dynasty::Reign, CommandPosture, HomecomingRecovery, InstitutionRecord, Obligation,
+};
 use serde::{Deserialize, Serialize};
 
 /// What kind of beat a highlight records — the debrief tags each line with
@@ -128,6 +130,10 @@ pub struct VoyageDebrief {
     pub homecoming_line: Option<String>,
     /// The lasting capability a completed charter left the ship, if any.
     pub legacy_line: Option<String>,
+    /// A bounded, context-sensitive choice before the next charter. It is part
+    /// of the sealed report so quitting mid-review cannot skip the consequence.
+    #[serde(default)]
+    pub recovery: Option<HomecomingRecovery>,
 }
 
 impl Default for VoyageDebrief {
@@ -154,6 +160,7 @@ impl Default for VoyageDebrief {
             population_end: 0,
             homecoming_line: None,
             legacy_line: None,
+            recovery: None,
         }
     }
 }

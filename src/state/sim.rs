@@ -15,6 +15,7 @@ pub mod contract;
 pub mod debrief;
 pub mod dynasty;
 pub mod factions;
+pub mod homecoming;
 pub mod institutions;
 pub mod issues;
 pub mod market;
@@ -30,6 +31,7 @@ pub use authority::*;
 pub use campaign::*;
 pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
 pub use dynasty::*;
+pub use homecoming::*;
 pub use institutions::*;
 pub use issues::*;
 pub use market::*;
@@ -440,6 +442,10 @@ pub struct SimState {
     /// to closing the window.
     #[serde(default)]
     pub debrief: Option<debrief::VoyageDebrief>,
+    /// Choices made after homecoming, retained as campaign history rather than
+    /// only as a notification that disappears on the next screen.
+    #[serde(default)]
+    pub homecoming_recovery_history: Vec<HomecomingRecoveryRecord>,
     /// Ship work and recovered capabilities. Empty by default for old saves.
     #[serde(default)]
     pub projects: projects::ProjectState,

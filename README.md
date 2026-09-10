@@ -26,9 +26,9 @@ scars that the next generation must manage.
 - **Keep the quiet years useful.** Open the **CUSTODIAN AGENDA** to compare food,
   fuel, engineering, life support, knowledge, and cohesion readiness, then queue
   scarce ship projects. Work starts only when a slot and its full escrow are ready.
-- **Build a legacy.** Review each Homecoming and the Chronicle, then prepare the
-  next voyage. Chronicle renown grants an automatic Heritage head start when you
-  found a new dynasty.
+- **Build a legacy.** Review each Homecoming and the Chronicle, then resolve or
+  defer the recovery review before preparing the next voyage. Chronicle renown
+  grants an automatic Heritage head start when you found a new dynasty.
 
 ## How to play your first voyage
 
@@ -64,7 +64,8 @@ scars that the next generation must manage.
    fuel warnings are forecasts, while hull, population, dynasty, and prolonged
    zero-air failures can end the campaign.
 10. At **Homecoming**, review the outcome and what the voyage cost your ship and
-   people. Return to drydock, replenish and refit, and choose your next charter.
+    people. Choose or defer the visible recovery review, file the report, then
+    return to drydock, replenish and refit, and choose your next charter.
 
 Follow the on-screen **CUSTODIAN GUIDE** for the opening steps. The full game
 includes the tutorial charter alongside the wider campaign; the itch.io HTML5

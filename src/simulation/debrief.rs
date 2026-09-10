@@ -31,6 +31,7 @@ pub fn remember(sim: &mut SimState, data: &GameData, kind: HighlightKind, text: 
 /// lead with them instead of asking the player to go find them.
 pub fn seal(
     sim: &SimState,
+    data: &GameData,
     score: f32,
     level: SuccessLevel,
     payout: ResourceDelta,
@@ -112,6 +113,7 @@ pub fn seal(
         population_end: sim.population.count,
         homecoming_line,
         legacy_line,
+        recovery: Some(crate::simulation::homecoming::build_plan(sim, data)),
     })
 }
 

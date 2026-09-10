@@ -168,7 +168,15 @@ impl Game {
             }
         }
         // Seal the homecoming report while the charter is still here to read.
-        sim.debrief = debrief::seal(sim, score, level, payout, homecoming_line, legacy_line);
+        sim.debrief = debrief::seal(
+            sim,
+            &self.data,
+            score,
+            level,
+            payout,
+            homecoming_line,
+            legacy_line,
+        );
         sim.contract = None;
 
         self.chronicle.record(entry);

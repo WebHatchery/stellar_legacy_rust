@@ -11,6 +11,7 @@ use crate::data::{ProductionRates, ResourceDelta};
 mod campaign;
 mod crew;
 mod flavor;
+mod homecoming;
 mod onboarding;
 mod projects;
 mod ship;
@@ -18,6 +19,7 @@ mod ship;
 pub use campaign::*;
 pub use crew::*;
 pub use flavor::*;
+pub use homecoming::*;
 pub use onboarding::*;
 pub use projects::*;
 pub use ship::*;
@@ -31,6 +33,7 @@ pub struct GameConfig {
     pub version: String,
     pub starting_resources: ResourceDelta,
     pub base_production: ProductionRates,
+    pub homecoming_recovery: HomecomingRecoveryConfig,
     pub starting_population: u32,
     pub food_per_person_per_year: f32,
     pub low_food_threshold: i64,

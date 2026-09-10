@@ -210,6 +210,24 @@ The Agenda retains a recovery path after the first warning is reviewed.
 Terminal results are sealed and recorded; recovery controls do not revive a dead
 campaign. Food/fuel warnings are forecasts, with shortages feeding other damage.
 
+### 5.9 Homecoming recovery
+
+Every fresh Homecoming report opens one bounded recovery review before the next
+charter can be filed. The review is derived from the returned state: a due or
+active obligation takes priority, then the weakest social trust, then the least
+remembered subsystem craft. The player may mend the commons by spending credits
+and influence for morale, unity, stability and faction approval; preserve craft
+by founding or supporting the weakest subsystem school and raising its knowledge;
+honor the oldest active promise for a material and political cost; or explicitly
+defer recovery. Deferral is free immediately but lowers morale and unity, leaving
+the wound visible to the next charter.
+
+The selected intervention is applied to the live simulation, added to a
+persisted homecoming-recovery history, and autosaved before the report can be
+filed. The report itself retains the situation, target and choice so a quit or
+reload cannot skip the decision. Older reports without this field remain
+readable and may be filed without a recovery review.
+
 ## 6. Data and assets
 
 [GameData](src/data.rs) embeds typed JSON through `macroquad_toolkit::data_loader`

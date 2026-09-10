@@ -136,6 +136,7 @@ fn sealing_snapshots_what_the_cleared_contract_would_take_with_it() {
     };
     let report = seal(
         &sim,
+        &data,
         0.74,
         SuccessLevel::Partial,
         payout,
@@ -164,12 +165,12 @@ fn sealing_snapshots_what_the_cleared_contract_would_take_with_it() {
     // The report outlives the contract that produced it — the whole point.
     sim.contract = None;
     assert!(report.contract_name.contains("The Long Tow"));
-    assert!(seal(&sim, 0.0, SuccessLevel::Failure, payout, None, None).is_none());
+    assert!(seal(&sim, &data, 0.0, SuccessLevel::Failure, payout, None, None).is_none());
 }
 
 #[test]
 fn the_report_names_only_the_captains_who_held_the_chair_that_voyage() {
-    let (_data, mut sim) = launched();
+    let (data, mut sim) = launched();
     // Launch the charter at year 50, so there is room on the campaign clock
     // for a captaincy that ended *before* it — the case that must not be
     // credited to this voyage.
@@ -196,6 +197,7 @@ fn the_report_names_only_the_captains_who_held_the_chair_that_voyage() {
 
     let report = seal(
         &sim,
+        &data,
         0.5,
         SuccessLevel::Partial,
         ResourceDelta::default(),
@@ -216,11 +218,12 @@ fn the_report_names_only_the_captains_who_held_the_chair_that_voyage() {
 
 #[test]
 fn the_homecoming_report_remembers_the_command_posture() {
-    let (_data, mut sim) = launched();
+    let (data, mut sim) = launched();
     sim.command_posture = CommandPosture::Expeditionary;
 
     let report = seal(
         &sim,
+        &data,
         0.5,
         SuccessLevel::Partial,
         ResourceDelta::default(),
@@ -234,11 +237,12 @@ fn the_homecoming_report_remembers_the_command_posture() {
 
 #[test]
 fn the_homecoming_report_remembers_the_custodians_empathy() {
-    let (_data, mut sim) = launched();
+    let (data, mut sim) = launched();
     sim.reputation.insert("custodian_empathy".to_owned(), 0.78);
 
     let report = seal(
         &sim,
+        &data,
         0.5,
         SuccessLevel::Partial,
         ResourceDelta::default(),

@@ -18,6 +18,20 @@
     "food": 45.0,
     "influence": 1.0
   },
+  "homecoming_recovery": {
+    "reconcile_credits": 1200,
+    "reconcile_influence": 30,
+    "reconcile_morale": 0.08,
+    "reconcile_unity": 0.10,
+    "reconcile_stability": 0.06,
+    "reconcile_approval": 0.05,
+    "preserve_knowledge_gain": 0.08,
+    "honor_credits": 700,
+    "honor_influence": 20,
+    "honor_approval": 0.04,
+    "defer_morale_loss": 0.03,
+    "defer_unity_loss": 0.02
+  },
   "starting_population": 1000,
   "food_per_person_per_year": 0.04,
   "low_food_threshold": 500,

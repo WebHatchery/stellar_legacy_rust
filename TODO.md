@@ -55,7 +55,6 @@ features. Reconsider them after the current core passes human acceptance.
 | --- | --- | --- |
 | Charter-specific approaches | Authored doctrine selection with requirements, tradeoffs and effects on at least two voyage systems across the six objective families; selected doctrine retained through debrief/history | Reuse global posture, gates, officers and obligations; compare paired policies and avoid a universally best approach |
 | Compartment culture | A compact local custodian, descriptor, remembered event and grievance, with at least two tradeoff-bearing descriptors per subsystem | Derive from existing people/institutions; no second resident simulation, room placement or unlimited trait stacking |
-| Homecoming recovery | A consequential context-sensitive social/institutional recovery choice between voyages, preserving unresolved wounds and historical facts | Extend the sealed debrief and existing port rules; current underway projects do not implement this planned choice |
 | Competing historical accounts | Official, dynasty and affected-people interpretations of a single authoritative deed, distinguishable in the Chronicle | Keep mechanics factual; do not duplicate mechanical history or hide consequences behind unreliable prose |
 | Further work-management options | Protected reserves, named development programmes/trainees, standing orders and additional project slots | Add only after measured scarcity and choice quality justify more complexity |
 

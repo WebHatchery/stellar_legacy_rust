@@ -8,9 +8,11 @@
 //! way, and every captain who held the chair between launch and homecoming.
 //!
 //! Pure view, like every screen here: it reads `sim.debrief` and returns a
-//! single [`UiAction::FileReport`] when the player is done reading.
+//! `UiAction::FileReport` when the player is done reading and has resolved the
+//! recovery review.
 
 mod columns;
+mod recovery;
 pub(crate) mod report;
 
 use crate::state::sim::debrief::VoyageDebrief;
@@ -52,15 +54,35 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             );
         }
     }
+    let recovery_pending = report
+        .recovery
+        .as_ref()
+        .is_some_and(|recovery| !recovery.resolved);
+    let recovery_h = if recovery_pending { 178.0 } else { 0.0 };
     let area = Rect::new(
         MARGIN,
         158.0,
         logical_width() - MARGIN * 2.0,
-        logical_height() - 158.0 - FOOTER_H - MARGIN,
+        logical_height() - 158.0 - FOOTER_H - MARGIN - recovery_h,
     );
     match ctx.presentation.report_page.get() {
         1 => columns::draw_commanders(ctx, report, area, pointer),
         _ => report::draw(ctx, report, area, pointer),
+    }
+
+    if recovery_pending {
+        recovery::draw(
+            ctx,
+            report,
+            Rect::new(
+                MARGIN,
+                area.bottom() + 10.0,
+                logical_width() - MARGIN * 2.0,
+                recovery_h,
+            ),
+            pointer,
+            actions,
+        );
     }
 
     // One way out. Filing the report clears it and returns the ship to the
@@ -81,7 +103,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     } else {
         format!("{caret} FILE THE REPORT")
     };
-    if term_button(btn, &label, true, pointer) {
+    if term_button(btn, &label, !recovery_pending, pointer) {
         actions.push(UiAction::FileReport);
     }
 }
