@@ -56,6 +56,33 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             def.repair_knowledge_required * 100.0
         ));
         f.text(&def.description);
+        if let Some(culture) =
+            crate::simulation::culture::descriptor(ctx.data, &id, &s.culture.descriptor_id)
+        {
+            let custodian = s
+                .culture
+                .custodian_faction_id
+                .as_deref()
+                .and_then(|faction_id| ctx.data.factions.get(faction_id))
+                .map_or("No local custodian", |faction| faction.name.as_str());
+            f.heading(&format!("Local culture · {}", culture.label));
+            f.text(&format!(
+                "Custodian: {custodian}\n{}\n{}",
+                crate::simulation::culture::effect_summary(culture),
+                culture.description
+            ));
+            f.text(&format!(
+                "Remembered: {}\nGrievance: {}",
+                s.culture
+                    .remembered_event
+                    .as_deref()
+                    .unwrap_or("No compartment memory recorded."),
+                s.culture
+                    .grievance
+                    .as_deref()
+                    .unwrap_or("No active grievance.")
+            ));
+        }
         let target = crate::simulation::subsystems::repair_target_condition(sim, ctx.data, &id)
             .unwrap_or(s.condition);
         if target > s.condition {

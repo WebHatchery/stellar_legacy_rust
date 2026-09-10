@@ -41,6 +41,20 @@ pub enum InstitutionRecordKind {
     CustodianshipGranted,
 }
 
+impl InstitutionRecordKind {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Appointment => "APPOINTMENT",
+            Self::ExpertiseLost => "EXPERTISE LOST",
+            Self::ExpertisePreserved => "EXPERTISE PRESERVED",
+            Self::SchoolFounded => "SCHOOL FOUNDED",
+            Self::SchoolLapsed => "SCHOOL LAPSED",
+            Self::ArchiveCompiled => "ARCHIVE COMPILED",
+            Self::CustodianshipGranted => "CUSTODIANSHIP GRANTED",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InstitutionRecord {
     pub year: u32,

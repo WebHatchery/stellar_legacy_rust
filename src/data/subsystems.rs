@@ -42,6 +42,31 @@ pub struct SubsystemTier {
     pub flavor: String,
 }
 
+/// One bounded local culture a compartment may carry (deferred design intent).
+/// The descriptor is data rather than a second population model: it contributes
+/// small annual social/craft effects and one maintenance multiplier, while its
+/// custodian, memory, and grievance remain derived from existing state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompartmentDescriptor {
+    pub id: String,
+    pub label: String,
+    pub description: String,
+    #[serde(default)]
+    pub morale_per_year: f32,
+    #[serde(default)]
+    pub unity_per_year: f32,
+    #[serde(default)]
+    pub stability_per_year: f32,
+    #[serde(default)]
+    pub knowledge_per_year: f32,
+    #[serde(default = "default_decay_multiplier")]
+    pub decay_multiplier: f32,
+}
+
+fn default_decay_multiplier() -> f32 {
+    1.0
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubsystemDef {
     pub id: String,
@@ -65,6 +90,11 @@ pub struct SubsystemDef {
     #[serde(default)]
     pub baseline_description: String,
     pub description: String,
+    /// Two or more authored local cultures for this compartment. The first two
+    /// are selected by the custodian's ideological side; later entries remain
+    /// available for future authored expansion without changing the state shape.
+    #[serde(default)]
+    pub culture_descriptors: Vec<CompartmentDescriptor>,
 }
 
 impl SubsystemDef {
@@ -89,6 +119,24 @@ impl SubsystemDef {
     /// The next fitting up the ladder from `tier`, or `None` at the top tier.
     pub fn next_fitting(&self, tier: u32) -> Option<&SubsystemTier> {
         self.tiers.get(tier as usize)
+    }
+
+    pub fn culture_descriptor(&self, id: &str) -> Option<&CompartmentDescriptor> {
+        self.culture_descriptors
+            .iter()
+            .find(|descriptor| descriptor.id == id)
+    }
+
+    pub fn default_culture_descriptor(&self) -> Option<&CompartmentDescriptor> {
+        self.culture_descriptors.first()
+    }
+
+    /// Stable side-to-descriptor mapping so the same custodian identity always
+    /// gives the compartment the same local character.
+    pub fn culture_descriptor_for_ideology(&self, ideology: f32) -> Option<&CompartmentDescriptor> {
+        let index =
+            usize::from(ideology >= 0.0).min(self.culture_descriptors.len().saturating_sub(1));
+        self.culture_descriptors.get(index)
     }
 }
 

@@ -10,6 +10,7 @@ mod balance;
 pub mod command;
 pub mod contract;
 pub mod crew;
+pub mod culture;
 pub mod debrief;
 pub mod event_resolver;
 pub mod homecoming;

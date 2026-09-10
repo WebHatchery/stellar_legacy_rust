@@ -598,6 +598,7 @@ impl Game {
             }
             StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
                 Ok(mut sim) => {
+                    crate::simulation::culture::refresh(&mut sim, &self.data);
                     if sim.terminal.is_none() && sim.dynasty.extinct {
                         crate::simulation::survival::check_and_record(&mut sim, &self.data);
                     }

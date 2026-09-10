@@ -129,6 +129,15 @@ through turnover. Schools, archives and faction custody support subsystem
 knowledge with their costs and political tradeoffs. Homecoming retains important
 appointments, losses and continuity outcomes.
 
+Each compartment also carries a bounded local culture record. Two authored
+descriptors per subsystem trade small annual morale, unity, stability, craft and
+maintenance effects. The descriptor is derived from the local custodian's
+people: a funded school's named custodian takes precedence, then the native
+tender, then the dominant aboard people. The record remembers the latest
+institutional moment and derives one current grievance from custody, condition
+or knowledge. It is a compact interpretation layer, not a second resident
+simulation, and it never stacks unlimited traits.
+
 ### 5.4 Events, obligations and aftermath
 
 Events combine category, family, gates, complications and outcomes. The registry
@@ -268,7 +277,7 @@ See [support](docs/release/SUPPORT_AND_PRIVACY.md) for storage and recovery.
 Chronicle renown automatically chooses the highest unlocked of four Heritage
 tiers when a dynasty is founded. There is no Heritage modifier-selection screen.
 Sealed Homecoming records preserve departure/return comparisons, captain reigns,
-obligations, institutions, posture, charter approach and notable decisions after
+obligations, institutions, compartment culture, posture, charter approach and notable decisions after
 the active contract and general log have changed. Saving during the report retains
 that report.
 
@@ -320,6 +329,9 @@ spend stores at full air. Compact recovery reviews show costs, the resulting air
 level and the one-use-per-crisis limit before the action.
 Compartment upgrades identify the next fitting and distinguish purchased tiers
 from mission rewards, with full costs and explicit port-only installation.
+Compartment cards show the local custodian, authored descriptor, exact annual
+effects, remembered institutional moment and current grievance. The compact
+Systems view carries the same record alongside repair and continuity controls.
 Compact discipline controls show school funding dates, knowledge-preservation
 benefits, existing archives and custodians. Custody explains its lasting choice
 and stops offering another appointment once a custodian exists.
@@ -412,7 +424,7 @@ is authoritative for generic API usage; do not maintain a copied guide here.
 No runtime generative AI, accounts, network simulation, cloud saves, tactical
 crew movement, freeform deck building or galactic empire management is implemented.
 Global command posture, the current Homecoming report and procedural emblems do
-not imply that the deferred approach, compartment-culture or competing-record
+not imply that the remaining deferred culture-expansion or work-management
 systems exist. See [TODO.md](TODO.md) for their bounded retained intent.
 
 ## 13. Validation

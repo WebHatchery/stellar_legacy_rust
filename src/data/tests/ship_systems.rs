@@ -89,6 +89,15 @@ fn the_subsystems_are_authored_and_their_couplings_bounded() {
                 tier.id
             );
         }
+        assert!(
+            sub.culture_descriptors.len() >= 2,
+            "subsystem '{id}' needs two local culture descriptors"
+        );
+        assert!(sub.culture_descriptors.iter().all(|descriptor| {
+            !descriptor.label.trim().is_empty()
+                && !descriptor.description.trim().is_empty()
+                && (0.5..=1.5).contains(&descriptor.decay_multiplier)
+        }));
         // Content-depth subsystem coverage: every subsystem has at least one
         // knowledge-crisis event, so a module's know-how decaying always has
         // a beat to surface.

@@ -51,6 +51,7 @@ pub fn decay_subsystems(sim: &mut SimState, data: &GameData, wear: f32) {
             let knowledge = sim.subsystems.get(&id).map_or(0.0, |s| s.knowledge);
             mult *= (1.0 - knowledge_reduction * knowledge).max(0.0);
         }
+        mult *= crate::simulation::culture::decay_multiplier(sim, data, &id);
         let decay = def.decay_per_year * mult;
         if let Some(state) = sim.subsystems.get_mut(&id) {
             state.condition = (state.condition - decay * wear).max(0.0);

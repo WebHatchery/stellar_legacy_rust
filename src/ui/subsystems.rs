@@ -119,6 +119,49 @@ fn draw_card(
             def.repair_knowledge_required * 100.0
         ),
     );
+    if let Some(culture) =
+        crate::simulation::culture::descriptor(ctx.data, id, &state.culture.descriptor_id)
+    {
+        let custodian = state
+            .culture
+            .custodian_faction_id
+            .as_deref()
+            .and_then(|faction_id| ctx.data.factions.get(faction_id))
+            .map_or("NO LOCAL CUSTODIAN", |faction| faction.name.as_str());
+        let memory = state
+            .culture
+            .remembered_event
+            .as_deref()
+            .unwrap_or("No compartment memory recorded.");
+        let grievance = state
+            .culture
+            .grievance
+            .as_deref()
+            .unwrap_or("No active grievance.");
+        draw_ui_text_ex(
+            "LOCAL CULTURE",
+            content.x,
+            y + 42.0,
+            TextStyle::new(13.0, term::primary()).params(),
+        );
+        draw_text_block(
+            &format!(
+                "{} · CUSTODIAN {}\n{}\nMEMORY {}\nGRIEVANCE {}",
+                culture.label,
+                custodian,
+                crate::simulation::culture::effect_summary(culture),
+                memory,
+                grievance
+            ),
+            content.x,
+            y + 50.0,
+            content.w,
+            76.0,
+            10.0,
+            2.0,
+            term::dim(),
+        );
+    }
 
     // Institutional continuity stays attached to the discipline it protects.
     // The single focused verb advances from school, to archive, to faction

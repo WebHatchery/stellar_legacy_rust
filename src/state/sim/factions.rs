@@ -292,4 +292,34 @@ impl SimState {
         }
         self.tender_approval(data, subsystem_id)
     }
+
+    /// The local people whose presence gives a compartment its culture. A
+    /// funded school's named custodian wins first; otherwise the native tender
+    /// is used, with the dominant aboard people as a bounded cross-discipline
+    /// fallback so every inhabited ship has a local voice.
+    pub fn culture_custodian_faction_id(
+        &self,
+        data: &GameData,
+        subsystem_id: &str,
+    ) -> Option<&str> {
+        let school_custodian = self
+            .subsystem_schools
+            .iter()
+            .find(|school| {
+                school.subsystem_id == subsystem_id && school.supported_until_year >= self.year()
+            })
+            .and_then(|school| school.custodian_faction_id.as_deref())
+            .filter(|id| self.is_faction_aboard(id));
+        if school_custodian.is_some() {
+            return school_custodian;
+        }
+        let native = self.factions.iter().find_map(|fstate| {
+            if !fstate.is_aboard() {
+                return None;
+            }
+            let def = data.factions.get(&fstate.faction_id)?;
+            (def.tended_subsystem == subsystem_id).then_some(fstate.faction_id.as_str())
+        });
+        native.or_else(|| self.dominant_faction_id())
+    }
 }

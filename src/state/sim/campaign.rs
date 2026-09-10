@@ -141,7 +141,7 @@ impl SimState {
             lean_energy_years: 0,
             fat_food_years: 0,
             factions: factions::build_founding_factions(faction_ids, config.starting_population),
-            subsystems: subsystems::build_founding_subsystems(data),
+            subsystems: subsystems::build_founding_subsystems(data, faction_ids),
             debrief: None,
             homecoming_recovery_history: Vec::new(),
             projects: projects::ProjectState::default(),

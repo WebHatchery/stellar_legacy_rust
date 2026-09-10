@@ -10,6 +10,10 @@
     "description": "The ship's green decks — grow-lamps, soil beds, and seed vaults. Well-tended, they turn a rationed voyage into a fed one.",
     "baseline_name": "Hydroponics Bay",
     "baseline_description": "A single ring of grow-lamps and soil beds — enough to stretch the stores, if the harvest holds.",
+    "culture_descriptors": [
+      { "id": "communal_harvest", "label": "COMMUNAL HARVEST", "description": "The green decks belong to every table: morale and unity rise, but the living work asks more of the compartment.", "morale_per_year": 0.004, "unity_per_year": 0.003, "knowledge_per_year": -0.002, "decay_multiplier": 1.08 },
+      { "id": "seedkeepers", "label": "SEEDKEEPERS", "description": "The seed vault is treated as a covenant: craft survives and decay eases, while the crew accepts a quieter harvest.", "morale_per_year": -0.002, "unity_per_year": 0.001, "knowledge_per_year": 0.006, "decay_multiplier": 0.92 }
+    ],
     "tiers": [
       { "id": "aeroponics_suite", "name": "Aeroponics Suite", "cost": { "credits": 3500, "minerals": 300 }, "severity_reduction": 0.15, "weight_multiplier": 0.85, "flavor": "New grow-lamps and seed stock go in; the green decks come back brighter, and the galley plans a little less anxiously." },
       { "id": "terraced_farmworks", "name": "Terraced Farmworks", "cost": { "credits": 7000, "minerals": 600 }, "severity_reduction": 0.3, "weight_multiplier": 0.7, "flavor": "The hydroponics are rebuilt across a second ring of decks — the ship now grows more than it strictly must, and the surplus tastes like security." },
@@ -27,6 +31,10 @@
     "description": "Classrooms, libraries, and the rites that carry a craft from a dying hand to a young one. The subsystem that keeps every other subsystem knowable.",
     "baseline_name": "Ship School",
     "baseline_description": "A few classrooms and a working library — the founders' knowledge, held one generation at a time.",
+    "culture_descriptors": [
+      { "id": "open_curriculum", "label": "OPEN CURRICULUM", "description": "Lessons belong to the whole ship: morale and unity rise, but the archive spends more effort keeping them open.", "morale_per_year": 0.003, "unity_per_year": 0.004, "knowledge_per_year": 0.006, "decay_multiplier": 1.08 },
+      { "id": "sealed_archive", "label": "SEALED ARCHIVE", "description": "The old record is guarded with discipline: knowledge holds, while the closed doors weigh on the commons.", "morale_per_year": -0.002, "unity_per_year": -0.001, "knowledge_per_year": 0.010, "decay_multiplier": 0.92 }
+    ],
     "tiers": [
       { "id": "founders_archive", "name": "Founders' Archive", "cost": { "credits": 4000, "minerals": 200 }, "severity_reduction": 0.15, "weight_multiplier": 0.85, "flavor": "New classrooms open and the archives are recopied; a little more of what the founders knew survives another generation." },
       { "id": "the_academy", "name": "The Academy", "cost": { "credits": 8000, "minerals": 400 }, "severity_reduction": 0.3, "weight_multiplier": 0.7, "flavor": "The schools are rebuilt into a true academy — apprenticeships, examinations, a craft passed hand to hand on purpose rather than by luck." },
@@ -44,6 +52,10 @@
     "description": "Machine shops, spare-part fabricators, and the diagnostic rigs that catch a fault before it becomes a hull breach.",
     "baseline_name": "Machine Shop",
     "baseline_description": "Benches, lathes, and improvised fixes — enough to keep the ship limping, never quite ahead of the rot.",
+    "culture_descriptors": [
+      { "id": "repair_commons", "label": "REPAIR COMMONS", "description": "Every hand learns the fix: morale and craft rise, but the open shop asks the bay to work harder.", "morale_per_year": 0.002, "unity_per_year": 0.002, "knowledge_per_year": 0.004, "decay_multiplier": 1.07 },
+      { "id": "hardened_shop", "label": "HARDENED SHOP", "description": "The bay becomes a disciplined reserve: longevity improves, while fewer people feel welcome among the machines.", "morale_per_year": -0.002, "unity_per_year": -0.001, "knowledge_per_year": 0.001, "decay_multiplier": 0.90 }
+    ],
     "tiers": [
       { "id": "fabrication_shop", "name": "Fabrication Shop", "cost": { "credits": 4500, "minerals": 400 }, "severity_reduction": 0.15, "weight_multiplier": 0.85, "flavor": "New tooling and a proper machine shop go in; the engineers stop improvising and start building." },
       { "id": "fabrication_hall", "name": "Fabrication Hall", "cost": { "credits": 9000, "minerals": 800 }, "severity_reduction": 0.3, "weight_multiplier": 0.7, "flavor": "The engineering bay is rebuilt into a full fabrication hall — the ship can now make the parts it once could only ration." },
@@ -62,6 +74,10 @@
     "description": "Scrubbers, recyclers, and the sealed habitats that stand between the crew and the cold. A stronger habitat wears its life support down slower.",
     "baseline_name": "Life Support Core",
     "baseline_description": "One loop of scrubbers and circulators — the thin, single line between the crew and the cold.",
+    "culture_descriptors": [
+      { "id": "common_air", "label": "COMMON AIR", "description": "Air and habitat are held as a shared home: morale and unity rise, but the living deck works harder to stay warm.", "morale_per_year": 0.004, "unity_per_year": 0.003, "knowledge_per_year": -0.002, "decay_multiplier": 1.08 },
+      { "id": "sealed_quarters", "label": "SEALED QUARTERS", "description": "The loops are guarded and redundant: craft improves, while the quieter quarters feel less like a common home.", "morale_per_year": -0.002, "unity_per_year": -0.001, "knowledge_per_year": 0.004, "decay_multiplier": 0.93 }
+    ],
     "tiers": [
       { "id": "overhauled_scrubbers", "name": "Overhauled Scrubbers", "cost": { "credits": 4250, "minerals": 350 }, "severity_reduction": 0.2, "weight_multiplier": 1.0, "flavor": "The scrubbers and circulators are overhauled; the air comes easier and the decks feel less like a machine and more like a home." },
       { "id": "dual_loop_habitat", "name": "Dual-Loop Habitat", "cost": { "credits": 8500, "minerals": 700 }, "severity_reduction": 0.35, "weight_multiplier": 1.0, "flavor": "Life support is rebuilt with a second independent loop — a failure that would once have emptied a deck now merely inconveniences it." },
@@ -80,6 +96,10 @@
     "description": "Surgeries, isolation wards, and gene-clinics. A well-equipped medical deck turns a plague into a scare.",
     "baseline_name": "Sickbay",
     "baseline_description": "A handful of beds and a tired surgeon — enough for the routine, undone by the outbreak.",
+    "culture_descriptors": [
+      { "id": "open_clinic", "label": "OPEN CLINIC", "description": "Care is visible and shared: morale and unity rise, but the bay spends more of its own strength to keep its doors open.", "morale_per_year": 0.004, "unity_per_year": 0.002, "knowledge_per_year": 0.003, "decay_multiplier": 1.07 },
+      { "id": "triage_discipline", "label": "TRIAGE DISCIPLINE", "description": "Every treatment follows the reserve ledger: craft holds, while hard choices leave a mark on the commons.", "morale_per_year": -0.003, "unity_per_year": -0.001, "knowledge_per_year": 0.006, "decay_multiplier": 0.91 }
+    ],
     "tiers": [
       { "id": "surgical_ward", "name": "Surgical Ward", "cost": { "credits": 3750, "minerals": 300 }, "severity_reduction": 0.15, "weight_multiplier": 0.85, "flavor": "New surgical kit and clean fields go in; the medics stop losing patients they should have saved." },
       { "id": "ship_hospital", "name": "Ship Hospital", "cost": { "credits": 7500, "minerals": 600 }, "severity_reduction": 0.3, "weight_multiplier": 0.7, "flavor": "The medical bay is rebuilt into a true hospital — wards, a proper theatre, and a pharmacy the ship can actually stock." },
@@ -97,6 +117,10 @@
     "description": "Peacekeepers, brig, and the councils that keep a fractious ship from turning on itself. Strong security cools a standoff before it burns.",
     "baseline_name": "Watch Post",
     "baseline_description": "A volunteer watch and a locked room — order kept by habit, and only just.",
+    "culture_descriptors": [
+      { "id": "mediated_watch", "label": "MEDIATED WATCH", "description": "The watch begins with a hearing: unity and morale rise, but mediation takes time and wears the corps.", "morale_per_year": 0.002, "unity_per_year": 0.004, "knowledge_per_year": 0.002, "decay_multiplier": 1.06 },
+      { "id": "hard_watch", "label": "HARD WATCH", "description": "Order is made unmistakable: knowledge rises, while the ship pays in trust and ease.", "morale_per_year": -0.004, "unity_per_year": -0.003, "knowledge_per_year": 0.005, "decay_multiplier": 0.90 }
+    ],
     "tiers": [
       { "id": "trained_watch", "name": "Trained Watch", "cost": { "credits": 3750, "minerals": 300 }, "severity_reduction": 0.15, "weight_multiplier": 0.85, "flavor": "The watch is re-equipped and retrained; the corridors feel safer without feeling watched." },
       { "id": "peacekeeping_service", "name": "Peacekeeping Service", "cost": { "credits": 7500, "minerals": 600 }, "severity_reduction": 0.3, "weight_multiplier": 0.7, "flavor": "Security is rebuilt into a real peacekeeping service — mediation, patrol, and a jail the ship hopes never to fill." },

@@ -48,14 +48,13 @@ human success rates or voyage duration; use the candidate-specific routes in
 
 ## Deferred design intent
 
-These are retained design directions, not scheduled releases or implemented
-features. Reconsider them after the current core passes human acceptance.
+These are retained design directions, not scheduled releases. Charter-specific
+approaches, competing historical accounts and bounded compartment culture are
+implemented; reconsider the remaining directions after the current core passes
+human acceptance.
 
 | Direction | What remains beyond current behavior | Required boundary |
 | --- | --- | --- |
-| Charter-specific approaches | Authored doctrine selection with requirements, tradeoffs and effects on at least two voyage systems across the six objective families; selected doctrine retained through debrief/history | Reuse global posture, gates, officers and obligations; compare paired policies and avoid a universally best approach |
-| Compartment culture | A compact local custodian, descriptor, remembered event and grievance, with at least two tradeoff-bearing descriptors per subsystem | Derive from existing people/institutions; no second resident simulation, room placement or unlimited trait stacking |
-| Competing historical accounts | Official, dynasty and affected-people interpretations of a single authoritative deed, distinguishable in the Chronicle | Keep mechanics factual; do not duplicate mechanical history or hide consequences behind unreliable prose |
 | Further work-management options | Protected reserves, named development programmes/trainees, standing orders and additional project slots | Add only after measured scarcity and choice quality justify more complexity |
 
 Every accepted extension needs typed data, save compatibility, deterministic

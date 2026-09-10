@@ -45,7 +45,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
             draw_circle(rect.right() - 8.0, rect.y + 8.0, 4.0, term::alert());
         }
     }
-    let detail = Rect::new(rail.right() + 16.0, area.y, area.w - rail.w - 16.0, 250.0);
+    let detail = Rect::new(rail.right() + 16.0, area.y, area.w - rail.w - 16.0, 320.0);
     draw_card(ctx, detail, &ids[selected], base_pointer, actions);
     let diagram = Rect::new(
         detail.x + 16.0,
