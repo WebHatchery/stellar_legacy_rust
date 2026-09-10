@@ -112,13 +112,53 @@ pub fn choice_cost(sim: &SimState, data: &GameData, choice: HomecomingChoice) ->
 
 /// Whether the choice has a valid target and its full bill can be paid.
 pub fn choice_available(sim: &SimState, data: &GameData, choice: HomecomingChoice) -> bool {
+    choice_unavailable_reason(sim, data, choice).is_none()
+}
+
+/// Explain why a recovery card cannot be committed, if it cannot.
+pub fn choice_unavailable_reason(
+    sim: &SimState,
+    data: &GameData,
+    choice: HomecomingChoice,
+) -> Option<String> {
     let target_exists = match choice {
         HomecomingChoice::ReconcilePeople => sim.factions.iter().any(|f| f.is_aboard()),
         HomecomingChoice::PreserveCraft => weakest_subsystem(sim, data).is_some(),
         HomecomingChoice::HonorPromise => oldest_active_obligation(sim).is_some(),
         HomecomingChoice::Defer => true,
     };
-    target_exists && sim.resources.can_afford(&choice_cost(sim, data, choice))
+    if !target_exists {
+        return Some(
+            match choice {
+                HomecomingChoice::ReconcilePeople => {
+                    "No aboard faction can receive the commons grant."
+                }
+                HomecomingChoice::PreserveCraft => "No subsystem is available for a school.",
+                HomecomingChoice::HonorPromise => "No active promise can be honored.",
+                HomecomingChoice::Defer => "",
+            }
+            .to_owned(),
+        );
+    }
+    let cost = choice_cost(sim, data, choice);
+    let mut missing = Vec::new();
+    if cost.credits < 0 && sim.resources.credits < -cost.credits {
+        missing.push(format!(
+            "{} more credits",
+            -cost.credits - sim.resources.credits
+        ));
+    }
+    if cost.influence < 0 && sim.resources.influence < -cost.influence {
+        missing.push(format!(
+            "{} more influence",
+            -cost.influence - sim.resources.influence
+        ));
+    }
+    if missing.is_empty() {
+        None
+    } else {
+        Some(format!("Needs {}.", missing.join(" and ")))
+    }
 }
 
 /// Apply a recovery choice to the live campaign and mark the sealed report as
@@ -137,10 +177,8 @@ pub fn apply_choice(
     if plan.resolved {
         return Err("The homecoming recovery has already been recorded.".to_owned());
     }
-    if !choice_available(sim, data, choice) {
-        return Err(
-            "That recovery has no valid target or the treasury cannot cover it.".to_owned(),
-        );
+    if let Some(reason) = choice_unavailable_reason(sim, data, choice) {
+        return Err(reason);
     }
 
     let note = match choice {

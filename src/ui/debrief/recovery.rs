@@ -86,11 +86,28 @@ fn draw_card(
     } else {
         format_cost(cost)
     };
-    draw_ui_text_ex(
-        &cost_text,
+    let status_text = if available {
+        cost_text
+    } else {
+        format!(
+            "Unavailable: {}",
+            homecoming::choice_unavailable_reason(ctx.sim, ctx.data, choice)
+                .unwrap_or_else(|| "The choice cannot be committed.".to_owned())
+        )
+    };
+    draw_text_block(
+        &status_text,
         card.x + 10.0,
-        card.bottom() - 58.0,
-        TextStyle::new(11.0, term::accent()).params(),
+        card.bottom() - 78.0,
+        card.w - 20.0,
+        30.0,
+        10.0,
+        3.0,
+        if available {
+            term::accent()
+        } else {
+            term::faint()
+        },
     );
     let label = if available { "COMMIT" } else { "UNAVAILABLE" };
     let button = Rect::new(card.x + 8.0, card.bottom() - 42.0, card.w - 16.0, 34.0);

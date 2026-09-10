@@ -78,3 +78,17 @@ fn deferral_is_visible_and_has_a_small_social_cost() {
         .note
         .contains("deferred"));
 }
+
+#[test]
+fn unavailable_recovery_names_the_missing_treasury() {
+    let data = GameData::load().unwrap();
+    let mut sim = campaign(&data);
+    sim.population.unity = 0.35;
+    sim.resources.credits = 0;
+    sim.resources.influence = 0;
+
+    let reason = choice_unavailable_reason(&sim, &data, HomecomingChoice::ReconcilePeople)
+        .expect("the empty treasury should explain the unavailable choice");
+    assert!(reason.contains("more credits"));
+    assert!(reason.contains("more influence"));
+}

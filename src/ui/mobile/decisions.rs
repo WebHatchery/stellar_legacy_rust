@@ -227,7 +227,13 @@ fn build_homecoming_recovery(
             )
         };
         form.heading(choice.label());
-        form.text(&format!("{}\n{}", choice.description(), bill));
+        let status = if available {
+            bill
+        } else {
+            crate::simulation::homecoming::choice_unavailable_reason(ctx.sim, ctx.data, choice)
+                .unwrap_or_else(|| "This choice cannot be committed.".to_owned())
+        };
+        form.text(&format!("{}\n{}", choice.description(), status));
         form.action(
             if available {
                 "Commit recovery"
