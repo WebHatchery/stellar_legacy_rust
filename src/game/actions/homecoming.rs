@@ -16,6 +16,24 @@ impl Game {
         };
         match result {
             Ok(note) => {
+                let recovery = if let GameState::Gameplay(gameplay) = &self.state {
+                    gameplay.sim.homecoming_recovery_history.last().cloned()
+                } else {
+                    None
+                };
+                if let Some(recovery) = recovery {
+                    if let Some(entry) = self.chronicle.entries.last_mut() {
+                        entry.homecoming_recovery = Some(recovery);
+                        if let Err(error) = self.chronicle.save(
+                            &self.data.config.game_name,
+                            &self.data.config.chronicle_slot,
+                            &self.data.config.version,
+                        ) {
+                            self.notifications
+                                .danger(format!("Chronicle write failed: {error}"));
+                        }
+                    }
+                }
                 self.notifications.success(note);
                 if let Err(error) = self.save_campaign() {
                     self.notifications

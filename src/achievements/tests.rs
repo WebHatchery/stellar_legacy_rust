@@ -13,6 +13,7 @@ fn entry(outcome: &str) -> ChronicleEntry {
         outcome: outcome.into(),
         duration_years: 60,
         command_posture: crate::state::sim::CommandPosture::Steady,
+        homecoming_recovery: None,
     }
 }
 

@@ -125,6 +125,7 @@ impl Game {
                         outcome: "Complete".to_owned(),
                         duration_years: 60,
                         command_posture: crate::state::sim::CommandPosture::Civic,
+                        homecoming_recovery: None,
                     });
                 }
                 let mut menu = MenuState::new(true);
@@ -474,6 +475,7 @@ impl Game {
                     outcome: "Partial".to_owned(),
                     duration_years: 40,
                     command_posture: crate::state::sim::CommandPosture::Steady,
+                    homecoming_recovery: None,
                 });
                 self.capture_run_secs = Some(2280.0); // 38m — the run just flown
                 let mut gameplay = GameplayState::new(sim);
@@ -647,6 +649,7 @@ impl Game {
                         outcome: if i % 2 == 0 { "Complete" } else { "Partial" }.to_owned(),
                         duration_years: 40,
                         command_posture: crate::state::sim::CommandPosture::Steady,
+                        homecoming_recovery: None,
                     });
                 }
                 for id in crate::achievements::evaluate(&sim, &self.chronicle) {

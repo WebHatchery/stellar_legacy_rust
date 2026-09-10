@@ -52,6 +52,7 @@ impl Game {
                 .map(|c| c.months_elapsed / 12)
                 .unwrap_or_default(),
             command_posture: sim.command_posture,
+            homecoming_recovery: None,
         };
         // Freeze the run timer for the Homecoming (PLAN M4.7).
         self.last_mission_real_secs = self.mission_started.map(|t| (get_time() - t) as f32);

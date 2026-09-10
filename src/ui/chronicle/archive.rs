@@ -52,15 +52,27 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
     } else {
         form.text("Highest heritage tier reached.");
     }
+    let mut recovery_records: Vec<&crate::state::sim::HomecomingRecoveryRecord> = ctx
+        .chronicle
+        .entries
+        .iter()
+        .filter_map(|entry| entry.homecoming_recovery.as_ref())
+        .collect();
+    for record in &ctx.sim.homecoming_recovery_history {
+        if !recovery_records.contains(&record) {
+            recovery_records.push(record);
+        }
+    }
+    recovery_records.sort_by_key(|record| std::cmp::Reverse(record.year));
     form.heading("Between-voyages recovery");
-    if ctx.sim.homecoming_recovery_history.is_empty() {
+    if recovery_records.is_empty() {
         form.text("No recovery interventions recorded yet. Resolve the homecoming brief after a voyage to begin this ledger.");
     } else {
         form.text(&format!(
             "{} interventions recorded · Most recent first",
-            ctx.sim.homecoming_recovery_history.len()
+            recovery_records.len()
         ));
-        for record in ctx.sim.homecoming_recovery_history.iter().rev() {
+        for record in recovery_records {
             form.heading(&recovery_record_heading(record));
             form.text(&format!("Target: {}\n{}", record.target_label, record.note));
         }

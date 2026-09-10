@@ -4,7 +4,7 @@
 //! Records completed contracts and their legacy/command history. The heritage
 //! module derives automatic new-dynasty bonuses from these entries.
 
-use crate::state::sim::CommandPosture;
+use crate::state::sim::{CommandPosture, HomecomingRecoveryRecord};
 use macroquad_toolkit::persistence::{
     load_from_slot_with_migration, save_to_slot_with_version, slot_exists,
 };
@@ -27,6 +27,10 @@ pub struct ChronicleEntry {
     /// default to the neutral posture so the archive remains backward compatible.
     #[serde(default)]
     pub command_posture: CommandPosture,
+    /// The between-voyages intervention recorded after the report was read.
+    /// Old Chronicle entries have no recovery record.
+    #[serde(default)]
+    pub homecoming_recovery: Option<HomecomingRecoveryRecord>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -12,6 +12,7 @@ fn entry(outcome: &str, score: f32, years: u32) -> ChronicleEntry {
         outcome: outcome.to_owned(),
         duration_years: years,
         command_posture: crate::state::sim::CommandPosture::Steady,
+        homecoming_recovery: None,
     }
 }
 
@@ -72,4 +73,21 @@ fn old_chronicle_entries_default_to_steady_and_new_ones_keep_their_posture() {
         decoded.command_posture,
         crate::state::sim::CommandPosture::Civic
     );
+    assert!(decoded.homecoming_recovery.is_none());
+}
+
+#[test]
+fn a_recovery_record_round_trips_with_its_voyage() {
+    let mut voyage = entry("Complete", 0.9, 60);
+    voyage.homecoming_recovery = Some(crate::state::sim::HomecomingRecoveryRecord {
+        year: 60,
+        focus: crate::state::sim::HomecomingFocus::Cohesion,
+        choice: crate::state::sim::HomecomingChoice::ReconcilePeople,
+        target_label: "The commons".to_owned(),
+        note: "A commons grant was made.".to_owned(),
+    });
+
+    let encoded = serde_json::to_string(&voyage).unwrap();
+    let decoded: ChronicleEntry = serde_json::from_str(&encoded).unwrap();
+    assert_eq!(decoded.homecoming_recovery, voyage.homecoming_recovery);
 }
