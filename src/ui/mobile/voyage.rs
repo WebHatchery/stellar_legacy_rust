@@ -47,7 +47,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         ));
         f.text(&format!(
             "{}\n{}",
-            c.approach.description(),
+            c.approach.description_for(c.objective),
             crate::simulation::approach::effect_summary(c.approach)
         ));
         posture_summary(ctx, f);
@@ -85,7 +85,7 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             f.heading(candidate.label_for(t.objective));
             f.text(&format!(
                 "{}\n{}",
-                candidate.description(),
+                candidate.description_for(t.objective),
                 crate::simulation::approach::effect_summary(candidate)
             ));
             if !available {

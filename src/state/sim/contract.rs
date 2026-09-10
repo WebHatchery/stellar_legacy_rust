@@ -72,16 +72,65 @@ impl CharterApproach {
         }
     }
 
-    pub const fn description(self) -> &'static str {
-        match self {
-            Self::ProtectTheMargin => {
-                "Hold the route's margin. Lower fuel use and event pressure, with a measured objective pace."
+    pub const fn description_for(
+        self,
+        objective: crate::data::contracts::ContractObjective,
+    ) -> &'static str {
+        use crate::data::contracts::ContractObjective::*;
+        match (self, objective) {
+            (Self::ProtectTheMargin, Mining) => {
+                "Keep the hold sound: take the paid ore without spending the ship to reach it."
             }
-            Self::ProveTheWrit => {
-                "Spend fuel and accept interruptions to force the objective ahead. Requires a faster ship."
+            (Self::ProtectTheMargin, Colonization) => {
+                "Guard the seed through the crossing, even when a faster planting would pay more."
             }
-            Self::CarryThePeople => {
-                "Reserve capacity for people and carried work. The tally slows, but social and preserve pressure ease."
+            (Self::ProtectTheMargin, Exploration) => {
+                "Preserve the instruments and return with a chart the next captain can trust."
+            }
+            (Self::ProtectTheMargin, Rescue) => {
+                "Spare the reserve so the stranded can be reached without making a second rescue."
+            }
+            (Self::ProtectTheMargin, Diplomacy) => {
+                "Keep good faith in every approach, with enough margin to honor the accord."
+            }
+            (Self::ProtectTheMargin, Salvage) => {
+                "Take only what pays: bring the wreck's value home without crippling the salvager."
+            }
+            (Self::ProveTheWrit, Mining) => {
+                "Cut the seam hard and fast; the hold fills first, and the ship pays the difference."
+            }
+            (Self::ProveTheWrit, Colonization) => {
+                "Plant the world on schedule, accepting pressure that a patient crossing would avoid."
+            }
+            (Self::ProveTheWrit, Exploration) => {
+                "Chart the unknown at the edge of the engines, trading quiet passage for more findings."
+            }
+            (Self::ProveTheWrit, Rescue) => {
+                "Reach the stranded before the window closes, even when the route makes demands."
+            }
+            (Self::ProveTheWrit, Diplomacy) => {
+                "Win the accord by arriving with proof, speed, and a willingness to spend the margin."
+            }
+            (Self::ProveTheWrit, Salvage) => {
+                "Strip the wreck while the opportunity holds; completion outranks a gentle return."
+            }
+            (Self::CarryThePeople, Mining) => {
+                "Keep the crew whole around the work, accepting a slower haul for a steadier homecoming."
+            }
+            (Self::CarryThePeople, Colonization) => {
+                "Carry the settlers as the mission, protecting their cohesion before the colony's tally."
+            }
+            (Self::CarryThePeople, Exploration) => {
+                "Bring everyone home with the knowledge intact; no discovery is worth abandoning the crew."
+            }
+            (Self::CarryThePeople, Rescue) => {
+                "Keep them alive first, letting the recovered count rise at the pace the people can bear."
+            }
+            (Self::CarryThePeople, Diplomacy) => {
+                "Host with care and leave a people willing to remember the ship after the accord is signed."
+            }
+            (Self::CarryThePeople, Salvage) => {
+                "Bring the crew home with only a manageable haul, preserving the hands that make it useful."
             }
         }
     }

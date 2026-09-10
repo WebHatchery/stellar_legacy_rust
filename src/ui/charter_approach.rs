@@ -37,7 +37,7 @@ pub(crate) fn draw(
     draw_text_block(
         &format!(
             "{}\n{}",
-            selected.description(),
+            selected.description_for(template.objective),
             approach::effect_summary(selected)
         ),
         content.x,
@@ -84,7 +84,7 @@ pub(crate) fn mobile_summary(
         "{} · {}\n{}\n{}",
         approach.label_for(objective),
         approach.label(),
-        approach.description(),
+        approach.description_for(objective),
         approach::effect_summary(approach)
     )
 }
