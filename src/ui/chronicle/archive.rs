@@ -2,6 +2,20 @@
 use super::*;
 use crate::ui::mobile::form::Form;
 
+pub(crate) fn recovery_record_heading(
+    record: &crate::state::sim::HomecomingRecoveryRecord,
+) -> String {
+    format!(
+        "Year {} · {} · {}",
+        record.year,
+        record.focus.label(),
+        record.choice.label()
+    )
+}
+
+#[cfg(test)]
+mod tests;
+
 pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("MISSION ARCHIVE"));
     let mut form = Form::new();
@@ -37,6 +51,19 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
         ));
     } else {
         form.text("Highest heritage tier reached.");
+    }
+    form.heading("Between-voyages recovery");
+    if ctx.sim.homecoming_recovery_history.is_empty() {
+        form.text("No recovery interventions recorded yet. Resolve the homecoming brief after a voyage to begin this ledger.");
+    } else {
+        form.text(&format!(
+            "{} interventions recorded · Most recent first",
+            ctx.sim.homecoming_recovery_history.len()
+        ));
+        for record in ctx.sim.homecoming_recovery_history.iter().rev() {
+            form.heading(&recovery_record_heading(record));
+            form.text(&format!("Target: {}\n{}", record.target_label, record.note));
+        }
     }
     if ctx.chronicle.entries.is_empty() {
         form.heading("No voyages recorded yet");
