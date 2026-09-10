@@ -76,6 +76,37 @@ fn an_older_save_without_command_posture_defaults_to_steady() {
 }
 
 #[test]
+fn an_older_save_without_charter_approach_defaults_to_protective_doctrine() {
+    let data = GameData::load().unwrap();
+    let mut sim = SimState::new_campaign(
+        &data,
+        "preservers",
+        81,
+        &crate::state::sim::founding_faction_ids(&data),
+    );
+    let template = data.contracts.get("founding_colony").unwrap();
+    sim.contract = Some(crate::simulation::contract::start_contract(template, &sim));
+    let mut value = serde_json::to_value(&sim).unwrap();
+    let object = value.as_object_mut().unwrap();
+    object.remove("selected_charter_approach");
+    object
+        .get_mut("contract")
+        .and_then(serde_json::Value::as_object_mut)
+        .unwrap()
+        .remove("approach");
+
+    let back: SimState = serde_json::from_value(value).unwrap();
+    assert_eq!(
+        back.selected_charter_approach,
+        CharterApproach::ProtectTheMargin
+    );
+    assert_eq!(
+        back.contract.unwrap().approach,
+        CharterApproach::ProtectTheMargin
+    );
+}
+
+#[test]
 fn an_older_save_without_custodian_voice_state_starts_balanced_and_unannounced() {
     let data = GameData::load().unwrap();
     let sim = SimState::new_campaign(
