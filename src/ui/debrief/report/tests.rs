@@ -1,5 +1,18 @@
 use super::*;
-use crate::state::sim::{HomecomingChoice, HomecomingFocus, HomecomingRecovery};
+use crate::state::sim::{CharterApproach, HomecomingChoice, HomecomingFocus, HomecomingRecovery};
+
+#[test]
+fn accounting_keeps_the_approach_effects_with_the_sealed_report() {
+    let report = VoyageDebrief {
+        approach: CharterApproach::CarryThePeople,
+        ..Default::default()
+    };
+
+    let text = accounting(&report);
+    assert!(text.contains("CHARTER APPROACH\nCARRY THE PEOPLE"));
+    assert!(text.contains("WORK -8% · EVENTS -12% · FUEL -4%"));
+    assert!(text.contains("ANNUAL PEOPLE +1.0% morale"));
+}
 
 #[test]
 fn accounting_keeps_a_recorded_recovery_visible() {

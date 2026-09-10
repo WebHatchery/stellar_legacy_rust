@@ -48,6 +48,11 @@ pub(crate) fn accounting(r: &VoyageDebrief) -> String {
             "Payout received"
         }
     ));
+    text.push_str(&format!(
+        "\nCHARTER APPROACH\n{}\n{}\n",
+        r.approach.label(),
+        crate::simulation::approach::effect_summary(r.approach)
+    ));
     text.push_str("\nHOMECOMING RECOVERY\n");
     text.push_str(&recovery_accounting(r));
     text.push('\n');
