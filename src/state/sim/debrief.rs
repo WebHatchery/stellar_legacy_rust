@@ -12,7 +12,8 @@
 
 use crate::data::ResourceDelta;
 use crate::state::sim::{
-    dynasty::Reign, CommandPosture, HomecomingRecovery, InstitutionRecord, Obligation,
+    dynasty::Reign, CharterApproach, CommandPosture, HomecomingRecovery, InstitutionRecord,
+    Obligation,
 };
 use serde::{Deserialize, Serialize};
 
@@ -105,6 +106,10 @@ pub struct VoyageDebrief {
     /// The operating philosophy the council carried when this report closed.
     #[serde(default)]
     pub command_posture: CommandPosture,
+    /// The mission-specific approach fixed at launch, retained beside the
+    /// voyage-wide command posture for comparison in the report.
+    #[serde(default)]
+    pub approach: CharterApproach,
     /// The Custodian's learned empathy when the charter closed. Kept in the
     /// report so the voyage's moral effect remains visible after docking.
     pub custodian_empathy: f32,
@@ -148,6 +153,7 @@ impl Default for VoyageDebrief {
             duration_years: 0,
             generations: 0,
             command_posture: CommandPosture::default(),
+            approach: CharterApproach::default(),
             custodian_empathy: 0.5,
             payout: ResourceDelta::default(),
             metrics: Vec::new(),

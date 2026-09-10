@@ -13,7 +13,9 @@ mod projects;
 use super::Game;
 use crate::data::ship_components::ComponentKind;
 use crate::save;
-use crate::simulation::{contract, crew, event_resolver, institutions, legacy, market, subsystems};
+use crate::simulation::{
+    approach, contract, crew, event_resolver, institutions, legacy, market, subsystems,
+};
 use crate::state::{GameState, MenuState, StateTransition};
 use crate::ui::UiAction;
 use macroquad::prelude::get_time;
@@ -465,6 +467,7 @@ impl Game {
                 if let GameState::Gameplay(g) = &mut self.state {
                     if g.sim.contract.is_none() {
                         g.sim.selected_charter = None;
+                        g.sim.selected_charter_approach = Default::default();
                     }
                 }
                 self.description_scroll
@@ -494,14 +497,45 @@ impl Game {
                         )
                     {
                         sim.selected_charter = Some(id.clone());
+                        sim.selected_charter_approach = Default::default();
                         sim.push_log(format!("Charter under consideration: {}", template.name));
                     }
+                }
+                None
+            }
+            UiAction::SetCharterApproach(selected) => {
+                let mut warning = None;
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    let sim = &mut gameplay.sim;
+                    if sim.contract.is_some() {
+                        warning = Some(
+                            "A charter approach is fixed once the voyage launches.".to_owned(),
+                        );
+                    } else if let Some(id) = sim.selected_charter.as_deref() {
+                        if let Some(template) = self.data.contracts.get(id) {
+                            if let Some(reason) =
+                                approach::unavailable_reason(sim, &self.data, template, selected)
+                            {
+                                warning = Some(reason);
+                            } else {
+                                sim.selected_charter_approach = selected;
+                                sim.push_log(format!(
+                                    "Charter approach selected: {}.",
+                                    selected.label()
+                                ));
+                            }
+                        }
+                    }
+                }
+                if let Some(warning) = warning {
+                    self.notifications.warning(warning);
                 }
                 None
             }
             UiAction::Launch => {
                 // The one and only path that starts a contract (W4).
                 let mut launched = false;
+                let mut launch_warning = None;
                 if let GameState::Gameplay(gameplay) = &mut self.state {
                     let sim = &mut gameplay.sim;
                     let selected = if sim.contract.is_none() {
@@ -511,25 +545,34 @@ impl Game {
                     };
                     if let Some(id) = selected {
                         if let Some(template) = self.data.contracts.get(&id) {
-                            contract::default_obligation_conflicts(sim, template);
-                            sim.contract = Some(contract::start_contract(template, sim));
-                            for operation in &template.launch_obligation_operations {
-                                sim.apply_obligation_operation(operation);
+                            if let Some(reason) = approach::unavailable_reason(
+                                sim,
+                                &self.data,
+                                template,
+                                sim.selected_charter_approach,
+                            ) {
+                                launch_warning = Some(reason);
+                            } else {
+                                contract::default_obligation_conflicts(sim, template);
+                                sim.contract = Some(contract::start_contract(template, sim));
+                                for operation in &template.launch_obligation_operations {
+                                    sim.apply_obligation_operation(operation);
+                                }
+                                // Lay out the seeded campaign skeleton at LAUNCH (W6).
+                                if let Some(c) = sim.contract.as_mut() {
+                                    c.beats = event_resolver::skeleton::generate_beats(
+                                        &mut sim.rng,
+                                        c,
+                                        &self.data.config.campaign_skeleton,
+                                    );
+                                }
+                                sim.selected_charter = None;
+                                sim.push_log(format!(
+                                    "LAUNCH. {} — {} years. May the line hold.",
+                                    template.name, template.target_duration_years
+                                ));
+                                launched = true;
                             }
-                            // Lay out the seeded campaign skeleton at LAUNCH (W6).
-                            if let Some(c) = sim.contract.as_mut() {
-                                c.beats = event_resolver::skeleton::generate_beats(
-                                    &mut sim.rng,
-                                    c,
-                                    &self.data.config.campaign_skeleton,
-                                );
-                            }
-                            sim.selected_charter = None;
-                            sim.push_log(format!(
-                                "LAUNCH. {} — {} years. May the line hold.",
-                                template.name, template.target_duration_years
-                            ));
-                            launched = true;
                         }
                     }
                 }
@@ -545,6 +588,8 @@ impl Game {
                         }
                     }
                     self.notifications.success("Launched. The voyage begins.");
+                } else if let Some(warning) = launch_warning {
+                    self.notifications.warning(warning);
                 } else {
                     self.notifications
                         .warning("Select a charter in port before launching.");

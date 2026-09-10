@@ -216,7 +216,10 @@ fn month_of_contract(sim: &mut SimState, data: &GameData, report: &mut TickRepor
         // the base travel burn is scaled up as the drive's tuning slips.
         let burn = data.config.provisioning.fuel_burn_per_travel_month
             * subsystems::engineering_fuel_burn_factor(sim, data)
-            * crate::simulation::command::fuel_burn_factor(sim.command_posture);
+            * crate::simulation::command::fuel_burn_factor(sim.command_posture)
+            * sim.contract.as_ref().map_or(1.0, |contract| {
+                crate::simulation::approach::fuel_burn_factor(contract.approach)
+            });
         if sim.ship.fuel < burn {
             // A dry tank in transit: the ship coasts. No progress toward the
             // destination this month (the voyage stretches), and this year's

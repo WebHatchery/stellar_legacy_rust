@@ -206,7 +206,8 @@ pub(super) fn draw(
         .params(),
     );
     let route = format!(
-        "ORIGIN  Home Berth — departed\nOPERATION SITE  {operation}\nOBJECTIVE SYSTEM  {objective_system}\nCURRENT PHASE  {}\nNEXT PHASE  {next_phase}\nNEXT MILESTONE  {next_milestone}\nHOME BERTH  {} remaining\nFuel stalls extend calendar time.",
+        "ORIGIN  Home Berth — departed\nOPERATION SITE  {operation}\nOBJECTIVE SYSTEM  {objective_system}\nCHARTER APPROACH  {}\nCURRENT PHASE  {}\nNEXT PHASE  {next_phase}\nNEXT MILESTONE  {next_milestone}\nHOME BERTH  {} remaining\nFuel stalls extend calendar time.",
+        contract.approach.label_for(contract.objective),
         contract.phase.label().to_uppercase(),
         mission_time(contract.mission_months_remaining()).to_lowercase()
     );
@@ -215,14 +216,14 @@ pub(super) fn draw(
         content.x,
         content.y + 68.0,
         content.w,
-        124.0,
+        142.0,
         12.0,
         3.0,
         term::dim(),
     );
     draw_campaign_outlook(
         contract,
-        Rect::new(content.x, content.y + 202.0, content.w, 102.0),
+        Rect::new(content.x, content.y + 220.0, content.w, 102.0),
     );
     draw_posture(
         ctx,

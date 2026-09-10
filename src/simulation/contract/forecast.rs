@@ -65,7 +65,8 @@ pub fn for_departure(
     let fuel_burn = data.config.provisioning.fuel_burn_per_travel_month
         * (travel_years * 12) as f32
         * engineering_burn
-        * command::fuel_burn_factor(sim.command_posture);
+        * command::fuel_burn_factor(sim.command_posture)
+        * crate::simulation::approach::fuel_burn_factor(sim.selected_charter_approach);
     let stats = ship::loadout_stats(sim, data);
     let fuel_regen_per_year = stats.fuel_regen.max(0) as f32
         * data.config.ship.fuel_regen_per_point

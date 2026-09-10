@@ -38,6 +38,7 @@ pub(super) fn year_boundary_tick(sim: &mut SimState, data: &GameData, report: &m
     produce_and_feed(sim, data, report);
     settle_morale_and_politics(sim, data, report);
     command::apply_annual_effects(sim);
+    crate::simulation::approach::annual_effects(sim);
     wear_the_ship(sim, data, report);
     decay_modules_and_speak(sim, data, report);
     turn_the_generation(sim, data, report);

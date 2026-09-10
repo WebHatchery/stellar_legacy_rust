@@ -2,6 +2,7 @@
 //! returns results; none of them touch UI or rendering.
 
 pub mod advice;
+pub mod approach;
 #[cfg(test)]
 pub mod autoplay;
 #[cfg(test)]

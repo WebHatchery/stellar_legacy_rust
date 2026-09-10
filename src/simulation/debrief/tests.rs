@@ -1,6 +1,6 @@
 use super::*;
 use crate::simulation::contract;
-use crate::state::sim::{founding_faction_ids, CommandPosture};
+use crate::state::sim::{founding_faction_ids, CharterApproach, CommandPosture};
 
 /// A campaign with a charter under way, ready to accrue beats.
 fn launched() -> (GameData, SimState) {
@@ -220,6 +220,7 @@ fn the_report_names_only_the_captains_who_held_the_chair_that_voyage() {
 fn the_homecoming_report_remembers_the_command_posture() {
     let (data, mut sim) = launched();
     sim.command_posture = CommandPosture::Expeditionary;
+    sim.contract.as_mut().unwrap().approach = CharterApproach::CarryThePeople;
 
     let report = seal(
         &sim,
@@ -233,6 +234,7 @@ fn the_homecoming_report_remembers_the_command_posture() {
     .expect("a contract is under way");
 
     assert_eq!(report.command_posture, CommandPosture::Expeditionary);
+    assert_eq!(report.approach, CharterApproach::CarryThePeople);
 }
 
 #[test]

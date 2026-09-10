@@ -39,6 +39,7 @@ fn entry(score: f32) -> ChronicleEntry {
         outcome: "Complete".into(),
         duration_years: 60,
         command_posture: crate::state::sim::CommandPosture::Steady,
+        charter_approach: None,
         homecoming_recovery: None,
     }
 }

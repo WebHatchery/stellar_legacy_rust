@@ -52,6 +52,7 @@ impl Game {
                 .map(|c| c.months_elapsed / 12)
                 .unwrap_or_default(),
             command_posture: sim.command_posture,
+            charter_approach: sim.contract.as_ref().map(|contract| contract.approach),
             homecoming_recovery: None,
         };
         // Freeze the run timer for the Homecoming (PLAN M4.7).

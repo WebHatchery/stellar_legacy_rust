@@ -347,6 +347,9 @@ pub fn roll_event(sim: &mut SimState, data: &GameData) -> Option<PendingEvent> {
     let years_since = sim.month_clock.saturating_sub(sim.last_event_month_clock) / 12;
     let monthly_chance = (event_chance(&data.config, years_since, progress)
         * crate::simulation::command::event_chance_factor(sim.command_posture)
+        * sim.contract.as_ref().map_or(1.0, |contract| {
+            crate::simulation::approach::event_chance_factor(contract.approach)
+        })
         / 12.0)
         .min(1.0);
     if !sim.rng.chance(monthly_chance) {

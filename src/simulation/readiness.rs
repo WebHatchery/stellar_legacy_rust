@@ -400,7 +400,10 @@ fn remaining_fuel_need(sim: &SimState, data: &GameData) -> (u32, f32) {
     let burn = data.config.provisioning.fuel_burn_per_travel_month
         * months as f32
         * subsystems::engineering_fuel_burn_factor(sim, data)
-        * command::fuel_burn_factor(sim.command_posture);
+        * command::fuel_burn_factor(sim.command_posture)
+        * sim.contract.as_ref().map_or(1.0, |contract| {
+            crate::simulation::approach::fuel_burn_factor(contract.approach)
+        });
     (months, burn)
 }
 

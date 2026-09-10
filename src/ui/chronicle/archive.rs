@@ -97,9 +97,14 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
             entry.completed_year, entry.contract_name
         ));
         form.text(&format!(
-            "{} · Score {:.0}%\n{} charter · {} years\nCaptain {} · Generation {}\nCommand posture: {}",
+            "{} · Score {:.0}%\n{} charter · {} years\nCaptain {} · Generation {}\nCommand posture: {} · Approach: {}",
             entry.outcome, entry.score * 100.0, entry.objective, entry.duration_years,
-            entry.leader_name, entry.generation, entry.command_posture.label()
+            entry.leader_name,
+            entry.generation,
+            entry.command_posture.label(),
+            entry
+                .charter_approach
+                .map_or("OLDER RECORD", |approach| approach.label())
         ));
     }
 }

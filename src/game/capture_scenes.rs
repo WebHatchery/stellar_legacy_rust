@@ -125,6 +125,7 @@ impl Game {
                         outcome: "Complete".to_owned(),
                         duration_years: 60,
                         command_posture: crate::state::sim::CommandPosture::Civic,
+                        charter_approach: None,
                         homecoming_recovery: None,
                     });
                 }
@@ -475,6 +476,7 @@ impl Game {
                     outcome: "Partial".to_owned(),
                     duration_years: 40,
                     command_posture: crate::state::sim::CommandPosture::Steady,
+                    charter_approach: None,
                     homecoming_recovery: None,
                 });
                 self.capture_run_secs = Some(2280.0); // 38m — the run just flown
@@ -649,6 +651,7 @@ impl Game {
                         outcome: if i % 2 == 0 { "Complete" } else { "Partial" }.to_owned(),
                         duration_years: 40,
                         command_posture: crate::state::sim::CommandPosture::Steady,
+                        charter_approach: None,
                         homecoming_recovery: None,
                     });
                 }

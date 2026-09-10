@@ -59,6 +59,7 @@ fn an_older_report_shape_loads_with_defaults() {
     assert!((debrief.custodian_empathy - 0.5).abs() < 1e-6);
     assert_eq!(debrief.custodian_disposition(), "BALANCED");
     assert!(debrief.commanders.is_empty());
+    assert_eq!(debrief.approach, CharterApproach::ProtectTheMargin);
     assert_eq!(debrief.milestones_reached(), (0, 0));
 }
 

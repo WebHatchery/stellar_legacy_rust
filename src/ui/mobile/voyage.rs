@@ -41,6 +41,15 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
                 if m.reached { "Reached" } else { "Ahead" }
             ));
         }
+        f.heading(&format!(
+            "Charter approach · {}",
+            c.approach.label_for(c.objective)
+        ));
+        f.text(&format!(
+            "{}\n{}",
+            c.approach.description(),
+            crate::simulation::approach::effect_summary(c.approach)
+        ));
         posture_summary(ctx, f);
         if contract::can_return_home(sim) {
             f.action("Review return home", true, UiAction::ReviewReturnHome);
@@ -63,6 +72,39 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         }
         for risk in &t.failure_risks {
             f.text(&format!("Risk: {}", risk.replace('_', " ")));
+        }
+        f.heading("Charter approach · fixed at launch");
+        f.text(&crate::ui::charter_approach::mobile_summary(
+            sim,
+            t.objective,
+        ));
+        for candidate in crate::state::sim::CharterApproach::ALL {
+            let active = sim.selected_charter_approach == candidate;
+            let available =
+                crate::simulation::approach::choice_available(sim, ctx.data, t, candidate);
+            f.heading(candidate.label_for(t.objective));
+            f.text(&format!(
+                "{}\n{}",
+                candidate.description(),
+                crate::simulation::approach::effect_summary(candidate)
+            ));
+            if !available {
+                f.text(
+                    &crate::simulation::approach::unavailable_reason(sim, ctx.data, t, candidate)
+                        .unwrap_or_else(|| "This approach is unavailable.".to_owned()),
+                );
+            }
+            f.action(
+                if active {
+                    "Selected"
+                } else if available {
+                    "Choose approach"
+                } else {
+                    "Unavailable"
+                },
+                available && !active,
+                UiAction::SetCharterApproach(candidate),
+            );
         }
         let forecast = contract::forecast::for_departure(sim, ctx.data, t);
         f.heading("Departure provisions");

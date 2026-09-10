@@ -90,6 +90,7 @@ impl SimState {
             },
             contract: None,
             selected_charter: None,
+            selected_charter_approach: CharterApproach::default(),
             stalled_months: 0,
             fuel_stalled_this_year: false,
             fuel_stall_years: 0,

@@ -6,6 +6,87 @@
 use crate::data::ResourceDelta;
 use serde::{Deserialize, Serialize};
 
+/// A mission-specific doctrine chosen in PREP and fixed when the charter
+/// launches. It complements, rather than replaces, the voyage-wide command
+/// posture: posture can be reviewed underway, while this is the charter's
+/// deliberate answer to what kind of work this writ should be.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CharterApproach {
+    /// Protect the mission's margin and accept its authored pace.
+    #[default]
+    ProtectTheMargin,
+    /// Spend more of the ship to force the charter's objective forward.
+    ProveTheWrit,
+    /// Reserve capacity for the people and the cargo they must carry home.
+    CarryThePeople,
+}
+
+impl CharterApproach {
+    pub const ALL: [Self; 3] = [
+        Self::ProtectTheMargin,
+        Self::ProveTheWrit,
+        Self::CarryThePeople,
+    ];
+
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::ProtectTheMargin => "PROTECT THE MARGIN",
+            Self::ProveTheWrit => "PROVE THE WRIT",
+            Self::CarryThePeople => "CARRY THE PEOPLE",
+        }
+    }
+
+    pub const fn button_label(self) -> &'static str {
+        match self {
+            Self::ProtectTheMargin => "PROTECT MARGIN",
+            Self::ProveTheWrit => "PROVE WRIT",
+            Self::CarryThePeople => "CARRY PEOPLE",
+        }
+    }
+
+    pub const fn label_for(
+        self,
+        objective: crate::data::contracts::ContractObjective,
+    ) -> &'static str {
+        use crate::data::contracts::ContractObjective::*;
+        match (self, objective) {
+            (Self::ProtectTheMargin, Mining) => "KEEP THE HOLD",
+            (Self::ProtectTheMargin, Colonization) => "GUARD THE SEED",
+            (Self::ProtectTheMargin, Exploration) => "PRESERVE THE INSTRUMENTS",
+            (Self::ProtectTheMargin, Rescue) => "SPARE THE RESERVE",
+            (Self::ProtectTheMargin, Diplomacy) => "KEEP GOOD FAITH",
+            (Self::ProtectTheMargin, Salvage) => "TAKE ONLY WHAT PAYS",
+            (Self::ProveTheWrit, Mining) => "CUT THE SEAM",
+            (Self::ProveTheWrit, Colonization) => "PLANT THE WORLD",
+            (Self::ProveTheWrit, Exploration) => "CHART THE UNKNOWN",
+            (Self::ProveTheWrit, Rescue) => "REACH THE STRANDED",
+            (Self::ProveTheWrit, Diplomacy) => "WIN THE ACCORD",
+            (Self::ProveTheWrit, Salvage) => "STRIP THE WRECK",
+            (Self::CarryThePeople, Mining) => "KEEP THE CREW",
+            (Self::CarryThePeople, Colonization) => "CARRY THE SETTLERS",
+            (Self::CarryThePeople, Exploration) => "BRING EVERYONE HOME",
+            (Self::CarryThePeople, Rescue) => "KEEP THEM ALIVE",
+            (Self::CarryThePeople, Diplomacy) => "HOST WITH CARE",
+            (Self::CarryThePeople, Salvage) => "BRING THE CREW HOME",
+        }
+    }
+
+    pub const fn description(self) -> &'static str {
+        match self {
+            Self::ProtectTheMargin => {
+                "Hold the route's margin. Lower fuel use and event pressure, with a measured objective pace."
+            }
+            Self::ProveTheWrit => {
+                "Spend fuel and accept interruptions to force the objective ahead. Requires a faster ship."
+            }
+            Self::CarryThePeople => {
+                "Reserve capacity for people and carried work. The tally slows, but social and preserve pressure ease."
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricState {
     pub id: String,
@@ -47,6 +128,9 @@ pub struct ActiveContract {
     pub template_id: String,
     pub name: String,
     pub objective: crate::data::contracts::ContractObjective,
+    /// Mission-specific approach selected in PREP; fixed for this charter.
+    #[serde(default)]
+    pub approach: CharterApproach,
     pub target_duration_years: u32,
     /// Contract time elapsed, month-precise (W2/W3). Drives the phase timeline,
     /// the progress bar, and completion.
@@ -404,3 +488,6 @@ impl ActiveContract {
         self.phases[..i].iter().map(|s| s.years * 12).sum()
     }
 }
+
+#[cfg(test)]
+mod tests;

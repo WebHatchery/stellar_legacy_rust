@@ -38,8 +38,9 @@ scars that the next generation must manage.
    tutorial voyage: 150 years split into 50-year outbound, operation, and return
    legs. Tap **Read briefing & prepare** to inspect a charter without launching.
 3. Read the departure briefing and the **FOOD**, **PARTS**, and **FUEL** estimates.
-   Use the stock-up controls or **MARKET** to provision the ship. Tap
-   **PROVISIONS REVIEWED** when the guide asks you to.
+   Choose a **CHARTER APPROACH** for this writ; compare its work, event, fuel,
+   and people tradeoffs before committing. Use the stock-up controls or **MARKET**
+   to provision the ship. Tap **PROVISIONS REVIEWED** when the guide asks you to.
 4. Inspect **People**, **Ship / Loadout**, and **Ship / Systems**. Check the people,
    loadout, and equipment that must carry the mission. Time stays frozen in port,
    so take time to prepare.

@@ -85,6 +85,7 @@ pub fn seal(
             .generation
             .saturating_sub(contract.began_generation),
         command_posture: sim.command_posture,
+        approach: contract.approach,
         custodian_empathy: sim.reputation("custodian_empathy"),
         payout,
         metrics: contract

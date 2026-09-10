@@ -107,8 +107,12 @@ player may accept, including shortages and conflicting obligations.
 Steady, Expeditionary and Civic are implemented **global command postures**.
 They affect objective work, event pressure, fuel and social change, and appear in
 preparation, the active voyage and sealed records. Underway posture changes have
-an annual lock and can trigger captain review. They are not the proposed
-charter-specific operating-approach system described in the backlog.
+an annual lock and can trigger captain review. Separately, each selected charter
+offers a fixed, mission-specific **approach** in PREP: its label is authored for
+each of the six objective families, its effects adjust work, event pressure,
+fuel and long-voyage social/preserve pressure, and its speed gate is checked
+before launch. The approach is snapshotted into the active contract, Homecoming
+report and Chronicle; it cannot be swapped underway.
 
 ### 5.3 Dynasty, crew and institutions
 
@@ -264,8 +268,9 @@ See [support](docs/release/SUPPORT_AND_PRIVACY.md) for storage and recovery.
 Chronicle renown automatically chooses the highest unlocked of four Heritage
 tiers when a dynasty is founded. There is no Heritage modifier-selection screen.
 Sealed Homecoming records preserve departure/return comparisons, captain reigns,
-obligations, institutions, posture and notable decisions after the active contract
-and general log have changed. Saving during the report retains that report.
+obligations, institutions, posture, charter approach and notable decisions after
+the active contract and general log have changed. Saving during the report retains
+that report.
 
 ## 8. Content quality
 
@@ -298,8 +303,9 @@ and closed duties. Full histories start with Back to obligations and show the
 captain and status of each entry; empty lists explain what belongs there.
 Timeline selections retain the same decision when new records arrive, in both
 the desktop and compact reading layouts.
-Both archive layouts show recent voyages first with captain, duration, posture
-and percentage scores. Heritage explains the current and next new-dynasty bonus;
+Both archive layouts show recent voyages first with captain, duration, posture,
+charter approach and percentage scores. Heritage explains the current and next
+new-dynasty bonus;
 an empty archive explains when voyage reports are recorded.
 Milestones scroll in both layouts and show current progress toward unreached
 goals, distinguishing dynasty-specific years and generations from archive totals.

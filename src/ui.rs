@@ -7,6 +7,7 @@
 pub mod agenda;
 pub mod authority_modal;
 pub mod bridge;
+pub mod charter_approach;
 pub mod chronicle;
 pub mod contract_systems;
 pub mod crew_dynasty;
@@ -103,6 +104,8 @@ pub enum UiAction {
     /// Apply the one bounded social or institutional intervention offered by
     /// the homecoming report.
     ChooseHomecomingRecovery(crate::state::sim::HomecomingChoice),
+    /// Select the fixed doctrine for the charter currently under consideration.
+    SetCharterApproach(crate::state::sim::CharterApproach),
     SelectScreen(Screen),
     QueueProject {
         project_id: String,

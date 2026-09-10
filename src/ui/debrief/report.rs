@@ -38,7 +38,7 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, report: &VoyageDebrief, area: Rect, po
 }
 
 pub(crate) fn accounting(r: &VoyageDebrief) -> String {
-    let mut text = format!("{}\n\n{} years under way · {} generations passed · {} survivors aboard\nPopulation {} → {} ({:+}) · Y{}–Y{}\nCommand: {} · Custodian: {} (perceived {:.0}%)\n\nFinal score {:.2} · {}\n", r.homecoming_line.as_deref().unwrap_or("The ship has returned."), r.duration_years, r.generations, r.population_end, r.population_start, r.population_end, r.population_change(), r.began_year, r.ended_year, r.command_posture.label(), r.custodian_disposition(), r.custodian_empathy.clamp(0.0,1.0)*100.0, r.score, r.outcome);
+    let mut text = format!("{}\n\n{} years under way · {} generations passed · {} survivors aboard\nPopulation {} → {} ({:+}) · Y{}–Y{}\nCommand: {} · Charter approach: {} · Custodian: {} (perceived {:.0}%)\n\nFinal score {:.2} · {}\n", r.homecoming_line.as_deref().unwrap_or("The ship has returned."), r.duration_years, r.generations, r.population_end, r.population_start, r.population_end, r.population_change(), r.began_year, r.ended_year, r.command_posture.label(), r.approach.label(), r.custodian_disposition(), r.custodian_empathy.clamp(0.0,1.0)*100.0, r.score, r.outcome);
     let (reached, total) = r.milestones_reached();
     text.push_str(&format!(
         "Marks reached {reached}/{total} · {}\n",

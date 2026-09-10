@@ -12,6 +12,7 @@ fn entry(outcome: &str, score: f32, years: u32) -> ChronicleEntry {
         outcome: outcome.to_owned(),
         duration_years: years,
         command_posture: crate::state::sim::CommandPosture::Steady,
+        charter_approach: None,
         homecoming_recovery: None,
     }
 }
@@ -64,6 +65,7 @@ fn old_chronicle_entries_default_to_steady_and_new_ones_keep_their_posture() {
         old.command_posture,
         crate::state::sim::CommandPosture::Steady
     );
+    assert!(old.charter_approach.is_none());
 
     let mut civic = entry("Complete", 0.9, 60);
     civic.command_posture = crate::state::sim::CommandPosture::Civic;

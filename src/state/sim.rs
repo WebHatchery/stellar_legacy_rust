@@ -29,7 +29,7 @@ pub mod survival;
 
 pub use authority::*;
 pub use campaign::*;
-pub use contract::{ActiveContract, CampaignBeat, MetricState, MilestoneState};
+pub use contract::{ActiveContract, CampaignBeat, CharterApproach, MetricState, MilestoneState};
 pub use dynasty::*;
 pub use homecoming::*;
 pub use institutions::*;
@@ -113,6 +113,10 @@ pub struct SimState {
     /// the mission launches; only ever set while `contract.is_none()`.
     #[serde(default)]
     pub selected_charter: Option<String>,
+    /// Mission-specific approach chosen in PREP, copied into the active charter
+    /// at launch. Defaults to the conservative margin doctrine for old saves.
+    #[serde(default)]
+    pub selected_charter_approach: CharterApproach,
     /// Total Travel months spent coasting on a dry tank (W4) — calendar time
     /// that bought no progress toward the destination.
     #[serde(default)]

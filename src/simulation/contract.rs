@@ -276,6 +276,7 @@ pub fn start_contract(template: &ContractTemplate, sim: &SimState) -> ActiveCont
         template_id: template.id.clone(),
         name: template.name.clone(),
         objective: template.objective,
+        approach: sim.selected_charter_approach,
         target_duration_years: template.target_duration_years,
         months_elapsed: 0,
         phase: ContractPhase::Preparation,
@@ -429,6 +430,9 @@ pub fn advance_contract(
     // ships work faster, civic ships deliberately reserve capacity for their
     // people, and steady ships leave the charter's authored rate untouched.
     let posture_factor = crate::simulation::command::objective_factor(sim.command_posture);
+    let approach_factor = sim.contract.as_ref().map_or(1.0, |contract| {
+        crate::simulation::approach::objective_factor(contract.approach)
+    });
 
     let mut out = ContractProgress::default();
     // The objective subsystem an Operation month trained (content-depth charters round 33), set
@@ -473,7 +477,8 @@ pub fn advance_contract(
                     (1.0 - crew.max(0) as f32 * config.ship.preserve_berth_relief).max(0.2);
                 let monthly_loss = contract.objective_target * contract.preserve_attrition_per_year
                     / 12.0
-                    * berth_relief;
+                    * berth_relief
+                    * crate::simulation::approach::preserve_attrition_factor(contract.approach);
                 contract.objective_progress = (contract.objective_progress - monthly_loss).max(0.0);
             }
         } else if phase == ContractPhase::Operation {
@@ -497,7 +502,8 @@ pub fn advance_contract(
                 * cargo_factor
                 * morale_factor
                 * unity_factor
-                * posture_factor;
+                * posture_factor
+                * approach_factor;
             // …and the work itself sharpens the craft it leans on (content-depth charters round 33):
             // the reverse of the round-14 coupling, where the subsystem's condition speeds the
             // mission — here a month of on-station work builds the objective subsystem's *knowledge*
