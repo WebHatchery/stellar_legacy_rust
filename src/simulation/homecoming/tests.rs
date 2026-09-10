@@ -92,3 +92,16 @@ fn unavailable_recovery_names_the_missing_treasury() {
     assert!(reason.contains("more credits"));
     assert!(reason.contains("more influence"));
 }
+
+#[test]
+fn recovery_effects_use_the_configured_numbers() {
+    let data = GameData::load().unwrap();
+
+    let reconcile = choice_effects(&data, HomecomingChoice::ReconcilePeople);
+    assert!(reconcile.contains("+8% morale"));
+    assert!(reconcile.contains("+10% unity"));
+
+    let defer = choice_effects(&data, HomecomingChoice::Defer);
+    assert!(defer.contains("-3% morale"));
+    assert!(defer.contains("-2% unity"));
+}

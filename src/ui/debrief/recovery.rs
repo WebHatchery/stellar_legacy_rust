@@ -71,7 +71,11 @@ fn draw_card(
         .params(),
     );
     draw_text_block(
-        choice.description(),
+        &format!(
+            "{}\n{}",
+            choice.description(),
+            homecoming::choice_effects(ctx.data, choice)
+        ),
         card.x + 10.0,
         card.y + 34.0,
         card.w - 20.0,

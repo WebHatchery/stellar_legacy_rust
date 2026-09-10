@@ -110,6 +110,33 @@ pub fn choice_cost(sim: &SimState, data: &GameData, choice: HomecomingChoice) ->
     }
 }
 
+/// The configured consequence summary shown beside each recovery choice.
+pub fn choice_effects(data: &GameData, choice: HomecomingChoice) -> String {
+    let cfg = &data.config.homecoming_recovery;
+    match choice {
+        HomecomingChoice::ReconcilePeople => format!(
+            "Effect: {:+.0}% morale · {:+.0}% unity · {:+.0}% stability · {:+.0}% weakest trust",
+            cfg.reconcile_morale * 100.0,
+            cfg.reconcile_unity * 100.0,
+            cfg.reconcile_stability * 100.0,
+            cfg.reconcile_approval * 100.0
+        ),
+        HomecomingChoice::PreserveCraft => format!(
+            "Effect: {:+.0}% knowledge on the weakest discipline",
+            cfg.preserve_knowledge_gain * 100.0
+        ),
+        HomecomingChoice::HonorPromise => format!(
+            "Effect: fulfill oldest promise · {:+.0}% beneficiary trust",
+            cfg.honor_approval * 100.0
+        ),
+        HomecomingChoice::Defer => format!(
+            "Effect: {:+.0}% morale · {:+.0}% unity",
+            -cfg.defer_morale_loss * 100.0,
+            -cfg.defer_unity_loss * 100.0
+        ),
+    }
+}
+
 /// Whether the choice has a valid target and its full bill can be paid.
 pub fn choice_available(sim: &SimState, data: &GameData, choice: HomecomingChoice) -> bool {
     choice_unavailable_reason(sim, data, choice).is_none()
