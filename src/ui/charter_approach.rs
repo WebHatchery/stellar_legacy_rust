@@ -51,6 +51,19 @@ pub(crate) fn draw(
 
     let gap = 6.0;
     let button_y = content.bottom() - 44.0;
+    if let Some(reason) =
+        approach::unavailable_reason(ctx.sim, ctx.data, template, CharterApproach::ProveTheWrit)
+    {
+        draw_ui_text_ex(
+            &format!(
+                "LOCKED · {} · {reason}",
+                CharterApproach::ProveTheWrit.button_label()
+            ),
+            content.x,
+            button_y - 6.0,
+            TextStyle::new(9.0, term::alert()).params(),
+        );
+    }
     let button_w = (content.w - gap * 2.0) / 3.0;
     for (index, candidate) in CharterApproach::ALL.into_iter().enumerate() {
         let button = Rect::new(
