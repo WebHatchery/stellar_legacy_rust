@@ -1,141 +1,324 @@
-# Stellar Legacy coding standards
+# Rust Coding Standards for Macroquad Games
 
-These are the project's contributor rules. [AGENTS.md](AGENTS.md) contains the
-workspace workflow; [gdd.md](gdd.md#11-code-ownership) maps the actual code.
+**Engine**: Macroquad + macroquad-toolkit  
+**Language**: Rust  
+**Platform**: WebGL (WASM) + Native
 
-## 1. Core philosophy
+This document defines the centrally maintained coding standards for Macroquad game projects. Keep project-local copies identical to the canonical `docs/CODE_STANDARDS.md`; put project-specific guidance in the project's README or another local documentation file instead.
 
-Prefer readable, explicit ownership and small modules. Keep focused changes
-narrow. Game rules and authored balance belong here; evaluate reusable rendering,
-input, assets and platform behavior as shared toolkit improvements first. Avoid
-new dependencies unless they remove real complexity or follow an established pattern.
+These standards prioritize:  
+- Readability over cleverness  
+- Data-driven design over hardcoded values  
+- Clean state management  
+- Modular services for game logic  
+- A clear mental model for game phases and transitions  
 
-## 2. Project structure
+## 1. Core Philosophy
 
-### 2.1 Responsibilities
+### 1.1 Write for Maintainability
+Code should be easy to debug and extend.  
+- Prefer obvious, straightforward code  
+- Avoid hidden state or side effects  
+- If a junior Rust developer can understand the flow, you are doing it right.
 
-`main.rs`/`boot.rs` initialize the runtime. `game.rs` and `game/actions/` coordinate
-and dispatch intents. `state/sim/` owns serialized campaign state; `simulation/`
-mutates it through explicit services. `data/` owns schemas and validation; `ui/`
-reads state and returns actions. The main file is not the sole mutation site.
+### 1.2 Consistency Beats Preference
+If a pattern already exists in the codebase, follow it even if you dislike it. A consistent codebase is more valuable than a perfect one.
 
-### 2.2 File size
+### 1.3 Data-Driven Design
+Keep game content and configuration in JSON; see §5.3 for loading and validation rules.
 
-Target 200–400 lines and reconsider structure around 600. Every `.rs` file has an
-800-total-physical-line limit, including tests, comments, whitespace, generated
-source, examples and build scripts. No exceptions. Extract cohesive responsibilities;
-do not strip useful spacing or compress code to pass.
+### 1.4 No Unused Code
+Delete unused variables, fields, and functions; never hide them with `_` prefixes. An unused parameter may use an `_` prefix only when a required trait or API signature prevents removing it.
 
-### 2.3 Module filenames
+## 2. Project Structure Rules
 
-Use `foo.rs` and `foo/bar.rs`, never create new `mod.rs` files. Do not keep both
-root forms for a module. Follow existing small domain boundaries.
+### 2.1 Module Responsibilities
+Each module/subdirectory owns a single conceptual domain:
 
-## 3. Naming
+**Root Level:**
+- `main.rs` – Entry point, game loop, phase transitions, and high-level coordination
 
-Use PascalCase types, snake_case functions/variables/modules, and
-SCREAMING_SNAKE_CASE constants. Boolean names should read as facts. Match existing
-public/action vocabulary and use the same fictional term for the same system.
+**Subdirectories:**
+- `data/` – Data structures and JSON loading
+  - Type definitions for game entities
+  - Constants and configuration structures
 
-## 4. Functions and methods
+- `engine/` – Game logic services (stateless where possible)
+  - Core game calculations
+  - Entity management and state machines
+  - Visual effects (particles, transitions)
 
-Keep functions focused, normally 20–50 lines. Split long operations by
-responsibility. Use configuration/context structs when numerous related parameters
-obscure intent. Use `Option` for absence, `Result` for failure, and named result
-structures where tuples would hide meaning. Avoid needless variable shadowing.
+- `state/` – Game state management
+  - Current game state
+  - Persistent player progression
+  - Save/load functionality
 
-## 5. Data and state
+- `ui/` – User interface components
+  - Base UI utilities and styling
+  - Reusable UI widgets
+  - Uses macroquad-toolkit for buttons and interactions
 
-Keep balance, authored content and shared prose in JSON. Embed/parse game data
-through toolkit `data_loader` and include macros; do not add game-local generic
-loaders or direct string parsing for game-data files. Typed schemas and semantic
-checks remain in `data/`. See [event authoring](event_design_notes.md).
+- `screens/` – Screen-specific rendering (if separated from main.rs)
 
-Simulation randomness comes from `SimState.rng`. Rendering, previews and cosmetic
-clocks must not consume or mutate simulation state. Keep saves, authority,
-obligations and delivered project effects coherent across reload and succession.
-Preserve compatible IDs; add explicit migrations when meaning changes.
+**Cross-Domain Rules:**
+- Data types have no knowledge of engine or UI; all domains may read them.
+- See §5.1 for state ownership and §7 for UI actions.
 
-## 6. Error handling
+### 2.2 File Size Guideline
+- Target 200–400 lines per file; begin planning a split at 600.
+- Every `.rs` file has a hard limit of 800 total physical lines, including whitespace, comments, attributes, and tests. Implementation, test, generated source, example, build-script, and bench files have no exemptions.
+- Extract a cohesive responsibility before a change exceeds the limit. Restructure any existing oversized file encountered during the task before completing it.
+- Never meet the limit by stripping spacing, compressing formatting, or moving a single small function solely to reduce the count.
+- Use the source gate described in `MACROQUAD_TOOLKIT.md`; exception lists must be empty.
 
-Propagate required asset and save failures with useful context. Keep recovery
-visible and preserve invalid saves through quarantine where possible. Never hide
-a failed save or required asset load behind a success message. Use panics for
-unrecoverable invariants, not ordinary player mistakes.
+### 2.3 Module Source Filenames
+- Use Rust's named module source filenames: `foo.rs` for `mod foo;`, and `foo/bar.rs` for `mod bar;` inside `foo.rs`.
+- Do not create new `mod.rs` files.
+- When restructuring existing modules, prefer migrating `foo/mod.rs` to `foo.rs` and keeping child modules under `foo/`.
+- Do not keep both `foo.rs` and `foo/mod.rs`; Rust treats that as an ambiguous module source.
 
-## 7. UI and input
+### 2.4 Folder Structure
 
-UI returns `UiAction` intents; dispatch rechecks eligibility and affordability.
-Drawing should not apply gameplay effects. Shared widgets own presentation and
-interaction state, while the game owns simulation transitions.
+```
+game_name/
+├── Cargo.toml              # Project manifest
+├── CODE_STANDARDS.md       # This file
+├── src/
+│   ├── lib.rs              # Public game logic used by the binary and tests
+│   ├── main.rs             # Entry point and game loop
+│   ├── data.rs             # Data module root and re-exports
+│   ├── data/               # Data child modules
+│   │   ├── schema.rs       # Typed schemas and game-specific validation
+│   │   └── constants.rs    # Game constants structures
+│   ├── engine.rs           # Engine module root and re-exports
+│   ├── engine/             # Engine child modules
+│   │   └── game_engine.rs  # Core calculations
+│   ├── state.rs            # State module root and re-exports
+│   ├── state/              # State child modules
+│   │   ├── game_state.rs   # Current game state
+│   │   └── persistence.rs  # Save/load
+│   ├── ui.rs               # UI module root and re-exports
+│   ├── ui/                 # UI child modules
+│   │   ├── core.rs
+│   │   └── components.rs
+│   └── screens.rs          # Screen renderers module root (optional)
+├── tests/                  # This crate's tests and test-only helpers
+│   └── gameplay.rs         # Tests through the public library API
+├── assets/                 # Game data
+│   ├── constants.json      # Balance values
+│   └── localization/       # Text strings
+└── .gitignore
+```
 
-Every required start, tutorial, gameplay and recovery action must be possible by
-visible tap/click controls or an explicit direct-touch gesture. Give required
-controls at least 44x44 logical-pixel targets. Shortcuts are supplemental; a
-player-facing shortcut string also names its visible control. Tutorial instructions
-state the exact next target. Menus must not leak input into the underlying game.
+## 3. Naming Conventions
 
-Bound every text draw by width and height; wrap, shrink or truncate before overlap.
-Keep pointer coordinates aligned with the drawing camera. Reflow or scroll for UI
-scaling and small viewports; keep global pause/recovery reachable. Color and sound
-must not be the sole carriers of essential state. Preserve the Custodian/human
-actor distinction in all player copy.
+### 3.1 General Rules
+- Types: PascalCase  
+- Functions & variables: snake_case  
+- Constants: SCREAMING_SNAKE_CASE  
+- Modules: snake_case  
 
-## 8. Publishing
+Names should describe what the thing is, not how it works.
 
-Run `.\publish.ps1` with no parameters after meaningful changes. The project wrapper
-builds/packages Windows and WebGL, deploys Preview and runs exact-package smoke
-checks. Report missing infrastructure or unrelated failures explicitly; do not
-substitute an unrequested local game/server run. Production and store release are
-separate actions. Keep `catalog_thumbnail.png` aligned with the title screen;
-the publisher deploys it as `<game_slug>/catalog_thumbnail.png`.
+### 3.2 Boolean Naming
+Booleans should read like facts:  
+```rust
+is_active  
+can_interact  
+has_unlocked  
+should_update  
+```  
+Avoid `flag`, `value`, or `state` in names.
 
-## 9. Documentation
+### 3.3 Service Naming
+Engine services follow a naming pattern:
+- `*Service` for stateless helpers
+- `*Engine` for complex stateless processors
+- `*StateMachine` for state progressions
 
-Explain why, ownership, invariants and failures. Keep current design in `gdd.md`,
-authoring in `event_design_notes.md`, open work in `TODO.md`, and operational gates
-in release QA. Remove completed planning diaries rather than maintaining parallel
-claims. Generic toolkit guidance stays with the sibling dependency.
+## 4. Functions & Methods
 
-## 10. Formatting and tooling
+### 4.1 Function Size
+- Target: 20–50 lines  
+- Absolute max: 100 lines  
+- If a function needs scrolling, it probably needs refactoring.
 
-Use package-scoped Rustfmt, tests and Clippy commands from [README](README.md).
-Fix diagnostics; explain intentional allowances. Remove unused private code and
-fields rather than hiding them with underscore prefixes. Trait-required unused
-parameters may use underscore names. Public contracts require consumer review
-before removal.
+### 4.2 Single Responsibility
+Each function should answer one question or perform one action.
 
-## 11. Testing
+### 4.3 Argument Count
+- Prefer ≤ 3 parameters  
+- If more are needed, use a struct or reference to state  
+- Services should take `&GameState` or `&Config` rather than many individual fields
 
-### 11.1 Coverage
+### 4.4 Return Types
+- Use `Option<T>` for potentially missing values  
+- Use custom result structs for complex outcomes
+- Avoid returning multiple values via tuple; create a named struct instead
 
-Test observable simulation, authority, accounting, fallback, save and input/layout
-rules. Use deterministic scenarios and failure cases. GPU/browser/hardware checks
-and human play establish behavior that unit tests cannot.
+## 5. Data & State Management
 
-### 11.2 Test style
+### 5.1 Game State Ownership
+- `GameState` owns current state; `PlayerStats` owns persistent progression.
+- `Game` coordinates state mutations through explicit actions and transitions; action handlers may live in dedicated modules.
+- Engine services receive state and return results rather than owning mutable state.
+- UI reads state and returns intents for the dispatcher to apply (§7).
 
-Keep fixtures small and tests readable. Test outcomes and invariants, not copies
-of the implementation. Use existing autoplay for comparative policy tests; do not
-create an alternative economy simulator.
+### 5.2 Prefer Plain Data
+Use structs with clear fields. Avoid overly clever enums with embedded logic unless they model a real state machine.  
 
-### 11.3 Test placement
+Game data should be:  
+- Serializable (Serde-friendly for save/load)  
+- Easy to debug and inspect  
+- Immutable after loading from JSON  
 
-Unit tests live in separate child files, declared by `#[cfg(test)] mod tests;`
-in `foo.rs` with bodies in `foo/tests.rs`. This preserves private access through
-`use super::*`. Never put inline unit-test module bodies in implementation files.
-The 800-line limit also applies to every test source. Crate-root `tests/` is for
-actual integration tests; `tests/code_standards.rs` enforces the source-size gate.
+### 5.3 Data-Driven Design
+- Store game constants, balance, configuration, content, and player-facing text as JSON under `assets/`; reference loaded values rather than hardcoding them.
+- Load at startup through `macroquad_toolkit::include_json!` for embedded data or typed `macroquad_toolkit::data_loader` functions for runtime/native loading.
+- Projects own Serde-backed schemas and semantic validation: IDs, references, balance invariants, and game rules.
+- The toolkit owns generic parsing, file loading, platform branching, source-labeled diagnostics, and fallback behavior. Do not create generic project-local loader wrappers or call `serde_json::from_str` directly for game-data files.
 
-## 12. Verification artifacts
+### 5.4 Enums for Game Phases
+Use enums to model distinct game states:
+```rust
+pub enum GamePhase {
+    Loading,
+    MainMenu,
+    Playing,
+    Paused,
+    GameOver,
+    // Add game-specific phases
+}
+```
 
-Store screenshots directly in `docs/verification/`, no subfolders. Replace earlier
-images of the same state. Verify actual dimensions and describe the scope of each
-capture; fixture screenshots do not imply live interaction or human acceptance.
+## 6. Error Handling
 
-## 13. Completion and commits
+### 6.1 Prefer Option Over Panics
+- `panic!` is acceptable only for truly unrecoverable states  
+- Missing entities or items should return `None`, not panic  
+- Use:  
+  - `Option<T>` for potentially missing values  
+  - `Result<T, E>` for fallible I/O operations (save/load)  
+  - Graceful degradation for missing data  
 
-Follow [AGENTS.md](AGENTS.md) and the workspace commit convention. Finish, validate
-and commit each major independent change. Stage all modified/untracked project
-files as required, review the final diff, and report the commit and validation
-result. Keep changes scoped to Stellar Legacy unless the task explicitly expands.
+### 6.2 Logging Over Silent Failures
+Use `eprintln!` for error conditions that should be visible during development but shouldn't crash the game.
+
+## 7. UI Code (Macroquad-Toolkit)
+
+### 7.1 UI Is Dumb
+UI code:  
+- Reads game state  
+- Returns actions/intents  
+- It should never contain game logic.  
+
+### 7.2 Action Pattern
+UI components return `Option<UiAction>` to signal user intent:
+```rust
+pub enum UiAction {
+    StartGame,
+    Pause,
+    Resume,
+    // Add game-specific actions
+}
+```
+
+### 7.3 Component Organization
+- `core.rs` – Color schemes, fonts, base styling  
+- `components.rs` – Reusable widgets  
+- Each component is a pure function: `fn draw_thing(state: &State) -> Option<UiAction>`
+
+### 7.4 Macroquad-Toolkit Usage
+Use shared toolkit widgets, input helpers, and palettes. Prefer buttons that fire on release; use press actions only when immediate feedback is intentional. See `MACROQUAD_TOOLKIT.md` for imports, API examples, and button semantics.
+
+### 7.5 Browser Controls and Layout
+- Games are touch-first: starting, tutorials, core interactions, and recovery must work through visible tap/click controls without a physical keyboard.
+- Keyboard shortcuts may supplement controls. Player-facing shortcut text must also name the equivalent visible touch control.
+- Tutorial prompts name the exact visible control or gesture needed next, such as “Tap CONTINUE” or “Drag the map.”
+- Keep drawing separate from mutation. Support common desktop browser sizes and responsive scaling; use fixed positions only with an intentional virtual resolution.
+
+## 8. Deployment & Web Standards
+
+### 8.1 Required Files
+Every game must have these files for deployment:
+- `publish.ps1` – Build and deploy script
+- `game_page.json` – Per-game metadata used to generate the WebGL host page
+- `catalog_thumbnail.png` – Root-level catalog image
+
+### 8.2 Build Targets
+The game must build for:
+- **Windows**: `cargo build --release`
+- **Web/WASM**: `cargo build --release --target wasm32-unknown-unknown`
+
+### 8.3 Validation
+After meaningful game changes, run `.\publish.ps1` with no parameters from the affected project directory and report the result. If the script is missing, blocked, or fails for an unrelated environment reason, report that limitation. A local instance or dev server is not a substitute unless the user requests it.
+
+Use project-local asset paths and make missing assets and loading failures clear during publishing.
+
+### 8.4 WebGL Requirements
+The publisher generates `dist/webgl/index.html` from
+`rust_management/web/index.template.html` and the game's `game_page.json`.
+Do not maintain a project-root `index.html` for a migrated game. Configure the
+title, WASM name, controls, page copy, canvas behavior, and Project Roost slug
+in `game_page.json`; change the shared template only for catalog-wide behavior.
+
+### 8.5 Catalog Thumbnail
+Each published game should keep `catalog_thumbnail.png` in the project root. Use a 16:9 title-screen or main-menu capture. The shared publisher deploys the file as `<game_slug>/catalog_thumbnail.png`, and the WebHatchery games catalog uses that stable path for card thumbnails.
+
+## 9. Comments & Documentation
+
+### 9.1 Comment Why, Not What
+Code already explains what it does. Comments should explain why it exists.
+
+### 9.2 Module-Level Docs
+Each module should contain a short `//!` comment explaining its purpose:
+```rust
+//! Player inventory and item effects.
+```
+
+## 10. Formatting & Tooling
+
+### 10.1 rustfmt
+- Always use `cargo fmt`  
+- Never fight the formatter  
+
+### 10.2 Clippy
+- Run `cargo clippy` regularly  
+- Fix warnings unless intentionally ignored  
+- Document any `#[allow]` with a comment
+
+### 10.3 Variable Shadowing
+- Avoid variable shadowing (hiding)
+- Do not declare a new variable with the same name as an existing one in the same scope
+
+## 11. Testing Guidelines
+
+### 11.1 What to Test
+Focus tests on:  
+- Core game calculations  
+- State machine transitions  
+- JSON data loading  
+- UI and rendering generally do not need unit tests.
+
+### 11.2 Test Style
+- Tests should read like rules  
+- Avoid complex setups  
+- If a test is hard to write, the code is probably too tangled.
+
+### 11.3 Feature Test Target
+- Strongly target no more than five `#[test]` cases per major feature: one cohesive responsibility, regardless of how its tests are split or named.
+- Prefer high-value behavior and regression tests. Consolidate related inputs with table-driven assertions; do not bundle unrelated checks or delete useful coverage to meet the target.
+- Before committing, review affected feature suites. If more than five cases are needed, briefly explain why distinct coverage warrants them.
+
+### 11.4 Test Placement
+- Each crate owns a `tests/` directory beside its `Cargo.toml`, including member crates in multi-crate repositories. Keep all tests and test-only helpers there.
+- Do not add `#[cfg(test)]`, `mod tests`, test helpers, or test source files under `src/`.
+- Tests exercise the crate's public API. For a binary-only game, expose testable logic through `src/lib.rs` and have `main.rs` use that library; keep internals private unless an intentional public seam is needed.
+- Existing `src/**/tests.rs` files are legacy migration work. Migrate them as a separate change before expanding coverage.
+- Split large suites by responsibility while preserving the feature target (§11.3) and file-size rule (§2.2).
+
+## 12. Verification Artifacts
+
+- Store verification screenshots directly in `docs/verification/`.
+- Do not create screenshot subfolders under `docs/verification/`.
+- If a new capture represents the same screen or state as an existing screenshot, replace the existing image instead of keeping duplicates.

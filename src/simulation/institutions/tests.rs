@@ -121,6 +121,19 @@ fn council_can_grant_custody_to_a_non_dominant_people() {
             .approval
             > approval_before
     );
+    assert_eq!(
+        sim.subsystems["engineering_bay"]
+            .culture
+            .custodian_faction_id
+            .as_deref(),
+        Some(chosen.as_str())
+    );
+    assert!(sim.subsystems["engineering_bay"]
+        .culture
+        .remembered_event
+        .as_deref()
+        .unwrap()
+        .contains("CUSTODIANSHIP GRANTED"));
 }
 
 #[test]

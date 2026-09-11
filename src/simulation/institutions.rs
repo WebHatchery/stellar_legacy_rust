@@ -115,6 +115,7 @@ pub fn establish_or_support_school(
         });
         sim.push_log(format!("The council establishes a school for {name}."));
     }
+    crate::simulation::culture::refresh(sim, data);
     Ok(name.to_owned())
 }
 
@@ -155,6 +156,7 @@ pub fn compile_archive(
     sim.push_log(format!(
         "Emergency procedures for {name} enter the archive."
     ));
+    crate::simulation::culture::refresh(sim, data);
     Ok(name)
 }
 
@@ -207,6 +209,7 @@ pub fn grant_custodianship(
     sim.push_log(format!(
         "The {faction_name} receive custody of the {subsystem_id} discipline—and a stronger voice in council."
     ));
+    crate::simulation::culture::refresh(sim, data);
     Ok(faction_name)
 }
 
@@ -284,6 +287,7 @@ pub fn officer_departed(sim: &mut SimState, data: &GameData, officer: &CrewMembe
             loss * 100.0
         ));
     }
+    crate::simulation::culture::refresh(sim, data);
 }
 
 #[cfg(test)]
