@@ -3,10 +3,20 @@
 
 pub mod advice;
 pub mod approach;
-#[cfg(test)]
-pub mod autoplay;
-#[cfg(test)]
-mod balance;
+#[allow(dead_code, unused_imports)]
+pub mod autoplay {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/autoplay.rs"
+    ));
+}
+#[allow(dead_code, unused_imports)]
+mod balance {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/balance.rs"
+    ));
+}
 pub mod command;
 pub mod contract;
 pub mod crew;

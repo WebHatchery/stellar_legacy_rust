@@ -1,4 +1,8 @@
+//! Homecoming capture scenes covering the report and recovery boundary.
+
 use super::*;
+use crate::simulation::contract;
+use crate::state::{GameplayState, SimState};
 
 impl Game {
     /// Fly a charter end to end under the autoplay policy and conclude it, so

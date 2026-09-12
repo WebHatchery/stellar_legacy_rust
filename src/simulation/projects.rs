@@ -537,15 +537,6 @@ pub fn capture_month(sim: &SimState, data: &GameData) -> Vec<(u64, Option<String
     snapshot
 }
 
-/// Advance all running projects by one month, delivering each newly reached
-/// stage in stable sequence order. A newly started job intentionally waits for
-/// the next call before earning its first month.
-#[cfg(test)]
-pub fn advance_projects(sim: &mut SimState, data: &GameData) {
-    let snapshot = capture_month(sim, data);
-    advance_captured_month(sim, data, snapshot);
-}
-
 pub fn advance_captured_month(
     sim: &mut SimState,
     data: &GameData,
@@ -607,6 +598,13 @@ pub fn advance_captured_month(
     }
     start_waiting_jobs(sim, data);
 }
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/projects/tests.rs"
+    ));
+}
 
-#[cfg(test)]
-mod tests;
+#[allow(unused_imports)]
+pub(crate) use tests::advance_projects;

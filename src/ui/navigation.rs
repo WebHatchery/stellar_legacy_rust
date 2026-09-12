@@ -213,6 +213,10 @@ pub fn draw_utilities(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec
         ctx.presentation.utilities.set(false);
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/navigation/tests.rs"
+    ));
+}

@@ -1,3 +1,5 @@
+//! Mobile modal overlays, occlusion, and dismissal controls.
+
 use super::*;
 fn draw<A>(f: Form<A>, state: &presentation::Presentation, pointer: Pointer, key: &str) -> Vec<A> {
     let (w, h) = size();

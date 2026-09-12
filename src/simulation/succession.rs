@@ -103,6 +103,10 @@ pub fn process_generation(sim: &mut SimState, _data: &GameData) -> u32 {
     sim.dynasty.births_this_generation = 0;
     born
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/succession/tests.rs"
+    ));
+}

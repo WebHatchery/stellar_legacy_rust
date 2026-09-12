@@ -173,6 +173,10 @@ pub fn unity_recovery(sim: &SimState, data: &GameData) -> f32 {
         })
         .sum()
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/crew/tests.rs"
+    ));
+}

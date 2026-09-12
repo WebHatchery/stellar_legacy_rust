@@ -1,3 +1,5 @@
+//! Escrow and refund accounting for ship projects.
+
 use super::*;
 pub(super) fn multiply_refund(amounts: ProjectAmounts, fraction: f32) -> ProjectAmounts {
     let f = fraction.clamp(0.0, 1.0) as f64;

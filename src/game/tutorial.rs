@@ -51,6 +51,10 @@ impl Game {
             && matches!(&self.state, GameState::Gameplay(g) if !g.sim.tutorial_dismissed && g.sim.tutorial_step < 10)
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/game/tutorial/tests.rs"
+    ));
+}

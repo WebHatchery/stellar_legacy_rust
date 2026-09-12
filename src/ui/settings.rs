@@ -278,6 +278,10 @@ fn choice_button(rect: Rect, label: &str, active: bool, pointer: Pointer) -> boo
     );
     pointer.released_on(hit)
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/settings/tests.rs"
+    ));
+}

@@ -1,3 +1,5 @@
+//! Display-preference setup for deterministic capture scenes.
+
 use crate::settings::{DisplaySettings, Phosphor};
 
 pub(super) fn prepare<'a>(scene: &'a str, display: &mut DisplaySettings) -> &'a str {

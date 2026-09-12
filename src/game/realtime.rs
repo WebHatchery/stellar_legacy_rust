@@ -103,6 +103,10 @@ impl Game {
         (timeout - self.decision_elapsed).max(0.0)
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/game/realtime/tests.rs"
+    ));
+}

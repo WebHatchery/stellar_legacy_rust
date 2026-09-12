@@ -1,3 +1,5 @@
+//! Authored effects delivered when a ship project reaches a stage.
+
 use super::*;
 use crate::data::PopulationDelta;
 pub(super) fn deliver_stage(

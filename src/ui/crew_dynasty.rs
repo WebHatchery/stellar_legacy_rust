@@ -403,9 +403,12 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
         y += POST_STRIDE;
     }
 }
-
-#[cfg(test)]
-mod tests;
-
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/crew_dynasty/tests.rs"
+    ));
+}
 pub(crate) mod council;
 use council::draw as draw_council;

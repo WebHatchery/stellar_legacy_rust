@@ -88,6 +88,10 @@ pub fn apply(sim: &mut SimState, heritage: &Heritage) {
         ));
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/heritage/tests.rs"
+    ));
+}

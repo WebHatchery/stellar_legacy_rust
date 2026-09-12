@@ -113,6 +113,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     let blocked = ctx.sim.has_pending_decision()
         || ctx.sim.survival.warning_active
         || ctx.sim.debrief.is_some();
+    let _content_bounds = Region::new(layout.content);
     if ctx.presentation.navigation_open.get() && !blocked {
         let mut form = Form::new();
         for destination in navigation::Destination::ALL {

@@ -1,3 +1,5 @@
+//! Readiness rows and aftermath notices for the Custodian Agenda.
+
 use super::*;
 
 pub(super) fn draw_readiness(

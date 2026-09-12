@@ -1,3 +1,5 @@
+//! Mobile voyage, contract, and market sections.
+
 use super::*;
 use crate::simulation::{contract, market};
 

@@ -153,6 +153,10 @@ pub(super) fn column_panel(area: Rect, title: &str) -> Rect {
     let content = area.inset(18.0);
     Rect::new(content.x, content.y + 26.0, content.w, content.h - 26.0)
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/debrief/tests.rs"
+    ));
+}

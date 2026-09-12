@@ -49,6 +49,10 @@ pub(super) fn reading_view(area: Rect, content_height: f32, text_scale: f32) -> 
         )
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/mobile/form/layout/tests.rs"
+    ));
+}

@@ -198,6 +198,10 @@ impl VoyageDebrief {
         p.credits == 0 && p.energy == 0 && p.minerals == 0 && p.food == 0 && p.influence == 0
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/state/sim/debrief/tests.rs"
+    ));
+}

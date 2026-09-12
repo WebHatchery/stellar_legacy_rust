@@ -1,3 +1,5 @@
+//! Mobile subsystem systems and custody controls.
+
 use super::*;
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     let sim = ctx.sim;

@@ -164,6 +164,10 @@ impl DisplaySettings {
         style
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/settings/tests.rs"
+    ));
+}

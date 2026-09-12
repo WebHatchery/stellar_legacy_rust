@@ -1,4 +1,9 @@
+//! Deterministic Agenda capture scenes used by the release screenshot harness.
+
 use super::*;
+use crate::simulation::contract;
+use crate::state::{GameplayState, Screen, SimState};
+
 impl Game {
     pub(super) fn capture_agenda(&mut self, scene: &str) {
         use crate::simulation::projects;

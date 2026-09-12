@@ -16,8 +16,6 @@ use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 mod instruments;
 mod status;
 use instruments::draw_systems_strip;
-#[cfg(test)]
-use instruments::{primary_risk, weakest_module_readout};
 use status::custodian_status;
 
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
@@ -610,6 +608,10 @@ fn log_tone(text: &str) -> (&'static str, Color) {
         ("·", term::dim())
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/dashboard/tests.rs"
+    ));
+}

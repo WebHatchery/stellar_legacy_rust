@@ -151,10 +151,13 @@ pub fn build_founding_factions(faction_ids: &[String], total: u32) -> Vec<Factio
 mod announce;
 mod roster;
 mod sentiment;
-
-#[cfg(test)]
-mod tests;
-
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/state/sim/factions/tests.rs"
+    ));
+}
 impl SimState {
     /// Indices of the factions still aboard.
     fn aboard_indices(&self) -> Vec<usize> {

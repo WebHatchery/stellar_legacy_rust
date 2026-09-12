@@ -135,6 +135,10 @@ pub(crate) fn recovery_accounting(r: &VoyageDebrief) -> String {
         recovery.situation
     )
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/debrief/report/tests.rs"
+    ));
+}

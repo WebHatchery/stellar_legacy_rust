@@ -156,6 +156,10 @@ pub fn failure_risk(sim: &SimState, config: &GameConfig) -> FailureRisk {
     risk.at_risk = risk.total > fr.at_risk_threshold;
     risk
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/legacy/tests.rs"
+    ));
+}

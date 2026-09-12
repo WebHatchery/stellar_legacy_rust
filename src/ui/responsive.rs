@@ -52,6 +52,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     }
     let panel = Rect::new(12.0, 146.0, width - 24.0, logical_height() - 158.0);
     term_panel(panel, None);
+    let _content_bounds = Region::new(panel);
     if ctx.screen == Screen::Dashboard
         && panel.w >= 720.0
         && !blocked

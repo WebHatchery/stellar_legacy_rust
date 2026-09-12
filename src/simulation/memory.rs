@@ -58,6 +58,10 @@ pub fn outgoing_reign<'a>(dynasty: &'a Dynasty, outgoing: &str) -> Option<&'a Re
         .rev()
         .find(|reign| reign.name == outgoing)
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/memory/tests.rs"
+    ));
+}

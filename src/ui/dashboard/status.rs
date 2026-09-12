@@ -1,3 +1,5 @@
+//! Compact Custodian disposition status for the Bridge dashboard.
+
 pub(super) fn custodian_status(empathy: f32) -> String {
     let empathy = empathy.clamp(0.0, 1.0);
     let disposition = crate::state::sim::custodian_disposition(empathy);

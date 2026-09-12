@@ -134,6 +134,10 @@ fn scale_population(d: PopulationDelta, f: f32) -> PopulationDelta {
         cultural_drift: soften_f32(d.cultural_drift, f),
     }
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/subsystems/tests.rs"
+    ));
+}

@@ -1,3 +1,5 @@
+//! Mobile ship destinations and loadout sections.
+
 use super::*;
 use crate::simulation::projects;
 use crate::state::sim::{ProjectAmounts, ProjectStatus};

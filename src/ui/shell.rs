@@ -142,6 +142,7 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     } else {
         pointer
     };
+    let _content_bounds = Region::new(content);
     match screen {
         Screen::Dashboard => bridge::draw(&ctx, content, content_pointer, &mut actions),
         Screen::Agenda => agenda::draw(&ctx, content, content_pointer, &mut actions),

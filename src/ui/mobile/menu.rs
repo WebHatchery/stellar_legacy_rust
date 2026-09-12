@@ -1,3 +1,5 @@
+//! Mobile main-menu layout and accessible menu actions.
+
 use super::*;
 pub fn draw_menu(ctx: &MenuCtx<'_>, state: &presentation::Presentation) -> Vec<UiAction> {
     let mut f = Form::new();

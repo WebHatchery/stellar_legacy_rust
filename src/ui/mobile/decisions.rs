@@ -1,3 +1,5 @@
+//! Mobile decision cards and their visible commit controls.
+
 use super::*;
 use crate::state::sim::AuthorityChoice;
 

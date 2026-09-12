@@ -1,3 +1,5 @@
+//! Mobile Chronicle and obligation-history sections.
+
 use super::*;
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     if let Some(id) = ctx.obligation_detail {

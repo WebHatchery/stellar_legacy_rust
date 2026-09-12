@@ -142,6 +142,10 @@ fn wave(duration: f32, sample: impl Fn(f32) -> f32) -> Vec<u8> {
         },
     )
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/audio/tests.rs"
+    ));
+}

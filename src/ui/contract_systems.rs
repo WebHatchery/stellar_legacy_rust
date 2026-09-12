@@ -654,6 +654,10 @@ pub(crate) fn draw_charter_cards(
     );
     ctx.charter_scroll.set(scroll);
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/ui/contract_systems/tests.rs"
+    ));
+}

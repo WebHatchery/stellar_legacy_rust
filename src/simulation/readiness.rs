@@ -406,6 +406,10 @@ fn remaining_fuel_need(sim: &SimState, data: &GameData) -> (u32, f32) {
         });
     (months, burn)
 }
-
-#[cfg(test)]
-mod tests;
+#[allow(dead_code, unused_imports)]
+mod tests {
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/unit/simulation/readiness/tests.rs"
+    ));
+}
