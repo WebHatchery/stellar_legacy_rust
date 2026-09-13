@@ -8,7 +8,7 @@ use crate::state::sim::factions::steward_decay_factor;
 use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
+use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt};
 
 fn priced_action_label(action: &str, cost: i64, available: i64, unit: &str) -> String {
     if available >= cost {
@@ -449,6 +449,7 @@ fn draw_custody_picker(
             .with_header(48.0, term::panel_header())
             .with_header_divider(1.0, term::accent()),
     );
+    let _modal_region = Region::on(modal, term::panel());
     draw_text_centered_in_box_ex(
         &format!("GRANT CUSTODY // {}", subsystem.name.to_uppercase()),
         modal.x,
@@ -532,7 +533,7 @@ fn draw_custody_candidate(
         )
         .params(),
     );
-    draw_ui_text_ex(
+    draw_text_block(
         &format!(
             "{} members · approval {:.0}% → {:.0}% · CARE ×{care_factor:.2} · {craft}",
             state.members,
@@ -540,8 +541,12 @@ fn draw_custody_candidate(
             approval_after * 100.0
         ),
         row.x + 12.0,
-        row.y + 48.0,
-        TextStyle::new(14.0, term::dim()).params(),
+        row.y + 38.0,
+        row.w - 236.0,
+        32.0,
+        13.0,
+        2.0,
+        term::dim(),
     );
     let enabled = ctx.sim.resources.influence >= ctx.data.config.crew.custody_influence_cost;
     if term_button(
