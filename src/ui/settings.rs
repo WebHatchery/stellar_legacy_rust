@@ -5,7 +5,7 @@
 use crate::data::events::EventCategory;
 use crate::settings::{DisplaySettings, Phosphor};
 use crate::state::sim::DelegationSettings;
-use crate::ui::{logical_height, logical_width, term, term_button, term_panel};
+use crate::ui::{logical_height, logical_width, term, term_button, term_panel, Region};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::occlude;
@@ -38,6 +38,10 @@ pub fn draw(
     occlude(bounds);
     let layout = layout(bounds.w, bounds.h, display.text_scale);
     term_panel(layout.panel, Some("DISPLAY & SOUND"));
+    // The settings panel covers the underlying menu, while the dimmed margins
+    // remain visible as orientation. Register the opaque panel for collision
+    // and contrast auditing so covered menu labels are not counted as peers.
+    let _modal_region = Region::on(layout.panel, term::panel());
     let rows = build_rows(display, delegation);
     draw_rows(rows, layout, presentation, pointer)
 }
