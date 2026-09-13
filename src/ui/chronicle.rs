@@ -8,6 +8,7 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{
     draw_ui_text_ex, is_fully_visible, note_neighbour, note_target, occlude, touch_area, RectExt,
+    Region,
 };
 use std::cmp::Reverse;
 
@@ -468,6 +469,7 @@ fn draw_obligation_history(
             .with_header(50.0, term::panel_header())
             .with_header_divider(1.0, term::accent()),
     );
+    let _modal_region = Region::on(modal, term::panel());
     draw_text_centered_in_box_ex(
         "OBLIGATION HISTORY",
         modal.x,
