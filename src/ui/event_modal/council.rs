@@ -10,12 +10,10 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let Some(event) = ctx.data.events.get(&pending.template_id) else {
         return;
     };
-    macroquad_toolkit::ui::occlude(Rect::new(
-        0.0,
-        72.0,
-        logical_width(),
-        logical_height() - 72.0,
-    ));
+    let _overlay_region = Region::on(
+        Rect::new(0.0, 72.0, logical_width(), logical_height() - 72.0),
+        Color::new(0.0, 0.0, 0.0, 0.94),
+    );
     let state = ctx.presentation;
     let key = format!("{}:{}", pending.template_id, pending.rolled_month_clock);
     if *state.event_key.borrow() != key {
@@ -56,6 +54,7 @@ fn draw_council_panel(
         Color::new(0.0, 0.0, 0.0, 0.94),
     );
     crate::ui::term_panel(frame, Some("Council decision"));
+    let _modal_region = Region::on(frame, term::panel());
     let captain = ctx
         .sim
         .dynasty

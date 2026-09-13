@@ -5,7 +5,7 @@ use crate::simulation::legacy::pending_dilemma_def;
 use crate::ui::{logical_height, logical_width, term, term_button, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt, Region};
+use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt, Region};
 
 /// Characters-per-second for the terminal reveal of modal body text.
 const REVEAL_CPS: f32 = 55.0;
@@ -119,7 +119,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
 
 fn dilemma_overlay_region() -> Region {
     let area = Rect::new(0.0, 72.0, logical_width(), logical_height() - 72.0);
-    occlude(area);
+    macroquad_toolkit::ui::occlude(area);
     Region::on(area, Color::new(0.0, 0.0, 0.0, 0.75))
 }
 
