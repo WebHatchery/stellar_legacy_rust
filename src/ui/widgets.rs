@@ -102,7 +102,7 @@ pub fn term_button_sized(
             if enabled {
                 term::primary()
             } else {
-                term::faint()
+                term::dim()
             },
         ),
     );

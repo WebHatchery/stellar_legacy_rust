@@ -74,11 +74,15 @@ fn draw_review_context(review: &AuthorityReview, content: Rect) {
         4.0,
         term::primary(),
     );
-    draw_ui_text_ex(
+    draw_text_block(
         "The Custodian proposed a policy under its standing mandate. The captain may object; the ship still has a legal next step.",
         content.x,
         content.y + 132.0,
-        TextStyle::new(12.0, term::dim()).params(),
+        content.w,
+        36.0,
+        12.0,
+        4.0,
+        term::dim(),
     );
 }
 
@@ -129,7 +133,7 @@ fn draw_review_choices(
         "NO EMERGENCY OVERRIDE"
     };
     if term_button(
-        Rect::new(content.x, y, content.w, 40.0),
+        Rect::new(content.x, y, content.w, 44.0),
         label,
         review.emergency_allowed,
         pointer,
