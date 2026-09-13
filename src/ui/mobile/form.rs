@@ -237,6 +237,17 @@ fn draw_item<A>(
     if !rect.overlaps(&view) {
         return;
     }
+    let interactive = matches!(
+        &item,
+        Item::Action(..)
+            | Item::Section(..)
+            | Item::Actions(..)
+            | Item::Sections(..)
+            | Item::CloseUtilities
+    );
+    if interactive && (rect.y < view.y || rect.bottom() > view.bottom()) {
+        return;
+    }
     match item {
         Item::Text(text, title) => draw_text_item(&text, title, rect, view, text_scale),
         Item::Action(label, enabled, action, section) => draw_action_item(
