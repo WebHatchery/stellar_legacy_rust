@@ -2,7 +2,7 @@
 
 use crate::ui::{
     draw_text_block, draw_ui_text_ex, logical_height, logical_width, occlude, term, term_button,
-    term_panel, GameplayCtx, Pointer, TextStyle, UiAction,
+    term_panel, GameplayCtx, Pointer, Region, TextStyle, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::ui::RectExt;
@@ -11,6 +11,10 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
     let panel = Rect::new(logical_width() / 2.0 - 370.0, 150.0, 740.0, 410.0);
     term_panel(panel, Some("LIFE SUPPORT // RECOVERY REVIEW REQUIRED"));
+    // This review fully covers the bridge and its status labels. Register the
+    // opaque surface so the capture audit does not treat covered deck copy as
+    // a collision with the warning text.
+    let _modal_region = Region::on(panel, term::panel());
     let content = panel.inset(26.0);
     draw_ui_text_ex(
         "THE AIR LINE IS FAILING",
