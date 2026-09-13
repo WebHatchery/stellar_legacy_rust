@@ -160,12 +160,14 @@ pub fn term_bar(rect: Rect, frac: f32, fill: Color, label: &str, value: &str) {
     // A soft dark shadow keeps a bright label legible where it overhangs the
     // green fill onto the dark track (short bars like cultural drift).
     if !covered {
+        let _shadow = macroquad_toolkit::ui::Decorative::new();
         draw_ui_text_ex(
             label,
             rect.x + 9.0,
             baseline + 1.0,
             TextStyle::new(font, Color::new(0.0, 0.0, 0.0, 0.55)).params(),
         );
+        drop(_shadow);
     }
     draw_ui_text_ex(
         label,
