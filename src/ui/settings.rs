@@ -33,12 +33,16 @@ pub fn draw(
     presentation: &crate::ui::presentation::Presentation,
     pointer: Pointer,
 ) -> Vec<DisplayAction> {
-    let mut actions = Vec::new();
     let bounds = Rect::new(0.0, 0.0, logical_width(), logical_height());
     draw_rectangle(0.0, 0.0, bounds.w, bounds.h, Color::new(0.0, 0.0, 0.0, 0.8));
     occlude(bounds);
     let layout = layout(bounds.w, bounds.h, display.text_scale);
     term_panel(layout.panel, Some("DISPLAY & SOUND"));
+    let rows = build_rows(display, delegation);
+    draw_rows(rows, layout, presentation, pointer)
+}
+
+fn build_rows(display: &DisplaySettings, delegation: &DelegationSettings) -> Vec<Row> {
     let mut rows = vec![
         Row::scale(
             "UI scale",
@@ -116,6 +120,16 @@ pub fn draw(
             )],
         });
     }
+    rows
+}
+
+fn draw_rows(
+    rows: Vec<Row>,
+    layout: Layout,
+    presentation: &crate::ui::presentation::Presentation,
+    pointer: Pointer,
+) -> Vec<DisplayAction> {
+    let mut actions = Vec::new();
     let total = rows.len().div_ceil(layout.columns) as f32 * layout.row_height;
     let mut scroll = presentation.overlay_scroll.get();
     scroll.update_at(layout.view, total, pointer.position);

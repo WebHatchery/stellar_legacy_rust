@@ -68,6 +68,19 @@ impl Destination {
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let current = Destination::of(ctx.screen);
+    draw_destinations(ctx, current, pointer, actions);
+    let sections = current.sections(ctx.sim.contract.is_none());
+    draw_screen_sections(ctx, &sections, pointer, actions);
+    draw_context_subtabs(ctx, current, pointer);
+    draw_utilities_toggle(ctx, pointer);
+}
+
+fn draw_destinations(
+    ctx: &GameplayCtx<'_>,
+    current: Destination,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     for (index, destination) in Destination::ALL.into_iter().enumerate() {
         let rect = Rect::new(16.0 + index as f32 * 116.0, 78.0, 108.0, 44.0);
         let label = if destination == Destination::History
@@ -96,7 +109,14 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             );
         }
     }
-    let sections = current.sections(ctx.sim.contract.is_none());
+}
+
+fn draw_screen_sections(
+    ctx: &GameplayCtx<'_>,
+    sections: &[(&str, Screen)],
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     for (index, (label, screen)) in sections.iter().enumerate() {
         let rect = Rect::new(614.0 + index as f32 * 158.0, 78.0, 150.0, 44.0);
         let label = if *screen == Screen::Agenda {
@@ -120,6 +140,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             );
         }
     }
+}
+
+fn draw_context_subtabs(ctx: &GameplayCtx<'_>, current: Destination, pointer: Pointer) {
     if current == Destination::History {
         for (index, label) in ["Timeline", "Obligations", "Milestones"]
             .into_iter()
@@ -160,6 +183,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             }
         }
     }
+}
+
+fn draw_utilities_toggle(ctx: &GameplayCtx<'_>, pointer: Pointer) {
     if term_button(
         Rect::new(logical_width() - 146.0, 78.0, 130.0, 44.0),
         "Utilities",

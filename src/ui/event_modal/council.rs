@@ -36,6 +36,18 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         logical_width() - 48.0,
         logical_height() - 146.0,
     );
+    draw_council_panel(ctx, event, &available, selected, frame, pointer, actions);
+}
+
+fn draw_council_panel(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    available: &[usize],
+    selected: usize,
+    frame: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     draw_rectangle(
         0.0,
         72.0,
@@ -76,6 +88,17 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         5.0,
         term::primary(),
     );
+    draw_council_situation(ctx, event, left, pointer);
+    draw_council_choices(ctx, event, available, selected, right, pointer, actions);
+}
+
+fn draw_council_situation(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    left: Rect,
+    pointer: Pointer,
+) {
+    let state = ctx.presentation;
     let advice_open = state.event_advice.get();
     let mut text = crate::simulation::event_resolver::shown_description(ctx.sim, event);
     if advice_open {
@@ -111,6 +134,18 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         state.event_advice.set(!advice_open);
         state.situation_scroll.set(ScrollArea::new());
     }
+}
+
+fn draw_council_choices(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    available: &[usize],
+    selected: usize,
+    right: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let state = ctx.presentation;
     let gap = 10.0;
     let width = (right.w - gap * (available.len() - 1) as f32) / available.len() as f32;
     for (index, &outcome_index) in available.iter().enumerate() {

@@ -61,10 +61,14 @@ pub(crate) fn trade_lot_sizes(cargo: i64) -> (i64, i64) {
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     term_panel(area, Some("COMMODITY EXCHANGE // QUOTES LOCK ON TAP"));
     let content = area.inset(24.0);
-    let mut y = content.y + 44.0;
-
     let (small_lot, cargo_lot) = trade_lot_sizes(loadout_stats(ctx.sim, ctx.data).cargo as i64);
+    let y = draw_market_header(ctx, content, small_lot, cargo_lot);
+    let y = draw_market_rows(ctx, content, pointer, actions, small_lot, cargo_lot, y);
+    draw_market_footer(ctx, content, y);
+}
 
+fn draw_market_header(ctx: &GameplayCtx<'_>, content: Rect, small_lot: i64, cargo_lot: i64) -> f32 {
+    let mut y = content.y + 44.0;
     draw_ui_text_ex(
         &format!(
             "TREASURY {}cr   ·   SMALL LOT {}   ·   CARGO LOT {}",
@@ -93,99 +97,145 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         );
     }
     y += 10.0;
+    y
+}
 
+fn draw_market_rows(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+    small_lot: i64,
+    cargo_lot: i64,
+    mut y: f32,
+) -> f32 {
     const ROW_H: f32 = 100.0;
     const ROW_GAP: f32 = 8.0;
     for entry in &ctx.sim.market.entries {
-        let row = Rect::new(content.x, y, content.w, ROW_H);
-        draw_surface(
-            row,
-            &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+        draw_market_row(
+            ctx, entry, content, pointer, actions, small_lot, cargo_lot, y,
         );
-        let cx = row.x + 14.0;
-        let held = held_amount(ctx, entry.resource);
-        let (arrow, trend_color) = if entry.trend > 0.005 {
-            ("▲", term::accent())
-        } else if entry.trend < -0.005 {
-            ("▼", term::alert())
-        } else {
-            ("—", term::dim())
-        };
-        draw_ui_text_ex(
-            entry.resource.label(),
-            cx,
-            row.y + 18.0,
-            TextStyle::new(15.0, term::primary()).params(),
-        );
-        draw_ui_text_ex(
-            &held.to_string(),
-            cx + col_held,
-            row.y + 18.0,
-            TextStyle::new(15.0, term::accent()).params(),
-        );
-        draw_ui_text_ex(
-            &format!("{:.2} cr/u", entry.price),
-            cx + col_price,
-            row.y + 18.0,
-            TextStyle::new(15.0, term::primary()).params(),
-        );
-        draw_ui_text_ex(
-            &format!("{arrow} {:+.2}", entry.trend),
-            cx + col_trend,
-            row.y + 18.0,
-            TextStyle::new(15.0, trend_color).params(),
-        );
-
-        let buy_small = buy_quote(ctx.sim, entry.resource, small_lot);
-        let buy_full = buy_quote(ctx.sim, entry.resource, cargo_lot);
-        let sell_small = sell_quote(ctx.sim, entry.resource, small_lot);
-        let sell_full = sell_quote(ctx.sim, entry.resource, cargo_lot);
-        draw_ui_text_ex(
-            &terms_line(buy_small, sell_small),
-            cx,
-            row.y + 38.0,
-            TextStyle::new(11.0, term::dim()).params(),
-        );
-
-        let gap = 8.0;
-        let button_w = (row.w - 28.0 - gap * 3.0) / 4.0;
-        let button_y = row.y + 48.0;
-        for (index, (buying, quote)) in [
-            (true, buy_small),
-            (true, buy_full),
-            (false, sell_small),
-            (false, sell_full),
-        ]
-        .into_iter()
-        .enumerate()
-        {
-            let rect = Rect::new(
-                row.x + 14.0 + index as f32 * (button_w + gap),
-                button_y,
-                button_w,
-                44.0,
-            );
-            let enabled = if buying {
-                ctx.sim.resources.credits >= quote.total_credits
-            } else {
-                held >= quote.amount
-            };
-            let label = if buying {
-                format!("BUY {} · {}cr", quote.amount, quote.total_credits)
-            } else {
-                format!("SELL {} · +{}cr", quote.amount, quote.total_credits)
-            };
-            if term_button(rect, &label, enabled, pointer) {
-                actions.push(if buying {
-                    UiAction::Buy(entry.resource, quote.amount)
-                } else {
-                    UiAction::Sell(entry.resource, quote.amount)
-                });
-            }
-        }
         y += ROW_H + ROW_GAP;
     }
+    y
+}
 
+fn draw_market_row(
+    ctx: &GameplayCtx<'_>,
+    entry: &crate::state::sim::MarketEntry,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+    small_lot: i64,
+    cargo_lot: i64,
+    y: f32,
+) {
+    const ROW_H: f32 = 100.0;
+    let col_held = 220.0;
+    let col_price = 380.0;
+    let col_trend = 540.0;
+    let row = Rect::new(content.x, y, content.w, ROW_H);
+    draw_surface(
+        row,
+        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+    );
+    let cx = row.x + 14.0;
+    let held = held_amount(ctx, entry.resource);
+    let (arrow, trend_color) = if entry.trend > 0.005 {
+        ("▲", term::accent())
+    } else if entry.trend < -0.005 {
+        ("▼", term::alert())
+    } else {
+        ("—", term::dim())
+    };
+    draw_ui_text_ex(
+        entry.resource.label(),
+        cx,
+        row.y + 18.0,
+        TextStyle::new(15.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &held.to_string(),
+        cx + col_held,
+        row.y + 18.0,
+        TextStyle::new(15.0, term::accent()).params(),
+    );
+    draw_ui_text_ex(
+        &format!("{:.2} cr/u", entry.price),
+        cx + col_price,
+        row.y + 18.0,
+        TextStyle::new(15.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &format!("{arrow} {:+.2}", entry.trend),
+        cx + col_trend,
+        row.y + 18.0,
+        TextStyle::new(15.0, trend_color).params(),
+    );
+
+    let buy_small = buy_quote(ctx.sim, entry.resource, small_lot);
+    let buy_full = buy_quote(ctx.sim, entry.resource, cargo_lot);
+    let sell_small = sell_quote(ctx.sim, entry.resource, small_lot);
+    let sell_full = sell_quote(ctx.sim, entry.resource, cargo_lot);
+    draw_ui_text_ex(
+        &terms_line(buy_small, sell_small),
+        cx,
+        row.y + 38.0,
+        TextStyle::new(11.0, term::dim()).params(),
+    );
+
+    draw_trade_buttons(
+        ctx,
+        entry.resource,
+        held,
+        [buy_small, buy_full, sell_small, sell_full],
+        row,
+        pointer,
+        actions,
+    );
+}
+
+fn draw_trade_buttons(
+    ctx: &GameplayCtx<'_>,
+    resource: TradeResource,
+    held: i64,
+    quotes: [TradeQuote; 4],
+    row: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let gap = 8.0;
+    let button_w = (row.w - 28.0 - gap * 3.0) / 4.0;
+    let button_y = row.y + 48.0;
+    for (index, quote) in quotes.into_iter().enumerate() {
+        let buying = index < 2;
+        let rect = Rect::new(
+            row.x + 14.0 + index as f32 * (button_w + gap),
+            button_y,
+            button_w,
+            44.0,
+        );
+        let enabled = if buying {
+            ctx.sim.resources.credits >= quote.total_credits
+        } else {
+            held >= quote.amount
+        };
+        let label = if buying {
+            format!("BUY {} · {}cr", quote.amount, quote.total_credits)
+        } else {
+            format!("SELL {} · +{}cr", quote.amount, quote.total_credits)
+        };
+        if term_button(rect, &label, enabled, pointer) {
+            actions.push(if buying {
+                UiAction::Buy(resource, quote.amount)
+            } else {
+                UiAction::Sell(resource, quote.amount)
+            });
+        }
+    }
+}
+
+fn draw_market_footer(ctx: &GameplayCtx<'_>, content: Rect, y: f32) {
     if let Some(receipt) = ctx.sim.market.last_trade {
         draw_ui_text_ex(
             &format!(

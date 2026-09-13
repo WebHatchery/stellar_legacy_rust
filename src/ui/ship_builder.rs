@@ -206,91 +206,103 @@ fn draw_module_ladder(
         };
         let row = Rect::new(c.x, ry, c.w, row_h);
         ry += row_h;
+        draw_module_rung(ctx, row, id, vi, tier, name, state.tier, pointer, actions);
+    }
+}
 
-        if tier < state.tier {
-            // A version already surpassed — record of the ladder climbed.
-            draw_ui_text_ex(
-                &format!("· {name}"),
-                row.x + 6.0,
-                row.y + 16.0,
-                TextStyle::new(12.0, term::faint()).params(),
-            );
-        } else if tier == state.tier {
-            // The version fitted right now.
+fn draw_module_rung(
+    ctx: &GameplayCtx<'_>,
+    row: Rect,
+    id: &str,
+    vi: usize,
+    tier: u32,
+    name: &str,
+    installed_tier: u32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    if tier < installed_tier {
+        draw_ui_text_ex(
+            &format!("· {name}"),
+            row.x + 6.0,
+            row.y + 16.0,
+            TextStyle::new(12.0, term::faint()).params(),
+        );
+    } else if tier == installed_tier {
+        draw_surface(
+            row,
+            &SurfaceStyle::new(term::surface_active()).with_border(1.0, term::accent()),
+        );
+        draw_ui_text_ex(
+            name,
+            row.x + 8.0,
+            row.y + 16.0,
+            TextStyle::new(13.0, term::accent()).params(),
+        );
+        draw_text_right(
+            "INSTALLED",
+            row.right() - 8.0,
+            row.y + 16.0,
+            TextStyle::new(11.0, term::accent()),
+        );
+    } else {
+        draw_module_upgrade(ctx, row, id, vi, name, pointer, actions);
+    }
+}
+
+fn draw_module_upgrade(
+    ctx: &GameplayCtx<'_>,
+    row: Rect,
+    id: &str,
+    vi: usize,
+    name: &str,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let definition = ctx.data.subsystems.get(id).expect("ladder definition");
+    let fitting = &definition.tiers[vi - 1];
+    if fitting.acquisition.is_mission_only() {
+        let unlocked = ctx
+            .sim
+            .ship
+            .unlocked_fittings
+            .iter()
+            .any(|f| f == &fitting.id);
+        if unlocked {
+            let label = format!("INSTALL {name} · RECOVERED");
+            if term_button(row, &label, true, pointer) {
+                actions.push(UiAction::InstallFitting(id.to_owned()));
+            }
+        } else {
             draw_surface(
                 row,
-                &SurfaceStyle::new(term::surface_active()).with_border(1.0, term::accent()),
+                &SurfaceStyle::new(term::surface()).with_border(1.0, term::faint()),
             );
             draw_ui_text_ex(
                 name,
                 row.x + 8.0,
                 row.y + 16.0,
-                TextStyle::new(13.0, term::accent()).params(),
+                TextStyle::new(13.0, term::dim()).params(),
             );
             draw_text_right(
-                "INSTALLED",
+                "MISSION REWARD",
                 row.right() - 8.0,
                 row.y + 16.0,
-                TextStyle::new(11.0, term::accent()),
-            );
-        } else if tier == state.tier + 1 {
-            // The next rung — a drydock purchase, unless it is a mission reward
-            // (never sold; unlocked only by a voyage — wired in a later pass).
-            let fitting = &def.tiers[vi - 1];
-            if fitting.acquisition.is_mission_only() {
-                let unlocked = ctx
-                    .sim
-                    .ship
-                    .unlocked_fittings
-                    .iter()
-                    .any(|f| f == &fitting.id);
-                if unlocked {
-                    // A voyage has recovered this version — fit it free (the mission
-                    // was the price), distinct from a bought upgrade.
-                    let label = format!("INSTALL {name} · RECOVERED");
-                    if term_button(row, &label, true, pointer) {
-                        actions.push(UiAction::InstallFitting(id.to_owned()));
-                    }
-                } else {
-                    draw_surface(
-                        row,
-                        &SurfaceStyle::new(term::surface()).with_border(1.0, term::faint()),
-                    );
-                    draw_ui_text_ex(
-                        name,
-                        row.x + 8.0,
-                        row.y + 16.0,
-                        TextStyle::new(13.0, term::dim()).params(),
-                    );
-                    draw_text_right(
-                        "MISSION REWARD",
-                        row.right() - 8.0,
-                        row.y + 16.0,
-                        TextStyle::new(10.0, term::dim()),
-                    );
-                }
-            } else {
-                let cost = &fitting.cost;
-                let mut bits = vec![format!("{}cr", cost.credits)];
-                if cost.minerals > 0 {
-                    bits.push(format!("{}min", cost.minerals));
-                }
-                let affordable = ctx.sim.resources.credits >= cost.credits
-                    && ctx.sim.resources.minerals >= cost.minerals;
-                let label = format!("INSTALL {name} · {}", bits.join(" + "));
-                if term_button(row, &label, affordable, pointer) {
-                    actions.push(UiAction::UpgradeSubsystem(id.to_owned()));
-                }
-            }
-        } else {
-            // A version further up the ladder, previewed but not yet reachable.
-            draw_ui_text_ex(
-                &format!("○ {name}"),
-                row.x + 6.0,
-                row.y + 16.0,
-                TextStyle::new(12.0, term::faint()).params(),
+                TextStyle::new(10.0, term::dim()),
             );
         }
+        return;
+    }
+    let cost = &fitting.cost;
+    let mut bits = vec![format!("{}cr", cost.credits)];
+    if cost.minerals > 0 {
+        bits.push(format!("{}min", cost.minerals));
+    }
+    let affordable =
+        ctx.sim.resources.credits >= cost.credits && ctx.sim.resources.minerals >= cost.minerals;
+    let label = format!("INSTALL {name} · {}", bits.join(" + "));
+    if term_button(row, &label, affordable, pointer) {
+        actions.push(UiAction::UpgradeSubsystem(id.to_owned()));
     }
 }
 
@@ -518,6 +530,14 @@ fn draw_component_card(
     actions: &mut Vec<UiAction>,
 ) {
     let salvaged = ctx.sim.ship.salvage.iter().any(|s| s == &component.id);
+    draw_component_surface(rect, installed, salvaged);
+    draw_component_info(rect, component, installed);
+    draw_component_action(
+        ctx, rect, component, installed, salvaged, pointer, kind, actions,
+    );
+}
+
+fn draw_component_surface(rect: Rect, installed: bool, salvaged: bool) {
     draw_surface(
         rect,
         &SurfaceStyle::new(Color::new(0.07, 0.055, 0.012, 1.0)).with_border(
@@ -533,6 +553,9 @@ fn draw_component_card(
             },
         ),
     );
+}
+
+fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     draw_ui_text_ex(
         &component.name,
         rect.x + 12.0,
@@ -577,7 +600,18 @@ fn draw_component_card(
             TextStyle::new(12.0, term::accent()).params(),
         );
     }
+}
 
+fn draw_component_action(
+    ctx: &GameplayCtx<'_>,
+    rect: Rect,
+    component: &ShipComponent,
+    installed: bool,
+    salvaged: bool,
+    pointer: Pointer,
+    kind: ComponentKind,
+    actions: &mut Vec<UiAction>,
+) {
     // Cost is folded into the button so the card stays compact enough for a
     // five-deep catalog column.
     let cost = &component.cost;

@@ -314,96 +314,15 @@ fn draw_obligation_rows(
         if !is_fully_visible(row, view) {
             continue;
         }
-        draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
-        draw_rectangle_lines(
-            row.x,
-            row.y,
-            row.w,
-            row.h,
-            1.0,
-            if overdue {
-                term::alert()
-            } else {
-                term::faint()
-            },
-        );
-        let timing = if show_resolved {
-            let closed = obligation
-                .history
-                .last()
-                .map_or(obligation.created_year, |entry| entry.year);
-            format!("CLOSED Y{closed:03}")
-        } else {
-            obligation
-                .due_year
-                .map(|due_year| {
-                    if due_year <= year {
-                        format!("DUE Y{due_year:03} · {}Y OVERDUE", year - due_year)
-                    } else {
-                        format!("DUE Y{due_year:03} · IN {}Y", due_year - year)
-                    }
-                })
-                .unwrap_or_else(|| "DUE OPEN".to_owned())
-        };
-        let inherited = if obligation.successions_crossed > 0 {
-            " · INHERITED"
-        } else {
-            ""
-        };
-        draw_text_block(
-            &format!(
-                "{} [{}{}]",
-                obligation.title,
-                if overdue {
-                    "DUE"
-                } else {
-                    obligation.status.label()
-                },
-                inherited
-            ),
-            row.x + 10.0,
-            row.y + 7.0,
-            row.w - 132.0,
-            38.0,
-            18.0,
-            4.0,
-            if overdue {
-                term::alert()
-            } else {
-                term::primary()
-            },
-        );
-        if term_button(
-            Rect::new(row.right() - 112.0, row.y + 4.0, 104.0, 44.0),
-            "HISTORY",
-            true,
+        draw_obligation_row(
+            obligation,
+            row,
+            overdue,
+            show_resolved,
+            year,
             pointer,
-        ) {
-            actions.push(UiAction::OpenObligationHistory(obligation.id.clone()));
-        }
-        let mut line_y = row.y + 58.0;
-        for line in [
-            format!("TO: {}", obligation.beneficiary),
-            format!("OWNER: {} · {timing}", obligation.responsible),
-            format!("MATERIAL: {}", obligation.stakes.material),
-            format!(
-                "NAME: {} · {}",
-                obligation.stakes.reputation,
-                obligation.visibility.label()
-            ),
-        ] {
-            draw_text_block(
-                &line,
-                row.x + 10.0,
-                line_y,
-                row.w - 20.0,
-                28.0,
-                16.0,
-                4.0,
-                term::dim(),
-            );
-            line_y += 30.0;
-        }
+            actions,
+        );
     }
     scroll.draw_scrollbar_with(
         view,
@@ -413,6 +332,107 @@ fn draw_obligation_rows(
         term::primary(),
     );
     ctx.obligations_scroll.set(scroll);
+}
+
+fn draw_obligation_row(
+    obligation: &crate::state::sim::Obligation,
+    row: Rect,
+    overdue: bool,
+    show_resolved: bool,
+    year: u32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
+    draw_rectangle_lines(
+        row.x,
+        row.y,
+        row.w,
+        row.h,
+        1.0,
+        if overdue {
+            term::alert()
+        } else {
+            term::faint()
+        },
+    );
+    let timing = if show_resolved {
+        let closed = obligation
+            .history
+            .last()
+            .map_or(obligation.created_year, |entry| entry.year);
+        format!("CLOSED Y{closed:03}")
+    } else {
+        obligation
+            .due_year
+            .map(|due_year| {
+                if due_year <= year {
+                    format!("DUE Y{due_year:03} · {}Y OVERDUE", year - due_year)
+                } else {
+                    format!("DUE Y{due_year:03} · IN {}Y", due_year - year)
+                }
+            })
+            .unwrap_or_else(|| "DUE OPEN".to_owned())
+    };
+    let inherited = if obligation.successions_crossed > 0 {
+        " · INHERITED"
+    } else {
+        ""
+    };
+    draw_text_block(
+        &format!(
+            "{} [{}{}]",
+            obligation.title,
+            if overdue {
+                "DUE"
+            } else {
+                obligation.status.label()
+            },
+            inherited
+        ),
+        row.x + 10.0,
+        row.y + 7.0,
+        row.w - 132.0,
+        38.0,
+        18.0,
+        4.0,
+        if overdue {
+            term::alert()
+        } else {
+            term::primary()
+        },
+    );
+    if term_button(
+        Rect::new(row.right() - 112.0, row.y + 4.0, 104.0, 44.0),
+        "HISTORY",
+        true,
+        pointer,
+    ) {
+        actions.push(UiAction::OpenObligationHistory(obligation.id.clone()));
+    }
+    let mut line_y = row.y + 58.0;
+    for line in [
+        format!("TO: {}", obligation.beneficiary),
+        format!("OWNER: {} · {timing}", obligation.responsible),
+        format!("MATERIAL: {}", obligation.stakes.material),
+        format!(
+            "NAME: {} · {}",
+            obligation.stakes.reputation,
+            obligation.visibility.label()
+        ),
+    ] {
+        draw_text_block(
+            &line,
+            row.x + 10.0,
+            line_y,
+            row.w - 20.0,
+            28.0,
+            16.0,
+            4.0,
+            term::dim(),
+        );
+        line_y += 30.0;
+    }
 }
 
 fn draw_obligation_history(

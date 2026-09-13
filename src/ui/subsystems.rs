@@ -32,29 +32,10 @@ fn draw_card(
     let (Some(def), Some(state)) = (ctx.data.subsystems.get(id), ctx.sim.subsystems.get(id)) else {
         return;
     };
-    let cfg = &ctx.data.config;
     let in_port = ctx.sim.contract.is_none();
 
     term_panel(rect, Some(&def.name.to_uppercase()));
     let content = rect.inset(14.0);
-    let mut y = content.y + 32.0;
-
-    // The version currently fitted, its tier pips, and the family it buffers.
-    let pips: String = (1..=3)
-        .map(|t| if state.tier >= t { '●' } else { '○' })
-        .collect();
-    let family = if def.buffers_family.is_empty() {
-        "habitat integrity".to_owned()
-    } else {
-        def.buffers_family.replace('_', " ")
-    };
-    draw_ui_text_ex(
-        def.fitting_name(state.tier),
-        content.x,
-        y,
-        TextStyle::new(18.0, term::primary()).params(),
-    );
-    y += 26.0;
     let school = ctx
         .sim
         .subsystem_schools
@@ -65,6 +46,47 @@ fn draw_card(
         .procedure_archives
         .iter()
         .any(|archive| archive.subsystem_id == id);
+    let y = draw_card_identity(ctx, content, id, def, state, school, archived);
+    draw_card_bars(ctx, content, id, def, state, y);
+    let institution = institution_action(ctx, id, school, archived);
+    draw_card_actions(
+        ctx,
+        content,
+        id,
+        def,
+        state,
+        in_port,
+        institution,
+        pointer,
+        actions,
+    );
+}
+
+fn draw_card_identity(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    id: &str,
+    def: &crate::data::subsystems::SubsystemDef,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    school: Option<&crate::state::sim::institutions::SubsystemSchool>,
+    archived: bool,
+) -> f32 {
+    let pips: String = (1..=3)
+        .map(|t| if state.tier >= t { '●' } else { '○' })
+        .collect();
+    let family = if def.buffers_family.is_empty() {
+        "habitat integrity".to_owned()
+    } else {
+        def.buffers_family.replace('_', " ")
+    };
+    let mut y = content.y + 32.0;
+    draw_ui_text_ex(
+        def.fitting_name(state.tier),
+        content.x,
+        y,
+        TextStyle::new(18.0, term::primary()).params(),
+    );
+    y += 26.0;
     let repair_target = repair_target_condition(ctx.sim, ctx.data, id).unwrap_or(state.condition);
     let mend = format!("REPAIR TO {:.0}%", repair_target * 100.0);
     let detail = school.map_or_else(
@@ -91,8 +113,17 @@ fn draw_card(
         y,
         TextStyle::new(14.0, term::dim()).params(),
     );
-    y += 32.0;
+    y + 32.0
+}
 
+fn draw_card_bars(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    id: &str,
+    def: &crate::data::subsystems::SubsystemDef,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    y: f32,
+) {
     term_bar(
         Rect::new(content.x, y, content.w, 18.0),
         state.condition,
@@ -100,12 +131,9 @@ fn draw_card(
         "CONDITION",
         &format!("{:.0}%", state.condition * 100.0),
     );
-    y += 24.0;
-
-    // Knowledge — red when it has fallen below the repair threshold.
     let can_mend = state.knowledge >= def.repair_knowledge_required;
     term_bar(
-        Rect::new(content.x, y, content.w, 18.0),
+        Rect::new(content.x, y + 24.0, content.w, 18.0),
         state.knowledge,
         if can_mend {
             term::accent()
@@ -119,54 +147,60 @@ fn draw_card(
             def.repair_knowledge_required * 100.0
         ),
     );
-    if let Some(culture) =
+    let Some(culture) =
         crate::simulation::culture::descriptor(ctx.data, id, &state.culture.descriptor_id)
-    {
-        let custodian = state
-            .culture
-            .custodian_faction_id
-            .as_deref()
-            .and_then(|faction_id| ctx.data.factions.get(faction_id))
-            .map_or("NO LOCAL CUSTODIAN", |faction| faction.name.as_str());
-        let memory = state
-            .culture
-            .remembered_event
-            .as_deref()
-            .unwrap_or("No compartment memory recorded.");
-        let grievance = state
-            .culture
-            .grievance
-            .as_deref()
-            .unwrap_or("No active grievance.");
-        draw_ui_text_ex(
-            "LOCAL CULTURE",
-            content.x,
-            y + 42.0,
-            TextStyle::new(13.0, term::primary()).params(),
-        );
-        draw_text_block(
-            &format!(
-                "{} · CUSTODIAN {}\n{}\nMEMORY {}\nGRIEVANCE {}",
-                culture.label,
-                custodian,
-                crate::simulation::culture::effect_summary(culture),
-                memory,
-                grievance
-            ),
-            content.x,
-            y + 50.0,
-            content.w,
-            76.0,
-            10.0,
-            2.0,
-            term::dim(),
-        );
-    }
+    else {
+        return;
+    };
+    let custodian = state
+        .culture
+        .custodian_faction_id
+        .as_deref()
+        .and_then(|faction_id| ctx.data.factions.get(faction_id))
+        .map_or("NO LOCAL CUSTODIAN", |faction| faction.name.as_str());
+    let memory = state
+        .culture
+        .remembered_event
+        .as_deref()
+        .unwrap_or("No compartment memory recorded.");
+    let grievance = state
+        .culture
+        .grievance
+        .as_deref()
+        .unwrap_or("No active grievance.");
+    draw_ui_text_ex(
+        "LOCAL CULTURE",
+        content.x,
+        y + 42.0,
+        TextStyle::new(13.0, term::primary()).params(),
+    );
+    draw_text_block(
+        &format!(
+            "{} · CUSTODIAN {}\n{}\nMEMORY {}\nGRIEVANCE {}",
+            culture.label,
+            custodian,
+            crate::simulation::culture::effect_summary(culture),
+            memory,
+            grievance
+        ),
+        content.x,
+        y + 50.0,
+        content.w,
+        76.0,
+        10.0,
+        2.0,
+        term::dim(),
+    );
+}
 
-    // Institutional continuity stays attached to the discipline it protects.
-    // The single focused verb advances from school, to archive, to faction
-    // custody, then becomes the school's periodic recommitment.
-    let (institution_label, institution_ok, institution_action) = match school {
+fn institution_action(
+    ctx: &GameplayCtx<'_>,
+    id: &str,
+    school: Option<&crate::state::sim::institutions::SubsystemSchool>,
+    archived: bool,
+) -> (String, bool, UiAction) {
+    let cfg = &ctx.data.config;
+    match school {
         None => (
             priced_action_label(
                 "SCHOOL",
@@ -207,20 +241,81 @@ fn draw_card(
             ctx.sim.resources.credits >= cfg.crew.school_upkeep_credits,
             UiAction::EstablishSchool(id.to_owned()),
         ),
-    };
-    // --- Verbs: Repair / Upgrade (port) / Train ---
+    }
+}
+
+fn draw_card_actions(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    id: &str,
+    def: &crate::data::subsystems::SubsystemDef,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    in_port: bool,
+    institution: (String, bool, UiAction),
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let bw = (content.w - 3.0 * 8.0) / 4.0;
     let by = content.bottom() - 44.0;
+    draw_repair_button(
+        ctx, content.x, by, bw, id, def, state, in_port, pointer, actions,
+    );
+    draw_upgrade_button(
+        ctx,
+        content.x + bw + 8.0,
+        by,
+        bw,
+        id,
+        def,
+        state,
+        in_port,
+        pointer,
+        actions,
+    );
+    draw_train_button(
+        ctx,
+        content.x + 2.0 * (bw + 8.0),
+        by,
+        bw,
+        id,
+        state,
+        pointer,
+        actions,
+    );
+    let (label, enabled, action) = institution;
+    if term_button(
+        Rect::new(content.x + 3.0 * (bw + 8.0), by, bw, 44.0),
+        &label,
+        enabled,
+        pointer,
+    ) {
+        actions.push(action);
+    }
+}
+
+fn draw_repair_button(
+    ctx: &GameplayCtx<'_>,
+    x: f32,
+    y: f32,
+    width: f32,
+    id: &str,
+    def: &crate::data::subsystems::SubsystemDef,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    in_port: bool,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let can_mend = state.knowledge >= def.repair_knowledge_required;
     let ceiling = if in_port {
         1.0
     } else {
-        cfg.repair.field_ceiling
+        ctx.data.config.repair.field_ceiling
     };
     let repair_ok = can_mend
         && state.condition < ceiling
         && ctx.sim.ship.spare_parts >= def.repair_parts_cost
         && ctx.sim.resources.minerals >= def.repair_minerals_cost;
-    let repair_label = if !can_mend {
+    let label = if !can_mend {
         format!(
             "REPAIR · NEED {:.0}% KNOWLEDGE",
             def.repair_knowledge_required * 100.0
@@ -240,18 +335,25 @@ fn draw_card(
             def.repair_parts_cost, def.repair_minerals_cost
         )
     };
-    if term_button(
-        Rect::new(content.x, by, bw, 44.0),
-        &repair_label,
-        repair_ok,
-        pointer,
-    ) {
+    if term_button(Rect::new(x, y, width, 44.0), &label, repair_ok, pointer) {
         actions.push(UiAction::RepairSubsystem(id.to_owned()));
     }
+}
 
-    // Upgrade: port-only, pays the next fitting's cost, caps at the top version.
+fn draw_upgrade_button(
+    ctx: &GameplayCtx<'_>,
+    x: f32,
+    y: f32,
+    width: f32,
+    id: &str,
+    def: &crate::data::subsystems::SubsystemDef,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    in_port: bool,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let next = def.next_fitting(state.tier);
-    let upgrade_label = match next {
+    let label = match next {
         Some(t)
             if in_port
                 && (ctx.sim.resources.credits < t.cost.credits
@@ -266,52 +368,39 @@ fn draw_card(
         Some(_) => "UPGRADE · PORT".to_owned(),
         None => "MAX TIER".to_owned(),
     };
-    let upgrade_ok = in_port
+    let enabled = in_port
         && next.is_some_and(|t| {
             ctx.sim.resources.credits >= t.cost.credits
                 && ctx.sim.resources.minerals >= t.cost.minerals
         });
-    if term_button(
-        Rect::new(content.x + bw + 8.0, by, bw, 44.0),
-        &upgrade_label,
-        upgrade_ok,
-        pointer,
-    ) {
+    if term_button(Rect::new(x, y, width, 44.0), &label, enabled, pointer) {
         actions.push(UiAction::UpgradeSubsystem(id.to_owned()));
     }
+}
 
-    // Train: anytime, raises this subsystem's knowledge.
-    let training_target =
-        training_target_knowledge(ctx.sim, ctx.data, id).unwrap_or(state.knowledge);
-    let training_complete = training_target <= state.knowledge + f32::EPSILON;
-    let train_ok =
-        !training_complete && ctx.sim.resources.credits >= cfg.subsystems.train_cost_credits;
-    let train_label = if training_complete {
+fn draw_train_button(
+    ctx: &GameplayCtx<'_>,
+    x: f32,
+    y: f32,
+    width: f32,
+    id: &str,
+    state: &crate::state::sim::subsystems::SubsystemState,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let cost = ctx.data.config.subsystems.train_cost_credits;
+    let target = training_target_knowledge(ctx.sim, ctx.data, id).unwrap_or(state.knowledge);
+    let complete = target <= state.knowledge + f32::EPSILON;
+    let enabled = !complete && ctx.sim.resources.credits >= cost;
+    let label = if complete {
         "MASTERED".to_owned()
-    } else if ctx.sim.resources.credits < cfg.subsystems.train_cost_credits {
-        format!("TRAIN · NEED {} credits", cfg.subsystems.train_cost_credits)
+    } else if ctx.sim.resources.credits < cost {
+        format!("TRAIN · NEED {cost} credits")
     } else {
-        format!(
-            "TRAIN TO {:.0}% · {}cr",
-            training_target * 100.0,
-            cfg.subsystems.train_cost_credits
-        )
+        format!("TRAIN TO {:.0}% · {cost}cr", target * 100.0)
     };
-    if term_button(
-        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 44.0),
-        &train_label,
-        train_ok,
-        pointer,
-    ) {
+    if term_button(Rect::new(x, y, width, 44.0), &label, enabled, pointer) {
         actions.push(UiAction::TrainSubsystemKnowledge(id.to_owned()));
-    }
-    if term_button(
-        Rect::new(content.x + 3.0 * (bw + 8.0), by, bw, 44.0),
-        &institution_label,
-        institution_ok,
-        pointer,
-    ) {
-        actions.push(institution_action);
     }
 }
 #[allow(dead_code, unused_imports)]
@@ -393,65 +482,77 @@ fn draw_custody_picker(
     );
     let mut y = content.y + 86.0;
     for state in candidates {
-        let Some(faction) = ctx.data.factions.get(&state.faction_id) else {
-            continue;
-        };
-        let row = Rect::new(content.x, y, content.w, 72.0);
-        draw_surface(
-            row,
-            &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
-        );
-        let native = faction.tended_subsystem == subsystem_id;
-        let approval_after = (state.approval + ctx.data.config.crew.custody_approval_gain).min(1.0);
-        let care_factor = steward_decay_factor(ctx.data, approval_after);
-        let craft = if native {
-            "NATIVE CRAFT".to_owned()
-        } else {
-            let tended = ctx
-                .data
-                .subsystems
-                .get(&faction.tended_subsystem)
-                .map(|definition| definition.name.as_str())
-                .unwrap_or("no named discipline");
-            format!("CROSS-DISCIPLINE · tends {tended}")
-        };
-        draw_ui_text_ex(
-            &faction.name,
-            row.x + 12.0,
-            row.y + 24.0,
-            TextStyle::new(
-                15.0,
-                if native {
-                    term::accent()
-                } else {
-                    term::primary()
-                },
-            )
-            .params(),
-        );
-        draw_ui_text_ex(
-            &format!(
-                "{} members · approval {:.0}% → {:.0}% · CARE ×{care_factor:.2} · {craft}",
-                state.members,
-                state.approval * 100.0,
-                approval_after * 100.0
-            ),
-            row.x + 12.0,
-            row.y + 48.0,
-            TextStyle::new(14.0, term::dim()).params(),
-        );
-        let enabled = ctx.sim.resources.influence >= ctx.data.config.crew.custody_influence_cost;
-        if term_button(
-            Rect::new(row.right() - 212.0, row.y + 14.0, 198.0, 44.0),
-            "GRANT CUSTODY",
-            enabled,
-            pointer,
-        ) {
-            actions.push(UiAction::GrantDisciplineCustody {
-                subsystem_id: subsystem_id.to_owned(),
-                faction_id: state.faction_id.clone(),
-            });
-        }
+        draw_custody_candidate(ctx, content, subsystem_id, state, y, pointer, actions);
         y += 82.0;
+    }
+}
+
+fn draw_custody_candidate(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    subsystem_id: &str,
+    state: &crate::state::sim::factions::FactionState,
+    y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let Some(faction) = ctx.data.factions.get(&state.faction_id) else {
+        return;
+    };
+    let row = Rect::new(content.x, y, content.w, 72.0);
+    draw_surface(
+        row,
+        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+    );
+    let native = faction.tended_subsystem == subsystem_id;
+    let approval_after = (state.approval + ctx.data.config.crew.custody_approval_gain).min(1.0);
+    let care_factor = steward_decay_factor(ctx.data, approval_after);
+    let craft = if native {
+        "NATIVE CRAFT".to_owned()
+    } else {
+        let tended = ctx
+            .data
+            .subsystems
+            .get(&faction.tended_subsystem)
+            .map(|definition| definition.name.as_str())
+            .unwrap_or("no named discipline");
+        format!("CROSS-DISCIPLINE · tends {tended}")
+    };
+    draw_ui_text_ex(
+        &faction.name,
+        row.x + 12.0,
+        row.y + 24.0,
+        TextStyle::new(
+            15.0,
+            if native {
+                term::accent()
+            } else {
+                term::primary()
+            },
+        )
+        .params(),
+    );
+    draw_ui_text_ex(
+        &format!(
+            "{} members · approval {:.0}% → {:.0}% · CARE ×{care_factor:.2} · {craft}",
+            state.members,
+            state.approval * 100.0,
+            approval_after * 100.0
+        ),
+        row.x + 12.0,
+        row.y + 48.0,
+        TextStyle::new(14.0, term::dim()).params(),
+    );
+    let enabled = ctx.sim.resources.influence >= ctx.data.config.crew.custody_influence_cost;
+    if term_button(
+        Rect::new(row.right() - 212.0, row.y + 14.0, 198.0, 44.0),
+        "GRANT CUSTODY",
+        enabled,
+        pointer,
+    ) {
+        actions.push(UiAction::GrantDisciplineCustody {
+            subsystem_id: subsystem_id.to_owned(),
+            faction_id: state.faction_id.clone(),
+        });
     }
 }

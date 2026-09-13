@@ -123,6 +123,13 @@ fn draw_icon(glyph: &ModuleGlyph, c: Vec2, s: f32, color: Color) {
 /// Draw the schematic (silhouette, ring, and every module glyph with its label)
 /// inside `frame`.
 pub fn draw(frame: Rect, schematic: &ShipSchematic) {
+    draw_hull(schematic);
+    draw_corridor(schematic);
+    draw_connectors(schematic);
+    draw_glyphs(frame, schematic);
+}
+
+fn draw_hull(schematic: &ShipSchematic) {
     // Hull outline as a closed blueprint stroke.
     let n = schematic.outline.len();
     for i in 0..n {
@@ -133,13 +140,18 @@ pub fn draw(frame: Rect, schematic: &ShipSchematic) {
     if let Some((c, r)) = schematic.ring {
         draw_circle_lines(c.x, c.y, r, 1.5, term::dim());
     }
+}
 
+fn draw_corridor(schematic: &ShipSchematic) {
     // The corridor: a twin-line spine running bow to stern, the bus every
     // compartment taps into.
     let (a, b) = schematic.corridor;
     draw_line(a.x, a.y - 2.0, b.x, b.y - 2.0, 1.0, term::dim());
     draw_line(a.x, a.y + 2.0, b.x, b.y + 2.0, 1.0, term::dim());
+}
 
+fn draw_connectors(schematic: &ShipSchematic) {
+    let (a, _) = schematic.corridor;
     // Branch connectors: a stub tying each compartment back to the corridor, with
     // a small junction node where it taps the bus — so the layout reads as a wired
     // schematic rather than floating boxes.
@@ -165,15 +177,23 @@ pub fn draw(frame: Rect, schematic: &ShipSchematic) {
             _ => {}
         }
     }
+}
 
+fn draw_glyphs(frame: Rect, schematic: &ShipSchematic) {
     for glyph in &schematic.modules {
         draw_glyph(frame, glyph);
     }
 }
 
 fn draw_glyph(frame: Rect, glyph: &ModuleGlyph) {
-    let r = glyph.rect;
     let tone = condition_tone(glyph.condition);
+    draw_glyph_face(glyph, tone);
+    draw_glyph_markers(glyph);
+    draw_glyph_label(frame, glyph);
+}
+
+fn draw_glyph_face(glyph: &ModuleGlyph, tone: Color) {
+    let r = glyph.rect;
     // Dark inset fill; the colored border carries the condition signal.
     draw_surface(
         r,
@@ -192,7 +212,10 @@ fn draw_glyph(frame: Rect, glyph: &ModuleGlyph) {
         r.h - 10.0,
         TextStyle::new(13.0, tone),
     );
+}
 
+fn draw_glyph_markers(glyph: &ModuleGlyph) {
+    let r = glyph.rect;
     // Tier pips (subsystems only), matching the subsystems screen convention.
     if glyph.kind == ModuleKind::Subsystem {
         for t in 0..3 {
@@ -212,7 +235,10 @@ fn draw_glyph(frame: Rect, glyph: &ModuleGlyph) {
     } else {
         draw_circle_lines(r.right() - 7.0, r.y + 7.0, 3.0, 1.0, term::faint());
     }
+}
 
+fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
+    let r = glyph.rect;
     // Label placement. Subsystems pin to the deck-label bands at the top and
     // bottom of the frame (upper row above, lower row below), with a leader line
     // out to the box. The component glyphs (bridge, engine, weapon) sit on the

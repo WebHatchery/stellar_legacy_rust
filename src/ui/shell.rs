@@ -89,23 +89,7 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     // Extinction halts the voyage: a full-screen terminal takeover replaces the
     // normal screens (GDD §7).
     if ctx.sim.terminal.is_some() || ctx.sim.dynasty.extinct {
-        if ctx.screen == Screen::Chronicle {
-            draw_header(&ctx);
-            draw_tabs(&ctx, pointer, &mut actions);
-            chronicle::draw(
-                &ctx,
-                Rect::new(
-                    16.0,
-                    128.0,
-                    logical_width() - 32.0,
-                    logical_height() - 144.0,
-                ),
-                pointer,
-                &mut actions,
-            );
-        } else {
-            game_over::draw(&ctx, pointer, &mut actions);
-        }
+        draw_terminal_gameplay(&ctx, pointer, &mut actions);
         return actions;
     }
 
@@ -120,7 +104,32 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
 
     draw_header(&ctx);
     draw_tabs(&ctx, pointer, &mut actions);
+    draw_screen(&ctx, pointer, &mut actions);
+    draw_overlays(&ctx, pointer, &mut actions);
+    actions
+}
 
+fn draw_terminal_gameplay(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
+    if ctx.screen == Screen::Chronicle {
+        draw_header(ctx);
+        draw_tabs(ctx, pointer, actions);
+        chronicle::draw(
+            ctx,
+            Rect::new(
+                16.0,
+                128.0,
+                logical_width() - 32.0,
+                logical_height() - 144.0,
+            ),
+            pointer,
+            actions,
+        );
+    } else {
+        game_over::draw(ctx, pointer, actions);
+    }
+}
+
+fn draw_screen(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
     // Fall back to the dashboard if the open tab is not in the current voyage
     // state's set (real-time loop §5) — e.g. an old save resuming on CONTRACT
     // while docked, before the launch/dock clamps take effect.
@@ -144,48 +153,46 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     };
     let _content_bounds = Region::new(content);
     match screen {
-        Screen::Dashboard => bridge::draw(&ctx, content, content_pointer, &mut actions),
-        Screen::Agenda => agenda::draw(&ctx, content, content_pointer, &mut actions),
-        Screen::Drydock => {
-            contract_systems::draw_drydock(&ctx, content, content_pointer, &mut actions)
-        }
-        Screen::ShipBuilder => ship_builder::draw(&ctx, content, content_pointer, &mut actions),
-        Screen::Subsystems => subsystems::draw(&ctx, content, content_pointer, &mut actions),
-        Screen::CrewDynasty => crew_dynasty::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Dashboard => bridge::draw(ctx, content, content_pointer, actions),
+        Screen::Agenda => agenda::draw(ctx, content, content_pointer, actions),
+        Screen::Drydock => contract_systems::draw_drydock(ctx, content, content_pointer, actions),
+        Screen::ShipBuilder => ship_builder::draw(ctx, content, content_pointer, actions),
+        Screen::Subsystems => subsystems::draw(ctx, content, content_pointer, actions),
+        Screen::CrewDynasty => crew_dynasty::draw(ctx, content, content_pointer, actions),
         Screen::Contract => {
-            contract_systems::draw_active_screen(&ctx, content, content_pointer, &mut actions)
+            contract_systems::draw_active_screen(ctx, content, content_pointer, actions)
         }
-        Screen::Market => market::draw(&ctx, content, content_pointer, &mut actions),
-        Screen::Chronicle => chronicle::draw(&ctx, content, content_pointer, &mut actions),
+        Screen::Market => market::draw(ctx, content, content_pointer, actions),
+        Screen::Chronicle => chronicle::draw(ctx, content, content_pointer, actions),
     }
+}
 
-    navigation::draw_utilities(&ctx, pointer, &mut actions);
+fn draw_overlays(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
+    navigation::draw_utilities(ctx, pointer, actions);
 
     // A pending authority decision blocks everything else (GDD §9 step 4):
     // discard screen intents and only accept the modal's.
     if ctx.sim.authority.pending_review.is_some() {
         actions.clear();
-        authority_modal::draw(&ctx, pointer, &mut actions);
+        authority_modal::draw(ctx, pointer, actions);
     } else if ctx.sim.pending_event.is_some() {
         actions.clear();
-        event_modal::draw(&ctx, pointer, &mut actions);
+        event_modal::draw(ctx, pointer, actions);
     } else if ctx.sim.pending_dilemma.is_some() {
         actions.clear();
-        event_modal::draw_dilemma(&ctx, pointer, &mut actions);
+        event_modal::draw_dilemma(ctx, pointer, actions);
     }
     if ctx.sim.survival.warning_active && ctx.sim.terminal.is_none() {
         actions.clear();
-        recovery_warning::draw(&ctx, pointer, &mut actions);
+        recovery_warning::draw(ctx, pointer, actions);
     }
     if ctx.abort_confirm.get() && !ctx.sim.has_pending_decision() {
         actions.clear();
-        mission::draw_abort(&ctx, pointer, &mut actions);
+        mission::draw_abort(ctx, pointer, actions);
     }
     if ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed {
-        tutorial::draw(&ctx, pointer, &mut actions);
+        tutorial::draw(ctx, pointer, actions);
     }
-
-    actions
 }
 
 fn draw_header(ctx: &GameplayCtx<'_>) {

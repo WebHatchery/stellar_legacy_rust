@@ -3,34 +3,7 @@
 use super::*;
 pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
     if let Some(id) = ctx.obligation_detail {
-        f.action(
-            "Back to obligations",
-            true,
-            UiAction::CloseObligationHistory,
-        );
-        if let Some(o) = ctx.sim.obligations.iter().find(|o| o.id == id) {
-            f.heading(&o.title);
-            f.text(&timing(o, ctx.sim.year()));
-            f.text(&format!(
-                "{} · To {} · Responsible {}\nMaterial: {}\nReputation: {}",
-                o.status.label(),
-                o.beneficiary,
-                o.responsible,
-                o.stakes.material,
-                o.stakes.reputation
-            ));
-            for h in &o.history {
-                f.text(&format!(
-                    "Year {} · {} · {}\n{}",
-                    h.year,
-                    h.captain,
-                    h.status.label(),
-                    h.note
-                ));
-            }
-        } else {
-            f.text("This obligation is no longer available.");
-        }
+        build_obligation_detail(ctx, f, id);
         return;
     }
     f.sections(&[
@@ -44,88 +17,131 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         .and_then(|i| i.parse::<usize>().ok())
     {
         if let Some(r) = ctx.sim.decision_records.get(index) {
-            f.section("Back to timeline", "");
-            f.heading(&r.event_title);
-            f.text(&format!(
-                "{}\nFact: {}\nCommand log: {}\n{}'s house: {}",
-                r.outcome_label, r.fact, r.official_account, r.captain, r.dynasty_account
-            ));
-            for a in &r.affected_accounts {
-                f.text(&format!("{}: {}", a.people, a.account));
-            }
+            build_record(f, r);
             return;
         }
     }
     match section {
-        "obligations" => {
-            f.heading("Obligations");
-            if ctx.sim.obligations.is_empty() {
-                f.text("No obligations recorded. Promises and duties from your decisions will appear here with their deadlines and history.");
-                return;
-            }
-            let active = ctx
-                .sim
-                .obligations
-                .iter()
-                .filter(|o| o.status.is_active())
-                .count();
-            f.text(&format!(
-                "{active} active · {} resolved · {} due",
-                ctx.sim.obligations.len() - active,
-                ctx.sim.due_obligations().len()
-            ));
-            f.text("Active duties appear first. Read an obligation's history to see earlier promises and changes of responsibility.");
-            let mut obligations = ctx.sim.obligations.iter().collect::<Vec<_>>();
-            obligations.sort_by_key(|o| {
-                (
-                    !o.status.is_active(),
-                    o.due_year.unwrap_or(u32::MAX),
-                    o.created_year,
-                )
-            });
-            for o in obligations {
-                f.heading(&o.title);
-                f.text(&timing(o, ctx.sim.year()));
-                f.text(&format!(
-                    "{} · To {}\nResponsible {}\nMaterial: {}\nReputation: {}",
-                    o.status.label(),
-                    o.beneficiary,
-                    o.responsible,
-                    o.stakes.material,
-                    o.stakes.reputation
-                ));
-                if o.successions_crossed > 0 {
-                    f.text(&format!(
-                        "Inherited across {} successions",
-                        o.successions_crossed
-                    ));
-                }
-                f.action(
-                    "Read full obligation history",
-                    true,
-                    UiAction::OpenObligationHistory(o.id.clone()),
-                );
-            }
-        }
+        "obligations" => build_obligations(ctx, f),
         "archive" => {
             crate::ui::chronicle::archive::build(ctx, f);
         }
         "milestones" => {
             crate::ui::chronicle::milestones::build(ctx, f);
         }
-        _ => {
-            f.heading("Voyage timeline");
-            for (index, r) in ctx.sim.decision_records.iter().enumerate().rev() {
-                f.section(
-                    &format!("Year {} · {}", r.year, r.event_title),
-                    &format!("record:{index}"),
-                );
-            }
-            f.heading("Ship's log");
-            for e in ctx.sim.log.iter().rev() {
-                f.text(&format!("Year {} · {}", e.year, e.text));
-            }
+        _ => build_timeline(ctx, f),
+    }
+}
+
+fn build_obligation_detail(ctx: &GameplayCtx<'_>, form: &mut Form, id: &str) {
+    form.action(
+        "Back to obligations",
+        true,
+        UiAction::CloseObligationHistory,
+    );
+    if let Some(obligation) = ctx.sim.obligations.iter().find(|o| o.id == id) {
+        form.heading(&obligation.title);
+        form.text(&timing(obligation, ctx.sim.year()));
+        form.text(&format!(
+            "{} · To {} · Responsible {}\nMaterial: {}\nReputation: {}",
+            obligation.status.label(),
+            obligation.beneficiary,
+            obligation.responsible,
+            obligation.stakes.material,
+            obligation.stakes.reputation
+        ));
+        for history in &obligation.history {
+            form.text(&format!(
+                "Year {} · {} · {}\n{}",
+                history.year,
+                history.captain,
+                history.status.label(),
+                history.note
+            ));
         }
+    } else {
+        form.text("This obligation is no longer available.");
+    }
+}
+
+fn build_record(form: &mut Form, record: &crate::state::sim::DecisionRecord) {
+    form.section("Back to timeline", "");
+    form.heading(&record.event_title);
+    form.text(&format!(
+        "{}\nFact: {}\nCommand log: {}\n{}'s house: {}",
+        record.outcome_label,
+        record.fact,
+        record.official_account,
+        record.captain,
+        record.dynasty_account
+    ));
+    for account in &record.affected_accounts {
+        form.text(&format!("{}: {}", account.people, account.account));
+    }
+}
+
+fn build_obligations(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    form.heading("Obligations");
+    if ctx.sim.obligations.is_empty() {
+        form.text("No obligations recorded. Promises and duties from your decisions will appear here with their deadlines and history.");
+        return;
+    }
+    let active = ctx
+        .sim
+        .obligations
+        .iter()
+        .filter(|obligation| obligation.status.is_active())
+        .count();
+    form.text(&format!(
+        "{active} active · {} resolved · {} due",
+        ctx.sim.obligations.len() - active,
+        ctx.sim.due_obligations().len()
+    ));
+    form.text("Active duties appear first. Read an obligation's history to see earlier promises and changes of responsibility.");
+    let mut obligations = ctx.sim.obligations.iter().collect::<Vec<_>>();
+    obligations.sort_by_key(|obligation| {
+        (
+            !obligation.status.is_active(),
+            obligation.due_year.unwrap_or(u32::MAX),
+            obligation.created_year,
+        )
+    });
+    for obligation in obligations {
+        form.heading(&obligation.title);
+        form.text(&timing(obligation, ctx.sim.year()));
+        form.text(&format!(
+            "{} · To {}\nResponsible {}\nMaterial: {}\nReputation: {}",
+            obligation.status.label(),
+            obligation.beneficiary,
+            obligation.responsible,
+            obligation.stakes.material,
+            obligation.stakes.reputation
+        ));
+        if obligation.successions_crossed > 0 {
+            form.text(&format!(
+                "Inherited across {} successions",
+                obligation.successions_crossed
+            ));
+        }
+        form.action(
+            "Read full obligation history",
+            true,
+            UiAction::OpenObligationHistory(obligation.id.clone()),
+        );
+    }
+}
+
+fn build_timeline(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    form.heading("Voyage timeline");
+    for (index, record) in ctx.sim.decision_records.iter().enumerate().rev() {
+        form.section(
+            &format!("Year {} · {}", record.year, record.event_title),
+            &format!("record:{index}"),
+        );
+    }
+    form.heading("Ship's log");
+    for entry in ctx.sim.log.iter().rev() {
+        form.text(&format!("Year {} · {}", entry.year, entry.text));
     }
 }
 

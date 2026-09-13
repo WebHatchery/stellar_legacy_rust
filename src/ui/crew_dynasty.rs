@@ -192,9 +192,20 @@ fn draw_aboard_factions(ctx: &GameplayCtx<'_>, content: Rect) {
         y += 88.0;
     }
 
+    draw_lost_factions(ctx, content, y);
+}
+
+fn draw_lost_factions(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
+    let faction_name = |id: &str| {
+        ctx.data
+            .factions
+            .get(id)
+            .map(|d| d.name.clone())
+            .unwrap_or_else(|| id.to_owned())
+    };
     // Lost peoples dim out below, clamped to the panel — they must never spill
     // into whatever sits underneath.
-    for fs in sim.factions.iter().filter(|f| !f.is_aboard()) {
+    for fs in ctx.sim.factions.iter().filter(|f| !f.is_aboard()) {
         if y > content.bottom() - 4.0 {
             break;
         }

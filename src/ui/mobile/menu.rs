@@ -5,6 +5,18 @@ pub fn draw_menu(ctx: &MenuCtx<'_>, state: &presentation::Presentation) -> Vec<U
     let mut f = Form::new();
     let mut actions = Vec::new();
     let (w, h) = size();
+    build_menu_form(ctx, &mut f);
+    f.draw(
+        Rect::new(16.0, 16.0, w - 32.0, h - 44.0),
+        state,
+        ctx.pointer,
+        &format!("menu:{:?}", ctx.menu.phase),
+        &mut actions,
+    );
+    actions
+}
+
+fn build_menu_form(ctx: &MenuCtx<'_>, f: &mut Form) {
     f.heading("STELLAR LEGACY");
     f.text("Custodian of a living generation ship");
     match ctx.menu.phase {
@@ -96,12 +108,4 @@ pub fn draw_menu(ctx: &MenuCtx<'_>, state: &presentation::Presentation) -> Vec<U
             f.action("Back to main menu", true, UiAction::BackToMainMenu);
         }
     }
-    f.draw(
-        Rect::new(16.0, 16.0, w - 32.0, h - 44.0),
-        state,
-        ctx.pointer,
-        &format!("menu:{:?}", ctx.menu.phase),
-        &mut actions,
-    );
-    actions
 }

@@ -8,9 +8,13 @@ use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let sim = ctx.sim;
     draw_rectangle(0.0, 0.0, logical_width(), logical_height(), term::bg());
+    draw_terminal_header(ctx);
+    draw_terminal_summary(ctx, pointer, actions);
+}
 
+fn draw_terminal_header(ctx: &GameplayCtx<'_>) {
+    let sim = ctx.sim;
     let legacy = ctx
         .data
         .legacies
@@ -41,7 +45,10 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         175.0,
         TextStyle::new(16.0, term::dim()).params(),
     );
+}
 
+fn draw_terminal_summary(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
+    let sim = ctx.sim;
     let panel = Rect::new(logical_width() / 2.0 - 330.0, 220.0, 660.0, 384.0);
     term_panel(panel, Some("FINAL LOG // DYNASTY REGISTRY SEALED"));
     let content = panel.inset(28.0);

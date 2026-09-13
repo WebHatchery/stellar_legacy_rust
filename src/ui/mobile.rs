@@ -40,9 +40,28 @@ pub(crate) fn navigation_is_compact() -> bool {
 
 pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     let (width, height) = size();
-    let mut actions = Vec::new();
     let pointer = ctx.pointer;
     let layout = shell_layout();
+    let mut actions = Vec::new();
+    draw_mobile_chrome(ctx, &layout, width, height, pointer, &mut actions);
+    let blocked = ctx.sim.has_pending_decision()
+        || ctx.sim.survival.warning_active
+        || ctx.sim.debrief.is_some();
+    draw_mobile_content(ctx, &layout, pointer, blocked, &mut actions);
+    if draw_mobile_navigation(ctx, &layout, pointer, blocked, &mut actions) {
+        return actions;
+    }
+    actions
+}
+
+fn draw_mobile_chrome(
+    ctx: &GameplayCtx<'_>,
+    layout: &layout::Layout,
+    width: f32,
+    height: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     if !layout.compact_navigation {
         ctx.presentation.navigation_open.set(false);
     }
@@ -71,6 +90,16 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
         layout.status.h,
         TextStyle::new(16.0, term::dim()),
     );
+    draw_mobile_time_controls(ctx, layout, width, pointer, actions);
+}
+
+fn draw_mobile_time_controls(
+    ctx: &GameplayCtx<'_>,
+    layout: &layout::Layout,
+    width: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let control_font = if width < 300.0 { 12.0 } else { 16.0 };
     if term_button_sized(
         layout.pause,
@@ -110,10 +139,15 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             .utilities
             .set(!ctx.presentation.utilities.get());
     }
-    let blocked = ctx.sim.has_pending_decision()
-        || ctx.sim.survival.warning_active
-        || ctx.sim.debrief.is_some();
-    let _content_bounds = Region::new(layout.content);
+}
+
+fn draw_mobile_content(
+    ctx: &GameplayCtx<'_>,
+    layout: &layout::Layout,
+    pointer: Pointer,
+    blocked: bool,
+    actions: &mut Vec<UiAction>,
+) {
     if ctx.presentation.navigation_open.get() && !blocked {
         let mut form = Form::new();
         for destination in navigation::Destination::ALL {
@@ -129,7 +163,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             ctx.presentation,
             pointer,
             "navigation",
-            &mut actions,
+            actions,
             &ctx.presentation.navigation_scroll,
             &ctx.presentation.navigation_key,
         );
@@ -143,6 +177,15 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
     } else {
         actions.extend(draw_content(ctx, layout.content));
     }
+}
+
+fn draw_mobile_navigation(
+    ctx: &GameplayCtx<'_>,
+    layout: &layout::Layout,
+    pointer: Pointer,
+    blocked: bool,
+    actions: &mut Vec<UiAction>,
+) -> bool {
     if ctx.sim.debrief.is_some() && nav_button(layout.navigation, "File the report", pointer) {
         actions.push(UiAction::FileReport);
     }
@@ -159,7 +202,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
                     .navigation_open
                     .set(!ctx.presentation.navigation_open.get());
             }
-            return actions;
+            return true;
         }
         for (index, destination) in navigation::Destination::ALL.into_iter().enumerate() {
             let rect = layout.destination(index);
@@ -177,7 +220,7 @@ pub fn draw(ctx: &GameplayCtx<'_>) -> Vec<UiAction> {
             }
         }
     }
-    actions
+    false
 }
 
 /// Shared flow layout for a panel whose available space cannot hold the wide layout.

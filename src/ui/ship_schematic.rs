@@ -191,6 +191,22 @@ struct Profile {
     silhouette: Silhouette,
 }
 
+struct HullGeometry {
+    outline: Vec<Vec2>,
+    ring: Option<(Vec2, f32)>,
+    cy: f32,
+    row_offset: f32,
+    max_h: f32,
+    sx0: f32,
+    sx1: f32,
+}
+
+impl HullGeometry {
+    fn x_at(&self, fraction: f32) -> f32 {
+        self.sx0 + fraction * (self.sx1 - self.sx0)
+    }
+}
+
 fn hull_profile(hull_id: &str) -> Profile {
     match hull_id {
         "colony_barge" => Profile {
@@ -260,30 +276,47 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
         .find(ComponentKind::Hull, &sim.ship.hull)
         .map(|c| c.name.clone())
         .unwrap_or_else(|| sim.ship.hull.clone());
+    let geometry = hull_geometry(&profile, frame);
+    let mut modules = anchor_modules(sim, data, &geometry);
+    modules.extend(subsystem_modules(sim, data, &geometry));
 
+    ShipSchematic {
+        hull_id: sim.ship.hull.clone(),
+        hull_name,
+        outline: geometry.outline.clone(),
+        // Corridor runs between the bridge and engine boxes as its terminals,
+        // rather than passing through them.
+        corridor: (
+            vec2(geometry.x_at(0.05) + 60.0, geometry.cy),
+            vec2(geometry.x_at(0.95) - 64.0, geometry.cy),
+        ),
+        ring: geometry.ring,
+        modules,
+        hull_integrity: sim.ship.hull_integrity,
+        life_support: sim.ship.life_support,
+        fuel: sim.ship.fuel,
+        spare_parts: sim.ship.spare_parts,
+        stats: loadout_stats(sim, data),
+    }
+}
+
+fn hull_geometry(profile: &Profile, frame: Rect) -> HullGeometry {
     let cy = frame.y + frame.h * 0.5;
     let cx = frame.x + frame.w * 0.5;
-
-    // Rooms hug the corridor at a FIXED offset, independent of the hull — so a
-    // room can never overflow a lean hull nor float in a broad one. The hull is
-    // then sized to enclose them; class shape only ever varies the outline.
     let row_offset = ROW_OFFSET;
-    // Hull half-height at mid-body: enough to wrap the tallest room, then scaled
-    // up for bulky classes.
-    let base_max_h = row_offset + ROOM_SLOT_H * 0.5 + 20.0;
-    let max_h = base_max_h * profile.height;
-
-    // Length-scaled, centred span: a corvette is visibly shorter, an ark longer.
+    let max_h = (row_offset + ROOM_SLOT_H * 0.5 + 20.0) * profile.height;
     let hull_span = frame.w * 0.86 * profile.length;
     let sx0 = cx - hull_span * 0.5;
     let sx1 = cx + hull_span * 0.5;
-    let x_at = |t: f32| sx0 + t * (sx1 - sx0);
-
-    // Control stations (t, height-fraction) mirrored top/bottom into a closed
-    // outline. The barge keeps a long, flat working body and a squared stern;
-    // the ark raises a stepped central habitat block so its architecture reads
-    // before the spun-gravity ring is even noticed. Other hulls use the shared
-    // tapered profile.
+    let geometry = HullGeometry {
+        outline: Vec::new(),
+        ring: None,
+        cy,
+        row_offset,
+        max_h,
+        sx0,
+        sx1,
+    };
     let shoulder = 0.82 + profile.bulge * 0.13;
     let bow = 0.12 + (1.0 - profile.nose) * 0.26;
     let tail = 0.22 + profile.tail * 0.30;
@@ -321,145 +354,132 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
     };
     let mut outline: Vec<Vec2> = stations
         .iter()
-        .map(|&(t, f)| vec2(x_at(t), cy - f * max_h))
+        .map(|&(t, f)| vec2(geometry.x_at(t), cy - f * max_h))
         .collect();
     for &(t, f) in stations.iter().rev() {
-        outline.push(vec2(x_at(t), cy + f * max_h));
+        outline.push(vec2(geometry.x_at(t), cy + f * max_h));
     }
+    HullGeometry {
+        outline,
+        ring: profile
+            .ring
+            .then(|| (vec2(cx, cy), row_offset + ROOM_SLOT_H * 0.5 + 10.0)),
+        ..geometry
+    }
+}
 
-    // The spun-gravity ring frames the central habitat, seated just outside the
-    // centre rooms rather than slicing through them.
-    let ring = profile
-        .ring
-        .then(|| (vec2(cx, cy), row_offset + ROOM_SLOT_H * 0.5 + 10.0));
-
+fn anchor_modules(sim: &SimState, data: &GameData, geometry: &HullGeometry) -> Vec<ModuleGlyph> {
     let mut modules = Vec::new();
-
-    // --- Bridge (bow) and Engine (stern): the two anchor components ---
-    let bridge_manned = any_post_aboard(sim, BRIDGE_POSTS);
     modules.push(component_glyph(
         "bridge",
         "COMMAND BRIDGE",
         "CMD",
-        Rect::new(x_at(0.05) - 6.0, cy - 18.0, 66.0, 36.0),
+        Rect::new(geometry.x_at(0.05) - 6.0, geometry.cy - 18.0, 66.0, 36.0),
         ModuleKind::Bridge,
         sim.ship.hull_integrity,
-        bridge_manned,
+        any_post_aboard(sim, BRIDGE_POSTS),
     ));
-
-    let engine_label = data
+    let engine = data
         .ship_components
-        .find(ComponentKind::Engine, &sim.ship.engine)
-        .map(|c| c.name.to_uppercase())
+        .find(ComponentKind::Engine, &sim.ship.engine);
+    let engine_label = engine
+        .map(|component| component.name.to_uppercase())
         .unwrap_or_else(|| sim.ship.engine.to_uppercase());
-    let engine_height = 38.0
-        + data
-            .ship_components
-            .find(ComponentKind::Engine, &sim.ship.engine)
-            .map_or(0, |c| c.stats.speed.clamp(0, 6)) as f32
-            * 4.0;
+    let engine_height = 38.0 + engine.map_or(0, |c| c.stats.speed.clamp(0, 6)) as f32 * 4.0;
     modules.push(component_glyph(
         &sim.ship.engine,
         &engine_label,
         "DRV",
         Rect::new(
-            x_at(0.95) - 64.0,
-            cy - engine_height / 2.0,
+            geometry.x_at(0.95) - 64.0,
+            geometry.cy - engine_height / 2.0,
             72.0,
             engine_height,
         ),
         ModuleKind::Engine,
-        // The engine reads by how much reaction mass it has to work with.
         sim.ship.fuel,
         any_post_aboard(sim, &["engineer"]),
     ));
-
-    // --- Weapon mount (dorsal), only when one is fitted ---
     if let Some(weapon_id) = sim.ship.weapon.as_deref() {
-        let label = data
-            .ship_components
-            .find(ComponentKind::Weapon, weapon_id)
-            .map(|c| c.name.to_uppercase())
-            .unwrap_or_else(|| weapon_id.to_uppercase());
-        let weapon_width = 60.0
-            + data
-                .ship_components
-                .find(ComponentKind::Weapon, weapon_id)
-                .map_or(0, |c| c.stats.combat.clamp(0, 12)) as f32
-                * 3.0;
-        modules.push(component_glyph(
-            weapon_id,
-            &label,
-            "WPN",
-            Rect::new(
-                x_at(0.5) - weapon_width / 2.0,
-                cy - max_h - 30.0,
-                weapon_width,
-                24.0,
-            ),
-            ModuleKind::Weapon,
-            sim.ship.hull_integrity,
-            false,
-        ));
+        modules.push(weapon_glyph(sim, data, geometry, weapon_id));
     }
+    modules
+}
 
-    // --- Subsystem compartments in a modular grid that reflows for any count ---
-    // Two decks flank the corridor; columns are sized to the compartment count so
-    // rooms can be added, removed, or resized without the layout breaking. The
-    // first row fills the upper deck left-to-right, the remainder the lower deck,
-    // each lower box seated directly under its upper-deck column.
+fn weapon_glyph(
+    sim: &SimState,
+    data: &GameData,
+    geometry: &HullGeometry,
+    weapon_id: &str,
+) -> ModuleGlyph {
+    let weapon = data.ship_components.find(ComponentKind::Weapon, weapon_id);
+    let label = weapon
+        .map(|component| component.name.to_uppercase())
+        .unwrap_or_else(|| weapon_id.to_uppercase());
+    let width = 60.0 + weapon.map_or(0, |c| c.stats.combat.clamp(0, 12)) as f32 * 3.0;
+    component_glyph(
+        weapon_id,
+        &label,
+        "WPN",
+        Rect::new(
+            geometry.x_at(0.5) - width / 2.0,
+            geometry.cy - geometry.max_h - 30.0,
+            width,
+            24.0,
+        ),
+        ModuleKind::Weapon,
+        sim.ship.hull_integrity,
+        false,
+    )
+}
+
+fn subsystem_modules(sim: &SimState, data: &GameData, geometry: &HullGeometry) -> Vec<ModuleGlyph> {
     let ids = GameData::sorted_ids(&data.subsystems);
     let cols = ids.len().div_ceil(2).max(1);
-    let (t_lo, t_hi) = (0.20_f32, 0.80_f32);
-    for (i, id) in ids.iter().enumerate() {
-        let Some(state) = sim.subsystems.get(id) else {
-            continue;
-        };
-        let col = i % cols;
-        let upper = i < cols;
-        let t = t_lo + (col as f32 + 0.5) / cols as f32 * (t_hi - t_lo);
-        // Boxes grow with tier, so an upgrade is visible as a larger module. A
-        // mission-reward 4th version reads at the tier-3 size (the slot's cap) so
-        // it never overflows into its neighbours.
-        let visual_tier = state.tier.min(3) as f32;
-        let w = 58.0 + visual_tier * 9.0;
-        let h = 30.0 + visual_tier * 5.0;
-        let band_y = if upper {
-            cy - row_offset
-        } else {
-            cy + row_offset
-        };
-        let rect = Rect::new(x_at(t) - w * 0.5, band_y - h * 0.5, w, h);
-        let (deck_lo, deck_hi) = deck_range_for_slot(upper, col, cols);
-        modules.push(ModuleGlyph {
-            id: id.clone(),
-            label: subsystem_short(id).to_owned(),
-            code: subsystem_code(id).to_owned(),
-            rect,
-            kind: ModuleKind::Subsystem,
-            condition: state.condition,
-            tier: state.tier,
-            manned: any_post_aboard(sim, subsystem_crew_posts(id)),
-            deck_lo,
-            deck_hi,
-        });
-    }
+    ids.iter()
+        .enumerate()
+        .filter_map(|(i, id)| subsystem_glyph(sim, id, i, cols, geometry))
+        .collect()
+}
 
-    ShipSchematic {
-        hull_id: sim.ship.hull.clone(),
-        hull_name,
-        outline,
-        // Corridor runs between the bridge and engine boxes as its terminals,
-        // rather than passing through them.
-        corridor: (vec2(x_at(0.05) + 60.0, cy), vec2(x_at(0.95) - 64.0, cy)),
-        ring,
-        modules,
-        hull_integrity: sim.ship.hull_integrity,
-        life_support: sim.ship.life_support,
-        fuel: sim.ship.fuel,
-        spare_parts: sim.ship.spare_parts,
-        stats: loadout_stats(sim, data),
-    }
+fn subsystem_glyph(
+    sim: &SimState,
+    id: &str,
+    index: usize,
+    cols: usize,
+    geometry: &HullGeometry,
+) -> Option<ModuleGlyph> {
+    let state = sim.subsystems.get(id)?;
+    let col = index % cols;
+    let upper = index < cols;
+    let t = 0.20 + (col as f32 + 0.5) / cols as f32 * 0.60;
+    let visual_tier = state.tier.min(3) as f32;
+    let width = 58.0 + visual_tier * 9.0;
+    let height = 30.0 + visual_tier * 5.0;
+    let band_y = if upper {
+        geometry.cy - geometry.row_offset
+    } else {
+        geometry.cy + geometry.row_offset
+    };
+    let rect = Rect::new(
+        geometry.x_at(t) - width * 0.5,
+        band_y - height * 0.5,
+        width,
+        height,
+    );
+    let (deck_lo, deck_hi) = deck_range_for_slot(upper, col, cols);
+    Some(ModuleGlyph {
+        id: id.to_owned(),
+        label: subsystem_short(id).to_owned(),
+        code: subsystem_code(id).to_owned(),
+        rect,
+        kind: ModuleKind::Subsystem,
+        condition: state.condition,
+        tier: state.tier,
+        manned: any_post_aboard(sim, subsystem_crew_posts(id)),
+        deck_lo,
+        deck_hi,
+    })
 }
 
 fn component_glyph(

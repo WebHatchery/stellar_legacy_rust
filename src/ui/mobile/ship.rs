@@ -30,27 +30,31 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         systems::build(ctx, f, section);
         return;
     }
-    f.heading("Your ship");
-    f.vessel(ctx);
-    let s = &ctx.sim.ship;
-    f.text(&format!(
-        "Hull {:.0}% · Air {:.0}% · Fuel {:.0}%\nSpare parts {}",
-        s.hull_integrity * 100.0,
-        s.life_support * 100.0,
-        s.fuel * 100.0,
-        s.spare_parts
-    ));
-    f.action(
-        "Inspect compartments",
-        true,
-        UiAction::SelectScreen(Screen::Subsystems),
-    );
+    build_ship_status(ctx, f);
     let port = ctx.sim.contract.is_none();
     repairs::build(ctx, f);
     if port {
         catalogue::build(ctx, f);
     }
     salvage::build(ctx, f);
+}
+
+fn build_ship_status(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    form.heading("Your ship");
+    form.vessel(ctx);
+    let ship = &ctx.sim.ship;
+    form.text(&format!(
+        "Hull {:.0}% · Air {:.0}% · Fuel {:.0}%\nSpare parts {}",
+        ship.hull_integrity * 100.0,
+        ship.life_support * 100.0,
+        ship.fuel * 100.0,
+        ship.spare_parts
+    ));
+    form.action(
+        "Inspect compartments",
+        true,
+        UiAction::SelectScreen(Screen::Subsystems),
+    );
 }
 
 fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
@@ -70,33 +74,7 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         ("Readiness", "readiness"),
     ]);
     if section == "readiness" {
-        let forecast = crate::simulation::readiness::forecast(sim, ctx.data);
-        for row in forecast.rows {
-            f.heading(&format!("{} · {}", row.concern, row.band.label()));
-            f.text(&format!("{}\n{}", row.evidence, row.trend));
-            if let Some(id) = row.recommended_project {
-                response(ctx, f, &id, row.recommended_target);
-            }
-        }
-        crate::ui::recovery_warning::build_stabilisation(ctx, f);
-        f.heading("Persistent aftermath");
-        for issue in &sim.issues.active {
-            f.text(&format!(
-                "{} · {} · {}",
-                issue.id.replace('_', " "),
-                issue.severity.label(),
-                issue
-                    .due_month
-                    .map_or("No deadline".to_owned(), |m| format!(
-                        "Due year {} month {}",
-                        m / 12,
-                        m % 12 + 1
-                    ))
-            ));
-            for id in &issue.recovery_project_ids {
-                response(ctx, f, id, Some(issue.target.clone()));
-            }
-        }
+        build_readiness(ctx, f);
         return;
     }
     if section == "catalogue" {
@@ -104,54 +82,92 @@ fn agenda(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
             crate::ui::agenda::build_choice(ctx, &choice, f);
         }
     } else {
-        if sim.projects.jobs.is_empty() {
-            f.text("No projects queued. Tap Available projects to choose ship work.");
-        } else if sim.projects.waiting_count() > 0 {
-            f.text("Queued jobs are checked in waiting-list order; unavailable jobs are skipped. To resume paused work, tap Review project.");
+        build_project_queue(ctx, f);
+    }
+}
+
+fn build_readiness(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    let forecast = crate::simulation::readiness::forecast(ctx.sim, ctx.data);
+    for row in forecast.rows {
+        form.heading(&format!("{} · {}", row.concern, row.band.label()));
+        form.text(&format!("{}\n{}", row.evidence, row.trend));
+        if let Some(id) = row.recommended_project {
+            response(ctx, form, &id, row.recommended_target);
         }
-        for job in &sim.projects.jobs {
-            if let Some(def) = projects::definition_for(job, ctx.data) {
-                f.heading(&def.name);
-                f.text(&format!(
-                    "Target: {}",
-                    crate::ui::agenda::target_label(ctx.data, job.target_id.as_deref())
-                ));
-                f.text(&format!(
-                    "{:?} · {:.0}% complete",
-                    job.status,
-                    job.progress(def.duration_months) * 100.0
-                ));
-                if let Some(reason) = job.pause_reason.as_deref().or(job.stop_reason.as_deref()) {
-                    f.text(reason);
-                }
-                if matches!(
-                    job.status,
-                    ProjectStatus::Running | ProjectStatus::Paused | ProjectStatus::Queued
-                ) {
-                    f.action(
-                        "Review project",
-                        true,
-                        UiAction::PreviewCancelProject(job.sequence_id),
-                    );
-                }
-                if let Some((position, count)) = sim.projects.waiting_position(job.sequence_id) {
-                    f.text(&format!("Waiting position {position} of {count}"));
-                    for (label, direction) in [("Move up", -1), ("Move down", 1)] {
-                        f.action(
-                            label,
-                            if direction < 0 {
-                                position > 1
-                            } else {
-                                position < count
-                            },
-                            UiAction::MoveProject {
-                                sequence_id: job.sequence_id,
-                                direction,
-                            },
-                        );
-                    }
-                }
-            }
+    }
+    crate::ui::recovery_warning::build_stabilisation(ctx, form);
+    form.heading("Persistent aftermath");
+    for issue in &ctx.sim.issues.active {
+        form.text(&format!(
+            "{} · {} · {}",
+            issue.id.replace('_', " "),
+            issue.severity.label(),
+            issue
+                .due_month
+                .map_or("No deadline".to_owned(), |m| format!(
+                    "Due year {} month {}",
+                    m / 12,
+                    m % 12 + 1
+                ))
+        ));
+        for id in &issue.recovery_project_ids {
+            response(ctx, form, id, Some(issue.target.clone()));
+        }
+    }
+}
+
+fn build_project_queue(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    let sim = ctx.sim;
+    if sim.projects.jobs.is_empty() {
+        form.text("No projects queued. Tap Available projects to choose ship work.");
+    } else if sim.projects.waiting_count() > 0 {
+        form.text("Queued jobs are checked in waiting-list order; unavailable jobs are skipped. To resume paused work, tap Review project.");
+    }
+    for job in &sim.projects.jobs {
+        let Some(def) = projects::definition_for(job, ctx.data) else {
+            continue;
+        };
+        form.heading(&def.name);
+        form.text(&format!(
+            "Target: {}",
+            crate::ui::agenda::target_label(ctx.data, job.target_id.as_deref())
+        ));
+        form.text(&format!(
+            "{:?} · {:.0}% complete",
+            job.status,
+            job.progress(def.duration_months) * 100.0
+        ));
+        if let Some(reason) = job.pause_reason.as_deref().or(job.stop_reason.as_deref()) {
+            form.text(reason);
+        }
+        if matches!(
+            job.status,
+            ProjectStatus::Running | ProjectStatus::Paused | ProjectStatus::Queued
+        ) {
+            form.action(
+                "Review project",
+                true,
+                UiAction::PreviewCancelProject(job.sequence_id),
+            );
+        }
+        if let Some((position, count)) = sim.projects.waiting_position(job.sequence_id) {
+            form.text(&format!("Waiting position {position} of {count}"));
+            form.action(
+                "Move up",
+                position > 1,
+                UiAction::MoveProject {
+                    sequence_id: job.sequence_id,
+                    direction: -1,
+                },
+            );
+            form.action(
+                "Move down",
+                position < count,
+                UiAction::MoveProject {
+                    sequence_id: job.sequence_id,
+                    direction: 1,
+                },
+            );
         }
     }
 }

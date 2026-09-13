@@ -43,9 +43,6 @@ pub fn draw_menu(ctx: MenuCtx<'_>) -> Vec<UiAction> {
 /// menu falls back to the drawn wordmark and a centered column, so a missing or
 /// failed texture costs the art and nothing else.
 fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
-    let mut actions = Vec::new();
-    let pointer = ctx.pointer;
-
     // A dynasty inheriting a storied Chronicle begins with a head start (§7).
     let heritage = crate::heritage::derive(ctx.chronicle, &ctx.data.config.heritage);
 
@@ -54,10 +51,16 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     } else {
         300.0
     };
-    let bh = 46.0;
-    let gap = 12.0;
+    let (bx, by) = draw_menu_backdrop(ctx, &heritage, bw);
+    draw_menu_options(ctx, bx, by, bw)
+}
 
-    let (bx, mut by) = match ctx.title_art {
+fn draw_menu_backdrop(
+    ctx: &MenuCtx<'_>,
+    heritage: &crate::heritage::Heritage,
+    bw: f32,
+) -> (f32, f32) {
+    let (bx, by) = match ctx.title_art {
         Some(art) => {
             draw_texture_ex(
                 art,
@@ -140,6 +143,14 @@ fn draw_main_menu(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         );
     }
 
+    (bx, by)
+}
+
+fn draw_menu_options(ctx: &MenuCtx<'_>, bx: f32, mut by: f32, bw: f32) -> Vec<UiAction> {
+    let mut actions = Vec::new();
+    let pointer = ctx.pointer;
+    let bh = 46.0;
+    let gap = 12.0;
     // A single column of options, most-common action first.
     if term_button(
         Rect::new(bx, by, bw, bh),
@@ -204,8 +215,6 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         );
     }
 
-    let starting = ctx.data.config.factions.starting_count as usize;
-    let tut = &ctx.data.config.tutorial;
     let panel = Rect::new(logical_width() / 2.0 - 430.0, 198.0, 860.0, 508.0);
     term_panel(panel, Some("FOUNDING CHARTER"));
     let content = panel.inset(24.0);
@@ -213,11 +222,32 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     let col_w = (content.w - col_gap) / 2.0;
     let left_x = content.x;
     let right_x = content.x + col_w + col_gap;
-    // Both columns share a header band: an intro block explaining the choice,
-    // then the pickable list below it. `list_top` is where each list starts.
     let list_top = content.y + 106.0;
+    draw_legacy_column(ctx, content, left_x, col_w, list_top, pointer, &mut actions);
+    draw_faction_column(
+        ctx,
+        content,
+        right_x,
+        col_w,
+        list_top,
+        pointer,
+        &mut actions,
+    );
+    draw_new_game_buttons(ctx, content, pointer, &mut actions);
 
-    // --- Left column: the legacy that steers the bloodline ---
+    actions
+}
+
+fn draw_legacy_column(
+    ctx: &MenuCtx<'_>,
+    content: Rect,
+    left_x: f32,
+    col_w: f32,
+    list_top: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let tut = &ctx.data.config.tutorial;
     draw_text_block(
         &tut.legacy_intro,
         left_x,
@@ -235,14 +265,14 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         };
         let rect = Rect::new(left_x, y + 8.0, col_w, 62.0);
         let selected = i == ctx.menu.selected_legacy;
-        let fill = if selected {
-            term::surface_active()
-        } else {
-            term::surface_inset()
-        };
         draw_surface(
             rect,
-            &SurfaceStyle::new(fill).with_border(
+            &SurfaceStyle::new(if selected {
+                term::surface_active()
+            } else {
+                term::surface_inset()
+            })
+            .with_border(
                 1.0,
                 if selected {
                     term::primary()
@@ -280,9 +310,6 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         }
         y += 70.0;
     }
-
-    // A "what this changes" callout for the focused legacy, so the pick reads as
-    // a mechanical choice and not just flavor. Text is the legacy's own `effects`.
     if let Some(legacy) = ctx
         .legacy_ids
         .get(ctx.menu.selected_legacy)
@@ -310,9 +337,20 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
             term::primary(),
         );
     }
+}
 
-    // --- Right column: the founding peoples (W7) — pick exactly `starting` ---
+fn draw_faction_column(
+    ctx: &MenuCtx<'_>,
+    content: Rect,
+    right_x: f32,
+    col_w: f32,
+    list_top: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let starting = ctx.data.config.factions.starting_count as usize;
     let chosen = ctx.menu.selected_factions.len();
+    let tut = &ctx.data.config.tutorial;
     draw_text_block(
         &tut.factions_intro,
         right_x,
@@ -337,21 +375,21 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         )
         .params(),
     );
-    let mut fy = list_top;
+    let mut y = list_top;
     for id in GameData::sorted_ids(&ctx.data.factions) {
         let Some(faction) = ctx.data.factions.get(&id) else {
             continue;
         };
         let selected = ctx.menu.selected_factions.iter().any(|f| f == &id);
-        let rect = Rect::new(right_x, fy + 4.0, col_w, 44.0);
-        let fill = if selected {
-            term::surface_active()
-        } else {
-            term::surface_inset()
-        };
+        let rect = Rect::new(right_x, y + 4.0, col_w, 44.0);
         draw_surface(
             rect,
-            &SurfaceStyle::new(fill).with_border(
+            &SurfaceStyle::new(if selected {
+                term::surface_active()
+            } else {
+                term::surface_inset()
+            })
+            .with_border(
                 1.0,
                 if selected {
                     term::primary()
@@ -383,10 +421,18 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
         if pointer.released_on(rect) {
             actions.push(UiAction::ToggleFaction(id.clone()));
         }
-        fy += 50.0;
+        y += 50.0;
     }
+}
 
-    // --- Bottom button row (spans both columns) ---
+fn draw_new_game_buttons(
+    ctx: &MenuCtx<'_>,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let starting = ctx.data.config.factions.starting_count as usize;
+    let chosen = ctx.menu.selected_factions.len();
     let by = content.bottom() - 44.0;
     let btn_w = (content.w - 20.0) / 3.0;
     if term_button(
@@ -413,8 +459,6 @@ fn draw_new_game(ctx: &MenuCtx<'_>) -> Vec<UiAction> {
     ) {
         actions.push(UiAction::DeleteSave);
     }
-
-    actions
 }
 
 /// A short tech-spectrum tag for a faction's ideology (W7 picker flavor).

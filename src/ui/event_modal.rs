@@ -134,34 +134,7 @@ pub(crate) fn known_effects(
     fuel_preview: Option<(f32, f32)>,
 ) -> (String, Color) {
     let mut effects = Vec::new();
-    let r = outcome.resource_delta;
-    for (label, value) in [
-        ("Credits", r.credits),
-        ("Energy", r.energy),
-        ("Minerals", r.minerals),
-        ("Food", r.food),
-        ("Influence", r.influence),
-    ] {
-        if value != 0 {
-            effects.push(format!("{label} {value:+}"));
-        }
-    }
-    let s = outcome.ship_delta;
-    for (label, value) in [("hull", s.hull_integrity), ("life", s.life_support)] {
-        if value.abs() > f32::EPSILON {
-            effects.push(format!("{label} {:+.0}%", value * 100.0));
-        }
-    }
-    if s.spare_parts != 0 {
-        effects.push(format!("parts {:+}", s.spare_parts));
-    }
-    if let Some((before, after)) = fuel_preview {
-        effects.push(format!(
-            "fuel tank {:.1}% → {:.1}%",
-            before * 100.0,
-            after * 100.0
-        ));
-    }
+    append_material_effects(&mut effects, outcome, fuel_preview);
     let p = outcome.population_delta;
     for (label, value) in [
         ("morale", p.morale),
@@ -241,6 +214,41 @@ pub(crate) fn known_effects(
         color = impact_color;
     }
     (text, color)
+}
+
+fn append_material_effects(
+    effects: &mut Vec<String>,
+    outcome: &crate::data::events::EventOutcome,
+    fuel_preview: Option<(f32, f32)>,
+) {
+    let r = outcome.resource_delta;
+    for (label, value) in [
+        ("Credits", r.credits),
+        ("Energy", r.energy),
+        ("Minerals", r.minerals),
+        ("Food", r.food),
+        ("Influence", r.influence),
+    ] {
+        if value != 0 {
+            effects.push(format!("{label} {value:+}"));
+        }
+    }
+    let s = outcome.ship_delta;
+    for (label, value) in [("hull", s.hull_integrity), ("life", s.life_support)] {
+        if value.abs() > f32::EPSILON {
+            effects.push(format!("{label} {:+.0}%", value * 100.0));
+        }
+    }
+    if s.spare_parts != 0 {
+        effects.push(format!("parts {:+}", s.spare_parts));
+    }
+    if let Some((before, after)) = fuel_preview {
+        effects.push(format!(
+            "fuel tank {:.1}% → {:.1}%",
+            before * 100.0,
+            after * 100.0
+        ));
+    }
 }
 
 /// Dim the world and draw the modal surface with `header` centered in the title

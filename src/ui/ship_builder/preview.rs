@@ -29,12 +29,24 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect) {
         frame.x + (frame.w - source.w * scale) / 2.0,
         frame.y + (frame.h - source.h * scale) / 2.0,
     );
-    let point = |p: Vec2| origin + p * scale;
     let tone = if changed {
         term::primary()
     } else {
         term::accent()
     };
+    draw_outline(&schematic, origin, scale, tone, changed);
+    draw_modules(&schematic, origin, scale, tone);
+    draw_summary(ctx, area, &schematic, tone, changed);
+}
+
+fn draw_outline(
+    schematic: &ship_schematic::ShipSchematic,
+    origin: Vec2,
+    scale: f32,
+    tone: Color,
+    changed: bool,
+) {
+    let point = |p: Vec2| origin + p * scale;
     for i in 0..schematic.outline.len() {
         let a = point(schematic.outline[i]);
         let b = point(schematic.outline[(i + 1) % schematic.outline.len()]);
@@ -47,6 +59,10 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect) {
     let a = point(schematic.corridor.0);
     let b = point(schematic.corridor.1);
     draw_line(a.x, a.y, b.x, b.y, 1.0, term::dim());
+}
+
+fn draw_modules(schematic: &ship_schematic::ShipSchematic, origin: Vec2, scale: f32, tone: Color) {
+    let point = |p: Vec2| origin + p * scale;
     for module in &schematic.modules {
         let p = point(vec2(module.rect.x, module.rect.y));
         let r = Rect::new(p.x, p.y, module.rect.w * scale, module.rect.h * scale);
@@ -72,6 +88,15 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect) {
             TextStyle::new(10.0, color),
         );
     }
+}
+
+fn draw_summary(
+    ctx: &GameplayCtx<'_>,
+    area: Rect,
+    schematic: &ship_schematic::ShipSchematic,
+    tone: Color,
+    changed: bool,
+) {
     let engine = ctx
         .data
         .ship_components

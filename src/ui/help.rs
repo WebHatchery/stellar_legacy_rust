@@ -38,6 +38,11 @@ pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
     let panel = Rect::new(logical_width() / 2.0 - 380.0, 24.0, 760.0, 672.0);
     term_panel(panel, Some("HELP // IDENTITY & CONTROLS"));
     let content = panel.inset(26.0);
+    draw_help_sections(content, version);
+    draw_help_actions(content, pointer)
+}
+
+fn draw_help_sections(content: Rect, version: &str) {
     draw_ui_text_ex(
         "WHO AM I?",
         content.x,
@@ -116,7 +121,9 @@ pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
         content.y + 436.0,
         TextStyle::new(11.0, term::faint()).params(),
     );
+}
 
+fn draw_help_actions(content: Rect, pointer: Pointer) -> Option<HelpAction> {
     let button_y = content.bottom() - 44.0;
     if term_button(
         Rect::new(content.x, button_y, 330.0, 44.0),

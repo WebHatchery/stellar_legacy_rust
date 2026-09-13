@@ -69,20 +69,26 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     let Some(template) = ctx.data.contracts.get(id) else {
         return;
     };
-    let config = &ctx.data.config;
     let forecast = crate::simulation::contract::forecast::for_departure(sim, ctx.data, template);
 
     term_panel(rect, Some("PREP // DEPARTURE"));
     let content = rect.inset(18.0);
-    let mut y = content.y + 38.0;
+    let y = draw_prep_header(template, content);
+    let (conflict_count, y) = draw_conflicts(sim, template, content, y);
+    let y = draw_phase_plan(template, content, y);
+    let y = draw_route_load(template, &forecast, content, y);
+    let provisioning = draw_provisioning(ctx, content, &forecast, y, pointer, actions);
+    draw_commit(ctx, content, conflict_count, provisioning, pointer, actions);
+}
 
+fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content: Rect) -> f32 {
+    let y = content.y + 38.0;
     draw_ui_text_ex(
         &template.name,
         content.x,
         y,
         TextStyle::new(19.0, term::accent()).params(),
     );
-    y += 24.0;
     draw_ui_text_ex(
         &format!(
             "{} · {} YEARS · reward {} cr",
@@ -91,71 +97,90 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
             template.reward.credits
         ),
         content.x,
-        y,
+        y + 24.0,
         TextStyle::new(13.0, term::dim()).params(),
     );
-    y += 28.0;
+    y + 52.0
+}
 
+fn draw_conflicts(
+    sim: &crate::state::sim::SimState,
+    template: &crate::data::contracts::ContractTemplate,
+    content: Rect,
+    mut y: f32,
+) -> (usize, f32) {
     let conflicts = crate::simulation::contract::obligation_conflicts(sim, template);
-    let conflict_count = conflicts.len();
-    if !conflicts.is_empty() {
+    let count = conflicts.len();
+    if conflicts.is_empty() {
+        return (count, y);
+    }
+    draw_ui_text_ex(
+        "! OBLIGATION CONFLICT — LAUNCH WOULD CONTRADICT:",
+        content.x,
+        y,
+        TextStyle::new(13.0, term::alert()).params(),
+    );
+    y += 18.0;
+    for obligation in conflicts {
         draw_ui_text_ex(
-            "! OBLIGATION CONFLICT — LAUNCH WOULD CONTRADICT:",
-            content.x,
-            y,
-            TextStyle::new(13.0, term::alert()).params(),
-        );
-        y += 18.0;
-        for obligation in conflicts {
-            draw_ui_text_ex(
-                &format!(
-                    "  {} — owed to {}",
-                    obligation.title, obligation.beneficiary
-                ),
-                content.x,
-                y,
-                TextStyle::new(12.0, term::alert()).params(),
-            );
-            y += 17.0;
-        }
-        draw_ui_text_ex(
-            "  LAUNCH & DEFAULT records each promise broken.",
+            &format!(
+                "  {} — owed to {}",
+                obligation.title, obligation.beneficiary
+            ),
             content.x,
             y,
             TextStyle::new(12.0, term::alert()).params(),
         );
         y += 17.0;
-        y += 6.0;
     }
+    draw_ui_text_ex(
+        "  LAUNCH & DEFAULT records each promise broken.",
+        content.x,
+        y,
+        TextStyle::new(12.0, term::alert()).params(),
+    );
+    (count, y + 23.0)
+}
 
-    // --- Phase plan (authored segments, proportional) ---
+fn draw_phase_plan(
+    template: &crate::data::contracts::ContractTemplate,
+    content: Rect,
+    y: f32,
+) -> f32 {
     draw_ui_text_ex(
         "PHASE PLAN",
         content.x,
         y,
         TextStyle::new(14.0, term::primary()).params(),
     );
-    y += 12.0;
+    let bar_y = y + 12.0;
     let total_years = template.target_duration_years.max(1) as f32;
-    let bar = Rect::new(content.x, y, content.w, 22.0);
+    let bar = Rect::new(content.x, bar_y, content.w, 22.0);
     let mut bx = bar.x;
-    for seg in &template.phases {
-        let w = bar.w * (seg.years as f32 / total_years);
-        let seg_rect = Rect::new(bx, bar.y, (w - 3.0).max(1.0), bar.h);
+    for segment in &template.phases {
+        let width = bar.w * (segment.years as f32 / total_years);
+        let rect = Rect::new(bx, bar.y, (width - 3.0).max(1.0), bar.h);
         draw_surface(
-            seg_rect,
+            rect,
             &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
         );
         draw_ui_text_ex(
-            &format!("{} {}y", seg.kind.label().to_uppercase(), seg.years),
-            seg_rect.x + 5.0,
-            seg_rect.y + 15.0,
+            &format!("{} {}y", segment.kind.label().to_uppercase(), segment.years),
+            rect.x + 5.0,
+            rect.y + 15.0,
             TextStyle::new(10.0, term::dim()).params(),
         );
-        bx += w;
+        bx += width;
     }
-    y += 36.0;
+    bar_y + 36.0
+}
 
+fn draw_route_load(
+    template: &crate::data::contracts::ContractTemplate,
+    forecast: &crate::simulation::contract::forecast::DepartureForecast,
+    content: Rect,
+    y: f32,
+) -> f32 {
     draw_ui_text_ex(
         &format!(
             "ROUTE LOAD · crisis weight +{:.2} · hull {:+.0}% · life support {:+.0}% over charter",
@@ -175,9 +200,25 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         )
         .params(),
     );
-    y += 20.0;
+    y + 20.0
+}
 
-    // --- Provisioning readout ---
+struct ProvisioningState {
+    food_short: i64,
+    parts_short: i64,
+    refuel_missing: f32,
+    refuel_cost: i64,
+}
+
+fn draw_provisioning(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    forecast: &crate::simulation::contract::forecast::DepartureForecast,
+    mut y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) -> ProvisioningState {
+    let sim = ctx.sim;
     draw_ui_text_ex(
         "BASELINE PROVISIONING FORECAST",
         content.x,
@@ -192,15 +233,42 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         TextStyle::new(11.0, term::dim()).params(),
     );
     y += 22.0;
-    // Each provisioning row carries its own stock-up button so filling the
-    // stores never means leaving the PREP screen.
-    let stock_btn = |y: f32| Rect::new(content.right() - 200.0, y - 24.0, 194.0, 44.0);
+    let food_short = draw_food_provision(sim, content, forecast, y, pointer, actions);
+    y += PROVISION_STRIDE;
+    let parts_short = draw_parts_provision(ctx, content, forecast, y, pointer, actions);
+    y += PROVISION_STRIDE;
+    draw_fuel_provision(sim, content, forecast, y);
+    let refuel_missing = 1.0 - sim.ship.fuel;
+    let refuel_cost =
+        (ctx.data.config.provisioning.fuel_cost_credits_per_point as f32 * refuel_missing * 100.0)
+            .ceil() as i64;
+    let review_y = y + 26.0;
+    if ctx.tutorial_enabled
+        && ctx.tutorial_open
+        && !sim.tutorial_dismissed
+        && sim.tutorial_step == 2
+    {
+        let review = Rect::new(content.x, review_y + 24.0, content.w, 44.0);
+        if term_button(review, "PROVISIONS REVIEWED", true, pointer) {
+            actions.push(UiAction::ReviewProvisions);
+        }
+    }
+    ProvisioningState {
+        food_short,
+        parts_short,
+        refuel_missing,
+        refuel_cost,
+    }
+}
 
-    // Food: a current-state projection that includes crew skill, agriculture
-    // tier/condition, consumption, and a standing route toll. This is a useful
-    // reserve rather than gross centuries of consumption that onboard farms
-    // will replace. Events and future deterioration remain explicitly outside
-    // the baseline.
+fn draw_food_provision(
+    sim: &crate::state::sim::SimState,
+    content: Rect,
+    forecast: &crate::simulation::contract::forecast::DepartureForecast,
+    y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) -> i64 {
     let food_need = forecast.recommended_food_store;
     provision_line(
         content.x,
@@ -216,62 +284,78 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
             forecast.annual_food_use
         ),
     );
-    let food_short = (food_need - sim.resources.food).max(0);
-    let unit_quote = crate::simulation::market::buy_quote(sim, TradeResource::Food, 1);
-    let food_afford = if unit_quote.effective_unit_price > 0.0 {
-        (sim.resources.credits as f32 / unit_quote.effective_unit_price).floor() as i64
+    let short = (food_need - sim.resources.food).max(0);
+    let quote = crate::simulation::market::buy_quote(sim, TradeResource::Food, 1);
+    let afford = if quote.effective_unit_price > 0.0 {
+        (sim.resources.credits as f32 / quote.effective_unit_price).floor() as i64
     } else {
         0
     };
-    let food_buy = food_short.min(food_afford);
-    let food_cost =
-        crate::simulation::market::buy_quote(sim, TradeResource::Food, food_buy).total_credits;
-    let food_label = if food_short == 0 {
+    let buy = short.min(afford);
+    let cost = crate::simulation::market::buy_quote(sim, TradeResource::Food, buy).total_credits;
+    let label = if short == 0 {
         "FOOD STOCKED".to_owned()
-    } else if food_buy <= 0 {
+    } else if buy <= 0 {
         "NO CREDITS FOR FOOD".to_owned()
     } else {
-        format!("+{food_buy} FOOD · {food_cost} CR")
+        format!("+{buy} FOOD · {cost} CR")
     };
-    if term_button(stock_btn(y), &food_label, food_buy > 0, pointer) {
-        actions.push(UiAction::Buy(TradeResource::Food, food_buy));
+    if term_button(stock_button(content, y), &label, buy > 0, pointer) {
+        actions.push(UiAction::Buy(TradeResource::Food, buy));
     }
-    y += PROVISION_STRIDE;
+    short
+}
 
-    // Spare parts: yearly upkeep across the voyage vs stores. The button stocks
-    // the shortfall at the drydock part price, capped by the treasury.
-    let parts_need = forecast.parts_upkeep;
+fn draw_parts_provision(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    forecast: &crate::simulation::contract::forecast::DepartureForecast,
+    y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) -> i64 {
+    let sim = ctx.sim;
+    let need = forecast.parts_upkeep;
     provision_line(
         content.x,
         y,
         "PARTS",
         sim.ship.spare_parts,
-        parts_need,
+        need,
         "or restock via a full refit",
     );
-    let parts_short = (parts_need - sim.ship.spare_parts).max(0);
-    let part_price = config.provisioning.part_cost_credits;
-    let parts_afford = if part_price > 0 {
-        sim.resources.credits / part_price
+    let short = (need - sim.ship.spare_parts).max(0);
+    let price = ctx.data.config.provisioning.part_cost_credits;
+    let afford = if price > 0 {
+        sim.resources.credits / price
     } else {
         0
     };
-    let parts_buy = parts_short.min(parts_afford);
-    let parts_label = if parts_short == 0 {
+    let buy = short.min(afford);
+    let label = if short == 0 {
         "PARTS STOCKED".to_owned()
-    } else if parts_buy <= 0 {
+    } else if buy <= 0 {
         "NO CREDITS FOR PARTS".to_owned()
     } else {
-        format!("+{parts_buy} PARTS · {} CR", parts_buy * part_price)
+        format!("+{buy} PARTS · {} CR", buy * price)
     };
-    if term_button(stock_btn(y), &parts_label, parts_buy > 0, pointer) {
-        actions.push(UiAction::BuyParts(parts_buy));
+    if term_button(stock_button(content, y), &label, buy > 0, pointer) {
+        actions.push(UiAction::BuyParts(buy));
     }
-    y += PROVISION_STRIDE;
+    short
+}
 
-    // Fuel: burned only across Travel months; the tank caps at 1.0 and the
-    // engine regen tops it up underway, so need can exceed a single tank.
-    let fuel_color = if sim.ship.fuel < 1.0 {
+fn stock_button(content: Rect, y: f32) -> Rect {
+    Rect::new(content.right() - 200.0, y - 24.0, 194.0, 44.0)
+}
+
+fn draw_fuel_provision(
+    sim: &crate::state::sim::SimState,
+    content: Rect,
+    forecast: &crate::simulation::contract::forecast::DepartureForecast,
+    y: f32,
+) {
+    let color = if sim.ship.fuel < 1.0 {
         term::alert()
     } else {
         term::accent()
@@ -285,7 +369,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         ),
         content.x,
         y,
-        TextStyle::new(13.0, fuel_color).params(),
+        TextStyle::new(13.0, color).params(),
     );
     draw_ui_text_ex(
         &format!(
@@ -296,52 +380,38 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
         y + 18.0,
         TextStyle::new(12.0, term::dim()).params(),
     );
-    y += 26.0;
+}
 
-    if ctx.tutorial_enabled
-        && ctx.tutorial_open
-        && !sim.tutorial_dismissed
-        && sim.tutorial_step == 2
-    {
-        let review = Rect::new(content.x, y + 24.0, content.w, 44.0);
-        if term_button(review, "PROVISIONS REVIEWED", true, pointer) {
-            actions.push(UiAction::ReviewProvisions);
-        }
-    }
-
-    // --- Commit / refuel ---
-    let refuel_missing = 1.0 - sim.ship.fuel;
-    let refuel_cost =
-        (config.provisioning.fuel_cost_credits_per_point as f32 * refuel_missing * 100.0).ceil()
-            as i64;
+fn draw_commit(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    conflict_count: usize,
+    provisioning: ProvisioningState,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let sim = ctx.sim;
     let by = content.bottom() - 44.0;
     let bw = (content.w - 12.0) / 2.0;
-    // Under-provisioning remains an allowed strategic risk, but the commit
-    // button must name that risk at the instant the player takes it. Promise
-    // conflicts remain independently counted because they create defaults.
-    let shortfall_count = usize::from(food_short > 0)
-        + usize::from(parts_short > 0)
-        + usize::from(refuel_missing > 0.001);
-    let launch_label = launch_commit_label(conflict_count, shortfall_count);
-    if term_button(
-        Rect::new(content.x, by, bw, 44.0),
-        &launch_label,
-        true,
-        pointer,
-    ) {
+    let shortfalls = usize::from(provisioning.food_short > 0)
+        + usize::from(provisioning.parts_short > 0)
+        + usize::from(provisioning.refuel_missing > 0.001);
+    let label = launch_commit_label(conflict_count, shortfalls);
+    if term_button(Rect::new(content.x, by, bw, 44.0), &label, true, pointer) {
         actions.push(UiAction::Launch);
     }
-    let refuel_label = if refuel_missing > 0.0 && sim.resources.credits < refuel_cost {
-        format!("NEED {refuel_cost} CR")
-    } else if refuel_missing > 0.0 {
-        format!("REFUEL ({refuel_cost} CR)")
-    } else {
-        "TANKS FULL".to_owned()
-    };
+    let refuel_label =
+        if provisioning.refuel_missing > 0.0 && sim.resources.credits < provisioning.refuel_cost {
+            format!("NEED {} CR", provisioning.refuel_cost)
+        } else if provisioning.refuel_missing > 0.0 {
+            format!("REFUEL ({} CR)", provisioning.refuel_cost)
+        } else {
+            "TANKS FULL".to_owned()
+        };
     if term_button(
         Rect::new(content.x + bw + 12.0, by, bw, 44.0),
         &refuel_label,
-        refuel_missing > 0.0 && sim.resources.credits >= refuel_cost,
+        provisioning.refuel_missing > 0.0 && sim.resources.credits >= provisioning.refuel_cost,
         pointer,
     ) {
         actions.push(UiAction::Refuel);
