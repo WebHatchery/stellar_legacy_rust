@@ -60,7 +60,7 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         ),
         content.x,
         content.y + 150.0,
-        TextStyle::new(12.0, term::faint()).params(),
+        TextStyle::new(12.0, term::dim()).params(),
     );
     let unavailable = crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).err();
     if let Some(notice) = ctx
