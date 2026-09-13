@@ -206,6 +206,9 @@ pub fn draw_utilities(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec
     let rect = Rect::new(928.0, 128.0, 336.0, 320.0);
     macroquad_toolkit::ui::occlude(rect);
     term_panel(rect, Some("Utilities"));
+    // The utility drawer sits over bridge copy and status text. Its panel is
+    // opaque, so keep the layout audit focused on the drawer's own controls.
+    let _modal_region = Region::on(rect, term::panel());
     for (i, (label, action)) in [
         ("Save game", UiAction::SaveGame),
         ("Help", UiAction::OpenHelp),
