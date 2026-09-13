@@ -103,7 +103,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
             40.0,
             12.0,
             3.0,
-            term::faint(),
+            term::dim(),
         );
         if term_button(
             Rect::new(card.right() - 244.0, card.y + 18.0, 230.0, 56.0),
