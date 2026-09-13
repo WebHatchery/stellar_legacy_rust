@@ -1,5 +1,16 @@
 # Browser interaction checks
 
+## 14 September 2026 — current release candidate route sample
+
+The published WebGL candidate from game commit `4929a2bd5c19494cadbe80618c62b78b8c60f5c2`
+was opened in a temporary local browser profile. A fresh player selected a legacy
+origin and three founding factions, began the voyage, opened People and Ship, then
+visited Voyage/Drydock and reached the Loadout refit view at Guide 6/11. The
+temporary browser tab and local server were closed after inspection. This is a
+route sample for the exact candidate, not a full acceptance run; the outstanding
+succession, obligation, Homecoming, terminal, clean-machine, and store-client
+scenarios remain listed in `docs/release/QA_AND_OPERATIONS.md`.
+
 ## 9 September 2026 — founding and first charter
 
 Used the publisher's packaged `dist/webgl-smoke` site in the in-app browser

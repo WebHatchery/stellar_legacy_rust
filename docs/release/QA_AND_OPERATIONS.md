@@ -107,6 +107,24 @@ public distribution. Check current store requirements in the authenticated store
 workflow before submission; old fee/timing/specification estimates are not kept
 as project rules.
 
+## Candidate verification — 14 September 2026
+
+The release candidate was built from game commit `4929a2bd5c19494cadbe80618c62b78b8c60f5c2` and toolkit commit
+`d97b7237f5eeeb775237a7e3795de4f446d795e7`. The published package hashes are:
+
+- Windows ZIP: `97D4721FA7D76A0105C1BDDF6C55D5E543AD58EE69AE59EE8CCA6083D612461A`
+- WebGL ZIP: `6035FE20D4DA8C7C8A07E9C2C18ECC734337ED920F3C41B558B0A555316B1DDC`
+
+The required publisher completed Windows and WebGL builds, packaged the release,
+deployed the WebGL Preview, and passed the packaged Windows smoke run. The
+redesign matrix verified 104 captures: 61 baseline, 27 portrait, 8 compact and
+8 desktop. The touch-audit entries passed, corrected modal/layout scenes were
+spot-checked, and the standalone browser-process regression passed.
+
+This records engineering and visual evidence for the candidate only. It is not
+manual clean-machine, store-client, or owner approval; the outstanding acceptance
+and owner-decision gates below remain open until an authorized tester records them.
+
 ## Outstanding acceptance
 
 These items have no final sign-off recorded here. Prior agent walkthroughs and
