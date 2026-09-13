@@ -5,6 +5,9 @@ fn draw<A>(f: Form<A>, state: &presentation::Presentation, pointer: Pointer, key
     let (w, h) = size();
     macroquad_toolkit::ui::occlude(Rect::new(0.0, 0.0, w, h));
     draw_rectangle(0.0, 0.0, w, h, term::bg());
+    // Mobile overlays replace the whole narrow viewport, so the form must be
+    // audited against the opaque background rather than the picker underneath.
+    let _modal_region = Region::on(Rect::new(0.0, 0.0, w, h), term::bg());
     let mut actions = Vec::new();
     f.draw(
         Rect::new(16.0, 16.0, w - 32.0, h - 44.0),
