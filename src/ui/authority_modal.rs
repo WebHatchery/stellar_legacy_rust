@@ -94,14 +94,14 @@ fn draw_review_choices(
 ) {
     draw_posture_costs(
         content.x,
-        content.y + 170.0,
+        content.y + 180.0,
         content.w,
         "PROPOSED",
         review.proposed,
     );
     draw_posture_costs(
         content.x,
-        content.y + 202.0,
+        content.y + 212.0,
         content.w,
         "COMPROMISE",
         review.compromise,
