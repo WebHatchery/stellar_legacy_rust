@@ -13,8 +13,14 @@ pub(super) fn settle_morale_and_politics(
     data: &GameData,
     _report: &mut TickReport,
 ) {
-    let config = &data.config;
+    apply_life_support_loss(sim, data);
+    apply_crew_recovery(sim, data);
+    apply_political_effects(sim, data);
+    apply_habitat_morale(sim, data);
+    apply_provisioning_morale(sim, data);
+}
 
+fn apply_life_support_loss(sim: &mut SimState, data: &GameData) {
     // A life-support plant that has failed badly cannot sustain everyone (content-depth
     // subsystems round 15): the module's most fundamental effect. Below the failure
     // threshold the ship thins each year, scaled by how far the plant has collapsed.
@@ -33,7 +39,9 @@ pub(super) fn settle_morale_and_politics(
         };
         sim.push_log(line);
     }
+}
 
+fn apply_crew_recovery(sim: &mut SimState, data: &GameData) {
     // A skilled security chief and a well-kept security corps both slowly steady
     // a fractious ship (content-depth subsystems round 9): crew skill + module
     // condition stack.
@@ -49,7 +57,9 @@ pub(super) fn settle_morale_and_politics(
     if stability_recovery > 0.0 {
         sim.population.stability = (sim.population.stability + stability_recovery).min(1.0);
     }
+}
 
+fn apply_political_effects(sim: &mut SimState, data: &GameData) {
     // A ship holds together as well as its peoples are content (content-depth
     // factions round 15): the faction system finally touches the ship's own
     // cohesion. Each year unity drifts by the member-weighted mood of the aboard
@@ -91,7 +101,9 @@ pub(super) fn settle_morale_and_politics(
                 (sim.population.stability - spread_penalty * excess * corps_relief).max(0.0);
         }
     }
+}
 
+fn apply_habitat_morale(sim: &mut SimState, data: &GameData) {
     // The habitat is where the people live (content-depth subsystems round 11): a
     // home kept sound lifts the ship's morale year over year, a failing one drags
     // it — the one maintenance-driven counterweight morale has to the voyage strain.
@@ -108,7 +120,10 @@ pub(super) fn settle_morale_and_politics(
     if culture != 0.0 {
         sim.population.morale = (sim.population.morale + culture).clamp(0.0, 1.0);
     }
+}
 
+fn apply_provisioning_morale(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // The long lean wears the crew down (content-depth provisioning round 17): the
     // provisioning axis's first *systemic* coupling — where every prior scarcity
     // mechanic was an event gate or a counter, a hunger that has ground on for years

@@ -1,6 +1,6 @@
 //! Blocking presentation for the one bounded human authority review.
 
-use crate::state::sim::{AuthorityChoice, CommandPosture};
+use crate::state::sim::{AuthorityChoice, AuthorityReview, CommandPosture};
 use crate::ui::{logical_height, logical_width, term, term_button, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -27,6 +27,13 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             .with_header(42.0, term::panel_header())
             .with_header_divider(1.0, term::alert()),
     );
+    draw_review_header(ctx, panel);
+    let content = panel.inset(24.0);
+    draw_review_context(review, content);
+    draw_review_choices(review, content, pointer, actions);
+}
+
+fn draw_review_header(ctx: &GameplayCtx<'_>, panel: Rect) {
     draw_text_centered_in_box_ex(
         "CAPTAIN REVIEW // MANDATE CHECK",
         panel.x,
@@ -41,7 +48,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         panel.y + 27.0,
         TextStyle::new(11.0, term::accent()).params(),
     );
-    let content = panel.inset(24.0);
+}
+
+fn draw_review_context(review: &AuthorityReview, content: Rect) {
     draw_ui_text_ex(
         &format!(
             "{} OBJECTS · {} PRIORITY",
@@ -68,7 +77,14 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         content.y + 132.0,
         TextStyle::new(12.0, term::dim()).params(),
     );
+}
 
+fn draw_review_choices(
+    review: &AuthorityReview,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     draw_posture_costs(
         content.x,
         content.y + 170.0,

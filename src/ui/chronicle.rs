@@ -95,6 +95,57 @@ fn draw_obligations(
     let show_resolved = ctx.obligation_resolved_tab.get();
     let active_count = ctx.sim.active_obligations().count();
     let resolved_count = ctx.sim.obligations.len() - active_count;
+    draw_obligation_tabs(
+        ctx,
+        content,
+        show_resolved,
+        active_count,
+        resolved_count,
+        pointer,
+    );
+    let mut obligations: Vec<_> = ctx
+        .sim
+        .obligations
+        .iter()
+        .filter(|obligation| obligation.status.is_active() != show_resolved)
+        .collect();
+    if obligations.is_empty() {
+        draw_empty_obligations(content, show_resolved);
+        return;
+    }
+    let overdue_ids: Vec<String> = ctx
+        .sim
+        .due_obligations()
+        .into_iter()
+        .map(|obligation| obligation.id.clone())
+        .collect();
+    sort_obligations(&mut obligations, show_resolved, &overdue_ids);
+    draw_obligation_summary(
+        &obligations,
+        show_resolved,
+        ctx.sim.year(),
+        &overdue_ids,
+        content,
+    );
+    draw_obligation_rows(
+        ctx,
+        content,
+        show_resolved,
+        obligations,
+        overdue_ids,
+        pointer,
+        actions,
+    );
+}
+
+fn draw_obligation_tabs(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    show_resolved: bool,
+    active_count: usize,
+    resolved_count: usize,
+    pointer: Pointer,
+) {
     let tab_gap = 8.0;
     let tab_w = (content.w - tab_gap) * 0.5;
     for (index, (label, count)) in [("ACTIVE", active_count), ("RESOLVED", resolved_count)]
@@ -124,40 +175,33 @@ fn draw_obligations(
                 .set(macroquad_toolkit::ui::ScrollArea::new());
         }
     }
+}
 
-    let mut obligations: Vec<_> = ctx
-        .sim
-        .obligations
-        .iter()
-        .filter(|obligation| obligation.status.is_active() != show_resolved)
-        .collect();
-    if obligations.is_empty() {
-        draw_text_block(
-            if show_resolved {
-                "No resolved duties yet. Fulfilled, defaulted, and voided promises will remain here with their complete histories."
-            } else {
-                "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided."
-            },
-            content.x,
-            content.y + 82.0,
-            content.w,
-            90.0,
-            13.0,
-            4.0,
-            term::dim(),
-        );
-        return;
-    }
+fn draw_empty_obligations(content: Rect, show_resolved: bool) {
+    draw_text_block(
+        if show_resolved {
+            "No resolved duties yet. Fulfilled, defaulted, and voided promises will remain here with their complete histories."
+        } else {
+            "No active duties. Promises created by councils and charters will remain here until honoured, revised, defaulted, or voided."
+        },
+        content.x,
+        content.y + 82.0,
+        content.w,
+        90.0,
+        13.0,
+        4.0,
+        term::dim(),
+    );
+}
 
-    let year = ctx.sim.year();
-    let overdue_ids: Vec<_> = ctx
-        .sim
-        .due_obligations()
-        .into_iter()
-        .map(|obligation| obligation.id.as_str())
-        .collect();
-    let is_overdue =
-        |obligation: &crate::state::sim::Obligation| overdue_ids.contains(&obligation.id.as_str());
+fn sort_obligations(
+    obligations: &mut Vec<&crate::state::sim::Obligation>,
+    show_resolved: bool,
+    overdue_ids: &[String],
+) {
+    let is_overdue = |obligation: &&crate::state::sim::Obligation| {
+        overdue_ids.iter().any(|id| id == &obligation.id)
+    };
     if show_resolved {
         obligations.sort_by_key(|obligation| {
             Reverse((
@@ -179,9 +223,18 @@ fn draw_obligations(
             )
         });
     }
+}
+
+fn draw_obligation_summary(
+    obligations: &[&crate::state::sim::Obligation],
+    show_resolved: bool,
+    year: u32,
+    overdue_ids: &[String],
+    content: Rect,
+) {
     let overdue_count = obligations
         .iter()
-        .filter(|obligation| is_overdue(obligation))
+        .filter(|obligation| overdue_ids.iter().any(|id| id == &obligation.id))
         .count();
     let (status_summary, summary_warning) = if show_resolved {
         let fulfilled = obligations
@@ -227,7 +280,21 @@ fn draw_obligations(
         )
         .params(),
     );
+}
 
+fn draw_obligation_rows(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    show_resolved: bool,
+    obligations: Vec<&crate::state::sim::Obligation>,
+    overdue_ids: Vec<String>,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let year = ctx.sim.year();
+    let is_overdue = |obligation: &crate::state::sim::Obligation| {
+        overdue_ids.iter().any(|id| id == &obligation.id)
+    };
     const ROW_H: f32 = 194.0;
     const ROW_GAP: f32 = 8.0;
     let view = Rect::new(
@@ -398,6 +465,15 @@ fn draw_obligation_history(
         actions.push(UiAction::CloseObligationHistory);
     }
 
+    draw_history_content(ctx, obligation, modal, pointer);
+}
+
+fn draw_history_content(
+    ctx: &GameplayCtx<'_>,
+    obligation: &crate::state::sim::Obligation,
+    modal: Rect,
+    pointer: Pointer,
+) {
     let content = modal.inset(22.0);
     draw_ui_text_ex(
         &obligation.title,

@@ -1,7 +1,7 @@
 //! Founding a campaign: the one long constructor that turns a legacy, a
 //! seed and a roster of peoples into a ship ready to launch.
 
-use crate::data::GameData;
+use crate::data::{GameConfig, GameData};
 use macroquad_toolkit::rng::SeededRng;
 use std::collections::HashMap;
 
@@ -23,26 +23,28 @@ impl SimState {
         let mut rng = SeededRng::new(seed);
         let dynasty = founding_dynasty(data, legacy_id, &mut rng);
 
-        let market = MarketState {
-            entries: TradeResource::ALL
-                .iter()
-                .map(|&resource| MarketEntry {
-                    resource,
-                    price: base_price(resource),
-                    trend: 0.0,
-                })
-                .collect(),
-            last_trade: None,
-            impact_per_unit: config.market_impact_per_unit,
-            trade_reputation_scale: config.trade_reputation_scale,
-            desperation_premium: config.market_desperation_premium,
-            desperation_food_floor: config.low_food_threshold,
-            desperation_energy_floor: config.low_energy_threshold,
-            distress_discount: config.market_distress_discount,
-            distress_credit_floor: config.distress_credit_floor,
-        };
+        let market = starting_market(config);
+        let mut sim =
+            Self::foundation_state(data, legacy_id, seed, rng, dynasty, market, faction_ids);
+        initialize_launch_bands(&mut sim, config);
+        initialize_launch_identity(&mut sim, config);
+        authority::refresh_captain(&mut sim);
+        fill_starting_crew(&mut sim, data, legacy_id, faction_ids);
+        log_foundation(&mut sim, data, faction_ids);
+        sim
+    }
 
-        let mut sim = Self {
+    fn foundation_state(
+        data: &GameData,
+        legacy_id: &str,
+        seed: u64,
+        rng: SeededRng,
+        dynasty: Dynasty,
+        market: MarketState,
+        faction_ids: &[String],
+    ) -> Self {
+        let config = &data.config;
+        Self {
             seed,
             rng,
             month_clock: 0,
@@ -53,26 +55,8 @@ impl SimState {
             command_posture_locked_until: 0,
             resources: ResourcePool::from_delta(config.starting_resources),
             production: config.base_production,
-            ship: ShipState {
-                hull_integrity: 1.0,
-                life_support: 1.0,
-                fuel: 1.0,
-                spare_parts: config.starting_spare_parts,
-                hull: "colony_barge".to_owned(),
-                engine: "ion_drive".to_owned(),
-                weapon: None,
-                salvage: Vec::new(),
-                unlocked_fittings: Vec::new(),
-            },
-            population: PopulationState {
-                count: config.starting_population,
-                morale: 0.7,
-                unity: 0.7,
-                stability: 0.7,
-                legacy_loyalty: 0.6,
-                adaptation: 0.3,
-                cultural_drift: 0.1,
-            },
+            ship: starting_ship(config),
+            population: starting_population(config),
             dynasty,
             crew: Vec::new(),
             next_crew_id: 0,
@@ -81,13 +65,7 @@ impl SimState {
             procedure_archives: Vec::new(),
             institution_records: Vec::new(),
             decision_records: Vec::new(),
-            legacy: LegacyTrack {
-                legacy_id: legacy_id.to_owned(),
-                tradition_points: 50,
-                body_horror_events: 0,
-                existential_dread: 0.0,
-                piracy_reputation: 0.0,
-            },
+            legacy: starting_legacy(legacy_id),
             contract: None,
             selected_charter: None,
             selected_charter_approach: CharterApproach::default(),
@@ -149,109 +127,150 @@ impl SimState {
             terminal: None,
             survival: survival::SurvivalState::default(),
             log: Vec::new(),
-        };
-        // Record the launch morale's band so the ship's hopeful starting spirits
-        // read as the baseline, not a "lift" the collective-mood voice announces
-        // (content-depth voice round 11).
-        sim.morale_band = factions::mood_band_for(sim.population.morale);
-        // Likewise record the launch band of the ship's institutional order so a
-        // founding ship's sound government reads as the baseline, not a "firming" the
-        // governance voice announces (content-depth voice round 17).
-        sim.stability_voice_band = factions::stability_voice_band_for(
-            sim.population.stability,
-            config.flavor.stability_voice_high,
-            config.flavor.stability_voice_low,
-        );
-        // Likewise record the launch band of the crew's devotion to the founders'
-        // mission, so a founding crew's high loyalty reads as the baseline, not a
-        // "brightening" the loyalty voice announces (content-depth voice round 20).
-        sim.loyalty_voice_band = factions::stability_voice_band_for(
-            sim.population.legacy_loyalty,
-            config.flavor.loyalty_voice_high,
-            config.flavor.loyalty_voice_low,
-        );
-        // Likewise record the launch band of the crew's physiological identity, so a
-        // founding crew's baseline-human bodies read as the baseline, not a "shipborn"
-        // the adaptation voice announces (content-depth voice round 25).
-        sim.adaptation_voice_band = factions::stability_voice_band_for(
-            sim.population.adaptation,
-            config.flavor.adaptation_voice_high,
-            config.flavor.adaptation_voice_low,
-        );
-        // Likewise record the launch band of the crew's cultural identity, so a founding
-        // crew's founders-kept ways read as the baseline, not a "new people" the drift voice
-        // announces (content-depth voice round 26).
-        sim.drift_voice_band = factions::stability_voice_band_for(
-            sim.population.cultural_drift,
-            config.flavor.drift_voice_high,
-            config.flavor.drift_voice_low,
-        );
-        // Likewise record the launch band of the crew's cohesion, so a founding crew's
-        // one-people unity reads as the baseline, not a "cohering" the unity voice
-        // announces (content-depth voice round 21).
-        sim.unity_voice_band = factions::stability_voice_band_for(
-            sim.population.unity,
-            config.flavor.unity_voice_high,
-            config.flavor.unity_voice_low,
-        );
-        // Likewise record the launch band of the ship's hull, so a new-built vessel's
-        // sound body reads as the baseline, not a "riding true" the hull voice announces
-        // (content-depth voice round 22).
-        sim.hull_voice_band = factions::stability_voice_band_for(
-            sim.ship.hull_integrity,
-            config.flavor.hull_voice_high,
-            config.flavor.hull_voice_low,
-        );
-        // Likewise record the launch band of the ship's air, so a new ship's clean
-        // atmosphere reads as the baseline, not a "breathing easy" the air voice
-        // announces (content-depth voice round 23).
-        sim.air_voice_band = factions::stability_voice_band_for(
-            sim.ship.life_support,
-            config.flavor.air_voice_high,
-            config.flavor.air_voice_low,
-        );
-        // Likewise record the launch band of the ship's drive, so a new ship's full tanks read
-        // as the baseline, not a "flying free" the drive voice announces (content-depth voice
-        // round 27).
-        sim.fuel_voice_band = factions::stability_voice_band_for(
-            sim.ship.fuel,
-            config.flavor.fuel_voice_high,
-            config.flavor.fuel_voice_low,
-        );
-        // Likewise record the people who run the ship at launch, so the founding majority reads as
-        // the baseline, not a "changing of the guard" the ruling-people voice announces — only a
-        // *later* shift in who is dominant speaks (content-depth voice round 31).
-        sim.ruling_people_voice = sim.dominant_faction_id().map(str::to_owned);
-        authority::refresh_captain(&mut sim);
-        // Founding senior staff fill the configured starting posts.
-        for archetype_id in &config.crew.starting_posts {
-            let age_span = config.crew.recruit_age_max - config.crew.recruit_age_min + 1;
-            let age = config.crew.recruit_age_min + sim.rng.below(age_span as usize) as u32;
-            if let Some(member) = generate_crew_member(
-                data,
-                legacy_id,
-                archetype_id,
-                age,
-                faction_ids[(sim.next_crew_id as usize) % faction_ids.len()].clone(),
-                &mut sim.rng,
-                &mut sim.next_crew_id,
-            ) {
-                sim.crew.push(member);
-            }
         }
-        // Name the peoples who board together (W7).
-        let names: Vec<String> = faction_ids
+    }
+}
+
+fn starting_market(config: &GameConfig) -> MarketState {
+    MarketState {
+        entries: TradeResource::ALL
             .iter()
-            .map(|id| factions::log_name(&data.factions, id))
-            .collect();
-        if !names.is_empty() {
-            sim.push_log(format!(
-                "{} board together for the voyage.",
-                join_names(&names)
-            ));
+            .map(|&resource| MarketEntry {
+                resource,
+                price: base_price(resource),
+                trend: 0.0,
+            })
+            .collect(),
+        last_trade: None,
+        impact_per_unit: config.market_impact_per_unit,
+        trade_reputation_scale: config.trade_reputation_scale,
+        desperation_premium: config.market_desperation_premium,
+        desperation_food_floor: config.low_food_threshold,
+        desperation_energy_floor: config.low_energy_threshold,
+        distress_discount: config.market_distress_discount,
+        distress_credit_floor: config.distress_credit_floor,
+    }
+}
+
+fn initialize_launch_bands(sim: &mut SimState, config: &GameConfig) {
+    sim.morale_band = factions::mood_band_for(sim.population.morale);
+    sim.stability_voice_band = factions::stability_voice_band_for(
+        sim.population.stability,
+        config.flavor.stability_voice_high,
+        config.flavor.stability_voice_low,
+    );
+    sim.loyalty_voice_band = factions::stability_voice_band_for(
+        sim.population.legacy_loyalty,
+        config.flavor.loyalty_voice_high,
+        config.flavor.loyalty_voice_low,
+    );
+}
+
+fn initialize_launch_identity(sim: &mut SimState, config: &GameConfig) {
+    sim.adaptation_voice_band = factions::stability_voice_band_for(
+        sim.population.adaptation,
+        config.flavor.adaptation_voice_high,
+        config.flavor.adaptation_voice_low,
+    );
+    sim.drift_voice_band = factions::stability_voice_band_for(
+        sim.population.cultural_drift,
+        config.flavor.drift_voice_high,
+        config.flavor.drift_voice_low,
+    );
+    sim.unity_voice_band = factions::stability_voice_band_for(
+        sim.population.unity,
+        config.flavor.unity_voice_high,
+        config.flavor.unity_voice_low,
+    );
+    sim.hull_voice_band = factions::stability_voice_band_for(
+        sim.ship.hull_integrity,
+        config.flavor.hull_voice_high,
+        config.flavor.hull_voice_low,
+    );
+    sim.air_voice_band = factions::stability_voice_band_for(
+        sim.ship.life_support,
+        config.flavor.air_voice_high,
+        config.flavor.air_voice_low,
+    );
+    sim.fuel_voice_band = factions::stability_voice_band_for(
+        sim.ship.fuel,
+        config.flavor.fuel_voice_high,
+        config.flavor.fuel_voice_low,
+    );
+    sim.ruling_people_voice = sim.dominant_faction_id().map(str::to_owned);
+}
+
+fn fill_starting_crew(
+    sim: &mut SimState,
+    data: &GameData,
+    legacy_id: &str,
+    faction_ids: &[String],
+) {
+    let config = &data.config;
+    for archetype_id in &config.crew.starting_posts {
+        let age_span = config.crew.recruit_age_max - config.crew.recruit_age_min + 1;
+        let age = config.crew.recruit_age_min + sim.rng.below(age_span as usize) as u32;
+        if let Some(member) = generate_crew_member(
+            data,
+            legacy_id,
+            archetype_id,
+            age,
+            faction_ids[(sim.next_crew_id as usize) % faction_ids.len()].clone(),
+            &mut sim.rng,
+            &mut sim.next_crew_id,
+        ) {
+            sim.crew.push(member);
         }
-        sim.push_log("The founding council convenes. The voyage begins with a choice of contract.");
-        sim
+    }
+}
+
+fn log_foundation(sim: &mut SimState, data: &GameData, faction_ids: &[String]) {
+    let names: Vec<String> = faction_ids
+        .iter()
+        .map(|id| factions::log_name(&data.factions, id))
+        .collect();
+    if !names.is_empty() {
+        sim.push_log(format!(
+            "{} board together for the voyage.",
+            join_names(&names)
+        ));
+    }
+    sim.push_log("The founding council convenes. The voyage begins with a choice of contract.");
+}
+
+fn starting_ship(config: &GameConfig) -> ShipState {
+    ShipState {
+        hull_integrity: 1.0,
+        life_support: 1.0,
+        fuel: 1.0,
+        spare_parts: config.starting_spare_parts,
+        hull: "colony_barge".to_owned(),
+        engine: "ion_drive".to_owned(),
+        weapon: None,
+        salvage: Vec::new(),
+        unlocked_fittings: Vec::new(),
+    }
+}
+
+fn starting_population(config: &GameConfig) -> PopulationState {
+    PopulationState {
+        count: config.starting_population,
+        morale: 0.7,
+        unity: 0.7,
+        stability: 0.7,
+        legacy_loyalty: 0.6,
+        adaptation: 0.3,
+        cultural_drift: 0.1,
+    }
+}
+
+fn starting_legacy(legacy_id: &str) -> LegacyTrack {
+    LegacyTrack {
+        legacy_id: legacy_id.to_owned(),
+        tradition_points: 50,
+        body_horror_events: 0,
+        existential_dread: 0.0,
+        piracy_reputation: 0.0,
     }
 }
 

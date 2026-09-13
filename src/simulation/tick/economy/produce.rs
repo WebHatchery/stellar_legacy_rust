@@ -12,8 +12,15 @@ use super::factors::influence_governance_factor;
 /// Production, upkeep, the scarcity and plenty streaks, fabrication and
 /// the slow spoilage of stores kept past what the holds can cycle.
 pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mut TickReport) {
-    let config = &data.config;
+    apply_route_toll(sim, data);
+    produce_resources(sim, data);
+    feed_population(sim, data);
+    update_provisioning_streaks(sim, data);
+    fabricate_parts(sim, data);
+    spoil_food(sim, data);
+}
 
+fn apply_route_toll(sim: &mut SimState, data: &GameData) {
     // Route toll (content-depth charters round 13): a charter whose *nature* wears
     // at a ship exacts a steady per-year drain for the whole voyage — hazard's
     // deterministic companion. Read from the template (the contract carries its id),
@@ -29,7 +36,10 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
         sim.ship.apply(&toll.ship);
         sim.population.apply(&toll.population);
     }
+}
 
+fn produce_resources(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // Production (GDD §5.1: floor(rate * years), one year per tick),
     // multiplied by the serving crew's skills (PLAN item 2). The agriculture
     // subsystem lifts food yield per tier (W5).
@@ -61,7 +71,10 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
     // Ship loadout bonus: installed component stats grant extra production and
     // fuel regen (PLAN item 3).
     ship::apply_loadout_effects(sim, data);
+}
 
+fn feed_population(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // Food upkeep; famine bleeds morale and people. A serving medic keeps
     // some of the starving alive.
     let upkeep = (sim.population.count as f32 * config.food_per_person_per_year).ceil() as i64;
@@ -90,7 +103,10 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
         };
         sim.push_log(line);
     }
+}
 
+fn update_provisioning_streaks(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // Track how long scarcity has ground on (content-depth provisioning round 13):
     // now that the year's food is settled, a store still below the lean line adds a
     // year to the streak; a recovered larder resets it. This is what lets content
@@ -117,7 +133,10 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
     } else {
         sim.lean_energy_years = 0;
     }
+}
 
+fn fabricate_parts(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // Idle reactor output runs the fabricators (content-depth provisioning round 21):
     // energy has no upkeep and simply piles up unused, the voyage's one wasted
     // resource. While the ship holds a real energy surplus *and* the raw minerals to
@@ -150,7 +169,10 @@ pub(super) fn produce_and_feed(sim: &mut SimState, data: &GameData, _report: &mu
         };
         sim.push_log(line);
     }
+}
 
+fn spoil_food(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // Stores kept past what the ship can keep *fresh* spoil (content-depth provisioning
     // round 24): food is the one resource with no upkeep and no cap, so it could pile up
     // without limit — but a generation ship's cold-holds and hydroponics can only cycle so

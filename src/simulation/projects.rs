@@ -51,29 +51,51 @@ pub fn eligibility(
     definition: &ProjectDefinition,
     target_id: Option<&str>,
 ) -> ProjectEligibility {
+    if let Some(reason) = global_block_reason(sim, definition) {
+        return ProjectEligibility::blocked(reason);
+    }
+    let target = match target_state(sim, data, definition, target_id) {
+        Ok(target) => target,
+        Err(blocked) => return blocked,
+    };
+    kind_eligibility(sim, data, definition, target)
+}
+
+fn global_block_reason(sim: &SimState, definition: &ProjectDefinition) -> Option<String> {
     if sim.terminal.is_some() {
-        return ProjectEligibility::blocked("The campaign has ended.");
+        return Some("The campaign has ended.".to_owned());
     }
     if sim.has_pending_decision() {
-        return ProjectEligibility::blocked("The council must finish its decision first.");
+        return Some("The council must finish its decision first.".to_owned());
     }
     if let Some(capability) = &definition.requires_capability {
         if !sim.projects.has_capability(capability) {
-            return ProjectEligibility::blocked(format!("Requires capability: {capability}."));
+            return Some(format!("Requires capability: {capability}."));
         }
     }
     if let Some(issue_id) = &definition.requires_issue {
         if !issues::issue_allows_project(sim, issue_id) {
-            return ProjectEligibility::blocked("No matching active aftermath issue.");
+            return Some("No matching active aftermath issue.".to_owned());
         }
     }
-    let target = match definition.target {
+    None
+}
+
+fn target_state(
+    sim: &SimState,
+    data: &GameData,
+    definition: &ProjectDefinition,
+    target_id: Option<&str>,
+) -> Result<Option<(f32, f32)>, ProjectEligibility> {
+    match definition.target {
         ProjectTarget::Subsystem => {
             let Some(id) = target_id else {
-                return ProjectEligibility::blocked("Choose a subsystem target.");
+                return Err(ProjectEligibility::blocked("Choose a subsystem target."));
             };
             let Some(state) = sim.subsystems.get(id) else {
-                return ProjectEligibility::blocked("That subsystem is not fitted aboard.");
+                return Err(ProjectEligibility::blocked(
+                    "That subsystem is not fitted aboard.",
+                ));
             };
             let knowledge_floor = if definition.kind == ProjectKind::ServiceSubsystem {
                 definition.knowledge_required.max(
@@ -86,31 +108,41 @@ pub fn eligibility(
                 definition.knowledge_required
             };
             if knowledge_floor > 0.0 && state.knowledge + f32::EPSILON < knowledge_floor {
-                return ProjectEligibility::blocked(format!(
+                return Err(ProjectEligibility::blocked(format!(
                     "Needs {:.0}% knowledge; this discipline has {:.0}%.",
                     knowledge_floor * 100.0,
                     state.knowledge * 100.0
-                ));
+                )));
             }
-            Some((state.condition, state.knowledge))
+            Ok(Some((state.condition, state.knowledge)))
         }
         ProjectTarget::Agriculture => {
             let state = sim.subsystems.get("agriculture");
             let Some(state) = state else {
-                return ProjectEligibility::blocked("Agriculture is not fitted aboard.");
+                return Err(ProjectEligibility::blocked(
+                    "Agriculture is not fitted aboard.",
+                ));
             };
             if definition.knowledge_required > 0.0
                 && state.knowledge + f32::EPSILON < definition.knowledge_required
             {
-                return ProjectEligibility::blocked(format!(
+                return Err(ProjectEligibility::blocked(format!(
                     "Agriculture knowledge must reach {:.0}%.",
                     definition.knowledge_required * 100.0
-                ));
+                )));
             }
-            Some((state.condition, state.knowledge))
+            Ok(Some((state.condition, state.knowledge)))
         }
-        ProjectTarget::Social | ProjectTarget::None => None,
-    };
+        ProjectTarget::Social | ProjectTarget::None => Ok(None),
+    }
+}
+
+fn kind_eligibility(
+    sim: &SimState,
+    data: &GameData,
+    definition: &ProjectDefinition,
+    target: Option<(f32, f32)>,
+) -> ProjectEligibility {
     match definition.kind {
         ProjectKind::ServiceSubsystem => {
             let Some((condition, _)) = target else {

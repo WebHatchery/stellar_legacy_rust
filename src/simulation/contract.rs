@@ -367,72 +367,7 @@ pub fn advance_contract(
     cargo: i32,
     crew: i32,
 ) -> ContractProgress {
-    let population_count = sim.population.count;
-    let unity = sim.population.unity;
-    // The family metrics (content-depth charters round 35) read state the four
-    // universal ones never did — the craft the ship kept, the hull it kept, the name
-    // it earned, the covenant it still holds. Sampled here, before the mutable
-    // contract borrow, exactly as `unity` is.
-    let hull = sim.ship.hull_integrity;
-    let legacy_loyalty = sim.population.legacy_loyalty;
-    let mean_knowledge = if sim.subsystems.is_empty() {
-        1.0
-    } else {
-        sim.subsystems.values().map(|s| s.knowledge).sum::<f32>() / sim.subsystems.len() as f32
-    };
-    // A charter that names the module its work leans on is graded on *that* craft;
-    // one that leans on nothing is graded on the ship's learning as a whole.
-    let objective_knowledge = sim
-        .contract
-        .as_ref()
-        .filter(|c| !c.objective_subsystem.is_empty())
-        .and_then(|c| sim.subsystems.get(&c.objective_subsystem))
-        .map_or(mean_knowledge, |s| s.knowledge);
-    // Reputation is keyed per metric, so the whole map has to come along.
-    let reputation = sim.reputation.clone();
-    let food_ok = sim.resources.food >= config.low_food_threshold;
-    let energy_ok = sim.resources.energy >= config.low_energy_threshold;
-    let progress_per_speed = config.ship.contract_progress_per_speed;
-
-    // The module this mission leans on scales how fast its work accrues (content-depth
-    // subsystems round 14): a pristine bay works at the base rate, a degraded one
-    // slower. Read before the mutable contract borrow. Penalty-below-full keeps the
-    // baseline, so a well-kept ship's objective is unchanged.
-    let objective_condition = sim
-        .contract
-        .as_ref()
-        .filter(|c| !c.objective_subsystem.is_empty())
-        .map(|c| {
-            let cond = sim
-                .subsystems
-                .get(&c.objective_subsystem)
-                .map_or(1.0, |s| s.condition);
-            (1.0 - config.subsystems.objective_condition_penalty * (1.0 - cond)).max(0.0)
-        })
-        .unwrap_or(1.0);
-
-    // A crew's spirits move how fast the work goes (content-depth charters round 22):
-    // the objective's first coupling to the crew's *state* rather than the ship's
-    // fittings (speed, combat) or its modules. A devoted, high-hearted crew drives the
-    // work harder than any drive tuning; a dispirited one drags at it. A swing around
-    // the neutral midpoint, floored so a broken crew slows the mission but never wholly
-    // stalls it. Read before the mutable contract borrow.
-    let morale_factor =
-        (1.0 + config.ship.morale_objective_swing * (sim.population.morale - 0.5)).max(0.2);
-    // …and its cohesion moves how *together* the work goes (content-depth charters round 34): the
-    // second crew-state lever, coordination beside morale's will. A united crew works as one hand, a
-    // fractured one duplicates effort and argues the method — scaled around the neutral midpoint and
-    // floored like morale, multiplying with it so a mission goes fastest under a crew both willing
-    // and united. Read before the mutable contract borrow.
-    let unity_factor =
-        (1.0 + config.ship.unity_objective_swing * (sim.population.unity - 0.5)).max(0.2);
-    // The command posture is the council's one voyage-wide lever: expeditionary
-    // ships work faster, civic ships deliberately reserve capacity for their
-    // people, and steady ships leave the charter's authored rate untouched.
-    let posture_factor = crate::simulation::command::objective_factor(sim.command_posture);
-    let approach_factor = sim.contract.as_ref().map_or(1.0, |contract| {
-        crate::simulation::approach::objective_factor(contract.approach)
-    });
+    let factors = contract_factors(sim, config);
 
     let mut out = ContractProgress::default();
     // The objective subsystem an Operation month trained (content-depth charters round 33), set
@@ -450,8 +385,8 @@ pub fn advance_contract(
         contract.months_elapsed += 1;
         // Provisioning discipline accrues month by month: each upkeep store
         // above its crisis threshold banks credit toward ResourceEfficiency.
-        contract.healthy_food_months += food_ok as u32;
-        contract.healthy_energy_months += energy_ok as u32;
+        contract.healthy_food_months += factors.food_ok as u32;
+        contract.healthy_energy_months += factors.energy_ok as u32;
         let (index, phase) = contract.phase_at(contract.months_elapsed);
         contract.phase_index = index;
         contract.phase = phase;
@@ -459,61 +394,17 @@ pub fn advance_contract(
             out.phase_changed = Some(phase);
         }
 
-        // A preserve charter (round 23) does not *build* its objective — it carries it,
-        // and loses a little every month of the voyage (the cold banks fail, the sick do
-        // not all wake). Applied across Travel/Operation/Return, not the pre-launch or
-        // post-return bookends; hazard events take the rest. No accrual.
-        if contract.preserve_objective {
-            if matches!(
-                phase,
-                ContractPhase::Travel | ContractPhase::Operation | ContractPhase::Return
-            ) {
-                // Berths ease the attrition (content-depth charters round 28): a ship with the
-                // crew_capacity to carry its charge in some comfort loses fewer of them over the
-                // long dark than one that crams them into every hold — crew_capacity's first
-                // mechanical role, the berth twin of cargo's haul lever. Floored so even the
-                // roomiest ship cannot wholly stop the loss; inert (factor 1.0) at crew 0.
-                let berth_relief =
-                    (1.0 - crew.max(0) as f32 * config.ship.preserve_berth_relief).max(0.2);
-                let monthly_loss = contract.objective_target * contract.preserve_attrition_per_year
-                    / 12.0
-                    * berth_relief
-                    * crate::simulation::approach::preserve_attrition_factor(contract.approach);
-                contract.objective_progress = (contract.objective_progress - monthly_loss).max(0.0);
-            }
-        } else if phase == ContractPhase::Operation {
-            // Objective work happens only on-station (Operation): base_rate spreads
-            // the target across the operation window, and ship speed quickens it.
-            let operation_months = contract.operation_months().max(1);
-            let base_rate = contract.objective_target / operation_months as f32;
-            let speed_factor = 1.0 + speed.max(0) as f32 * progress_per_speed;
-            // A contested writ (round 21) is worked faster by an armed ship; a
-            // mission that sets no combat scaling is indifferent to firepower, so
-            // combat_factor is 1.0 and the accrual is unchanged there.
-            let combat_factor = 1.0 + combat.max(0) as f32 * contract.objective_combat_scaling;
-            // A haul writ (round 24) is worked faster by a bigger hold; a mission whose
-            // objective is not a quantity of material sets no cargo scaling, so this is
-            // 1.0 there and the accrual is unchanged.
-            let cargo_factor = 1.0 + cargo.max(0) as f32 * contract.objective_cargo_scaling;
-            contract.objective_progress += base_rate
-                * speed_factor
-                * objective_condition
-                * combat_factor
-                * cargo_factor
-                * morale_factor
-                * unity_factor
-                * posture_factor
-                * approach_factor;
-            // …and the work itself sharpens the craft it leans on (content-depth charters round 33):
-            // the reverse of the round-14 coupling, where the subsystem's condition speeds the
-            // mission — here a month of on-station work builds the objective subsystem's *knowledge*
-            // (a mining survey masters the engineering bay's craft, a greening its agriculture),
-            // closing the loop. Captured here, applied after the contract borrow ends. Knowledge,
-            // not condition, so it never feeds back into faster accrual (no runaway).
-            if !contract.objective_subsystem.is_empty() {
-                trained_subsystem = Some(contract.objective_subsystem.clone());
-            }
-        }
+        advance_objective(
+            contract,
+            config,
+            speed,
+            combat,
+            cargo,
+            crew,
+            &factors,
+            phase,
+            &mut trained_subsystem,
+        );
 
         let progress = contract.progress();
         let mut reached_rewards = Vec::new();
@@ -525,34 +416,7 @@ pub fn advance_contract(
             }
         }
 
-        let objective_fraction = contract.objective_fraction();
-        let upkeep_health = contract.upkeep_health();
-        for metric in &mut contract.metrics {
-            metric.current = match metric.kind {
-                MetricKind::PopulationSurvival => {
-                    if contract.starting_population == 0 {
-                        1.0
-                    } else {
-                        population_count as f32 / contract.starting_population as f32
-                    }
-                }
-                // Mission completion now reads the quantified objective (W2).
-                MetricKind::MissionCompletion => objective_fraction,
-                // Provisioning discipline across the whole voyage: the fraction
-                // of elapsed months each upkeep store held above its crisis
-                // threshold. A ship that never ran low scores 1.0; every lean
-                // month drags the score down for the rest of the contract.
-                MetricKind::ResourceEfficiency => upkeep_health,
-                MetricKind::SocialCohesion => unity,
-                // The four family metrics (content-depth charters round 35): one
-                // signature grade per objective family, so a charter is not four
-                // routes through the same scorecard.
-                MetricKind::KnowledgeRetained => objective_knowledge,
-                MetricKind::ShipCondition => hull,
-                MetricKind::Reputation => reputation.get(&metric.trait_id).copied().unwrap_or(0.5),
-                MetricKind::FoundersCovenant => legacy_loyalty,
-            };
-        }
+        refresh_metrics(contract, &factors);
 
         if contract.months_elapsed >= contract.total_months() {
             out.completed = Some(score_success(&contract.metrics));
@@ -577,6 +441,143 @@ pub fn advance_contract(
         }
     }
     out
+}
+
+fn contract_factors(sim: &SimState, config: &crate::data::GameConfig) -> ContractFactors {
+    let mean_knowledge = if sim.subsystems.is_empty() {
+        1.0
+    } else {
+        sim.subsystems
+            .values()
+            .map(|state| state.knowledge)
+            .sum::<f32>()
+            / sim.subsystems.len() as f32
+    };
+    let objective_knowledge = sim
+        .contract
+        .as_ref()
+        .filter(|contract| !contract.objective_subsystem.is_empty())
+        .and_then(|contract| sim.subsystems.get(&contract.objective_subsystem))
+        .map_or(mean_knowledge, |state| state.knowledge);
+    let objective_condition = sim
+        .contract
+        .as_ref()
+        .filter(|contract| !contract.objective_subsystem.is_empty())
+        .map(|contract| {
+            let condition = sim
+                .subsystems
+                .get(&contract.objective_subsystem)
+                .map_or(1.0, |state| state.condition);
+            (1.0 - config.subsystems.objective_condition_penalty * (1.0 - condition)).max(0.0)
+        })
+        .unwrap_or(1.0);
+    ContractFactors {
+        population_count: sim.population.count,
+        unity: sim.population.unity,
+        hull: sim.ship.hull_integrity,
+        legacy_loyalty: sim.population.legacy_loyalty,
+        objective_knowledge,
+        reputation: sim.reputation.clone(),
+        food_ok: sim.resources.food >= config.low_food_threshold,
+        energy_ok: sim.resources.energy >= config.low_energy_threshold,
+        progress_per_speed: config.ship.contract_progress_per_speed,
+        objective_condition,
+        morale_factor: (1.0 + config.ship.morale_objective_swing * (sim.population.morale - 0.5))
+            .max(0.2),
+        unity_factor: (1.0 + config.ship.unity_objective_swing * (sim.population.unity - 0.5))
+            .max(0.2),
+        posture_factor: crate::simulation::command::objective_factor(sim.command_posture),
+        approach_factor: sim.contract.as_ref().map_or(1.0, |contract| {
+            crate::simulation::approach::objective_factor(contract.approach)
+        }),
+    }
+}
+
+struct ContractFactors {
+    population_count: u32,
+    unity: f32,
+    hull: f32,
+    legacy_loyalty: f32,
+    objective_knowledge: f32,
+    reputation: std::collections::HashMap<String, f32>,
+    food_ok: bool,
+    energy_ok: bool,
+    progress_per_speed: f32,
+    objective_condition: f32,
+    morale_factor: f32,
+    unity_factor: f32,
+    posture_factor: f32,
+    approach_factor: f32,
+}
+
+fn advance_objective(
+    contract: &mut ActiveContract,
+    config: &crate::data::GameConfig,
+    speed: i32,
+    combat: i32,
+    cargo: i32,
+    crew: i32,
+    factors: &ContractFactors,
+    phase: ContractPhase,
+    trained_subsystem: &mut Option<String>,
+) {
+    if contract.preserve_objective {
+        if matches!(
+            phase,
+            ContractPhase::Travel | ContractPhase::Operation | ContractPhase::Return
+        ) {
+            let berth_relief =
+                (1.0 - crew.max(0) as f32 * config.ship.preserve_berth_relief).max(0.2);
+            let loss = contract.objective_target * contract.preserve_attrition_per_year / 12.0
+                * berth_relief
+                * crate::simulation::approach::preserve_attrition_factor(contract.approach);
+            contract.objective_progress = (contract.objective_progress - loss).max(0.0);
+        }
+    } else if phase == ContractPhase::Operation {
+        let base_rate = contract.objective_target / contract.operation_months().max(1) as f32;
+        let speed_factor = 1.0 + speed.max(0) as f32 * factors.progress_per_speed;
+        let combat_factor = 1.0 + combat.max(0) as f32 * contract.objective_combat_scaling;
+        let cargo_factor = 1.0 + cargo.max(0) as f32 * contract.objective_cargo_scaling;
+        contract.objective_progress += base_rate
+            * speed_factor
+            * factors.objective_condition
+            * combat_factor
+            * cargo_factor
+            * factors.morale_factor
+            * factors.unity_factor
+            * factors.posture_factor
+            * factors.approach_factor;
+        if !contract.objective_subsystem.is_empty() {
+            *trained_subsystem = Some(contract.objective_subsystem.clone());
+        }
+    }
+}
+
+fn refresh_metrics(contract: &mut ActiveContract, factors: &ContractFactors) {
+    let objective_fraction = contract.objective_fraction();
+    let upkeep_health = contract.upkeep_health();
+    for metric in &mut contract.metrics {
+        metric.current = match metric.kind {
+            MetricKind::PopulationSurvival => {
+                if contract.starting_population == 0 {
+                    1.0
+                } else {
+                    factors.population_count as f32 / contract.starting_population as f32
+                }
+            }
+            MetricKind::MissionCompletion => objective_fraction,
+            MetricKind::ResourceEfficiency => upkeep_health,
+            MetricKind::SocialCohesion => factors.unity,
+            MetricKind::KnowledgeRetained => factors.objective_knowledge,
+            MetricKind::ShipCondition => factors.hull,
+            MetricKind::Reputation => factors
+                .reputation
+                .get(&metric.trait_id)
+                .copied()
+                .unwrap_or(0.5),
+            MetricKind::FoundersCovenant => factors.legacy_loyalty,
+        };
+    }
 }
 
 /// Whether the return leg is still ahead, shared by the review and command.

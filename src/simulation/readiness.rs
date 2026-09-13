@@ -76,6 +76,21 @@ pub fn band(score: f32, data: &GameData) -> ReadinessBand {
 }
 
 pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
+    let food = calculate_food(sim, data);
+    let fuel = calculate_fuel(sim, data);
+    let scores = readiness_scores(sim, data);
+    let mut rows = build_rows(sim, data, &food, &fuel, &scores);
+    apply_history(sim, data, &food, &fuel, &scores, &mut rows);
+    rows.sort_by_key(|row| match row.band {
+        ReadinessBand::Critical => 0,
+        ReadinessBand::Vulnerable => 1,
+        ReadinessBand::Stable => 2,
+        ReadinessBand::Strong => 3,
+    });
+    ReadinessModel { food, fuel, rows }
+}
+
+fn calculate_food(sim: &SimState, data: &GameData) -> FoodReadiness {
     let crew_mult = crew::production_multipliers(sim, data);
     let output = (sim.production.food
         * crew_mult.food
@@ -99,6 +114,19 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         (deficit_years.unwrap_or(0.0) / 10.0).clamp(0.0, 1.0)
     };
 
+    FoodReadiness {
+        annual_spoilage: spoilage,
+        annual_output: output,
+        annual_consumption,
+        annual_route_toll: route_toll,
+        net_per_year: net,
+        gross_reserve_years: gross_years,
+        net_deficit_years: deficit_years,
+        score: food_score,
+    }
+}
+
+fn calculate_fuel(sim: &SimState, data: &GameData) -> FuelReadiness {
     let (travel_months, remaining_burn) = remaining_fuel_need(sim, data);
     let stats = ship::loadout_stats(sim, data);
     let annual_scoop = stats.fuel_regen.max(0) as f32
@@ -110,22 +138,22 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         ((sim.ship.fuel + annual_scoop * (travel_months as f32 / 12.0)) / remaining_burn)
             .clamp(0.0, 1.0)
     };
-    let food = FoodReadiness {
-        annual_spoilage: spoilage,
-        annual_output: output,
-        annual_consumption,
-        annual_route_toll: route_toll,
-        net_per_year: net,
-        gross_reserve_years: gross_years,
-        net_deficit_years: deficit_years,
-        score: food_score,
-    };
-    let fuel = FuelReadiness {
+    FuelReadiness {
         remaining_travel_months: travel_months,
         remaining_burn,
         annual_scoop,
         score: fuel_score,
-    };
+    }
+}
+
+struct ReadinessScores {
+    engineering: f32,
+    air: f32,
+    knowledge: f32,
+    cohesion: f32,
+}
+
+fn readiness_scores(sim: &SimState, data: &GameData) -> ReadinessScores {
     let engineering_score = sim
         .subsystems
         .get("engineering_bay")
@@ -149,6 +177,21 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
     };
     let cohesion_score =
         (sim.population.morale + sim.population.unity + sim.population.stability) / 3.0;
+    ReadinessScores {
+        engineering: engineering_score,
+        air: air_score,
+        knowledge: knowledge_score,
+        cohesion: cohesion_score,
+    }
+}
+
+fn build_rows(
+    sim: &SimState,
+    data: &GameData,
+    food: &FoodReadiness,
+    fuel: &FuelReadiness,
+    scores: &ReadinessScores,
+) -> Vec<ReadinessRow> {
     let mut rows = vec![
         row(
             "food",
@@ -162,7 +205,7 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         row(
             "engineering",
             "ENGINEERING",
-            band(engineering_score, data),
+            band(scores.engineering, data),
             format!(
                 "Hull {:.0}% · bay {:.0}%",
                 sim.ship.hull_integrity * 100.0,
@@ -171,7 +214,7 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
                     .map_or(0.0, |bay| bay.condition)
                     * 100.0
             ),
-            trend(engineering_score),
+            trend(scores.engineering),
             if sim.ship.hull_integrity < data.config.readiness.stable_threshold {
                 "restore_hull"
             } else {
@@ -186,31 +229,31 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
         row(
             "life_support",
             "LIFE SUPPORT",
-            band(air_score, data),
+            band(scores.air, data),
             format!("Air {:.0}%", sim.ship.life_support * 100.0),
-            trend(air_score),
+            trend(scores.air),
             "overhaul_life_support",
             None,
         ),
         row(
             "knowledge",
             "KNOWLEDGE / LEADERSHIP",
-            band(knowledge_score, data),
-            format!("Average craft {:.0}%", knowledge_score * 100.0),
-            trend(knowledge_score),
+            band(scores.knowledge, data),
+            format!("Average craft {:.0}%", scores.knowledge * 100.0),
+            trend(scores.knowledge),
             "train_replacement_cohort",
             weakest_knowledge(sim),
         ),
         row(
             "cohesion",
             "SOCIAL COHESION",
-            band(cohesion_score, data),
+            band(scores.cohesion, data),
             format!(
                 "Morale {:.0}% · unity {:.0}%",
                 sim.population.morale * 100.0,
                 sim.population.unity * 100.0
             ),
-            trend(cohesion_score),
+            trend(scores.cohesion),
             "restore_crew_quarters",
             None,
         ),
@@ -229,14 +272,25 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
             None,
         ));
     }
-    for row in &mut rows {
+    rows
+}
+
+fn apply_history(
+    sim: &SimState,
+    data: &GameData,
+    food: &FoodReadiness,
+    fuel: &FuelReadiness,
+    scores: &ReadinessScores,
+    rows: &mut [ReadinessRow],
+) {
+    for row in rows {
         row.score = match row.id.as_str() {
             "food" => food.score,
             "fuel" => fuel.score,
-            "engineering" => engineering_score,
-            "life_support" => air_score,
-            "knowledge" => knowledge_score,
-            _ => cohesion_score,
+            "engineering" => scores.engineering,
+            "life_support" => scores.air,
+            "knowledge" => scores.knowledge,
+            _ => scores.cohesion,
         };
         let previous = sim.projects.readiness_history.get(&row.id);
         if let Some(previous) = previous {
@@ -281,13 +335,6 @@ pub fn forecast(sim: &SimState, data: &GameData) -> ReadinessModel {
             row.recommended_target = Some("agriculture".into());
         }
     }
-    rows.sort_by_key(|row| match row.band {
-        ReadinessBand::Critical => 0,
-        ReadinessBand::Vulnerable => 1,
-        ReadinessBand::Stable => 2,
-        ReadinessBand::Strong => 3,
-    });
-    ReadinessModel { food, fuel, rows }
 }
 
 fn row(

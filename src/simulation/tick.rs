@@ -71,113 +71,7 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
     }
 
     for _ in 0..max_months {
-        let project_month = projects::capture_month(sim, data);
-        sim.month_clock += 1;
-        report.months_advanced += 1;
-
-        // The economic tick applies whole, on the year boundary — the W1 math
-        // is untouched; only its cadence is now driven by the month clock.
-        if sim.month_clock.is_multiple_of(12) {
-            economy::year_boundary_tick(sim, data, &mut report);
-            sim.record_obligation_watch();
-        }
-
-        if let Some(outcome) = survival::check_and_record(sim, data) {
-            report.terminal = Some(outcome);
-            report.contract_completed = None;
-            break;
-        }
-
-        // Deliver against captured starting eligibility, after annual production.
-        projects::advance_captured_month(sim, data, project_month);
-        report.critical_warning = survival::update_air_warning(sim, data);
-        if let Some(outcome) = survival::check_and_record(sim, data) {
-            report.terminal = Some(outcome);
-            report.contract_completed = None;
-            break;
-        }
-        // Monthly contract progress (W2): objective accrual on-station, the
-        // authored phase timeline, milestones, and completion all step here.
-        month_of_contract(sim, data, &mut report);
-
-        // Monthly death roll (real-time loop follow-up): every living character
-        // faces an age-scaled chance of death, and a vacated seat is filled. Sets
-        // `dynasty_extinct` (loop hard-stops below) and `leader_died` (a beat).
-        // `leader_died` is per-month, so clear last month's before the roll.
-        report.leader_died = false;
-        mortality::monthly_tick(sim, data, &mut report);
-
-        // Monthly event step (GDD §5.4), dated to this exact month. Skipped on a
-        // month that already produced a blocking dilemma, a completion, or an
-        // extinction — one decision at a time, never piled onto a finished year.
-        // A due campaign beat (W6) replaces the random roll; otherwise the
-        // reactive/filler roll runs.
-        issues::refresh_maintenance_issues(sim, data);
-        issues::apply_overdue_maintenance(sim, data);
-        report.critical_warning |= survival::observe_air_warning(sim, data);
-        if let Some(outcome) = survival::check_and_record(sim, data) {
-            report.terminal = Some(outcome);
-            report.contract_completed = None;
-            break;
-        }
-
-        if sim.pending_dilemma.is_none()
-            && report.contract_completed.is_none()
-            && !report.dynasty_extinct
-            && !fire_succession_beat(sim, data, &mut report)
-            && !fire_long_reign_beat(sim, data, &mut report)
-            && !fire_dynasty_crisis_beat(sim, data, &mut report)
-            && !fire_scheduled_beat(sim, data, &mut report)
-            && !fire_charter_scheduled_beat(sim, data, &mut report)
-            && !fire_due_beat(sim, data, &mut report)
-            && !fire_drift_beat(sim, data, &mut report)
-            && !fire_adaptation_beat(sim, data, &mut report)
-            && !fire_crisis_beat(sim, data, &mut report)
-            && !fire_loyalty_beat(sim, data, &mut report)
-            && !fire_stability_beat(sim, data, &mut report)
-            && !fire_despair_beat(sim, data, &mut report)
-            && !fire_subsystem_beat(sim, data, &mut report)
-            && !fire_hull_beat(sim, data, &mut report)
-            && !fire_air_beat(sim, data, &mut report)
-            && !fire_becalmed_beat(sim, data, &mut report)
-            && !fire_divergence_beat(sim, data, &mut report)
-            && !fire_cultural_divergence_beat(sim, data, &mut report)
-            && !fire_reputation_beat(sim, data, &mut report)
-            && !fire_recovery_beat(sim, data, &mut report)
-            && !fire_stability_recovery_beat(sim, data, &mut report)
-            && !fire_heartening_recovery_beat(sim, data, &mut report)
-            && !fire_loyalty_recovery_beat(sim, data, &mut report)
-            && !fire_hull_recovery_beat(sim, data, &mut report)
-            && !fire_air_recovery_beat(sim, data, &mut report)
-            && !fire_becalmed_recovery_beat(sim, data, &mut report)
-            && !fire_flourish_beat(sim, data, &mut report)
-            && !fire_depopulation_beat(sim, data, &mut report)
-            && !fire_objective_beat(sim, data, &mut report)
-            && !fire_founding_beat(sim, data, &mut report)
-            && !fire_midvoyage_beat(sim, data, &mut report)
-            && !fire_homecoming_beat(sim, data, &mut report)
-            && !fire_power_transition_beat(sim, data, &mut report)
-            && !fire_anniversary_beat(sim, data, &mut report)
-            && !fire_dead_air_beat(sim, data, &mut report)
-        {
-            roll_monthly_event(sim, data, &mut report);
-        }
-
-        if let Some(outcome) = survival::check_and_record(sim, data) {
-            report.terminal = Some(outcome);
-            report.contract_completed = None;
-            break;
-        }
-
-        // Hard-stop the fast-forward the instant something needs attention — a
-        // decision, a completion, an extinction, or crossing a phase boundary.
-        if report.decision_required
-            || report.contract_completed.is_some()
-            || report.dynasty_extinct
-            || report.terminal.is_some()
-            || report.critical_warning
-            || report.phase_changed.is_some()
-        {
+        if advance_month(sim, data, &mut report) {
             break;
         }
     }
@@ -192,6 +86,104 @@ pub fn advance_months(sim: &mut SimState, data: &GameData, max_months: u32) -> T
     crate::simulation::readiness::refresh(sim, data);
     sim.trim_log(data.config.log_limit);
     report
+}
+
+fn advance_month(sim: &mut SimState, data: &GameData, report: &mut TickReport) -> bool {
+    let project_month = projects::capture_month(sim, data);
+    sim.month_clock += 1;
+    report.months_advanced += 1;
+
+    if sim.month_clock.is_multiple_of(12) {
+        economy::year_boundary_tick(sim, data, report);
+        sim.record_obligation_watch();
+    }
+    if record_terminal(sim, data, report) {
+        return true;
+    }
+
+    projects::advance_captured_month(sim, data, project_month);
+    report.critical_warning = survival::update_air_warning(sim, data);
+    if record_terminal(sim, data, report) {
+        return true;
+    }
+    month_of_contract(sim, data, report);
+    report.leader_died = false;
+    mortality::monthly_tick(sim, data, report);
+
+    issues::refresh_maintenance_issues(sim, data);
+    issues::apply_overdue_maintenance(sim, data);
+    report.critical_warning |= survival::observe_air_warning(sim, data);
+    if record_terminal(sim, data, report) {
+        return true;
+    }
+    roll_monthly_events(sim, data, report);
+    if record_terminal(sim, data, report) {
+        return true;
+    }
+    report.decision_required
+        || report.contract_completed.is_some()
+        || report.dynasty_extinct
+        || report.terminal.is_some()
+        || report.critical_warning
+        || report.phase_changed.is_some()
+}
+
+fn record_terminal(sim: &mut SimState, data: &GameData, report: &mut TickReport) -> bool {
+    if let Some(outcome) = survival::check_and_record(sim, data) {
+        report.terminal = Some(outcome);
+        report.contract_completed = None;
+        true
+    } else {
+        false
+    }
+}
+
+fn roll_monthly_events(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
+    if sim.pending_dilemma.is_some()
+        || report.contract_completed.is_some()
+        || report.dynasty_extinct
+    {
+        return;
+    }
+    if fire_succession_beat(sim, data, report)
+        || fire_long_reign_beat(sim, data, report)
+        || fire_dynasty_crisis_beat(sim, data, report)
+        || fire_scheduled_beat(sim, data, report)
+        || fire_charter_scheduled_beat(sim, data, report)
+        || fire_due_beat(sim, data, report)
+        || fire_drift_beat(sim, data, report)
+        || fire_adaptation_beat(sim, data, report)
+        || fire_crisis_beat(sim, data, report)
+        || fire_loyalty_beat(sim, data, report)
+        || fire_stability_beat(sim, data, report)
+        || fire_despair_beat(sim, data, report)
+        || fire_subsystem_beat(sim, data, report)
+        || fire_hull_beat(sim, data, report)
+        || fire_air_beat(sim, data, report)
+        || fire_becalmed_beat(sim, data, report)
+        || fire_divergence_beat(sim, data, report)
+        || fire_cultural_divergence_beat(sim, data, report)
+        || fire_reputation_beat(sim, data, report)
+        || fire_recovery_beat(sim, data, report)
+        || fire_stability_recovery_beat(sim, data, report)
+        || fire_heartening_recovery_beat(sim, data, report)
+        || fire_loyalty_recovery_beat(sim, data, report)
+        || fire_hull_recovery_beat(sim, data, report)
+        || fire_air_recovery_beat(sim, data, report)
+        || fire_becalmed_recovery_beat(sim, data, report)
+        || fire_flourish_beat(sim, data, report)
+        || fire_depopulation_beat(sim, data, report)
+        || fire_objective_beat(sim, data, report)
+        || fire_founding_beat(sim, data, report)
+        || fire_midvoyage_beat(sim, data, report)
+        || fire_homecoming_beat(sim, data, report)
+        || fire_power_transition_beat(sim, data, report)
+        || fire_anniversary_beat(sim, data, report)
+        || fire_dead_air_beat(sim, data, report)
+    {
+        return;
+    }
+    roll_monthly_event(sim, data, report);
 }
 
 /// Test/tooling helper: advance up to one year's worth of the loop. Still

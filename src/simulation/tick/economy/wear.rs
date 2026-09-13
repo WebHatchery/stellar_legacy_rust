@@ -10,8 +10,15 @@ use super::super::TickReport;
 /// Wear eased by spare parts, the disrepair and becalmed streaks it feeds,
 /// and the heart a ship going nowhere slowly loses.
 pub(super) fn wear_the_ship(sim: &mut SimState, data: &GameData, _report: &mut TickReport) {
-    let config = &data.config;
+    let wear = apply_maintenance(sim, data);
+    apply_ship_condition_wear(sim, data, wear);
+    update_fuel_stall(sim);
+    apply_chronic_deprivation(sim, data);
+    subsystems::decay_subsystems(sim, data, wear);
+}
 
+fn apply_maintenance(sim: &mut SimState, data: &GameData) -> f32 {
+    let config = &data.config;
     // Ship wear, eased while spare parts remain for upkeep (PLAN M4.2). Once
     // the stores run dry the ship wears at full rate — the "held together on
     // hope and prayers" end of a long, unresupplied voyage. Field repair
@@ -48,6 +55,11 @@ pub(super) fn wear_the_ship(sim: &mut SimState, data: &GameData, _report: &mut T
     {
         sim.population.morale = (sim.population.morale - config.disrepair_morale_drain).max(0.0);
     }
+    wear
+}
+
+fn apply_ship_condition_wear(sim: &mut SimState, data: &GameData, wear: f32) {
+    let config = &data.config;
     // A year spent coasting on empty tanks strains the ship harder — systems
     // shut down and wear runs at the no-fuel multiplier (W4).
     let fuel_factor = if sim.fuel_stalled_this_year {
@@ -81,6 +93,9 @@ pub(super) fn wear_the_ship(sim: &mut SimState, data: &GameData, _report: &mut T
         };
         sim.push_log(line);
     }
+}
+
+fn update_fuel_stall(sim: &mut SimState) {
     // Track how long the ship has been becalmed (content-depth campaign-skeleton round
     // 25): a stalled year extends the stranding; a year that burns clears it. This is
     // what lets a bad month coasting be told from a genuine stranding, and drives the
@@ -91,6 +106,10 @@ pub(super) fn wear_the_ship(sim: &mut SimState, data: &GameData, _report: &mut T
         sim.fuel_stall_years = 0;
     }
     sim.fuel_stalled_this_year = false;
+}
+
+fn apply_chronic_deprivation(sim: &mut SimState, data: &GameData) {
+    let config = &data.config;
     // A ship going nowhere loses heart (content-depth provisioning round 25): a chronic
     // becalming wears the crew's spirits the way a chronic hunger does (it89/round 17),
     // the standing cost beside the it25 becalmed *beat* — the beat reckons with the
@@ -115,7 +134,4 @@ pub(super) fn wear_the_ship(sim: &mut SimState, data: &GameData, _report: &mut T
         sim.population.morale =
             (sim.population.morale - config.chronic_low_energy_morale_drain).max(0.0);
     }
-
-    // The rest of the ship's subsystems wear with the years too (W5).
-    subsystems::decay_subsystems(sim, data, wear);
 }

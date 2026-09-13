@@ -13,6 +13,13 @@ pub(super) fn decay_modules_and_speak(
     data: &GameData,
     _report: &mut TickReport,
 ) {
+    tend_modules(sim, data);
+    announce_character(sim, data);
+    apply_voyage_drift(sim, data);
+    announce_ship_state(sim, data);
+}
+
+fn tend_modules(sim: &mut SimState, data: &GameData) {
     // …and the people whose craft is a module notice when it is left to rot
     // (content-depth subsystems round 8): sustained neglect of a faction's
     // tended subsystem erodes its approval, feeding the round-8 withdrawal.
@@ -27,7 +34,9 @@ pub(super) fn decay_modules_and_speak(
     // alone would — so a kept module keeps its people content (it29 above) and content people
     // keep the module kept (this), a virtuous circle across the faction↔subsystem boundary.
     sim.apply_proud_tender_upkeep(data);
+}
 
+fn announce_character(sim: &mut SimState, data: &GameData) {
     // …and give the approval meter a voice (content-depth voice round 8): a people
     // crossing into restlessness or contentment says so in the log, once, so the
     // player feels the mood turn well before a withdrawal beat fires.
@@ -63,13 +72,9 @@ pub(super) fn decay_modules_and_speak(
     // shipboard intelligence empathy or reduce people to variables. When that
     // tendency becomes pronounced, the AI itself says so once in its changed voice.
     sim.announce_custodian_disposition(data);
+}
 
-    // Voyage drift (PLAN M4.1): a long voyage changes the people, not just the
-    // ship — adaptation and cultural drift rise, loyalty to the founders fades,
-    // and the strain wears at morale and unity. Deterministic; the founders'
-    // hopeful crew slowly becomes someone else the longer they fly.
-    apply_voyage_drift(sim, data);
-
+fn announce_ship_state(sim: &mut SimState, data: &GameData) {
     // …and give the ship's *collective* morale a voice (content-depth voice round
     // 11), now that the year's habitat lift and voyage strain have both settled:
     // when the whole crew's spirits cross into a grim or a buoyant band, the decks

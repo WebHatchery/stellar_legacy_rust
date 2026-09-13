@@ -123,6 +123,16 @@ fn draw_job(
     };
     draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
     draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
+    draw_job_header(ctx, job, &definition, row);
+    draw_job_controls(ctx, job, row, pointer, actions);
+}
+
+fn draw_job_header(
+    ctx: &GameplayCtx<'_>,
+    job: &crate::state::sim::ProjectInstance,
+    definition: &crate::data::projects::ProjectDefinition,
+    row: Rect,
+) {
     draw_ui_text_ex(
         &definition.name,
         row.x + 10.0,
@@ -184,6 +194,15 @@ fn draw_job(
         row.y + 69.0,
         TextStyle::new(14.0, term::dim()).params(),
     );
+}
+
+fn draw_job_controls(
+    ctx: &GameplayCtx<'_>,
+    job: &crate::state::sim::ProjectInstance,
+    row: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 60.0);
     if matches!(
         job.status,

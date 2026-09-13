@@ -8,6 +8,21 @@ use crate::state::sim::SimState;
 use super::{default_approval, log_name};
 use super::{FactionState, FactionStatus};
 
+fn related_factions(
+    data: &GameData,
+    first: &str,
+    second: &str,
+    relation: fn(&FactionDef) -> &Vec<String>,
+) -> bool {
+    data.factions
+        .get(first)
+        .is_some_and(|definition| relation(definition).iter().any(|id| id == second))
+        || data
+            .factions
+            .get(second)
+            .is_some_and(|definition| relation(definition).iter().any(|id| id == first))
+}
+
 impl SimState {
     /// Proportionally rescale Aboard members to the current `population.count`
     /// with largest-remainder rounding (W7), keeping the share invariant
@@ -220,35 +235,7 @@ impl SimState {
             FactionLossKind::Departed => FactionStatus::Departed,
         };
         self.population.count = self.population.count.saturating_sub(members);
-        // Losing a whole people wounds the ship's cohesion (content-depth factions round
-        // 24): beyond the bodies and the craft, a departure leaves a hole in the
-        // community — a familiar quarter of the ship gone quiet, the balance upset, the
-        // remaining crew shaken. Scaled by the departing people's share of the ship
-        // *before* they left, so a great secession is a blow and a tiny remnant is not.
-        let scar_scale = data.config.factions.departure_cohesion_scar;
-        if scar_scale > 0.0 && members > 0 {
-            let total_before = self.population.count + members;
-            let share = members as f32 / total_before.max(1) as f32;
-            let scar = scar_scale * share;
-            self.population.morale = (self.population.morale - scar).max(0.0);
-            self.population.unity = (self.population.unity - scar).max(0.0);
-        }
-        // A people that *breaks away* marks the ship's name (content-depth factions round 31):
-        // word spreads that this is a hull peoples flee, and its mercy reputation suffers — the
-        // reputation cost of a rift, distinct from the it24 cohesion scar (the crew) and the it20
-        // knowledge loss (the craft). A `Settled` departure — a people making planetfall to found
-        // a colony — is a parting, not a flight, and marks nothing. Scaled by the departing
-        // people's share, so a great secession is a worse name than a small remnant. Composes with
-        // the it30 reputation-trade coupling (a ship known to drive its peoples off is dealt with
-        // worse) and the it16 mercy voice/beat.
-        if matches!(kind, FactionLossKind::Departed) {
-            let rep_penalty = data.config.factions.departure_reputation_penalty;
-            if rep_penalty > 0.0 && members > 0 {
-                let total_before = self.population.count + members;
-                let share = members as f32 / total_before.max(1) as f32;
-                self.adjust_reputation("mercy", -rep_penalty * share);
-            }
-        }
+        self.apply_departure_costs(members, kind, data);
         let name = log_name(&data.factions, &self.factions[idx].faction_id);
         let tail = match kind {
             FactionLossKind::Settled => "made planetfall to stay, and did not come back aboard",
@@ -256,32 +243,7 @@ impl SimState {
         };
         self.push_log(format!("{name} {tail}."));
 
-        // The departing people take their craft with them (content-depth factions
-        // round 20): the module they tended loses a chunk of its living expertise —
-        // the ones who truly understood it are gone. Feeds the knowledge-crisis
-        // events and the education keystone's slow re-teaching.
-        let tended = data
-            .factions
-            .get(&self.factions[idx].faction_id)
-            .map(|f| f.tended_subsystem.clone())
-            .unwrap_or_default();
-        let loss = data.config.factions.departed_faction_knowledge_loss;
-        if !tended.is_empty() && loss > 0.0 {
-            if let Some(state) = self.subsystems.get_mut(&tended) {
-                let dropped = state.knowledge.min(loss);
-                if dropped > 0.0 {
-                    state.knowledge -= dropped;
-                    let subname = data
-                        .subsystems
-                        .get(&tended)
-                        .map(|d| d.name.clone())
-                        .unwrap_or_else(|| tended.clone());
-                    self.push_log(format!(
-                        "The craft of the {subname} went with {name}; the hands that truly understood it are aboard no longer."
-                    ));
-                }
-            }
-        }
+        self.apply_departure_knowledge(&self.factions[idx].faction_id.clone(), &name, data);
 
         // The peoples left aboard feel the departure by their standing to the one gone
         // (content-depth factions round 30): the mirror of the it28 recruitment reactions —
@@ -290,30 +252,68 @@ impl SimState {
         // (approval down). Read against the same catalog relationships (either direction) the it23
         // cohesion and it28 recruitment couplings use; the departed people (now not aboard) does
         // not react to its own going.
-        let fac_cfg = data.config.factions;
-        let relief = fac_cfg.departure_rival_approval_relief;
-        let penalty = fac_cfg.departure_ally_approval_penalty;
-        if relief > 0.0 || penalty > 0.0 {
-            let departed_id = self.factions[idx].faction_id.clone();
-            let related = |a: &str, b: &str, pick: fn(&FactionDef) -> &Vec<String>| -> bool {
-                data.factions
-                    .get(a)
-                    .is_some_and(|d| pick(d).iter().any(|x| x == b))
-                    || data
-                        .factions
-                        .get(b)
-                        .is_some_and(|d| pick(d).iter().any(|x| x == a))
-            };
-            for fstate in &mut self.factions {
-                if !fstate.is_aboard() {
-                    continue;
-                }
-                if relief > 0.0 && related(&fstate.faction_id, &departed_id, |d| &d.rivals) {
-                    fstate.adjust_approval(relief);
-                } else if penalty > 0.0 && related(&fstate.faction_id, &departed_id, |d| &d.allies)
-                {
-                    fstate.adjust_approval(-penalty);
-                }
+        self.apply_departure_relationships(&self.factions[idx].faction_id.clone(), data);
+    }
+
+    fn apply_departure_costs(&mut self, members: u32, kind: FactionLossKind, data: &GameData) {
+        let total_before = self.population.count + members;
+        let share = members as f32 / total_before.max(1) as f32;
+        let scar = data.config.factions.departure_cohesion_scar * share;
+        if scar > 0.0 && members > 0 {
+            self.population.morale = (self.population.morale - scar).max(0.0);
+            self.population.unity = (self.population.unity - scar).max(0.0);
+        }
+        if matches!(kind, FactionLossKind::Departed) && members > 0 {
+            let penalty = data.config.factions.departure_reputation_penalty * share;
+            if penalty > 0.0 {
+                self.adjust_reputation("mercy", -penalty);
+            }
+        }
+    }
+
+    fn apply_departure_knowledge(&mut self, faction_id: &str, name: &str, data: &GameData) {
+        let tended = data
+            .factions
+            .get(faction_id)
+            .map(|faction| faction.tended_subsystem.clone())
+            .unwrap_or_default();
+        let loss = data.config.factions.departed_faction_knowledge_loss;
+        let Some(state) = self.subsystems.get_mut(&tended) else {
+            return;
+        };
+        let dropped = state.knowledge.min(loss);
+        if tended.is_empty() || dropped <= 0.0 {
+            return;
+        }
+        state.knowledge -= dropped;
+        let subname = data
+            .subsystems
+            .get(&tended)
+            .map(|definition| definition.name.clone())
+            .unwrap_or(tended);
+        self.push_log(format!(
+            "The craft of the {subname} went with {name}; the hands that truly understood it are aboard no longer."
+        ));
+    }
+
+    fn apply_departure_relationships(&mut self, departed_id: &str, data: &GameData) {
+        let cfg = data.config.factions;
+        if cfg.departure_rival_approval_relief <= 0.0 && cfg.departure_ally_approval_penalty <= 0.0
+        {
+            return;
+        }
+        for faction in &mut self.factions {
+            if !faction.is_aboard() {
+                continue;
+            }
+            if cfg.departure_rival_approval_relief > 0.0
+                && related_factions(data, &faction.faction_id, departed_id, |def| &def.rivals)
+            {
+                faction.adjust_approval(cfg.departure_rival_approval_relief);
+            } else if cfg.departure_ally_approval_penalty > 0.0
+                && related_factions(data, &faction.faction_id, departed_id, |def| &def.allies)
+            {
+                faction.adjust_approval(-cfg.departure_ally_approval_penalty);
             }
         }
     }
@@ -426,84 +426,20 @@ impl SimState {
         });
         self.population.count += cfg.recruit_group_size;
         let name = log_name(&data.factions, faction_id);
-        // A recruited people brings its signature dowry (content-depth round 7):
-        // the makers a sharper engineering bay, the gardeners a greener one, and
-        // so on — so which people you take on matters beyond the head count.
-        if let Some(def) = data.factions.get(faction_id) {
-            let boon = &def.recruit_boon;
-            self.population.apply(&boon.population_delta);
-            for delta in &boon.subsystem_deltas {
-                if let Some(state) = self.subsystems.get_mut(&delta.id) {
-                    state.condition = (state.condition + delta.condition).clamp(0.0, 1.0);
-                    state.knowledge = (state.knowledge + delta.knowledge).clamp(0.0, 1.0);
-                }
-            }
-            if boon.flavor.is_empty() {
-                self.push_log(format!(
-                    "{name} came aboard in drydock — new blood for the long voyage."
-                ));
-            } else {
-                self.push_log(boon.flavor.clone());
-            }
-        }
+        self.apply_recruit_boon(data, faction_id, &name);
         // The peoples already aboard notice who you bring home (content-depth factions round
         // 28): recruiting is a political act, so the newcomer's aboard rivals bristle and its
         // aboard allies are glad — read against the same catalog relationships (either
         // direction) the it23 cohesion coupling uses. Applied after the newcomer is aboard;
         // the newcomer itself, arriving at neutral approval, does not react to its own coming.
-        let rival_penalty = cfg.recruit_rival_approval_penalty;
-        let ally_bonus = cfg.recruit_ally_approval_bonus;
-        if rival_penalty > 0.0 || ally_bonus > 0.0 {
-            let related = |a: &str, b: &str, pick: fn(&FactionDef) -> &Vec<String>| -> bool {
-                data.factions
-                    .get(a)
-                    .is_some_and(|d| pick(d).iter().any(|x| x == b))
-                    || data
-                        .factions
-                        .get(b)
-                        .is_some_and(|d| pick(d).iter().any(|x| x == a))
-            };
-            for fstate in &mut self.factions {
-                if fstate.faction_id == faction_id || !fstate.is_aboard() {
-                    continue;
-                }
-                if rival_penalty > 0.0 && related(&fstate.faction_id, faction_id, |d| &d.rivals) {
-                    fstate.adjust_approval(-rival_penalty);
-                } else if ally_bonus > 0.0 && related(&fstate.faction_id, faction_id, |d| &d.allies)
-                {
-                    fstate.adjust_approval(ally_bonus);
-                }
-            }
-        }
+        self.apply_incumbent_reactions(data, faction_id);
         // …and the newcomer reacts to who they are joining (content-depth factions round 33): the
         // newcomer's-eye mirror of the round-28 incumbent reactions. A people taken onto a ship that
         // already carries its rival boards wary (its starting approval reduced per aboard rival),
         // one joining its friends boards glad (raised per aboard ally) — so recruiting a rival's foe
         // costs on both sides. Rivalries/alliances are authored symmetric, so the newcomer's own
         // lists suffice; applied to its neutral starting approval after it is aboard.
-        let wariness = cfg.recruit_newcomer_rival_wariness;
-        let comfort = cfg.recruit_newcomer_ally_comfort;
-        if wariness > 0.0 || comfort > 0.0 {
-            if let Some(def) = data.factions.get(faction_id) {
-                let aboard_and_other = |id: &str| {
-                    self.factions
-                        .iter()
-                        .any(|f| f.faction_id == id && f.is_aboard() && f.faction_id != faction_id)
-                };
-                let rivals_aboard = def.rivals.iter().filter(|r| aboard_and_other(r)).count();
-                let allies_aboard = def.allies.iter().filter(|a| aboard_and_other(a)).count();
-                let shift = allies_aboard as f32 * comfort - rivals_aboard as f32 * wariness;
-                if shift != 0.0 {
-                    if let Some(newcomer) = self
-                        .factions
-                        .iter_mut()
-                        .find(|f| f.faction_id == faction_id)
-                    {
-                        newcomer.adjust_approval(shift);
-                    }
-                }
-            }
-        }
+        self.apply_newcomer_reaction(data, faction_id);
         // …and taking a people in marks the ship's name (content-depth factions round 34): the
         // reputation mirror of the it31 departure penalty. Where a people *fleeing* the ship lowers
         // its mercy (a hull peoples flee), *welcoming* one aboard — giving them a berth and a future
@@ -511,9 +447,8 @@ impl SimState {
         // bonus (the mercy is in the *act* of inclusion, not the newcomer's eventual size), it
         // composes with the it30 reputation-trade coupling (a merciful ship is dealt with squarely)
         // and the it16 mercy voice/beat, exactly as the departure penalty does from the other side.
-        let recruit_rep = cfg.recruit_reputation_bonus;
-        if recruit_rep > 0.0 {
-            self.adjust_reputation("mercy", recruit_rep);
+        if cfg.recruit_reputation_bonus > 0.0 {
+            self.adjust_reputation("mercy", cfg.recruit_reputation_bonus);
         }
         // …and a new people is a new seam in the community (content-depth factions round 35): the
         // cohesion mirror of the it26 assimilation unity lift. Where folding a people into the
@@ -524,5 +459,71 @@ impl SimState {
             self.population.unity = (self.population.unity - cfg.recruit_unity_cost).max(0.0);
         }
         Ok(())
+    }
+
+    fn apply_recruit_boon(&mut self, data: &GameData, faction_id: &str, name: &str) {
+        let Some(definition) = data.factions.get(faction_id) else {
+            return;
+        };
+        let boon = &definition.recruit_boon;
+        self.population.apply(&boon.population_delta);
+        for delta in &boon.subsystem_deltas {
+            if let Some(state) = self.subsystems.get_mut(&delta.id) {
+                state.condition = (state.condition + delta.condition).clamp(0.0, 1.0);
+                state.knowledge = (state.knowledge + delta.knowledge).clamp(0.0, 1.0);
+            }
+        }
+        let line = if boon.flavor.is_empty() {
+            format!("{name} came aboard in drydock — new blood for the long voyage.")
+        } else {
+            boon.flavor.clone()
+        };
+        self.push_log(line);
+    }
+
+    fn apply_incumbent_reactions(&mut self, data: &GameData, faction_id: &str) {
+        let cfg = data.config.factions;
+        for faction in &mut self.factions {
+            if faction.faction_id == faction_id || !faction.is_aboard() {
+                continue;
+            }
+            if cfg.recruit_rival_approval_penalty > 0.0
+                && related_factions(data, &faction.faction_id, faction_id, |def| &def.rivals)
+            {
+                faction.adjust_approval(-cfg.recruit_rival_approval_penalty);
+            } else if cfg.recruit_ally_approval_bonus > 0.0
+                && related_factions(data, &faction.faction_id, faction_id, |def| &def.allies)
+            {
+                faction.adjust_approval(cfg.recruit_ally_approval_bonus);
+            }
+        }
+    }
+
+    fn apply_newcomer_reaction(&mut self, data: &GameData, faction_id: &str) {
+        let cfg = data.config.factions;
+        if cfg.recruit_newcomer_rival_wariness <= 0.0 && cfg.recruit_newcomer_ally_comfort <= 0.0 {
+            return;
+        }
+        let Some(definition) = data.factions.get(faction_id) else {
+            return;
+        };
+        let aboard = |id: &str| {
+            self.factions
+                .iter()
+                .any(|faction| faction.faction_id == id && faction.is_aboard())
+        };
+        let rivals = definition.rivals.iter().filter(|id| aboard(id)).count();
+        let allies = definition.allies.iter().filter(|id| aboard(id)).count();
+        let shift = allies as f32 * cfg.recruit_newcomer_ally_comfort
+            - rivals as f32 * cfg.recruit_newcomer_rival_wariness;
+        if shift != 0.0 {
+            if let Some(newcomer) = self
+                .factions
+                .iter_mut()
+                .find(|faction| faction.faction_id == faction_id)
+            {
+                newcomer.adjust_approval(shift);
+            }
+        }
     }
 }

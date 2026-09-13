@@ -24,117 +24,14 @@ impl Game {
         } else {
             pointer
         };
-        let actions = if show_boot {
-            if ui::mobile::active() {
-                macroquad_toolkit::ui::draw_ui_text(
-                    "STELLAR LEGACY",
-                    16.0,
-                    48.0,
-                    24.0,
-                    ui::term::primary(),
-                );
-                macroquad_toolkit::ui::draw_ui_text(
-                    "Preparing ship systems…",
-                    16.0,
-                    90.0,
-                    18.0,
-                    ui::term::dim(),
-                );
-            } else {
-                self.boot.draw();
-            }
-            Vec::new()
-        } else {
-            match &self.state {
-                GameState::Menu(menu) => ui::draw_menu(ui::MenuCtx {
-                    presentation: &self.presentation,
-                    data: &self.data,
-                    menu,
-                    legacy_ids: &self.legacy_ids,
-                    chronicle: &self.chronicle,
-                    pointer: base_pointer,
-                    title_art: self.assets.get_texture("title"),
-                }),
-                GameState::Gameplay(gameplay) => ui::draw_gameplay(ui::GameplayCtx {
-                    presentation: &self.presentation,
-                    data: &self.data,
-                    sim: &gameplay.sim,
-                    screen: gameplay.screen,
-                    chronicle: &self.chronicle,
-                    achievements: &self.achievements,
-                    pointer: base_pointer,
-                    modal_reveal,
-                    log_reveal,
-                    run_clock: self.run_clock_for(&gameplay.sim),
-                    decision_remaining: self.decision_remaining(&gameplay.sim),
-                    custody_picker: self.custody_picker.as_deref(),
-                    obligation_detail: self.obligation_detail.as_deref(),
-                    charter_scroll: &self.charter_scroll,
-                    description_scroll: &self.description_scroll,
-                    abort_confirm: &self.abort_confirm,
-                    ship_scroll: &self.ship_scroll,
-                    roster_scroll: &self.roster_scroll,
-                    chronicle_scroll: &self.chronicle_scroll,
-                    chronicle_records_tab: &self.chronicle_records_tab,
-                    obligations_scroll: &self.obligations_scroll,
-                    obligation_resolved_tab: &self.obligation_resolved_tab,
-                    obligation_history_scroll: &self.obligation_history_scroll,
-                    debrief_commanders_scroll: &self.debrief_commanders_scroll,
-                    debrief_log_scroll: &self.debrief_log_scroll,
-                    agenda_scroll: &self.agenda_scroll,
-                    agenda_readiness_scroll: &self.agenda_readiness_scroll,
-                    project_cancel_confirm: &self.project_cancel_confirm,
-                    ship_modules_tab: &self.ship_modules_tab,
-                    ship_preview: &self.ship_preview,
-                    tutorial_enabled: self.display.tutorial_enabled,
-                    tutorial_open: self.tutorial_open,
-                }),
-            }
-        };
+        let actions = self.draw_scene(show_boot, base_pointer, modal_reveal, log_reveal);
 
         // The F1/F2 panels float above everything and capture their own input.
-        let display_actions = if self.settings_open {
-            ui::settings::draw(
-                &self.display,
-                &self.delegation_defaults,
-                &self.presentation,
-                pointer,
-            )
-        } else {
-            Vec::new()
-        };
-        let help_action = self
-            .help_open
-            .then(|| {
-                if ui::mobile::active() || ui::compact() {
-                    ui::mobile::help(&self.presentation, pointer)
-                } else {
-                    ui::help::draw(pointer, &self.data.config.version)
-                }
-            })
-            .flatten();
-        let mut time_actions = Vec::new();
-        if let GameState::Gameplay(gameplay) = &self.state {
-            if !ui::mobile::active()
-                && !ui::compact()
-                && !self.settings_open
-                && !self.help_open
-                && !self.welcome_open
-            {
-                ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
-            }
-        }
+        let (display_actions, help_action, time_actions, welcome_dismiss) =
+            self.draw_overlays(pointer);
         for action in time_actions {
             self.events.push(action);
         }
-        // First-run welcome overlay, above the menu only; its button dismisses it.
-        let welcome_dismiss = self.welcome_open
-            && matches!(self.state, GameState::Menu(_))
-            && if ui::mobile::active() || ui::compact() {
-                ui::mobile::welcome(&self.data.config.welcome, &self.presentation, pointer)
-            } else {
-                ui::welcome::draw(&self.data.config.welcome, pointer)
-            };
         // Roll this frame's controls into next frame's hit-area growth limits.
         // Every button grows toward the 44px touch standard only as far as its
         // neighbours allow, and the neighbours are whatever drew last frame — so
@@ -165,6 +62,140 @@ impl Game {
             self.dismiss_welcome();
         }
 
+        self.draw_notifications(width, height);
+        self.draw_crt_overlay();
+    }
+
+    fn draw_scene(
+        &self,
+        show_boot: bool,
+        pointer: Pointer,
+        modal_reveal: f32,
+        log_reveal: f32,
+    ) -> Vec<UiAction> {
+        if show_boot {
+            self.draw_boot_screen();
+            return Vec::new();
+        }
+        match &self.state {
+            GameState::Menu(menu) => ui::draw_menu(ui::MenuCtx {
+                presentation: &self.presentation,
+                data: &self.data,
+                menu,
+                legacy_ids: &self.legacy_ids,
+                chronicle: &self.chronicle,
+                pointer,
+                title_art: self.assets.get_texture("title"),
+            }),
+            GameState::Gameplay(gameplay) => ui::draw_gameplay(ui::GameplayCtx {
+                presentation: &self.presentation,
+                data: &self.data,
+                sim: &gameplay.sim,
+                screen: gameplay.screen,
+                chronicle: &self.chronicle,
+                achievements: &self.achievements,
+                pointer,
+                modal_reveal,
+                log_reveal,
+                run_clock: self.run_clock_for(&gameplay.sim),
+                decision_remaining: self.decision_remaining(&gameplay.sim),
+                custody_picker: self.custody_picker.as_deref(),
+                obligation_detail: self.obligation_detail.as_deref(),
+                charter_scroll: &self.charter_scroll,
+                description_scroll: &self.description_scroll,
+                abort_confirm: &self.abort_confirm,
+                ship_scroll: &self.ship_scroll,
+                roster_scroll: &self.roster_scroll,
+                chronicle_scroll: &self.chronicle_scroll,
+                chronicle_records_tab: &self.chronicle_records_tab,
+                obligations_scroll: &self.obligations_scroll,
+                obligation_resolved_tab: &self.obligation_resolved_tab,
+                obligation_history_scroll: &self.obligation_history_scroll,
+                debrief_commanders_scroll: &self.debrief_commanders_scroll,
+                debrief_log_scroll: &self.debrief_log_scroll,
+                agenda_scroll: &self.agenda_scroll,
+                agenda_readiness_scroll: &self.agenda_readiness_scroll,
+                project_cancel_confirm: &self.project_cancel_confirm,
+                ship_modules_tab: &self.ship_modules_tab,
+                ship_preview: &self.ship_preview,
+                tutorial_enabled: self.display.tutorial_enabled,
+                tutorial_open: self.tutorial_open,
+            }),
+        }
+    }
+
+    fn draw_boot_screen(&self) {
+        if ui::mobile::active() {
+            macroquad_toolkit::ui::draw_ui_text(
+                "STELLAR LEGACY",
+                16.0,
+                48.0,
+                24.0,
+                ui::term::primary(),
+            );
+            macroquad_toolkit::ui::draw_ui_text(
+                "Preparing ship systems…",
+                16.0,
+                90.0,
+                18.0,
+                ui::term::dim(),
+            );
+        } else {
+            self.boot.draw();
+        }
+    }
+
+    fn draw_overlays(
+        &mut self,
+        pointer: Pointer,
+    ) -> (
+        Vec<ui::settings::DisplayAction>,
+        Option<ui::help::HelpAction>,
+        Vec<UiAction>,
+        bool,
+    ) {
+        let display_actions = if self.settings_open {
+            ui::settings::draw(
+                &self.display,
+                &self.delegation_defaults,
+                &self.presentation,
+                pointer,
+            )
+        } else {
+            Vec::new()
+        };
+        let help_action = self.help_open.then(|| self.draw_help(pointer)).flatten();
+        let mut time_actions = Vec::new();
+        if let GameState::Gameplay(gameplay) = &self.state {
+            if !ui::mobile::active()
+                && !ui::compact()
+                && !self.settings_open
+                && !self.help_open
+                && !self.welcome_open
+            {
+                ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
+            }
+        }
+        let welcome_dismiss = self.welcome_open
+            && matches!(self.state, GameState::Menu(_))
+            && if ui::mobile::active() || ui::compact() {
+                ui::mobile::welcome(&self.data.config.welcome, &self.presentation, pointer)
+            } else {
+                ui::welcome::draw(&self.data.config.welcome, pointer)
+            };
+        (display_actions, help_action, time_actions, welcome_dismiss)
+    }
+
+    fn draw_help(&self, pointer: Pointer) -> Option<ui::help::HelpAction> {
+        if ui::mobile::active() || ui::compact() {
+            ui::mobile::help(&self.presentation, pointer)
+        } else {
+            ui::help::draw(pointer, &self.data.config.version)
+        }
+    }
+
+    fn draw_notifications(&self, width: f32, height: f32) {
+        let virtual_ui = macroquad_toolkit::ui::VirtualUi::responsive();
         virtual_ui.begin();
         macroquad_toolkit::notifications::draw_notifications_in_viewport(
             self.notifications.get_notifications(),
@@ -177,8 +208,9 @@ impl Game {
             Vec2::ZERO,
         );
         end_virtual_ui_frame();
+    }
 
-        // Phosphor-monitor overlay sits on top of everything else.
+    fn draw_crt_overlay(&mut self) {
         if self.display.crt_enabled
             && matches!(self.state, GameState::Menu(_))
             && !self.settings_open

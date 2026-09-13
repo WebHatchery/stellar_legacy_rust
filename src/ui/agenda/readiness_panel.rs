@@ -23,6 +23,27 @@ pub(super) fn draw_readiness(
         pointer
     };
     let mut y = view.y - scroll.offset();
+    y = draw_readiness_rows(ctx, &model, view, pointer, actions, y);
+    y = draw_readiness_summary(&model, view, y);
+    draw_active_issues(ctx, view, pointer, actions, y);
+    scroll.draw_scrollbar_with(
+        view,
+        content_h,
+        term::surface_inset(),
+        term::dim(),
+        term::primary(),
+    );
+    ctx.agenda_readiness_scroll.set(scroll);
+}
+
+fn draw_readiness_rows(
+    ctx: &GameplayCtx<'_>,
+    model: &readiness::ReadinessModel,
+    view: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+    mut y: f32,
+) -> f32 {
     for row in &model.rows {
         let rect = Rect::new(view.x, y, view.w - 12.0, 178.0);
         if is_fully_visible(rect, view) {
@@ -42,53 +63,90 @@ pub(super) fn draw_readiness(
                 2.0,
                 term::dim(),
             );
-            if row.id == "life_support"
-                && ctx.sim.ship.life_support <= ctx.data.config.survival.critical_warning_threshold
-                && !ctx.sim.survival.emergency_used
-            {
-                let cfg = &ctx.data.config.survival;
-                let button = Rect::new(rect.x, rect.y + 82.0, rect.w, 60.0);
-                if term_button(
-                    button,
-                    "STABILISE AIR",
-                    crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).is_ok(),
-                    pointer,
-                ) {
-                    actions.push(UiAction::EmergencyStabilise);
-                }
-                draw_ui_text_ex(
-                    &format!(
-                        "Cost: {} energy / {} minerals / {} parts",
-                        cfg.emergency_resource_cost.energy,
-                        cfg.emergency_resource_cost.minerals,
-                        cfg.emergency_parts_cost
-                    ),
-                    rect.x,
-                    rect.y + 160.0,
-                    TextStyle::new(11.0, term::dim()).params(),
-                );
-            } else if let Some(id) = &row.recommended_project {
-                queue_response(
-                    ctx,
-                    id,
-                    row.recommended_target.clone(),
-                    Rect::new(rect.x, rect.y + 82.0, rect.w, 92.0),
-                    pointer,
-                    actions,
-                );
-            }
+            draw_readiness_action(ctx, row, rect, pointer, actions);
         }
         y += 184.0;
     }
+    y
+}
+
+fn draw_readiness_action(
+    ctx: &GameplayCtx<'_>,
+    row: &readiness::ReadinessRow,
+    rect: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    if row.id == "life_support"
+        && ctx.sim.ship.life_support <= ctx.data.config.survival.critical_warning_threshold
+        && !ctx.sim.survival.emergency_used
+    {
+        let cfg = &ctx.data.config.survival;
+        let button = Rect::new(rect.x, rect.y + 82.0, rect.w, 60.0);
+        if term_button(
+            button,
+            "STABILISE AIR",
+            crate::simulation::survival::emergency_availability(ctx.sim, ctx.data).is_ok(),
+            pointer,
+        ) {
+            actions.push(UiAction::EmergencyStabilise);
+        }
+        draw_ui_text_ex(
+            &format!(
+                "Cost: {} energy / {} minerals / {} parts",
+                cfg.emergency_resource_cost.energy,
+                cfg.emergency_resource_cost.minerals,
+                cfg.emergency_parts_cost
+            ),
+            rect.x,
+            rect.y + 160.0,
+            TextStyle::new(11.0, term::dim()).params(),
+        );
+    } else if let Some(id) = &row.recommended_project {
+        queue_response(
+            ctx,
+            id,
+            row.recommended_target.clone(),
+            Rect::new(rect.x, rect.y + 82.0, rect.w, 92.0),
+            pointer,
+            actions,
+        );
+    }
+}
+
+fn draw_readiness_summary(model: &readiness::ReadinessModel, view: Rect, y: f32) -> f32 {
     let summary = Rect::new(view.x, y, view.w - 12.0, 174.0);
     if is_fully_visible(summary, view) {
-        draw_text_block(&format!(
-            "FOOD / YEAR: {} output; {} use and toll; {} spoilage; {:+} net. Gross reserve uses population consumption. FUEL: {} travel months, {:.2} burn, {:.2} scoop/year. Estimates hold current conditions steady. Future project effects are excluded until delivered.",
-            model.food.annual_output, model.food.annual_consumption, model.food.annual_spoilage, model.food.net_per_year,
-            model.fuel.remaining_travel_months, model.fuel.remaining_burn, model.fuel.annual_scoop),
-            summary.x, summary.y + 8.0, summary.w, summary.h - 16.0, 13.0, 4.0, term::dim());
+        draw_text_block(
+            &format!(
+                "FOOD / YEAR: {} output; {} use and toll; {} spoilage; {:+} net. Gross reserve uses population consumption. FUEL: {} travel months, {:.2} burn, {:.2} scoop/year. Estimates hold current conditions steady. Future project effects are excluded until delivered.",
+                model.food.annual_output,
+                model.food.annual_consumption,
+                model.food.annual_spoilage,
+                model.food.net_per_year,
+                model.fuel.remaining_travel_months,
+                model.fuel.remaining_burn,
+                model.fuel.annual_scoop
+            ),
+            summary.x,
+            summary.y + 8.0,
+            summary.w,
+            summary.h - 16.0,
+            13.0,
+            4.0,
+            term::dim(),
+        );
     }
-    y += 180.0;
+    y + 180.0
+}
+
+fn draw_active_issues(
+    ctx: &GameplayCtx<'_>,
+    view: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+    mut y: f32,
+) {
     for issue in &ctx.sim.issues.active {
         let rect = Rect::new(view.x, y, view.w - 12.0, 178.0);
         if is_fully_visible(rect, view) {
@@ -118,14 +176,6 @@ pub(super) fn draw_readiness(
         }
         y += 184.0;
     }
-    scroll.draw_scrollbar_with(
-        view,
-        content_h,
-        term::surface_inset(),
-        term::dim(),
-        term::primary(),
-    );
-    ctx.agenda_readiness_scroll.set(scroll);
 }
 
 fn queue_response(

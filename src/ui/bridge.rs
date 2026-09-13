@@ -7,7 +7,6 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         dashboard::draw(ctx, area, pointer, actions);
         return;
     }
-    let sim = ctx.sim;
     let subject = Rect::new(area.x, area.y, area.w * 0.64, 400.0);
     let attention = Rect::new(
         subject.right() + 16.0,
@@ -15,6 +14,19 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         area.w - subject.w - 16.0,
         400.0,
     );
+    draw_voyage_subject(ctx, subject, pointer, actions);
+    draw_attention(ctx, attention, pointer, actions);
+    let bottom = Rect::new(area.x, subject.bottom() + 14.0, area.w, area.h - 414.0);
+    draw_operational_summary(ctx, bottom, pointer, actions);
+}
+
+fn draw_voyage_subject(
+    ctx: &GameplayCtx<'_>,
+    subject: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let sim = ctx.sim;
     term_panel(subject, None);
     let title = sim
         .contract
@@ -63,8 +75,15 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     ) {
         actions.push(UiAction::SelectScreen(Screen::ShipBuilder));
     }
-    draw_attention(ctx, attention, pointer, actions);
-    let bottom = Rect::new(area.x, subject.bottom() + 14.0, area.w, area.h - 414.0);
+}
+
+fn draw_operational_summary(
+    ctx: &GameplayCtx<'_>,
+    bottom: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let sim = ctx.sim;
     let condition = Rect::new(bottom.x, bottom.y, 340.0, bottom.h);
     term_panel(condition, Some("Ship & people"));
     let rows = [

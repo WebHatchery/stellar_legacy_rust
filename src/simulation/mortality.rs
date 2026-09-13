@@ -127,6 +127,16 @@ pub fn annual_aging(sim: &mut SimState, data: &GameData) {
 /// dynasty died out (so the game ends) and whether a *sitting leader* fell this
 /// month (so the skeleton can force a succession beat).
 pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
+    let (dead, crew_dead) = roll_monthly_deaths(sim, data);
+    log_monthly_deaths(sim, data, &dead, &crew_dead);
+    resolve_leadership(sim, data, report, &dead);
+    mark_extinction(sim, data, report);
+}
+
+fn roll_monthly_deaths(
+    sim: &mut SimState,
+    data: &GameData,
+) -> (Vec<DynastyMember>, Vec<CrewMember>) {
     let max_age = data.config.member_max_age;
     let cfg = &data.config.mortality;
     // A well-kept infirmary thins the reaper's odds (content-depth subsystems round
@@ -171,7 +181,16 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
     });
     sim.rng = rng;
 
-    for member in &dead {
+    (dead, crew_dead)
+}
+
+fn log_monthly_deaths(
+    sim: &mut SimState,
+    data: &GameData,
+    dead: &[DynastyMember],
+    crew_dead: &[CrewMember],
+) {
+    for member in dead {
         let line = FlavorConfig::line_with_name(
             &data.config.flavor.obituary,
             member.id as usize,
@@ -180,7 +199,7 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
         .unwrap_or_else(|| format!("{} passed away, aged {}.", member.name, member.age));
         sim.push_log(line);
     }
-    for officer in &crew_dead {
+    for officer in crew_dead {
         institutions::officer_departed(sim, data, officer);
         let post = post_name(data, &officer.archetype_id);
         let line = FlavorConfig::line_with_name_post(
@@ -197,7 +216,14 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
         });
         sim.push_log(line);
     }
+}
 
+fn resolve_leadership(
+    sim: &mut SimState,
+    data: &GameData,
+    report: &mut TickReport,
+    dead: &[DynastyMember],
+) {
     // A sitting leader falling in office (not a planned retirement handoff) is a
     // succession the ship did not choose — flag it for the skeleton's beat.
     if dead.iter().any(|m| m.is_leader) {
@@ -240,7 +266,9 @@ pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport
             );
         }
     }
+}
 
+fn mark_extinction(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
     // The last of the line gone is the campaign's end state (GDD §7). Announce it
     // once, on the crossing into extinction.
     if sim.dynasty.members.is_empty() && !sim.dynasty.extinct {

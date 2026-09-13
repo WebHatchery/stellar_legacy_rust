@@ -130,11 +130,16 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
     let contract = ctx.sim.contract.as_ref().unwrap();
     let left = Rect::new(area.x, area.y, area.w * 0.6, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
-
     term_panel(left, Some("ACTIVE CONTRACT"));
     let content = left.inset(20.0);
-    let mut y = content.y + 42.0;
+    let y = draw_contract_progress(contract, content);
+    draw_contract_milestones(contract, content, y);
+    draw_return_button(ctx, content, pointer, actions);
+    outlook::draw(ctx, right, pointer, actions);
+}
 
+fn draw_contract_progress(contract: &ActiveContract, content: Rect) -> f32 {
+    let mut y = content.y + 42.0;
     draw_ui_text_ex(
         &contract.name,
         content.x,
@@ -155,7 +160,6 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         TextStyle::new(14.0, term::dim()).params(),
     );
     y += 24.0;
-
     term_bar(
         Rect::new(content.x, y, content.w, 26.0),
         contract.progress(),
@@ -164,12 +168,8 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         &format!("{:.0}%", contract.progress() * 100.0),
     );
     y += 34.0;
-
-    // Authored phase timeline (W2).
     draw_phase_timeline(contract, Rect::new(content.x, y, content.w, 20.0));
     y += 30.0;
-
-    // Quantified objective counter (W2) — pay tracks this fraction, not the clock.
     term_bar(
         Rect::new(content.x, y, content.w, 22.0),
         contract.objective_fraction(),
@@ -180,10 +180,10 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
             contract.objective_progress, contract.objective_target, contract.objective_unit
         ),
     );
-    // Clear the objective bar before the milestone list: a section header sits on
-    // its baseline, so a tight gap let its ascenders overlap the bar's box.
-    y += 42.0;
+    y + 42.0
+}
 
+fn draw_contract_milestones(contract: &ActiveContract, content: Rect, mut y: f32) {
     draw_ui_text_ex(
         "MILESTONES",
         content.x,
@@ -207,7 +207,6 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         y += 22.0;
     }
     y += 14.0;
-
     draw_ui_text_ex(
         "SUCCESS METRICS",
         content.x,
@@ -230,9 +229,14 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
         );
         y += 28.0;
     }
+}
 
-    // [ TURN BACK ] (W2): available only underway (Travel/Operation), anchored
-    // to the panel bottom so it never collides with the growing metric list.
+fn draw_return_button(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let underway = crate::simulation::contract::can_return_home(ctx.sim);
     let abort = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
     if underway {
@@ -242,8 +246,6 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
     } else {
         term_button(abort, "— HOMEBOUND —", false, pointer);
     }
-
-    outlook::draw(ctx, right, pointer, actions);
 }
 
 fn draw_available(
@@ -510,6 +512,28 @@ fn draw_charter_card(
     } else {
         term::primary()
     };
+    draw_charter_card_content(
+        entry,
+        template,
+        card,
+        title_color,
+        selected,
+        locked,
+        pointer,
+        actions,
+    );
+}
+
+fn draw_charter_card_content(
+    entry: &CharterEntry,
+    template: &crate::data::contracts::ContractTemplate,
+    card: Rect,
+    title_color: Color,
+    selected: bool,
+    locked: bool,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     crate::ui::identity::emblem(
         Rect::new(card.x + 12.0, card.y + 12.0, 44.0, 44.0),
         &entry.id,
@@ -553,7 +577,7 @@ fn draw_charter_card(
         4.0,
         term::dim(),
     );
-    let label = if locked {
+    let label = if entry.locked {
         entry.lock_label.as_str()
     } else if selected {
         "Selected · review provisions"

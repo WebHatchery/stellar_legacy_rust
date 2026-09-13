@@ -46,20 +46,6 @@ pub use people::draw;
 /// In drydock, when short of the founding count, offers to recruit a new people.
 fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let sim = ctx.sim;
-    let total_aboard: u32 = sim
-        .factions
-        .iter()
-        .filter(|f| f.is_aboard())
-        .map(|f| f.members)
-        .sum();
-
-    let faction_name = |id: &str| {
-        ctx.data
-            .factions
-            .get(id)
-            .map(|d| d.name.clone())
-            .unwrap_or_else(|| id.to_owned())
-    };
     let cfg = &ctx.data.config.factions;
     let recruiting = sim.contract.is_none() && sim.aboard_faction_count() < cfg.starting_count;
     let polity_title = if recruiting {
@@ -77,35 +63,63 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
     };
     term_panel(rect, Some(&polity_title));
     let content = rect.inset(16.0);
-
-    // When a berth is open, recruitment is the whole panel's job. The old
-    // stacked 24px controls fit only one or two candidates into the panel and
-    // left the rest unreachable; one horizontal row gives every known people
-    // a simultaneous 44px touch target.
     if recruiting {
-        let candidates = sim.recruitable_faction_ids(ctx.data);
-        let gap = 6.0;
-        let width = (content.w - gap * candidates.len().saturating_sub(1) as f32)
-            / candidates.len().max(1) as f32;
-        for (index, id) in candidates.iter().enumerate() {
-            let name = short_people_name(&faction_name(id));
-            if term_button(
-                Rect::new(
-                    content.x + index as f32 * (width + gap),
-                    content.y + 30.0,
-                    width,
-                    44.0,
-                ),
-                &format!("RECRUIT {name}"),
-                sim.resources.credits >= cfg.recruit_group_cost_credits,
-                pointer,
-            ) {
-                actions.push(UiAction::RecruitFactionGroup(id.clone()));
-            }
-        }
+        draw_recruitment(ctx, content, pointer, actions);
         return;
     }
+    draw_aboard_factions(ctx, content);
+}
 
+fn draw_recruitment(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let candidates = ctx.sim.recruitable_faction_ids(ctx.data);
+    let gap = 6.0;
+    let width = (content.w - gap * candidates.len().saturating_sub(1) as f32)
+        / candidates.len().max(1) as f32;
+    let can_afford =
+        ctx.sim.resources.credits >= ctx.data.config.factions.recruit_group_cost_credits;
+    for (index, id) in candidates.iter().enumerate() {
+        let name = ctx
+            .data
+            .factions
+            .get(id)
+            .map(|definition| short_people_name(&definition.name))
+            .unwrap_or_else(|| short_people_name(id));
+        if term_button(
+            Rect::new(
+                content.x + index as f32 * (width + gap),
+                content.y + 30.0,
+                width,
+                44.0,
+            ),
+            &format!("RECRUIT {name}"),
+            can_afford,
+            pointer,
+        ) {
+            actions.push(UiAction::RecruitFactionGroup(id.clone()));
+        }
+    }
+}
+
+fn draw_aboard_factions(ctx: &GameplayCtx<'_>, content: Rect) {
+    let sim = ctx.sim;
+    let total_aboard: u32 = sim
+        .factions
+        .iter()
+        .filter(|f| f.is_aboard())
+        .map(|f| f.members)
+        .sum();
+    let faction_name = |id: &str| {
+        ctx.data
+            .factions
+            .get(id)
+            .map(|d| d.name.clone())
+            .unwrap_or_else(|| id.to_owned())
+    };
     let mut y = content.y + 34.0;
     let short_name = |id: &str| {
         let name = ctx

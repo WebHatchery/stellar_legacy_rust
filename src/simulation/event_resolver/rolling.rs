@@ -88,210 +88,132 @@ pub fn category_weights(sim: &SimState, data: &GameData) -> [(EventCategory, f32
 /// and its current phase listed; year / generation / cultural-drift gates must
 /// all be met.
 pub(crate) fn passes_gate(sim: &SimState, template: &EventTemplate) -> bool {
-    // Scheduled-only payoffs (content-depth round 9) never roll; they fire solely
-    // as the timed follow-up of a `schedule_followup`, forced by id past the gates.
-    if template.scheduled_only {
+    !template.scheduled_only
+        && phase_and_history_gates(sim, template)
+        && faction_gates(sim, template)
+        && subsystem_gates(sim, template)
+        && resource_gates(sim, template)
+        && campaign_gates(sim, template)
+}
+
+fn phase_and_history_gates(sim: &SimState, template: &EventTemplate) -> bool {
+    if !template.phases.is_empty()
+        && !sim
+            .contract
+            .as_ref()
+            .is_some_and(|contract| template.phases.contains(&contract.phase))
+    {
         return false;
     }
-    if !template.phases.is_empty() {
-        match sim.contract.as_ref() {
-            Some(contract) if template.phases.contains(&contract.phase) => {}
-            _ => return false,
-        }
-    }
-    if !template
+    template
         .requires_consequence
         .iter()
         .all(|tag| sim.consequences.contains(tag))
-    {
-        return false;
-    }
-    // Consequence bar (content-depth round 13): a disqualifying history closes the
-    // door — any forbidden tag on record keeps the event out of the pool.
-    if template
-        .forbidden_consequence
-        .iter()
-        .any(|tag| sim.consequences.contains(tag))
-    {
-        return false;
-    }
-    if !template.requires_charter_tag.is_empty() {
-        match sim.contract.as_ref() {
-            Some(contract)
-                if template
+        && !template
+            .forbidden_consequence
+            .iter()
+            .any(|tag| sim.consequences.contains(tag))
+        && (template.requires_charter_tag.is_empty()
+            || sim.contract.as_ref().is_some_and(|contract| {
+                template
                     .requires_charter_tag
                     .iter()
-                    .all(|tag| contract.tags.contains(tag)) => {}
-            _ => return false,
-        }
-    }
-    if !template.requires_dominant_faction.is_empty()
-        && sim.dominant_faction_id() != Some(template.requires_dominant_faction.as_str())
-    {
-        return false;
-    }
-    if !template
-        .requires_factions_aboard
-        .iter()
-        .all(|id| sim.is_faction_aboard(id))
-    {
-        return false;
-    }
-    // Faction-approval gates (content-depth round 8): a grievance/withdrawal beat
-    // fires only while the named people is aboard and has soured to its threshold.
-    if !template.faction_approval_below.iter().all(|gate| {
+                    .all(|tag| contract.tags.contains(tag))
+            }))
+        && (template.requires_dominant_faction.is_empty()
+            || sim.dominant_faction_id() == Some(template.requires_dominant_faction.as_str()))
+        && template
+            .requires_factions_aboard
+            .iter()
+            .all(|id| sim.is_faction_aboard(id))
+}
+
+fn faction_gates(sim: &SimState, template: &EventTemplate) -> bool {
+    template.faction_approval_below.iter().all(|gate| {
         sim.factions
             .iter()
             .any(|f| f.faction_id == gate.id && f.is_aboard() && f.approval <= gate.below)
-    }) {
-        return false;
-    }
-    // Faction-approval *floor* gates (content-depth round 19): the positive mirror —
-    // a gift/volunteered-effort beat fires only while the named people is aboard and
-    // has warmed to at least its threshold.
-    if !template.faction_approval_above.iter().all(|gate| {
+    }) && template.faction_approval_above.iter().all(|gate| {
         sim.factions
             .iter()
             .any(|f| f.faction_id == gate.id && f.is_aboard() && f.approval >= gate.at_least)
-    }) {
-        return false;
-    }
-    if !template.knowledge_below.iter().all(|gate| {
+    })
+}
+
+fn subsystem_gates(sim: &SimState, template: &EventTemplate) -> bool {
+    template.knowledge_below.iter().all(|gate| {
         sim.subsystems
             .get(&gate.id)
-            .is_some_and(|s| s.knowledge <= gate.below)
-    }) {
-        return false;
-    }
-    if !template.condition_below.iter().all(|gate| {
+            .is_some_and(|state| state.knowledge <= gate.below)
+    }) && template.condition_below.iter().all(|gate| {
         sim.subsystems
             .get(&gate.id)
-            .is_some_and(|s| s.condition <= gate.below)
-    }) {
-        return false;
-    }
-    if template.food_below.is_some_and(|t| sim.resources.food > t)
-        || template.fuel_below.is_some_and(|t| sim.ship.fuel > t)
-        || template
+            .is_some_and(|state| state.condition <= gate.below)
+    })
+}
+
+fn resource_gates(sim: &SimState, template: &EventTemplate) -> bool {
+    let below = template
+        .food_below
+        .is_none_or(|threshold| sim.resources.food <= threshold)
+        && template
+            .fuel_below
+            .is_none_or(|threshold| sim.ship.fuel <= threshold)
+        && template
             .spare_parts_below
-            .is_some_and(|t| sim.ship.spare_parts > t)
-        || template
+            .is_none_or(|threshold| sim.ship.spare_parts <= threshold)
+        && template
             .energy_below
-            .is_some_and(|t| sim.resources.energy > t)
-    {
-        return false;
-    }
-    // Abundance gates (content-depth provisioning round 11): the mirror — the
-    // event stays out of the pool until the ship is genuinely flush.
-    if template.food_above.is_some_and(|t| sim.resources.food < t)
-        || template
+            .is_none_or(|threshold| sim.resources.energy <= threshold);
+    let above = template
+        .food_above
+        .is_none_or(|threshold| sim.resources.food >= threshold)
+        && template
             .credits_above
-            .is_some_and(|t| sim.resources.credits < t)
-    {
-        return false;
-    }
-    // Era ceilings (content-depth round 4): 0 = ungated, else the event has
-    // passed out of its era once the voyage is beyond the cap.
-    if template.max_year != 0 && sim.year() > template.max_year {
-        return false;
-    }
-    if template.max_generation != 0 && sim.dynasty.generation > template.max_generation {
-        return false;
-    }
-    if template.min_objective_fraction > 0.0
-        && sim
-            .contract
-            .as_ref()
-            .is_none_or(|c| c.objective_fraction() < template.min_objective_fraction)
-    {
-        return false;
-    }
-    // Depopulation gate (content-depth round 12): crew-thinning content stays out
-    // of the pool until the crew has fallen to or below its headcount ceiling.
-    if template.max_population > 0 && sim.population.count > template.max_population {
-        return false;
-    }
-    // Dynasty-crisis gate (content-depth round 20): near-extinction-of-the-line
-    // content waits until the founding *dynasty* has dwindled to its ceiling — the
-    // honest gate for the dynasty-crisis beat's content, distinct from the crew's.
-    if template.max_dynasty_size > 0 && sim.dynasty.members.len() as u32 > template.max_dynasty_size
-    {
-        return false;
-    }
-    // Hull-failure gate (content-depth round 23): "the ship is breaking up" content waits
-    // until the hull itself has fallen to its red line — the structural parallel to the
-    // subsystem condition_below gate, and the honest gate for the hull-collapse beat.
-    if template
-        .hull_below
-        .is_some_and(|t| sim.ship.hull_integrity > t)
-    {
-        return false;
-    }
-    // Air-failure gate (content-depth round 24): the atmosphere twin — "the ship is
-    // suffocating" content waits until life-support has fallen to its red line, the
-    // honest gate for the air-collapse beat.
-    if template
-        .life_support_below
-        .is_some_and(|t| sim.ship.life_support > t)
-    {
-        return false;
-    }
-    // Adaptation-divergence gate (content-depth campaign-skeleton round 26): the high-side
-    // crew-body twin — "we have become the ship's own kind, and can no longer survive a
-    // planet" content waits until the people's adaptation has risen to its red line, the
-    // honest gate for the divergence beat.
-    if template
-        .adaptation_above
-        .is_some_and(|t| sim.population.adaptation < t)
-    {
-        return false;
-    }
-    // Governance-strength gate (content-depth campaign-skeleton round 28): "the institutions are
-    // strong / rebuilt" content waits until stability has risen to its line — the honest gate for
-    // the governance-recovery beat.
-    if template
-        .stability_above
-        .is_some_and(|t| sim.population.stability < t)
-    {
-        return false;
-    }
-    // Chronic-scarcity gate (content-depth round 13): long-hunger content waits
-    // until the shortage has ground on for years, not just this season.
-    if sim.lean_food_years < template.min_lean_food_years {
-        return false;
-    }
-    // Sustained-plenty gate (content-depth round 14): the mirror — soft-generation
-    // content waits until the plenty has held for years, not just this harvest.
-    if sim.fat_food_years < template.min_fat_food_years {
-        return false;
-    }
-    // Founder-authority gate (content-depth round 14): covenant-lapse content stays
-    // out of the pool while the ship still holds the founders' charter binding.
-    if template.max_legacy_loyalty > 0.0
-        && sim.population.legacy_loyalty > template.max_legacy_loyalty
-    {
-        return false;
-    }
-    // Governance gate (content-depth round 15): institutional-collapse content stays
-    // out of the pool while the ship's government still functions.
-    if template.max_stability > 0.0 && sim.population.stability > template.max_stability {
-        return false;
-    }
-    // Reputation gates (content-depth round 16): content keyed to the ship's
-    // cumulative character — a floor a merciful name must clear, a ceiling a feared
-    // name must sit under.
-    if template
-        .min_reputation
-        .iter()
-        .any(|g| sim.reputation(&g.id) < g.threshold)
+            .is_none_or(|threshold| sim.resources.credits >= threshold);
+    below && above
+}
+
+fn campaign_gates(sim: &SimState, template: &EventTemplate) -> bool {
+    if template.max_year != 0 && sim.year() > template.max_year
+        || template.max_generation != 0 && sim.dynasty.generation > template.max_generation
+        || template.max_population > 0 && sim.population.count > template.max_population
+        || template.max_dynasty_size > 0
+            && sim.dynasty.members.len() as u32 > template.max_dynasty_size
+        || template
+            .hull_below
+            .is_some_and(|threshold| sim.ship.hull_integrity > threshold)
+        || template
+            .life_support_below
+            .is_some_and(|threshold| sim.ship.life_support > threshold)
+        || template
+            .adaptation_above
+            .is_some_and(|threshold| sim.population.adaptation < threshold)
+        || template
+            .stability_above
+            .is_some_and(|threshold| sim.population.stability < threshold)
+        || sim.lean_food_years < template.min_lean_food_years
+        || sim.fat_food_years < template.min_fat_food_years
+        || template.max_legacy_loyalty > 0.0
+            && sim.population.legacy_loyalty > template.max_legacy_loyalty
+        || template.max_stability > 0.0 && sim.population.stability > template.max_stability
+        || template
+            .min_reputation
+            .iter()
+            .any(|gate| sim.reputation(&gate.id) < gate.threshold)
         || template
             .max_reputation
             .iter()
-            .any(|g| sim.reputation(&g.id) > g.threshold)
+            .any(|gate| sim.reputation(&gate.id) > gate.threshold)
     {
         return false;
     }
-    sim.year() >= template.min_year
+    let objective_ready = template.min_objective_fraction <= 0.0
+        || sim.contract.as_ref().is_some_and(|contract| {
+            contract.objective_fraction() >= template.min_objective_fraction
+        });
+    objective_ready
+        && sim.year() >= template.min_year
         && sim.dynasty.generation >= template.min_generation
         && sim.population.cultural_drift >= template.min_cultural_drift
         && sim.population.morale >= template.min_morale

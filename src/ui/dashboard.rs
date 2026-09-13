@@ -44,6 +44,12 @@ fn draw_ship_panel(
 ) {
     term_panel(rect, Some("SHIP STATUS"));
     let content = rect.inset(20.0);
+    let y = draw_ship_vitals(ctx, content);
+    let y = draw_ship_specs(ctx, content, y);
+    draw_ship_maintenance(ctx, content, y, pointer, actions);
+}
+
+fn draw_ship_vitals(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
     let mut y = content.y + 40.0;
     let sim = ctx.sim;
 
@@ -71,10 +77,6 @@ fn draw_ship_panel(
         &format!("{:.0}%", sim.ship.fuel * 100.0),
     );
     y += 34.0;
-
-    // Spare parts ease yearly wear (PLAN M4.2); when the stores hit zero the
-    // ship wears at full rate, so flag it red. Shown as a spec line below.
-    let parts_dry = sim.ship.spare_parts <= 0;
     let contract_line = sim
         .contract
         .as_ref()
@@ -98,7 +100,12 @@ fn draw_ship_panel(
         term::accent(),
     );
     y += 32.0;
+    y
+}
 
+fn draw_ship_specs(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) -> f32 {
+    let sim = ctx.sim;
+    let parts_dry = sim.ship.spare_parts <= 0;
     // Ship-class readout: the installed hull/drive and their real cargo/berth
     // capacities (GDD §6), the count of subsystems still online, and armament.
     // A thin divider sets the spec block off from the vitals above it.
@@ -181,7 +188,17 @@ fn draw_ship_panel(
         y += 18.0;
     }
     y += 6.0;
+    y
+}
 
+fn draw_ship_maintenance(
+    ctx: &GameplayCtx<'_>,
+    content: Rect,
+    mut y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let sim = ctx.sim;
     // Maintenance (PLAN M4.3). Field repairs patch the ship underway from
     // spare parts + minerals but can't reach pristine; a full refit is
     // port-only. Buttons enable only when the action is currently possible.
@@ -278,6 +295,13 @@ fn draw_ship_panel(
 fn draw_colony_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
     term_panel(rect, Some("SHIP-CITY POPULATION"));
     let content = rect.inset(20.0);
+    let y = draw_colony_meters(ctx, content);
+    draw_colony_stats(ctx, content, y);
+    draw_population_breakdown(ctx, content);
+    let _ = Screen::Dashboard;
+}
+
+fn draw_colony_meters(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
     let mut y = content.y + 40.0;
     let pop = &ctx.sim.population;
 
@@ -315,8 +339,11 @@ fn draw_colony_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
         );
         y += 30.0;
     }
+    y + 12.0
+}
 
-    y += 12.0;
+fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
+    let pop = &ctx.sim.population;
     let legacy = &ctx.sim.legacy;
     stat_line(
         content.x,
@@ -382,7 +409,9 @@ fn draw_colony_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
         y,
         TextStyle::new(13.0, term::dim()).params(),
     );
+}
 
+fn draw_population_breakdown(ctx: &GameplayCtx<'_>, content: Rect) {
     // Population breakdown: the peoples actually aboard and their head counts
     // (GDD §5.1, the same aggregate the crew screen lists), shown as a tile row
     // pinned to the panel foot so the colony's makeup reads at a glance.
@@ -430,7 +459,6 @@ fn draw_colony_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             );
         }
     }
-    let _ = Screen::Dashboard;
 }
 
 /// Shorten a faction name for a narrow tile: drop a leading article and keep the
