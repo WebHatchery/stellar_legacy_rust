@@ -79,7 +79,7 @@ fn draw_card(
         card.x + 10.0,
         card.y + 34.0,
         card.w - 20.0,
-        (card.h - 86.0).max(24.0),
+        48.0,
         11.0,
         4.0,
         term::dim(),
@@ -102,9 +102,9 @@ fn draw_card(
     draw_text_block(
         &status_text,
         card.x + 10.0,
-        card.bottom() - 78.0,
+        card.bottom() - 70.0,
         card.w - 20.0,
-        30.0,
+        26.0,
         10.0,
         3.0,
         if available {
@@ -114,7 +114,7 @@ fn draw_card(
         },
     );
     let label = if available { "COMMIT" } else { "UNAVAILABLE" };
-    let button = Rect::new(card.x + 8.0, card.bottom() - 42.0, card.w - 16.0, 34.0);
+    let button = Rect::new(card.x + 8.0, card.bottom() - 44.0, card.w - 16.0, 44.0);
     if term_button(button, label, available, pointer) {
         actions.push(UiAction::ChooseHomecomingRecovery(choice));
     }

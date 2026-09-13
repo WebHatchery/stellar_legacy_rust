@@ -20,10 +20,6 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, report: &VoyageDebrief, area: Rect, po
     } else {
         accounting(report)
     };
-    term_panel(
-        area,
-        Some("Homecoming record · drag to read the full report"),
-    );
     crate::ui::reading::read_lines(
         &text,
         column_panel(area, "Homecoming record").inset(8.0),

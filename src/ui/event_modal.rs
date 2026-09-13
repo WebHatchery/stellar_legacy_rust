@@ -5,7 +5,7 @@ use crate::simulation::legacy::pending_dilemma_def;
 use crate::ui::{logical_height, logical_width, term, term_button, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt, Region};
 
 /// Characters-per-second for the terminal reveal of modal body text.
 const REVEAL_CPS: f32 = 55.0;
@@ -20,12 +20,7 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
     let Some(dilemma) = pending_dilemma_def(ctx.sim, ctx.data) else {
         return;
     };
-    macroquad_toolkit::ui::occlude(Rect::new(
-        0.0,
-        72.0,
-        logical_width(),
-        logical_height() - 72.0,
-    ));
+    let _overlay_region = dilemma_overlay_region();
     let legacy_name = ctx
         .data
         .legacies
@@ -40,6 +35,15 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
         dilemma.options.len(),
         0.0,
         term::primary(),
+    );
+    let _modal_region = Region::on(
+        Rect::new(
+            content.x - 26.0,
+            content.y - 26.0,
+            content.w + 52.0,
+            content.h + 52.0,
+        ),
+        term::panel(),
     );
     // Drop the title clear of the header divider — at the old offset its caps
     // sat right on the rule and read as cramped.
@@ -111,6 +115,12 @@ pub fn draw_dilemma(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<U
         }
         y += 104.0;
     }
+}
+
+fn dilemma_overlay_region() -> Region {
+    let area = Rect::new(0.0, 72.0, logical_width(), logical_height() - 72.0);
+    occlude(area);
+    Region::on(area, Color::new(0.0, 0.0, 0.0, 0.75))
 }
 
 /// Human phrasing of a population-impact band (real-time loop §3), with a tone:

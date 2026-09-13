@@ -58,7 +58,10 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
         .recovery
         .as_ref()
         .is_some_and(|recovery| !recovery.resolved);
-    let recovery_h = if recovery_pending { 178.0 } else { 0.0 };
+    // Four recovery cards need enough vertical room for their description,
+    // bill, and a full-size touch target. Keep the report readable above them
+    // by letting the scroll view carry the longer accounting text.
+    let recovery_h = if recovery_pending { 254.0 } else { 0.0 };
     let area = Rect::new(
         MARGIN,
         158.0,
