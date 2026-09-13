@@ -31,7 +31,7 @@ pub(crate) fn draw(
             selected.label()
         ),
         content.x,
-        content.y + 18.0,
+        content.y + 36.0,
         TextStyle::new(12.0, term::accent()).params(),
     );
     draw_text_block(
@@ -41,9 +41,9 @@ pub(crate) fn draw(
             approach::effect_summary(selected)
         ),
         content.x,
-        content.y + 26.0,
+        content.y + 44.0,
         content.w,
-        60.0,
+        50.0,
         10.0,
         3.0,
         term::dim(),
