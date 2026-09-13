@@ -111,6 +111,10 @@ pub fn draw_abort(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiA
         height - 152.0,
     );
     term_panel(panel, None);
+    // The confirmation panel is an opaque modal over the live bridge. Register
+    // that surface with the layout audit so the covered bridge copy is not
+    // mistaken for text colliding with the modal's own report.
+    let _modal_region = Region::on(panel, term::panel());
     let mut form = crate::ui::mobile::form::Form::new();
     build_abort(ctx, &mut form);
     form.draw(
