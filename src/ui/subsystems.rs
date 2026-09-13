@@ -171,7 +171,7 @@ fn draw_card_bars(
     draw_ui_text_ex(
         "LOCAL CULTURE",
         content.x,
-        y + 42.0,
+        y + 58.0,
         TextStyle::new(13.0, term::primary()).params(),
     );
     draw_text_block(
@@ -184,7 +184,7 @@ fn draw_card_bars(
             grievance
         ),
         content.x,
-        y + 50.0,
+        y + 66.0,
         content.w,
         76.0,
         10.0,
