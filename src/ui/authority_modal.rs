@@ -27,6 +27,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
             .with_header(42.0, term::panel_header())
             .with_header_divider(1.0, term::alert()),
     );
+    // The captain's review is an opaque modal over the active contract. Tell the
+    // layout audit which surface is in front so covered contract copy is ignored.
+    let _modal_region = Region::on(panel, term::panel());
     draw_review_header(ctx, panel);
     let content = panel.inset(24.0);
     draw_review_context(review, content);
