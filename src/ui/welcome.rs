@@ -9,7 +9,7 @@ use crate::data::WelcomeConfig;
 use crate::ui::{logical_height, logical_width, term, term_button, term_panel};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt};
+use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex, occlude, RectExt, Region};
 
 /// Draw the overlay. Returns true when the player clicks the dismiss button.
 pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
@@ -29,6 +29,9 @@ pub fn draw(welcome: &WelcomeConfig, pointer: Pointer) -> bool {
         760.0,
         600.0,
     );
+    // The briefing panel is opaque over the new-game picker. Register it before
+    // drawing the title so the whole briefing is evaluated as the front layer.
+    let _modal_region = Region::on(panel, term::panel());
     term_panel(panel, Some("STELLAR LEGACY // ORIENTATION"));
     let content = panel.inset(30.0);
 
