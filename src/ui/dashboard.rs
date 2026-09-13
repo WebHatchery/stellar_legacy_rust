@@ -576,17 +576,19 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             entry.text.clone()
         };
         let (marker, color) = log_tone(&entry.text);
+        // Leave a measured gap after the timestamp so the marker cannot touch
+        // its final glyph when a narrow font or accessibility scale is active.
         draw_ui_text_ex(
             marker,
-            content.x + 46.0,
+            content.x + 54.0,
             y,
             TextStyle::new(13.0, color).params(),
         );
         draw_text_block(
             &shown,
-            content.x + 68.0,
+            content.x + 76.0,
             y - 12.0,
-            content.w - 68.0,
+            content.w - 76.0,
             30.0,
             13.0,
             2.0,
