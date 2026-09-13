@@ -71,6 +71,9 @@ pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>
     let panel = Rect::new(16.0, 12.0, 880.0, 58.0);
     draw_rectangle(panel.x, panel.y, panel.w, panel.h, term::panel());
     draw_rectangle_lines(panel.x, panel.y, panel.w, panel.h, 1.0, term::accent());
+    // The guide occupies the shared header band. Register its opaque surface
+    // so the covered resource readout is not audited against guide copy.
+    let _modal_region = Region::on(panel, term::panel());
     draw_ui_text_ex(
         &guide.heading.to_uppercase(),
         28.0,
