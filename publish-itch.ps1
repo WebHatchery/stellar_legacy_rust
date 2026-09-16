@@ -62,11 +62,7 @@ try {
         New-Item -ItemType Directory -Path $demoDir -Force | Out-Null
         Copy-Item -Path (Join-Path $webglDir "*") -Destination $demoDir -Recurse -Force
         Copy-Item -LiteralPath $demoWasm -Destination (Join-Path $demoDir "stellar_legacy.wasm") -Force
-        $itchIndex = Join-Path $PSScriptRoot "itch-index.html"
-        if (-not (Test-Path $itchIndex -PathType Leaf)) {
-            throw "Itch game-only launcher not found: $itchIndex"
-        }
-        Copy-Item -LiteralPath $itchIndex -Destination (Join-Path $demoDir "index.html") -Force
+        # The shared publisher renders the platform-specific launcher from game_page.json.
 
         $backupDir = Join-Path $distDir ("webgl-full-" + [guid]::NewGuid().ToString("N"))
         Move-Item -LiteralPath $webglDir -Destination $backupDir
