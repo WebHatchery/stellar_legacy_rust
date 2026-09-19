@@ -1,17 +1,26 @@
-# Test coverage rationale
+# Feature coverage review
 
-The suite is intentionally broader than five cases for several major features:
+`CODE_STANDARDS.md` §11 governs testing: strongly target no more than five
+`#[test]` cases per major feature, counted across all files and suite names.
+Tests should read like rules, use simple setups, and exercise the public API.
+Keep all tests and test-only helpers in the crate's `tests/` directory beside
+`Cargo.toml`; `src/` must not declare or include test modules.
 
-- The simulation tick, event resolver, contract scoring, and succession suites
-  cover independent deterministic rules across years, phases, gates, and
-  migration shapes. Combining them would hide which invariant failed.
-- The content suites inspect separate registries and authored dimensions
-  (charters, peoples, events, voice, ship systems, and campaign beats). Their
-  failures point directly to the data contract that needs repair.
-- The UI suites cover separate responsive layouts and high-risk controls. They
-  stay pure and table-driven where inputs share a rule, while distinct desktop,
-  compact, modal, and accessibility boundaries remain separate.
+The existing `tests/unit/` files are still included from source modules and
+exercise private seams. That is unfinished legacy migration, not an approved
+placement pattern. Migrate those suites separately before expanding coverage,
+using intentional library APIs without exposing unrelated internals.
 
-All legacy tests now live under `tests/unit/` and are included by the library
-module that owns the private seam they exercise. New tests should prefer the
-public library surface and keep each new feature near the five-case target.
+Larger existing suites preserve different game contracts: simulation timing
+and state transitions, event effects, contract scoring, succession, content
+loading, and save compatibility. Preserve those regressions during migration,
+but review each cohesive responsibility independently and consolidate related
+inputs with table-driven assertions. A directory or module split does not
+create a new feature allowance. Existing UI/layout cases do not establish a
+requirement for more UI or rendering unit tests; use visual/manual verification
+where appropriate.
+
+Before committing an affected feature with more than five cases, record the
+specific additional rules and why they warrant separate cases in the change's
+review or commit. Existing suite size alone is not an exception rationale, and
+useful coverage must not be deleted merely to reach the target.

@@ -97,9 +97,11 @@ or unclear faction/ship relationships. Read the relevant complete chain before
 editing. Prefer richer branches and cross-system effects over filler volume.
 
 Check unique IDs, valid references, family registration, phase/era reachability,
-legal choices, identity attribution, staged effects and save compatibility in the
-separate child tests under `src/data/tests/` and the relevant simulation module.
-Use deterministic paired scenarios where preparation is meant to change an outcome.
+legal choices, identity attribution, staged effects and save compatibility through
+the public library API in `tests/`. Keep test-only helpers there as well; migrate
+legacy source-owned suites separately before expanding them. Use deterministic
+paired scenarios where preparation changes an outcome, consolidate related inputs,
+and review each affected major feature against the five-case target in §11.
 See [release QA](docs/release/QA_AND_OPERATIONS.md) for human acceptance requirements.
 
 Run `.\publish.ps1` without parameters after meaningful changes. Review changed

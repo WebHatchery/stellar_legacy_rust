@@ -11,8 +11,8 @@ boundaries and names:
   deterministic calculations and state transitions; they do not render or
   read input. `state/` owns the serializable campaign and menu state.
 - `src/game.rs` coordinates the state machine, action dispatch, persistence,
-  and capture setup. Capture-scene modules are test/capture fixtures, not a
-  second gameplay implementation.
+  and capture setup. Capture-scene modules stage runtime screenshot scenarios;
+  automated tests and test-only fixtures belong in `tests/`.
 - `src/ui.rs` and `ui/` are a batched-intent view layer. A frame may return a
   `Vec<UiAction>` because several independent visible controls can be pressed
   or released together; dispatch remains centralized in `game/actions`.
@@ -24,6 +24,8 @@ separate screen state. Desktop and compact views read the same `GameState` and
 emit the same actions, so adding a destination or interaction requires updating
 the shared `Screen`/`UiAction` model rather than duplicating simulation logic.
 
-The one ignored test in `simulation/balance` is a release-analysis report, not
-part of the ordinary regression suite. It must write outside the repository
-root and describe the current charter registry before it is used as evidence.
+The ignored balance-analysis report must write outside the repository root and
+describe the current charter registry before it is used as evidence. Follow
+`CODE_STANDARDS.md` §11 for test placement and feature scope; moving files into
+`tests/` does not complete migration while `src/` still includes test modules or
+tests depend on private source seams.
