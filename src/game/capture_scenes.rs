@@ -59,6 +59,7 @@ impl Game {
         self.tutorial_open = false;
         self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
+        let scene = scene.strip_suffix("_portrait").unwrap_or(scene);
         let scene = display::prepare(scene, &mut self.display);
         let scene = if scene == "settings_gameplay" {
             self.settings_open = true;
@@ -72,7 +73,14 @@ impl Game {
         if is_agenda_scene(scene) {
             self.capture_agenda(scene);
         } else {
-            routes::capture(self, scene);
+            routes::capture(
+                self,
+                if scene == "bridge_commitments" {
+                    "obligation_watch"
+                } else {
+                    scene
+                },
+            );
         }
 
         self.presentation
@@ -82,13 +90,11 @@ impl Game {
             } else {
                 0
             });
-        if scene == "recovery_warning" {
-            if let crate::state::GameState::Gameplay(g) = &mut self.state {
-                g.sim.ship.life_support = 0.02;
-                g.sim.survival.warning_active = true;
-                g.sim.speed = crate::state::sim::GameSpeed::Paused;
-            }
-        }
+        self.capture_warning_state(scene);
+        self.capture_presentation(scene);
+    }
+
+    fn capture_presentation(&mut self, scene: &str) {
         self.presentation.report_page.set(match scene {
             "debrief_captains" => 1,
             "debrief_moments" => 2,
@@ -109,6 +115,9 @@ impl Game {
             self.presentation.history_page.set(2);
         }
         *self.presentation.mobile_section.borrow_mut() = match scene {
+            "prep_briefing" => "briefing",
+            "prep_approach" => "approach",
+            "prep_forecast" => "forecast",
             "posture" => "posture",
             "people_officers" => "officers",
             "people_factions" | "crew_recruitment" => "factions",
@@ -125,5 +134,24 @@ impl Game {
         self.presentation.utilities.set(scene == "utilities");
         self.presentation.navigation_open.set(scene == "navigation");
         self.presentation.instruments.set(scene == "instruments");
+    }
+    fn capture_warning_state(&mut self, scene: &str) {
+        if scene == "bridge_commitments" {
+            if let crate::state::GameState::Gameplay(g) = &mut self.state {
+                g.sim.resources.energy = 0;
+                for duty in &mut g.sim.obligations {
+                    if duty.due_year.is_some() {
+                        duty.due_year = Some(1);
+                    }
+                }
+            }
+        }
+        if scene == "recovery_warning" {
+            if let crate::state::GameState::Gameplay(g) = &mut self.state {
+                g.sim.ship.life_support = 0.02;
+                g.sim.survival.warning_active = true;
+                g.sim.speed = crate::state::sim::GameSpeed::Paused;
+            }
+        }
     }
 }

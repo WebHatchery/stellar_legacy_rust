@@ -192,16 +192,6 @@ fn draw_attention(
             "Review recovery projects",
             Screen::Agenda,
         )
-    } else if let Some(duty) = sim
-        .next_timed_obligation()
-        .filter(|d| d.due_year.is_some_and(|year| year <= sim.year() + 1))
-    {
-        (
-            "! A promise needs attention".to_owned(),
-            duty.title.clone(),
-            "Review obligations",
-            Screen::Chronicle,
-        )
     } else if sim.contract.is_none() {
         (
             "Ready for your next charter".to_owned(),
@@ -213,13 +203,14 @@ fn draw_attention(
     } else {
         ("No urgent reserve warning".to_owned(), "The current readiness forecast has no vulnerable or critical concern. Follow the voyage or review your queued work.".to_owned(), "Follow voyage", Screen::Contract)
     };
+    let resource_top = draw_due_commitment(ctx, rect, pointer, actions);
     draw_text_block(
         &heading,
         rect.x + 20.0,
-        rect.y + 52.0,
+        resource_top,
         rect.w - 40.0,
-        60.0,
-        24.0,
+        52.0,
+        22.0,
         4.0,
         if heading.starts_with('!') {
             term::alert()
@@ -230,30 +221,75 @@ fn draw_attention(
     draw_text_block(
         &detail,
         rect.x + 20.0,
-        rect.y + 120.0,
+        resource_top + 54.0,
         rect.w - 40.0,
-        112.0,
-        18.0,
-        6.0,
+        rect.bottom() - resource_top - 118.0,
+        16.0,
+        4.0,
         term::dim(),
     );
-    if term_button(
-        Rect::new(rect.x + 20.0, rect.bottom() - 116.0, rect.w - 40.0, 48.0),
+    attention_action(
+        ctx,
+        Rect::new(rect.x + 20.0, rect.bottom() - 58.0, rect.w - 40.0, 44.0),
         label,
-        true,
+        target,
         pointer,
-    ) {
+        actions,
+    );
+}
+
+fn draw_due_commitment(
+    ctx: &GameplayCtx<'_>,
+    rect: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) -> f32 {
+    let sim = ctx.sim;
+    let duty = sim
+        .next_timed_obligation()
+        .filter(|d| d.due_year.is_some_and(|year| year <= sim.year() + 1));
+    let top = rect.y + 44.0;
+    if let Some(duty) = duty {
+        draw_text_block(
+            &format!(
+                "! Due year {} · {}",
+                duty.due_year.unwrap_or_default(),
+                duty.title
+            ),
+            rect.x + 20.0,
+            top,
+            rect.w - 40.0,
+            56.0,
+            18.0,
+            4.0,
+            term::alert(),
+        );
+        attention_action(
+            ctx,
+            Rect::new(rect.x + 20.0, top + 60.0, rect.w - 40.0, 44.0),
+            "Review obligations",
+            Screen::Chronicle,
+            pointer,
+            actions,
+        );
+        top + 116.0
+    } else {
+        top
+    }
+}
+
+fn attention_action(
+    ctx: &GameplayCtx<'_>,
+    rect: Rect,
+    label: &str,
+    target: Screen,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    if term_button(rect, label, true, pointer) {
         if target == Screen::Chronicle {
             ctx.presentation.history_page.set(1);
         }
         actions.push(UiAction::SelectScreen(target));
-    }
-    if term_button(
-        Rect::new(rect.x + 20.0, rect.bottom() - 58.0, rect.w - 40.0, 44.0),
-        "Open project queue",
-        true,
-        pointer,
-    ) {
-        actions.push(UiAction::SelectScreen(Screen::Agenda));
     }
 }

@@ -37,7 +37,9 @@ scars that the next generation must manage.
 2. Open **Voyage / Drydock** and compare charters. **Proving Run: Lumen Relay** is the
    tutorial voyage: 150 years split into 50-year outbound, operation, and return
    legs. Tap **Read briefing & prepare** to inspect a charter without launching.
-3. Read the departure briefing and the **FOOD**, **PARTS**, and **FUEL** estimates.
+3. Review departure commitments and the **FOOD**, **PARTS**, and **FUEL** estimates.
+   On phones, **Briefing, phases & risks** opens the full explanation;
+   **Compare charter approaches** opens the approach choices.
    Choose a **CHARTER APPROACH** for this writ; compare its work, event, fuel,
    and people tradeoffs before committing. Use the stock-up controls or **MARKET**
    to provision the ship. Tap **PROVISIONS REVIEWED** when the guide asks you to.
@@ -131,6 +133,16 @@ The game remains readable with audio muted.
   to decide what the next departure needs.
 
 ## Display and sound
+
+Preparation focuses on whether to provision or launch: available credits,
+stores, purchase costs, and conflicting or imminent promises precede the
+launch action. Phone preparation uses a scrolling column at 390×844, with
+44-pixel or larger visible controls; approach comparisons, phase descriptions,
+risks, and forecast explanations open separate views with a Back control.
+The selected approach and posture remain beside launch. The desktop Bridge
+at 1280×800 gives imminent promises their own review action alongside resource
+recovery, so a shortage cannot hide a due commitment. Phone Bridge puts the
+same promise review ahead of resource recovery in its scrolling flow.
 
 In **Display & sound**, UI scale adjusts interface sizes from 75% to 200%
 without shrinking the game into a bordered canvas or changing world-camera zoom.

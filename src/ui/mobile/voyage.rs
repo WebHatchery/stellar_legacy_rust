@@ -32,7 +32,21 @@ pub(super) fn build(ctx: &GameplayCtx<'_>, f: &mut Form, section: &str) {
         .as_ref()
         .and_then(|id| ctx.data.contracts.get(id))
     {
-        build_selected_charter(ctx, f, t);
+        match section {
+            "briefing" => {
+                f.section("Back to preparation", "");
+                build_briefing(f, t);
+            }
+            "approach" => {
+                f.section("Back to preparation", "");
+                build_approach_choices(ctx, f, t);
+            }
+            "forecast" => {
+                f.section("Back to preparation", "");
+                build_forecast_details(ctx, f, t);
+            }
+            _ => build_selected_charter(ctx, f, t),
+        }
         return;
     }
     build_available_charters(ctx, f);
@@ -89,13 +103,38 @@ fn build_selected_charter(
     template: &crate::data::contracts::ContractTemplate,
 ) {
     form.heading(&template.name);
+    form.text(&format!(
+        "{} years · Reward {} credits",
+        template.target_duration_years, template.reward.credits
+    ));
+    build_commitments(ctx, form, template);
+    let (conflict_count, shortfalls) = build_departure_provisions(ctx, form, template);
+    form.action("PROVISIONS REVIEWED", true, UiAction::ReviewProvisions);
+    form.text(&format!(
+        "Approach: {} · fixed at launch\nPosture: {}",
+        ctx.sim
+            .selected_charter_approach
+            .label_for(template.objective),
+        ctx.sim.command_posture.label()
+    ));
+    form.action(
+        &crate::ui::prep::launch_commit_label(conflict_count, shortfalls),
+        true,
+        UiAction::Launch,
+    );
+    form.section("Compare charter approaches", "approach");
+    form.section("Briefing, phases & risks", "briefing");
+    form.section("How provisions are estimated", "forecast");
+    form.section("Compare command postures", "posture");
+    form.action("Choose another charter", true, UiAction::CancelSelection);
+}
+
+fn build_briefing(form: &mut Form, template: &crate::data::contracts::ContractTemplate) {
+    form.heading(&template.name);
     form.text(&template.description);
     form.text(&format!(
-        "{} years · Reward {} credits\nGoal: {:.0} {}",
-        template.target_duration_years,
-        template.reward.credits,
-        template.objective_target,
-        template.objective_unit
+        "Goal: {:.0} {}",
+        template.objective_target, template.objective_unit
     ));
     for phase in &template.phases {
         form.text(&format!("{} · {} years", phase.kind.label(), phase.years));
@@ -103,16 +142,39 @@ fn build_selected_charter(
     for risk in &template.failure_risks {
         form.text(&format!("Risk: {}", risk.replace('_', " ")));
     }
-    build_approach_choices(ctx, form, template);
-    let (conflict_count, shortfalls) = build_departure_provisions(ctx, form, template);
-    form.action("PROVISIONS REVIEWED", true, UiAction::ReviewProvisions);
-    posture_summary(ctx, form);
-    form.action(
-        &crate::ui::prep::launch_commit_label(conflict_count, shortfalls),
-        true,
-        UiAction::Launch,
-    );
-    form.action("Choose another charter", true, UiAction::CancelSelection);
+}
+
+fn build_commitments(
+    ctx: &GameplayCtx<'_>,
+    form: &mut Form,
+    template: &crate::data::contracts::ContractTemplate,
+) {
+    for obligation in contract::obligation_conflicts(ctx.sim, template) {
+        form.text(&format!(
+            "! Launch will break: {} · owed to {}",
+            obligation.title, obligation.beneficiary
+        ));
+    }
+    if let Some(duty) = ctx
+        .sim
+        .next_timed_obligation()
+        .filter(|d| d.due_year.is_some_and(|year| year <= ctx.sim.year() + 1))
+    {
+        form.text(&format!(
+            "! Due year {}: {}",
+            duty.due_year.unwrap_or_default(),
+            duty.title
+        ));
+        form.action_section(
+            "Review obligations",
+            UiAction::SelectScreen(Screen::Chronicle),
+            "obligations",
+        );
+    }
+    form.text(&format!(
+        "{} new promises at launch",
+        template.launch_obligation_operations.len()
+    ));
 }
 
 fn build_approach_choices(
@@ -165,9 +227,9 @@ fn build_departure_provisions(
 ) -> (usize, usize) {
     let sim = ctx.sim;
     let forecast = contract::forecast::for_departure(sim, ctx.data, template);
-    form.heading("Departure provisions");
+    form.heading(&format!("Stores · {} credits", sim.resources.credits));
     form.text(&format!(
-        "Food {} / {} recommended\nProjected end {} · Net {:+}/year\nEvents and deterioration can change this baseline.",
+        "Food {} / {} recommended\nProjected end {} · Net {:+}/year",
         sim.resources.food,
         forecast.recommended_food_store,
         forecast.projected_food_end,
@@ -208,6 +270,35 @@ fn build_departure_provisions(
         );
     }
     form.text(&format!(
+        "Fuel aboard {:.0}% / 100% tank",
+        sim.ship.fuel * 100.0
+    ));
+    let fuel_cost = (ctx.data.config.provisioning.fuel_cost_credits_per_point as f32
+        * (1.0 - sim.ship.fuel)
+        * 100.0)
+        .ceil() as i64;
+    form.action(
+        &format!("Refuel tank · {fuel_cost} credits"),
+        sim.ship.fuel < 1.0 && sim.resources.credits >= fuel_cost,
+        UiAction::Refuel,
+    );
+    let conflicts = contract::obligation_conflicts(sim, template);
+    let shortfalls = usize::from(need > 0)
+        + usize::from(forecast.parts_upkeep > sim.ship.spare_parts)
+        + usize::from(sim.ship.fuel < 0.999);
+    (conflicts.len(), shortfalls)
+}
+
+fn build_forecast_details(
+    ctx: &GameplayCtx<'_>,
+    form: &mut Form,
+    template: &crate::data::contracts::ContractTemplate,
+) {
+    let sim = ctx.sim;
+    let forecast = contract::forecast::for_departure(sim, ctx.data, template);
+    form.heading("Provision forecast");
+    form.text("Events and deterioration can change this baseline.");
+    form.text(&format!(
         "Fuel aboard {:.0}% · Travel {} years\nTotal travel burn: {:.2} full tanks\nAnnual scoops: up to {:.1}% of a tank",
         sim.ship.fuel * 100.0,
         forecast.travel_years,
@@ -220,30 +311,6 @@ fn build_departure_provisions(
         forecast.route_hull_change * 100.0,
         forecast.route_life_support_change * 100.0
     ));
-    let fuel_cost = (ctx.data.config.provisioning.fuel_cost_credits_per_point as f32
-        * (1.0 - sim.ship.fuel)
-        * 100.0)
-        .ceil() as i64;
-    form.action(
-        &format!("Refuel tank · {fuel_cost} credits"),
-        sim.ship.fuel < 1.0 && sim.resources.credits >= fuel_cost,
-        UiAction::Refuel,
-    );
-    let conflicts = contract::obligation_conflicts(sim, template);
-    for obligation in &conflicts {
-        form.text(&format!(
-            "! Launch will break: {} · owed to {}",
-            obligation.title, obligation.beneficiary
-        ));
-    }
-    form.text(&format!(
-        "{} promises will be recorded at launch. Review History for inherited obligations.",
-        template.launch_obligation_operations.len()
-    ));
-    let shortfalls = usize::from(need > 0)
-        + usize::from(forecast.parts_upkeep > sim.ship.spare_parts)
-        + usize::from(sim.ship.fuel < 0.999);
-    (conflicts.len(), shortfalls)
 }
 
 fn build_available_charters(ctx: &GameplayCtx<'_>, form: &mut Form) {

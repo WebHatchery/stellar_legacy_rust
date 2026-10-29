@@ -46,9 +46,13 @@ pub(super) fn capture(game: &mut Game, scene: &str) {
         "market" => game.capture_market(),
         "abort" => game.capture_abort(),
         "contracts" => game.capture_contracts(),
-        "prep" | "tutorial" | "tutorial_complete" | "tutorial_navigation" => {
-            game.capture_prep(scene)
-        }
+        "prep"
+        | "prep_briefing"
+        | "prep_approach"
+        | "prep_forecast"
+        | "tutorial"
+        | "tutorial_complete"
+        | "tutorial_navigation" => game.capture_prep(scene),
         "drydock" => game.capture_drydock(),
         "contract_active" | "posture" => game.capture_contract_active(),
         "authority_review" => game.capture_authority_review(),

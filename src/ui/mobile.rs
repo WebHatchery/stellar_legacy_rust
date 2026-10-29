@@ -307,6 +307,18 @@ fn bridge(ctx: &GameplayCtx<'_>, form: &mut Form) {
 
 pub(crate) fn bridge_details(ctx: &GameplayCtx<'_>, form: &mut Form) {
     let sim = ctx.sim;
+    if let Some(duty) = sim
+        .next_timed_obligation()
+        .filter(|d| d.due_year.is_some_and(|year| year <= sim.year() + 1))
+    {
+        form.heading("! A promise needs attention");
+        form.text(&duty.title);
+        form.action_section(
+            "Review obligations",
+            UiAction::SelectScreen(Screen::Chronicle),
+            "obligations",
+        );
+    }
     if sim.resources.energy < ctx.data.config.low_energy_threshold {
         form.heading("! Energy shortage");
         form.text(&format!(
@@ -358,18 +370,6 @@ pub(crate) fn bridge_details(ctx: &GameplayCtx<'_>, form: &mut Form) {
             } else {
                 Screen::Contract
             }),
-        );
-    }
-    if let Some(duty) = sim
-        .next_timed_obligation()
-        .filter(|d| d.due_year.is_some_and(|year| year <= sim.year() + 1))
-    {
-        form.heading("! A promise needs attention");
-        form.text(&duty.title);
-        form.action_section(
-            "Review obligations",
-            UiAction::SelectScreen(Screen::Chronicle),
-            "obligations",
         );
     }
     form.text(&format!(
