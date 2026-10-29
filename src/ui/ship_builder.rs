@@ -206,21 +206,41 @@ fn draw_module_ladder(
         };
         let row = Rect::new(c.x, ry, c.w, row_h);
         ry += row_h;
-        draw_module_rung(ctx, row, id, vi, tier, name, state.tier, pointer, actions);
+        draw_module_rung(
+            ctx,
+            row,
+            ModuleRung {
+                id,
+                tier,
+                name,
+                installed_tier: state.tier,
+            },
+            pointer,
+            actions,
+        );
     }
+}
+
+struct ModuleRung<'a> {
+    id: &'a str,
+    tier: u32,
+    name: &'a str,
+    installed_tier: u32,
 }
 
 fn draw_module_rung(
     ctx: &GameplayCtx<'_>,
     row: Rect,
-    id: &str,
-    vi: usize,
-    tier: u32,
-    name: &str,
-    installed_tier: u32,
+    rung: ModuleRung<'_>,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
+    let ModuleRung {
+        id,
+        tier,
+        name,
+        installed_tier,
+    } = rung;
     if tier < installed_tier {
         draw_ui_text_ex(
             &format!("· {name}"),
@@ -246,7 +266,7 @@ fn draw_module_rung(
             TextStyle::new(11.0, term::accent()),
         );
     } else {
-        draw_module_upgrade(ctx, row, id, vi, name, pointer, actions);
+        draw_module_upgrade(ctx, row, id, tier as usize, name, pointer, actions);
     }
 }
 
@@ -533,7 +553,16 @@ fn draw_component_card(
     draw_component_surface(rect, installed, salvaged);
     draw_component_info(rect, component, installed);
     draw_component_action(
-        ctx, rect, component, installed, salvaged, pointer, kind, actions,
+        ctx,
+        rect,
+        component,
+        ComponentAvailability {
+            installed,
+            salvaged,
+        },
+        pointer,
+        kind,
+        actions,
     );
 }
 
@@ -602,16 +631,24 @@ fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     }
 }
 
+struct ComponentAvailability {
+    installed: bool,
+    salvaged: bool,
+}
+
 fn draw_component_action(
     ctx: &GameplayCtx<'_>,
     rect: Rect,
     component: &ShipComponent,
-    installed: bool,
-    salvaged: bool,
+    availability: ComponentAvailability,
     pointer: Pointer,
     kind: ComponentKind,
     actions: &mut Vec<UiAction>,
 ) {
+    let ComponentAvailability {
+        installed,
+        salvaged,
+    } = availability;
     // Cost is folded into the button so the card stays compact enough for a
     // five-deep catalog column.
     let cost = &component.cost;

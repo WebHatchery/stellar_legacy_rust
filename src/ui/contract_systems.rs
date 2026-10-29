@@ -518,7 +518,6 @@ fn draw_charter_card(
         card,
         title_color,
         selected,
-        locked,
         pointer,
         actions,
     );
@@ -530,7 +529,6 @@ fn draw_charter_card_content(
     card: Rect,
     title_color: Color,
     selected: bool,
-    locked: bool,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
@@ -587,7 +585,7 @@ fn draw_charter_card_content(
     if term_button(
         Rect::new(card.x + 12.0, card.bottom() - 54.0, card.w - 24.0, 44.0),
         label,
-        !locked,
+        !entry.locked,
         pointer,
     ) {
         actions.push(UiAction::SelectCharter(entry.id.clone()));

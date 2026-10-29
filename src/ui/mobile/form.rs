@@ -146,7 +146,17 @@ impl<A> Form<A> {
         let offset = scroll.offset();
         macroquad_toolkit::ui::VirtualUi::responsive().with_clip(view, || {
             draw_scrolled_items(
-                items, sizes, view, width, text_scale, offset, tap, state, actions,
+                items,
+                sizes,
+                ScrolledLayout {
+                    view,
+                    width,
+                    text_scale,
+                    offset,
+                },
+                tap,
+                state,
+                actions,
             );
         });
         scroll.draw_scrollbar_with(
@@ -206,17 +216,27 @@ fn item_sizes<A>(items: &[Item<A>], width: f32, text_scale: f32, view_h: f32) ->
         .collect()
 }
 
-fn draw_scrolled_items<A>(
-    items: Vec<Item<A>>,
-    sizes: Vec<f32>,
+struct ScrolledLayout {
     view: Rect,
     width: f32,
     text_scale: f32,
     offset: f32,
+}
+
+fn draw_scrolled_items<A>(
+    items: Vec<Item<A>>,
+    sizes: Vec<f32>,
+    layout: ScrolledLayout,
     pointer: Pointer,
     state: &presentation::Presentation,
     actions: &mut Vec<A>,
 ) {
+    let ScrolledLayout {
+        view,
+        width,
+        text_scale,
+        offset,
+    } = layout;
     let mut top = view.y - offset;
     for (item, height) in items.into_iter().zip(sizes) {
         let rect = Rect::new(view.x, top, width, height - 12.0);
@@ -250,9 +270,14 @@ fn draw_item<A>(
     }
     match item {
         Item::Text(text, title) => draw_text_item(&text, title, rect, view, text_scale),
-        Item::Action(label, enabled, action, section) => draw_action_item(
-            label, enabled, action, section, rect, pointer, state, actions,
-        ),
+        Item::Action(label, enabled, action, section) => {
+            if term_button(rect, &label, enabled, pointer) {
+                if let Some(section) = section {
+                    *state.mobile_section.borrow_mut() = section;
+                }
+                actions.push(action);
+            }
+        }
         Item::Section(label, section) => draw_section_item(label, section, rect, pointer, state),
         Item::CloseUtilities => draw_close_item(rect, pointer, state),
         Item::Sections(items) => draw_sections_item(items, rect, pointer, state),
@@ -279,24 +304,6 @@ fn draw_text_item(text: &str, title: bool, rect: Rect, view: Rect, text_scale: f
                 TextStyle::new(size, if title { term::primary() } else { term::dim() }).params(),
             );
         }
-    }
-}
-
-fn draw_action_item<A>(
-    label: String,
-    enabled: bool,
-    action: A,
-    section: Option<String>,
-    rect: Rect,
-    pointer: Pointer,
-    state: &presentation::Presentation,
-    actions: &mut Vec<A>,
-) {
-    if term_button(rect, &label, enabled, pointer) {
-        if let Some(section) = section {
-            *state.mobile_section.borrow_mut() = section;
-        }
-        actions.push(action);
     }
 }
 

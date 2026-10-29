@@ -32,8 +32,6 @@ fn draw_card(
     let (Some(def), Some(state)) = (ctx.data.subsystems.get(id), ctx.sim.subsystems.get(id)) else {
         return;
     };
-    let in_port = ctx.sim.contract.is_none();
-
     term_panel(rect, Some(&def.name.to_uppercase()));
     let content = rect.inset(14.0);
     let school = ctx
@@ -52,10 +50,7 @@ fn draw_card(
     draw_card_actions(
         ctx,
         content,
-        id,
-        def,
-        state,
-        in_port,
+        SubsystemDetails { id, def, state },
         institution,
         pointer,
         actions,
@@ -244,39 +239,44 @@ fn institution_action(
     }
 }
 
+struct SubsystemDetails<'a> {
+    id: &'a str,
+    def: &'a crate::data::subsystems::SubsystemDef,
+    state: &'a crate::state::sim::subsystems::SubsystemState,
+}
+
 fn draw_card_actions(
     ctx: &GameplayCtx<'_>,
     content: Rect,
-    id: &str,
-    def: &crate::data::subsystems::SubsystemDef,
-    state: &crate::state::sim::subsystems::SubsystemState,
-    in_port: bool,
+    subsystem: SubsystemDetails<'_>,
     institution: (String, bool, UiAction),
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
+    let SubsystemDetails { id, def, state } = subsystem;
     let bw = (content.w - 3.0 * 8.0) / 4.0;
     let by = content.bottom() - 44.0;
     draw_repair_button(
-        ctx, content.x, by, bw, id, def, state, in_port, pointer, actions,
-    );
-    draw_upgrade_button(
         ctx,
-        content.x + bw + 8.0,
-        by,
-        bw,
+        Rect::new(content.x, by, bw, 44.0),
         id,
         def,
         state,
-        in_port,
+        pointer,
+        actions,
+    );
+    draw_upgrade_button(
+        ctx,
+        Rect::new(content.x + bw + 8.0, by, bw, 44.0),
+        id,
+        def,
+        state,
         pointer,
         actions,
     );
     draw_train_button(
         ctx,
-        content.x + 2.0 * (bw + 8.0),
-        by,
-        bw,
+        Rect::new(content.x + 2.0 * (bw + 8.0), by, bw, 44.0),
         id,
         state,
         pointer,
@@ -295,16 +295,14 @@ fn draw_card_actions(
 
 fn draw_repair_button(
     ctx: &GameplayCtx<'_>,
-    x: f32,
-    y: f32,
-    width: f32,
+    rect: Rect,
     id: &str,
     def: &crate::data::subsystems::SubsystemDef,
     state: &crate::state::sim::subsystems::SubsystemState,
-    in_port: bool,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
+    let in_port = ctx.sim.contract.is_none();
     let can_mend = state.knowledge >= def.repair_knowledge_required;
     let ceiling = if in_port {
         1.0
@@ -335,23 +333,21 @@ fn draw_repair_button(
             def.repair_parts_cost, def.repair_minerals_cost
         )
     };
-    if term_button(Rect::new(x, y, width, 44.0), &label, repair_ok, pointer) {
+    if term_button(rect, &label, repair_ok, pointer) {
         actions.push(UiAction::RepairSubsystem(id.to_owned()));
     }
 }
 
 fn draw_upgrade_button(
     ctx: &GameplayCtx<'_>,
-    x: f32,
-    y: f32,
-    width: f32,
+    rect: Rect,
     id: &str,
     def: &crate::data::subsystems::SubsystemDef,
     state: &crate::state::sim::subsystems::SubsystemState,
-    in_port: bool,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
+    let in_port = ctx.sim.contract.is_none();
     let next = def.next_fitting(state.tier);
     let label = match next {
         Some(t)
@@ -373,16 +369,14 @@ fn draw_upgrade_button(
             ctx.sim.resources.credits >= t.cost.credits
                 && ctx.sim.resources.minerals >= t.cost.minerals
         });
-    if term_button(Rect::new(x, y, width, 44.0), &label, enabled, pointer) {
+    if term_button(rect, &label, enabled, pointer) {
         actions.push(UiAction::UpgradeSubsystem(id.to_owned()));
     }
 }
 
 fn draw_train_button(
     ctx: &GameplayCtx<'_>,
-    x: f32,
-    y: f32,
-    width: f32,
+    rect: Rect,
     id: &str,
     state: &crate::state::sim::subsystems::SubsystemState,
     pointer: Pointer,
@@ -399,7 +393,7 @@ fn draw_train_button(
     } else {
         format!("TRAIN TO {:.0}% · {cost}cr", target * 100.0)
     };
-    if term_button(Rect::new(x, y, width, 44.0), &label, enabled, pointer) {
+    if term_button(rect, &label, enabled, pointer) {
         actions.push(UiAction::TrainSubsystemKnowledge(id.to_owned()));
     }
 }

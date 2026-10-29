@@ -113,7 +113,13 @@ fn draw_market_rows(
     const ROW_GAP: f32 = 8.0;
     for entry in &ctx.sim.market.entries {
         draw_market_row(
-            ctx, entry, content, pointer, actions, small_lot, cargo_lot, y,
+            ctx,
+            entry,
+            Rect::new(content.x, y, content.w, ROW_H),
+            pointer,
+            actions,
+            small_lot,
+            cargo_lot,
         );
         y += ROW_H + ROW_GAP;
     }
@@ -123,18 +129,15 @@ fn draw_market_rows(
 fn draw_market_row(
     ctx: &GameplayCtx<'_>,
     entry: &crate::state::sim::MarketEntry,
-    content: Rect,
+    row: Rect,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
     small_lot: i64,
     cargo_lot: i64,
-    y: f32,
 ) {
-    const ROW_H: f32 = 100.0;
     let col_held = 220.0;
     let col_price = 380.0;
     let col_trend = 540.0;
-    let row = Rect::new(content.x, y, content.w, ROW_H);
     draw_surface(
         row,
         &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),

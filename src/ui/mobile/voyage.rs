@@ -130,7 +130,7 @@ fn build_approach_choices(
         let active = sim.selected_charter_approach == candidate;
         let available =
             crate::simulation::approach::choice_available(sim, ctx.data, template, candidate);
-        form.heading(&candidate.label_for(template.objective));
+        form.heading(candidate.label_for(template.objective));
         form.text(&format!(
             "{}\n{}",
             candidate.description_for(template.objective),

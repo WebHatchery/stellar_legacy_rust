@@ -397,10 +397,12 @@ pub fn advance_contract(
         advance_objective(
             contract,
             config,
-            speed,
-            combat,
-            cargo,
-            crew,
+            ObjectiveLoadout {
+                speed,
+                combat,
+                cargo,
+                crew,
+            },
             &factors,
             phase,
             &mut trained_subsystem,
@@ -510,17 +512,27 @@ struct ContractFactors {
     approach_factor: f32,
 }
 
-fn advance_objective(
-    contract: &mut ActiveContract,
-    config: &crate::data::GameConfig,
+struct ObjectiveLoadout {
     speed: i32,
     combat: i32,
     cargo: i32,
     crew: i32,
+}
+
+fn advance_objective(
+    contract: &mut ActiveContract,
+    config: &crate::data::GameConfig,
+    loadout: ObjectiveLoadout,
     factors: &ContractFactors,
     phase: ContractPhase,
     trained_subsystem: &mut Option<String>,
 ) {
+    let ObjectiveLoadout {
+        speed,
+        combat,
+        cargo,
+        crew,
+    } = loadout;
     if contract.preserve_objective {
         if matches!(
             phase,

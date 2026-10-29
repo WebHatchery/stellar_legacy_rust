@@ -197,7 +197,7 @@ fn build_rows(
             "food",
             "FOOD",
             band(food.score, data),
-            format_food(&food),
+            format_food(food),
             trend(food.score),
             "optimise_hydroponics",
             Some("agriculture"),
