@@ -7,9 +7,9 @@ was opened in a temporary local browser profile. A fresh player selected a legac
 origin and three founding factions, began the voyage, opened People and Ship, then
 visited Voyage/Drydock and reached the Loadout refit view at Guide 6/11. The
 temporary browser tab and local server were closed after inspection. This is a
-route sample for the exact candidate, not a full acceptance run; the outstanding
-succession, obligation, Homecoming, terminal, clean-machine, and store-client
-scenarios remain listed in `docs/release/QA_AND_OPERATIONS.md`.
+route sample for the exact candidate, not a full acceptance run. The owner later
+confirmed completion of the wider acceptance work; see
+[completed acceptance](../release/QA_AND_OPERATIONS.md#acceptance--complete).
 
 ## 9 September 2026 — founding and first charter
 
@@ -28,9 +28,9 @@ outlooks, cared-for subsystems, a selected count, explicit Remove controls,
 and disabled excess choices. Phone captures cover the revised picker; they
 are layout evidence, not a live replay of the revised route.
 
-Full voyage, save/reload at all major boundaries, succession, terminal recovery and fresh-player
-comprehension acceptance remain open in TODO.md. This check does not close
-those gates.
+This historical check did not cover full voyage, save/reload at all major
+boundaries, succession, terminal recovery or fresh-player comprehension. The
+owner subsequently confirmed the wider acceptance work complete, as recorded above.
 
 Continued the same loaded package through Provisions Reviewed → People → Ship →
 Voyage → Launch → Ship / Agenda → Available projects → Queue project → Pause →

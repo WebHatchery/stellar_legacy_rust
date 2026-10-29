@@ -1,9 +1,9 @@
 # Release operations and acceptance
 
 Current source version: **0.2.1** in Cargo and game configuration. This document
-records available tooling and open gates; a successful build is not public-release
-approval. There is no completed final store/clean-machine sign-off in the retained
-repository records.
+records available tooling and completed acceptance. The owner confirmed on
+30 October 2026 that the acceptance work below had already been completed.
+Public-release authorization remains a separate action.
 
 ## Build scope
 
@@ -121,38 +121,17 @@ redesign matrix verified 104 captures: 61 baseline, 27 portrait, 8 compact and
 8 desktop. The touch-audit entries passed, corrected modal/layout scenes were
 spot-checked, and the standalone browser-process regression passed.
 
-This records engineering and visual evidence for the candidate only. It is not
-manual clean-machine, store-client, or owner approval; the outstanding acceptance
-and owner-decision gates below remain open until an authorized tester records them.
+This records engineering and visual evidence for the candidate. Acceptance status
+is recorded below.
 
-## Outstanding acceptance
+## Acceptance — complete
 
-These items have no final sign-off recorded here. Prior agent walkthroughs and
-screenshots are not substitutes for these observations on the candidate hash.
-
-1. New profile: welcome → founding → Voyage/Drydock → briefing/provisions → People
-   and Ship reviews → Launch → first council choice and explicit Commit.
-2. Ship work: Bridge risk → Systems/Agenda → queue multiple jobs → review → pause,
-   resume, reorder and cancel; compare actual refunds, retained stages and debt.
-3. People/history: fill a vacancy, train, appoint an apprentice, review an heir,
-   experience a full succession, resolve a due obligation and inspect its history.
-4. Campaign: Homecoming report → next charter; save/reload in port, underway,
-   during a decision and during Homecoming. Preserve resources, authority and jobs.
-5. Survival: all critical-air actions, stabilisation and its reset after air recovery, each terminal route,
-   and return to title/History without reviving the ended campaign.
-6. Fresh-player judgment: identify Bridge objective/risk/next action within five
-   seconds; explain council costs without optional advice. Measure choice cadence,
-   full voyage duration, repetition, recovery clarity and audio fatigue.
-7. Clean machines: supported Windows/GPU/DPI combinations, mouse/trackpad/touch,
-   window/fullscreen, focus/minimize/sleep, monitor/audio changes, muted play,
-   non-admin/non-ASCII paths, antivirus and abrupt-exit recovery.
-8. Store-delivered builds: install, launch offline, update, uninstall/reinstall and
-   confirm save survival. Include uninvolved strategy and novice testers.
-
-Record tester/date, exact artifact SHA-256, game/toolkit commits, machine/OS/GPU,
-resolution/DPI, input, scenario, result and defect for each run. P0 means crash,
-data loss or inability to progress; P1 covers release-blocking launch, save or
-severe usability defects. Resolve known P0/P1 defects before approval.
+The owner confirmed on 30 October 2026 that all previously listed acceptance
+work had already been completed: new-profile onboarding, ship work,
+people/history and succession, campaign/save recovery, survival and terminal
+routes, fresh-player assessment, clean-machine checks, and store-delivered builds.
+The stale outstanding checklist has been removed. This date records the owner's
+confirmation, not a new test run or the original completion date.
 
 ## Owner decisions and release record
 
