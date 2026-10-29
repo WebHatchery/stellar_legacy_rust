@@ -15,6 +15,13 @@ folder. Moving to a different origin/profile or clearing site storage can make
 those saves unavailable. Demo and full-game namespaces are separate even on the
 same origin. There is no cloud synchronization.
 
+Campaign checkpoints run every 30 seconds while the application is running,
+including paused play, and at major campaign transitions. They do not run while
+the application is suspended. Abrupt closure can lose changes since the last
+successful checkpoint. A failed save reports an error and retries after 30 seconds;
+Utilities → Save game retries immediately. Keep the application open until saving
+succeeds. Return to menu and filing Homecoming keep the live session if saving fails.
+
 The campaign loader accepts 0.1.0 and 0.2.0 through the current migration path,
 validates 0.2.1 saves and rejects unsupported formats. Failed loads attempt to
 preserve a quarantined slot and report the outcome. Do not delete all saves to

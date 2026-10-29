@@ -94,6 +94,13 @@ tap **Navigate** to open the destinations, then tap the station you want.
 | **Utilities / Help / Display & sound** | Read controls and identity guidance, or adjust presentation, audio, and delegation settings. |
 
 Saves are local. On Windows, **HELP → OPEN SAVE FOLDER** opens their location.
+Campaigns autosave every 30 seconds of active application time, including in
+port and while paused, and at founding, voyage phase changes, council decision
+changes, succession, Homecoming and campaign end. Manual saving remains available.
+If saving fails, keep the game open: it retries every 30 seconds, or immediately
+through **Utilities / Save game**. Returning to the menu waits for a successful save.
+Closing the application or browser can lose changes since the last successful
+checkpoint; autosave does not run while the application is suspended.
 The game remains readable with audio muted.
 
 ## Advice for a lasting dynasty

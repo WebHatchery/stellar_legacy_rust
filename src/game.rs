@@ -5,6 +5,7 @@
 mod actions;
 mod build_mode;
 mod capture_scenes;
+mod checkpoints;
 mod progression;
 mod realtime;
 mod render;
@@ -64,6 +65,7 @@ fn current_decision_key(sim: &SimState) -> Option<String> {
 }
 
 pub struct Game {
+    checkpoints: checkpoints::Checkpoints,
     data: GameData,
     state: GameState,
     chronicle: ChronicleStore,
@@ -228,6 +230,7 @@ impl Game {
         let onboarding = crate::settings::Onboarding::load(&data.config.game_name);
 
         Self {
+            checkpoints: checkpoints::Checkpoints::new(data.config.autosave_interval_seconds),
             data,
             state: GameState::Menu(MenuState::new(save_exists)),
             chronicle,
@@ -355,6 +358,7 @@ impl Game {
         // Drive real time last, once input has been applied (real-time loop §1/§2):
         // auto-advance the month clock under way, or run the decision countdown.
         self.update_realtime(dt);
+        self.update_checkpoints(get_frame_time());
         let ambience = self.display.ambience
             && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && !gameplay.sim.dynasty.extinct && gameplay.sim.terminal.is_none());
         self.audio
@@ -585,6 +589,8 @@ impl Game {
                 let heritage = crate::heritage::derive(&self.chronicle, &self.data.config.heritage);
                 crate::heritage::apply(&mut sim, &heritage);
                 self.state = GameState::Gameplay(Box::new(GameplayState::new(sim)));
+                self.checkpoints =
+                    checkpoints::Checkpoints::new(self.data.config.autosave_interval_seconds);
                 self.tutorial_open = self.display.tutorial_enabled;
                 if heritage.has_bonus() {
                     self.notifications.success(format!(
@@ -614,18 +620,18 @@ impl Game {
                         sim.tutorial_step = 0;
                     }
                     self.state = GameState::Gameplay(Box::new(GameplayState::new(sim)));
+                    self.checkpoints =
+                        checkpoints::Checkpoints::new(self.data.config.autosave_interval_seconds);
                     self.tutorial_open = self.display.tutorial_enabled;
                     self.notifications.success("Voyage resumed.");
                 }
                 Err(err) => self.notifications.danger(format!("Load failed: {err}")),
             },
             StateTransition::ToMenu => {
-                if let GameState::Gameplay(gameplay) = &self.state {
-                    match save::save_campaign(&self.data.config, &gameplay.sim) {
-                        Ok(()) => self.notifications.info("Voyage autosaved."),
-                        Err(err) => self.notifications.danger(format!("Autosave failed: {err}")),
-                    }
+                if self.persist_campaign().is_err() {
+                    return;
                 }
+                self.notifications.info("Voyage autosaved.");
                 self.state = GameState::Menu(MenuState::new(save::save_exists(&self.data.config)));
             }
         }

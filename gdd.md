@@ -268,6 +268,16 @@ campaign slot. Chronicle history uses its own slot and survives new campaigns.
 Display, delegation and onboarding preferences use separate keys. The demo adds
 `_demo` to the namespace, isolating saves and preferences.
 
+The session checkpoints the campaign every 30 seconds of application time,
+including paused decisions and port preparation. Founding/loading a campaign,
+voyage phase changes, decision changes, succession, Homecoming and terminal
+outcomes also checkpoint at the end of the update. Captures never checkpoint.
+The timer is independent of simulation speed and does not run while suspended.
+Writes use the toolkit's atomic native slot replacement or browser storage.
+Failed writes report an error and retry at the configured interval rather than
+every frame; manual Save game retries immediately. Return to menu and filing
+Homecoming retain the live campaign/report if the save fails.
+
 Version 0.2.1 accepts 0.1.0 and 0.2.0 campaigns through explicit migration and
 validation. Version 0.2.0 quarters investments retain final-only delivery;
 0.1.0 survival state receives recovery migration. Unsupported or invalid saves

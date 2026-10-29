@@ -35,19 +35,9 @@ impl Game {
                     }
                 }
                 self.notifications.success(note);
-                if let Err(error) = self.save_campaign() {
-                    self.notifications
-                        .danger(format!("Autosave failed: {error}"));
-                }
+                let _ = self.persist_campaign();
             }
             Err(error) => self.notifications.warning(error),
         }
-    }
-
-    fn save_campaign(&mut self) -> Result<(), String> {
-        let GameState::Gameplay(gameplay) = &self.state else {
-            return Ok(());
-        };
-        crate::save::save_campaign(&self.data.config, &gameplay.sim)
     }
 }

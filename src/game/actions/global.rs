@@ -37,11 +37,8 @@ impl Game {
     fn handle_save_game(&mut self, action: UiAction) -> Option<StateTransition> {
         match action {
             UiAction::SaveGame => {
-                if let GameState::Gameplay(gameplay) = &self.state {
-                    match save::save_campaign(&self.data.config, &gameplay.sim) {
-                        Ok(()) => self.notifications.success("Voyage saved."),
-                        Err(err) => self.notifications.danger(format!("Save failed: {err}")),
-                    }
+                if self.persist_campaign().is_ok() {
+                    self.notifications.success("Voyage saved.");
                 }
                 None
             }
@@ -88,7 +85,7 @@ impl Game {
                 // alone dismisses the takeover — and land on the drydock board,
                 // where the next charter is chosen. Autosave so a filed report
                 // does not come back on the next load.
-                if let GameState::Gameplay(gameplay) = &mut self.state {
+                let report = if let GameState::Gameplay(gameplay) = &mut self.state {
                     if gameplay
                         .sim
                         .debrief
@@ -100,13 +97,18 @@ impl Game {
                             .warning("Choose or defer the homecoming recovery before filing.");
                         return None;
                     }
-                    gameplay.sim.debrief = None;
-                    gameplay.screen = crate::state::Screen::Drydock;
-                }
-                if let GameState::Gameplay(gameplay) = &self.state {
-                    if let Err(err) = save::save_campaign(&self.data.config, &gameplay.sim) {
-                        self.notifications.danger(format!("Autosave failed: {err}"));
+                    gameplay.sim.debrief.take()
+                } else {
+                    return None;
+                };
+                if self.persist_campaign().is_err() {
+                    if let GameState::Gameplay(gameplay) = &mut self.state {
+                        gameplay.sim.debrief = report;
                     }
+                    return None;
+                }
+                if let GameState::Gameplay(gameplay) = &mut self.state {
+                    gameplay.screen = crate::state::Screen::Drydock;
                 }
                 if crate::data::contracts::is_demo_build() {
                     self.state = GameState::Menu(MenuState::new(true));

@@ -29,6 +29,7 @@ pub struct GameConfig {
     pub game_name: String,
     pub display_name: String,
     pub save_slot: String,
+    pub autosave_interval_seconds: f32,
     pub chronicle_slot: String,
     pub version: String,
     pub starting_resources: ResourceDelta,

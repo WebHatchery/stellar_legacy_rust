@@ -2,6 +2,7 @@
   "game_name": "stellar_legacy",
   "display_name": "Stellar Legacy",
   "save_slot": "autosave",
+  "autosave_interval_seconds": 30.0,
   "chronicle_slot": "chronicle",
   "version": "0.2.1",
   "starting_resources": {
