@@ -93,9 +93,10 @@ What to do:
 - There are no hover states or hover tooltips. On PC, hover is the main way
   people learn a strategy game. The game has a lot of jargon (§3.4) and no
   hover glossary for it.
-- There are no keyboard shortcuts for time control (Space to pause, 1/2/3 for
-  speed), Esc to close, or tab cycling. Shortcuts such as BEGIN VOYAGE
-  [ENTER] and BACK [ESC] appear on one screen only.
+- Space pauses play (`src/game.rs`), but the game never tells the player.
+  There is no shortcut for 1/2/3 speed, Esc to close or tab cycling, and
+  hints such as BEGIN VOYAGE [ENTER] and BACK [ESC] appear on one screen
+  only. Add the missing keys and a shortcut list in Help.
 - The Steam features players assume are not wired up: the achievements in
   `src/achievements.rs` are local-only, and there is no Steam Cloud. The store
   copy is honest about this, but for a strategy game with long saves, Cloud and
