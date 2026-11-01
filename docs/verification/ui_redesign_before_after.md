@@ -4,7 +4,7 @@ The responsive Agenda pass is visible in the existing portrait captures:
 
 - [Earlier portrait baseline](ui_agenda_catalogue_portrait_existing.png)
 - [Current portrait layout](ui_agenda_catalogue_portrait.png)
-- [Current desktop Bridge](ui_gameplay_desktop.png)
+- [Current desktop Bridge](ui_gameplay.png)
 - [Current compact Bridge](ui_gameplay_portrait.png)
 
 The comparison shows a structural change: the current view separates the
