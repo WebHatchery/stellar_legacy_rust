@@ -148,7 +148,12 @@ impl Game {
         let help_action = self.help_open.then(|| self.draw_help(pointer)).flatten();
         let mut time_actions = Vec::new();
         if let GameState::Gameplay(gameplay) = &self.state {
-            if !self.settings_open && !self.help_open && !self.welcome_open {
+            // A lost vessel has no clock left to run.
+            if !self.settings_open
+                && !self.help_open
+                && !self.welcome_open
+                && gameplay.sim.terminal.is_none()
+            {
                 ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
             }
         }
