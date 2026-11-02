@@ -132,7 +132,7 @@ function Assert-WebGLPackage([string]$Directory) {
             "--headless=new", "--no-first-run", "--disable-extensions",
             ('--user-data-dir="{0}"' -f $profile),
             "--enable-unsafe-swiftshader", "--use-angle=swiftshader",
-            "--window-size=1280,720", "--virtual-time-budget=12000",
+            "--window-size=1920,1080", "--virtual-time-budget=12000",
             "--dump-dom", $url
         ) -join ' '
         $exitCode = Invoke-ReleaseBrowser -FilePath $browser -Arguments $browserArguments `

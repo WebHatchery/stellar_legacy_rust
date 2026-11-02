@@ -305,81 +305,61 @@ from human acceptance.
 Bridge, Ship, People, Voyage and History stay in a stable order in port and underway.
 Ship contains Loadout, Systems and Agenda; People separates Family, Officers,
 Factions and Council. Voyage offers Drydock/Market in port and Contract underway.
-The compact Family view distinguishes the automatically planned successor from
-a named heir, explains the eligible age range and retains a visible current-heir
-marker after designation. Family entries include specialization and trait.
-Compact officer entries explain each post, retirement timing and apprenticeship
-succession. Training names its resulting skill, and unaffordable actions show
-the missing credits alongside the available balance.
-Compact faction entries show aboard/departed status, approval bands, authored
-system names and explicit empty relationship states. Recruitment includes each
-group's description before its action.
-Council uses a shared scrolling brief across display sizes. Delegation controls
+Family entries include specialization and trait. Training names its resulting
+skill, and unaffordable actions show the missing credits alongside the
+available balance. Council uses a scrolling brief. Delegation controls
 name both the current mode and the next action, followed by captain, succession,
 staffing and legacy-risk context. No risk factors are clipped below the panel.
-Compact obligation lists put active deadlines first and distinguish due, overdue
-and closed duties. Full histories start with Back to obligations and show the
-captain and status of each entry; empty lists explain what belongs there.
-Timeline selections retain the same decision when new records arrive, in both
-the desktop and compact reading layouts.
-Both archive layouts show recent voyages first with captain, duration, posture,
+Full obligation histories start with Back to obligations and show the captain
+and status of each entry; empty lists explain what belongs there.
+Timeline selections retain the same decision when new records arrive.
+The voyage archive shows recent voyages first with captain, duration, posture,
 charter approach and percentage scores. Heritage explains the current and next
 new-dynasty bonus;
 an empty archive explains when voyage reports are recorded.
-Milestones scroll in both layouts and show current progress toward unreached
+Milestones scroll and show current progress toward unreached
 goals, distinguishing dynasty-specific years and generations from archive totals.
-Compact loadout repairs show their resulting condition, field-repair ceiling,
-material shortfalls and full-refit benefits before the player spends resources.
 Recovered fittings use authored names, identify the replaced part and explain
 installation costs, engineer requirements and drydock-only restrictions.
-The compact drydock catalogue marks installed and recovered parts, quotes every
-resource cost and distinguishes component fitting from hull commissioning.
 Emergency stabilisation controls share the action's availability check and cannot
-spend stores at full air. Compact recovery reviews show costs, the resulting air
-level and the one-use-per-crisis limit before the action.
+spend stores at full air.
 Compartment upgrades identify the next fitting and distinguish purchased tiers
 from mission rewards, with full costs and explicit port-only installation.
 Compartment cards show the local custodian, authored descriptor, exact annual
-effects, remembered institutional moment and current grievance. The compact
-Systems view carries the same record alongside repair and continuity controls.
-Compact discipline controls show school funding dates, knowledge-preservation
+effects, remembered institutional moment and current grievance. Discipline
+controls show school funding dates, knowledge-preservation
 benefits, existing archives and custodians. Custody explains its lasting choice
 and stops offering another appointment once a custodian exists.
 Utilities contains Save game, Help, Display & sound and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
-Responsive and phone navigation underline the active destination and section;
-phone speed controls underline the current running speed. Touch presses visibly
-light navigation targets, and Drydock/Market share a compact section row.
-Section rows reflow to fit enlarged labels. Scrolling documents reserve a footer
+Navigation underlines the active destination and section, and speed controls
+underline the current running speed. Presses visibly light navigation targets,
+and Drydock/Market share a section row. Scrolling documents reserve a footer
 for a reading hint that distinguishes more content from the end of the section.
-Phone navigation uses a second row when enlarged labels need it. At extreme UI
-scale or limited height, a persistent Navigate control opens the five destinations
-as a scrollable list; Back returns to the current screen. The phone
-header and time controls reserve space for the selected text size.
 Council choices select a response before explicit Commit; full consequences scroll.
 Immediate council fuel consequences show the tank before and after subsystem
 protection and capacity limits, rather than an uncapped authored percentage.
 Decision countdowns explicitly say when fallback is paused, alongside the
 remaining seconds, consistently across council, mandate and legacy decisions.
-Return-home reviews share a scrolling consequence summary across display sizes.
+Return-home reviews use a scrolling consequence summary.
 Keep voyaging, station navigation and Utilities close the review and release its
 temporary clock hold; the selected time speed is preserved.
-The phone posture comparison identifies the current policy, explains the 100%
+The posture comparison identifies the current policy, explains the 100%
 baseline and annual social tradeoffs, and shows months until another proposal
 is available. The current policy cannot be proposed again.
-The phone voyage report exposes the shared travel fuel check. A fuel stall
+The voyage report exposes the shared travel fuel check. A fuel stall
 explains current annual scoop recovery or its absence, port-only refuelling,
 and provides a visible link to Agenda readiness. Fuel readiness is distinct
 from whether the player has paused time.
 Departure fuel forecasts name total burn in full tanks and annual scoop recovery
 as a percentage of one tank, making replenishment across long voyages explicit.
-The narrow founding picker shows each people's outlook and cared-for subsystem
+The founding picker shows each people's outlook and cared-for subsystem
 before selection. It counts selected peoples, names Remove explicitly, disables
 additional selections when full, and explains how many more are needed to begin.
 The guide offers FINISH only after all lessons, including the council response,
-are complete. Its completion message is visible on desktop and phone; advancing
+are complete. Its completion message stays visible; advancing
 a lesson returns a scrolling reading view to the next instruction.
-Agenda project reviews share one reading flow across display sizes. Pause and
+Agenda project reviews use one reading flow. Pause and
 resume show the same availability checks used by the command, including slots,
 port restrictions and exact restoration affordability. Cancellation has a
 separate refund review with Keep project and Confirm cancellation controls.
@@ -387,14 +367,14 @@ Station navigation, Utilities and campaign transitions close project reviews
 and release their temporary clock hold without changing the chosen game speed.
 Catalogue entries, queued work and reviews use the same authored subsystem names
 as the Systems screen, so the player can identify each project's target.
-Project choices and reviews include their authored purpose. Desktop catalogue
-details and phone entries share a scrolling description, budget and delivery
-schedule before the queue action.
+Project choices and reviews include their authored purpose. Catalogue details
+show a scrolling description, budget and delivery schedule before the queue
+action.
 Successful additions return to the project queue and name the added work.
-The desktop selection follows the new job; failed additions keep the current
+The selection follows the new job; failed additions keep the current
 choice visible with the failure reason.
 Waiting positions count queued and paused jobs, skipping running and ended work.
-Reorder buttons stop at the list boundaries, and desktop selection follows the
+Reorder buttons stop at the list boundaries, and selection follows the
 moved job. The queue explains that unavailable jobs are skipped and paused work
 requires an explicit resume.
 Catalogue and recovery controls check live duplicates and queue capacity before
@@ -403,10 +383,9 @@ starting budget alone does not prevent creating an unpaid waiting job.
 
 Amber is the default color scheme, with Green and Slate available. Scanlines and
 flicker default off. Master sound and ambience are independently controlled.
-UI scale is 75–200% and text size 75–150%, separately saved with visible resets.
-Full-window responsive coordinates reflow/scroll panels; scale does not zoom a
-world camera or force desktop into mobile navigation. Settings retains a fixed
-Close settings control. Touch-only long-route acceptance remains open in release QA.
+The interface is authored for one 1920×1080 canvas, scaled to fit the window or
+browser canvas. Text size is 75–150%, saved with a visible reset. Settings
+retains a fixed Close settings control.
 
 ## 10. Shared toolkit boundary
 

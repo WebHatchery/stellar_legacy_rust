@@ -57,9 +57,9 @@ not new systems.
 
 ### B0 — The UI does not scale to 1080p
 
-This is the single biggest 1080p problem. At the default settings the
-interface draws at the same pixel size as at 1280×720. Larger panels simply
-stretch to fill the extra space.
+This is the single biggest 1080p problem. The layouts' type and row sizes
+are too small for a 1920×1080 canvas, and larger panels simply stretch to
+fill the space.
 
 - **Text is too small for a 24″ monitor viewed from a desk.**
   - The resource and status header is roughly 11 px.
@@ -88,14 +88,14 @@ stretch to fill the extra space.
     field.
 
 What to do:
-- Set the default UI scale from the window height. 1080 / 720 gives 150 %, and
-  the setting already exists in Settings.
-- Separately, define how layouts use extra space at 1080p: wider columns,
-  more items per row, side detail panes. Stretching empty frames is not enough.
+- Author the type and row sizes for the 1920×1080 canvas directly, with a
+  minimum of about 16 px.
+- Recompose each layout to use the 1080p space: wider columns, more items per
+  row, side detail panes. Stretching empty frames is not enough.
 - Anchor actions next to their content.
 
-This extends UI-01: make 1920×1080 the primary supported canvas, and treat the
-other sizes as secondary.
+Since 2 November 2026 the game targets only the 1920×1080 canvas (TODO.md,
+Supported canvas); the compact, phone and UI-scale paths are removed.
 
 ### B1 — There is no music, and the soundscape is a placeholder
 
@@ -308,8 +308,8 @@ Tradition. Needed:
 Each item is a separate, committable slice. Verify each at 1920×1080.
 
 **Tier 0 — required before a Steam page goes live**
-1. B0: resolution-relative default UI scale, plus a 1080p layout pass that
-   anchors actions to their content and uses the extra space.
+1. B0: 1080p type sizes, plus a 1080p layout pass that anchors actions to
+   their content and uses the space.
 2. B4: fix clipping and wrapping, size buttons to their text, and make the
    capture audit fail on clipped labels.
 3. B5: hide time controls where they do nothing (finish UI-03).

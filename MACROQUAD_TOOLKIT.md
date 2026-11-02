@@ -558,7 +558,7 @@ use macroquad_toolkit::capture;
 fn window_conf() -> Conf {
     // Reads MYGAME_WINDOW_WIDTH/HEIGHT overrides; disables high_dpi while
     // capturing so screenshots are pixel-aligned with the logical layout.
-    capture::capture_window_conf("MYGAME", "My Game", 1280, 720)
+    capture::capture_window_conf("MYGAME", "My Game", 1920, 1080)
 }
 
 #[macroquad::main(window_conf)]

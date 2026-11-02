@@ -38,8 +38,6 @@ scars that the next generation must manage.
    tutorial voyage: 150 years split into 50-year outbound, operation, and return
    legs. Tap **Read briefing & prepare** to inspect a charter without launching.
 3. Review departure commitments and the **FOOD**, **PARTS**, and **FUEL** estimates.
-   On phones, **Briefing, phases & risks** opens the full explanation;
-   **Compare charter approaches** opens the approach choices.
    Choose a **CHARTER APPROACH** for this writ; compare its work, event, fuel,
    and people tradeoffs before committing. Use the stock-up controls or **MARKET**
    to provision the ship. Tap **PROVISIONS REVIEWED** when the guide asks you to.
@@ -53,7 +51,7 @@ scars that the next generation must manage.
    mission. Start at **1x** and tap **PAUSE** whenever you need to review or act.
    Tap **RESUME** to continue; **2x** and **3x** speed up quieter stretches.
 7. Open **Ship / Agenda**. Read the readiness rows and any aftermath notices, choose a
-   useful project, tap **Queue project** (open **Available projects** first on a narrow screen), and tap **RESUME**. Two projects may run at once;
+   useful project, tap **Queue project**, and tap **RESUME**. Two projects may run at once;
    queued work waits without charging until it starts.
    Tap **Review project** to see delivered stages, remaining work, and pause or
    resume availability. **Review cancellation** shows the refund before
@@ -78,8 +76,6 @@ demo is limited to that single tutorial voyage.
 
 The game works with a mouse or touch. Use visible buttons and option cards;
 a keyboard is optional. Drag lists to scroll.
-With enlarged text, phone navigation wraps into two rows. If space is too tight,
-tap **Navigate** to open the destinations, then tap the station you want.
 
 | Control or screen | Use it to |
 | --- | --- |
@@ -136,21 +132,15 @@ The game remains readable with audio muted.
 
 Preparation focuses on whether to provision or launch: available credits,
 stores, purchase costs, and conflicting or imminent promises precede the
-launch action. Phone preparation uses a scrolling column at 390×844, with
-44-pixel or larger visible controls; approach comparisons, phase descriptions,
-risks, and forecast explanations open separate views with a Back control.
-The selected approach and posture remain beside launch. The desktop Bridge
-at 1280×800 gives imminent promises their own review action alongside resource
-recovery, so a shortage cannot hide a due commitment. Phone Bridge puts the
-same promise review ahead of resource recovery in its scrolling flow.
+launch action. The selected approach and posture remain beside launch. The
+Bridge gives imminent promises their own review action alongside resource
+recovery, so a shortage cannot hide a due commitment.
 
-In **Display & sound**, UI scale adjusts interface sizes from 75% to 200%
-without shrinking the game into a bordered canvas or changing world-camera zoom.
-HUD panels stay anchored to the window; smaller UI exposes more information,
-and crowded panels wrap or scroll their own contents. **Text size** is a separate
-75–150% preference. Each has a visible **Reset** button, defaults to 100%, and
-saves automatically. The settings dialog keeps **Close settings** fixed while
-its contents scroll. Neither preference changes the simulation or campaign save.
+The game is designed for a single 1920×1080 desktop canvas. Larger or smaller
+windows, and the browser canvas, show that same layout scaled to fit. In
+**Display & sound**, **Text size** is a 75–150% preference with a visible
+**Reset** button; it defaults to 100% and saves automatically. The settings dialog keeps **Close settings** fixed while
+its contents scroll. It does not change the simulation or campaign save.
 
 Color scheme offers Amber (default), Green and Slate. Scanlines and flicker
 start disabled; sound remains optional. These preferences are separate from
@@ -165,7 +155,7 @@ publisher; the `demo` feature limits charters and isolates saves for the tutoria
 
 The documentation set has separate, current purposes:
 
-- [Game design and architecture](gdd.md): implemented rules, ownership and data.
+- [Game design and architecture](docs/gdd.md): implemented rules, ownership and data.
 - [Event authoring](event_design_notes.md): schema, voice and content quality.
 - [Open work](TODO.md): unfinished acceptance and deferred design intent.
 - [Coding standards](CODE_STANDARDS.md) and [agent instructions](AGENTS.md).
