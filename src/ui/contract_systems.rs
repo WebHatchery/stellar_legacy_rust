@@ -98,7 +98,9 @@ pub fn draw_active_screen(
 }
 
 fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    let contract = ctx.sim.contract.as_ref().unwrap();
+    let Some(contract) = ctx.sim.contract.as_ref() else {
+        return;
+    };
     let left = Rect::new(area.x, area.y, area.w * 0.6, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
     term_panel(left, Some("ACTIVE CONTRACT"));

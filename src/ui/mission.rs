@@ -76,12 +76,16 @@ pub fn draw_selected(
 pub(crate) fn build_abort(ctx: &GameplayCtx<'_>, form: &mut crate::ui::form::Form) {
     form.heading("Return home early?");
     form.action("Keep voyaging", true, UiAction::DismissReturnHome);
-    if !crate::simulation::contract::can_return_home(ctx.sim) {
+    let return_leg = ctx
+        .sim
+        .contract
+        .as_ref()
+        .filter(|_| crate::simulation::contract::can_return_home(ctx.sim))
+        .and_then(|contract| Some((contract, contract.first_return_index()?)));
+    let Some((contract, index)) = return_leg else {
         form.text("An early return is no longer available. Close this review to continue.");
         return;
-    }
-    let contract = ctx.sim.contract.as_ref().unwrap();
-    let index = contract.first_return_index().unwrap();
+    };
     let years: u32 = contract
         .phases
         .iter()

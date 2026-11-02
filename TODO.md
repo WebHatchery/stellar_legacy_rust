@@ -121,7 +121,7 @@ run interactively; the findings below come from reading the code.
   it can never run.
   **Action:** delete the orphaned comment, rewrite the `TickReport` summary,
   and either print the clashes before asserting or drop the loop.
-- [ ] **CR-07 — UI code panics on conditions that other code guarantees (agent, low).**
+- [x] **CR-07 — UI code panics on conditions that other code guarantees (agent, low).**
   `ui/contract_systems.rs::draw_active` (`contract.as_ref().unwrap()`),
   `ui/mission.rs::build_abort` (two unwraps behind `can_return_home`) and
   `ui/agenda.rs` (`waiting_position(..).expect("waiting job")`) depend on

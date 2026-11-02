@@ -141,12 +141,12 @@ fn draw_job_header(
             job.progress(definition.duration_months) * 100.0
         ),
         ProjectStatus::Paused | ProjectStatus::Queued => {
-            let (position, count) = ctx
-                .sim
-                .projects
-                .waiting_position(job.sequence_id)
-                .expect("waiting job");
-            format!("WAITING {position}/{count} · {:?}", job.status)
+            match ctx.sim.projects.waiting_position(job.sequence_id) {
+                Some((position, count)) => {
+                    format!("WAITING {position}/{count} · {:?}", job.status)
+                }
+                None => format!("WAITING · {:?}", job.status),
+            }
         }
         _ => format!("{:?}", job.status).to_uppercase(),
     };
