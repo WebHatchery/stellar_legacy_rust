@@ -155,7 +155,8 @@ publisher; the `demo` feature limits charters and isolates saves for the tutoria
 
 The documentation set has separate, current purposes:
 
-- [Game design and architecture](docs/gdd.md): implemented rules, ownership and data.
+- [Game design and architecture](docs/gdd.md): implemented rules, ownership and
+  data, plus per-phase screen briefs (§9.1) that every UI change follows.
 - [Event authoring](event_design_notes.md): schema, voice and content quality.
 - [Open work](TODO.md): unfinished acceptance and deferred design intent.
 - [Coding standards](CODE_STANDARDS.md) and [agent instructions](AGENTS.md).

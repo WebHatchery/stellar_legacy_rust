@@ -30,21 +30,8 @@ display-size preference. Every task below is designed, captured and reviewed at
 
 ### Findings and implementation tasks
 
-Ordered by player impact and dependencies. UI-01 establishes the contract;
-UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
-
-- [ ] **UI-01 — Record phase-specific screen briefs for the 1920×1080 canvas.**
-  **Scope/files:** `README.md`, `docs/gdd.md` §9; `src/ui/shell.rs::draw_gameplay`,
-  `src/game/render.rs::draw`.
-  **Observed:** The GDD describes features and routes but not the seven-part
-  UI_STYLE screen briefs.
-  **Change:** Add briefs for port Bridge, underway Bridge, PREP, active voyage,
-  ship inspection/refit, People, Agenda, History, decisions and Homecoming.
-  Specify the current decision, dominant focus, primary action,
-  supporting/deferred facts, layout/framing and feedback for each, composed for
-  1920×1080.
-  **Acceptance:** Each phase has one stated purpose, at most 2–3 strong attention
-  regions, and an explicit home for costs, warnings, utilities and recovery.
+Ordered by player impact and dependencies. The contract is the screen briefs
+in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
 - [ ] **UI-02 — Recompose the Bridge around the ship/current concern and retire the permanent event panel.**
   **Scope/files:** Port, calm voyage and resource-risk Bridge;
@@ -70,7 +57,7 @@ UI-02–04 address composition and core decisions before UI-05–07 refine inspe
   containers. Old events are retrievable in History.
   **Check:** Gameplay, dashboard-risk and calm underway captures; concern →
   recovery → Bridge and History → Bridge paths; simultaneous reserve warning
-  and due obligation. Depends on UI-01.
+  and due obligation. Follows the GDD §9.1 briefs.
 
 - [ ] **UI-03 — Separate time controls from utilities and show whether time can actually advance.**
   **Scope/files:** Port, Homecoming and blocking decisions;
@@ -106,8 +93,8 @@ UI-02–04 address composition and core decisions before UI-05–07 refine inspe
   assumptions, shortages and default consequences remain available before
   launching. No completed tutorial instruction persists as ordinary chrome.
   **Check:** Long briefing, locked approach, insufficient funds, several
-  conflicting obligations and tutorial on/off; 150% text. Depends on UI-01 and
-  the action hierarchy from UI-02.
+  conflicting obligations and tutorial on/off; 150% text. Depends on the action
+  hierarchy from UI-02.
 
 - [ ] **UI-05 — Make the ship schematic useful and identifiable.**
   **Scope/files:** Bridge, Systems and loadout preview;

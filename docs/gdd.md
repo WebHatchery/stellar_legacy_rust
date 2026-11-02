@@ -392,6 +392,128 @@ The interface is authored for one 1920×1080 canvas, scaled to fit the window or
 browser canvas. Text size is 75–150%, saved with a visible reset. Settings
 retains a fixed Close settings control.
 
+### 9.1 Screen briefs
+
+Each phase answers the UI_STYLE §1 brief at 1920×1080. **Decision** is what
+the player is deciding; **Focus** draws the eye first; **Action** advances play,
+with its cost or risk beside it; **Support** stays visible; **Deferred** waits
+for selection, disclosure, help or History; **Layout** says what fills the
+canvas; **Feedback** says how the result shows. Every phase keeps the header
+(date, generation, captain, resources), the five-destination navigation and
+the cog menu as quiet chrome. At most three regions ask for strong attention.
+
+**Port Bridge.**
+Decision: is the ship ready, and what is next in port?
+Focus: the ship schematic with hull, air and fuel on it.
+Action: Choose a charter (emphasised), alone in the concern column.
+Support: one current-concern line; readiness lamps; unresolved threats beside
+their recovery action.
+Deferred: event history (History), compartment detail (Ship / Systems),
+instruments (disclosure).
+Layout: the schematic fills the left two-thirds, full height; the concern and
+action column on the right. No permanent log panel.
+Feedback: a brief change line after an event, then History; time controls read
+In port instead of offering speeds.
+
+**Underway Bridge.**
+Decision: does anything need me, or can time run?
+Focus: the ship and its voyage progress.
+Action: the current concern's recovery action (Agenda, Systems, Contract); when
+calm, none beyond letting time run.
+Support: hull/air/fuel on the ship, phase and next milestone, readiness lamps,
+reserve warnings and due obligations together.
+Deferred: old events (History), scoring and approach detail (Contract).
+Layout: as port Bridge; the concern column grows only when a threat exists.
+Feedback: brief change lines expire; unresolved threats persist next to their
+action; the speed bank shows running speed or the reason time is held.
+
+**PREP (selected charter).**
+Decision: launch this charter now, or provision or choose another?
+Focus: readiness, the charter goal, duration and consequential warnings.
+Action: LAUNCH, emphasised and set apart from Cancel and Refuel, with aggregate
+shortages and obligation defaults beside it.
+Support: food/parts/fuel bars with purchase costs on their controls; the
+selected approach and posture summaries with eligibility.
+Deferred: full briefing prose, approach and posture comparisons, each affected
+duty (opened before commitment).
+Layout: readiness and launch on the left; summaries and comparison controls on
+the right.
+Feedback: purchases update bars and credits at once; launch confirms what it
+breaks.
+
+**Active voyage (Voyage / Contract).**
+Decision: is the mission progressing, and if not, why?
+Focus: route, phase, objective and next milestone; a fuel stall replaces this
+as the obstacle with its recovery route.
+Action: the stall's recovery link; otherwise Review return home as a secondary
+action with confirmation.
+Support: milestone progress, chosen approach and posture in one line each.
+Deferred: scoring weights, completed milestones, locked approach effects,
+posture alternatives (disclosure).
+Layout: one summary region and one detail region, no nested boxes.
+Feedback: milestones light when reached; the stall clears when fuel returns.
+
+**Ship inspection and refit (Ship / Systems, Loadout).**
+Decision: which compartment needs care, and what can I do about it?
+Focus: the schematic, fitted to its container with readable labels; in refit,
+the catalogue comparison.
+Action: repair, train or upgrade on the selected compartment, with cost or
+shortfall on the button.
+Support: condition, repair capability and knowledge prerequisite as text on
+selection; an active grievance, expiring school or lost capability next to the
+affected action.
+Deferred: culture history, exact passive modifiers, school/archive management
+and custody (Continuity & culture disclosure); tier explanation (help).
+Layout: schematic on top, the selected card below; refit gives the catalogue
+most of the width and a larger inspectable preview.
+Feedback: the compartment glyph and card update; failures name the reason.
+
+**Agenda (Ship / Agenda).**
+Decision: which project do the quiet years buy?
+Focus: the readiness rows, weakest first.
+Action: Queue project, with escrow and slot availability beside it.
+Support: running and waiting jobs with their positions.
+Deferred: project review, cancellation refund, catalogue description.
+Layout: readiness and queue side by side; reviews open in one reading flow.
+Feedback: the queue names the added work and the selection follows it.
+
+**People.**
+Decision: who leads, who trains, and is succession safe?
+Focus: the captain, heir and the selected person.
+Action: training or appointment, with cost and missing credits.
+Support: specialization, trait, succession and faction standing.
+Deferred: full family tree depth, faction history, council archive.
+Layout: a scrolling list and one selected-person panel per section.
+Feedback: the selected entry updates; delegation names its next mode.
+
+**History.**
+Decision: what happened, and what does the dynasty carry forward?
+Focus: the chronicle or voyage archive, most recent first.
+Action: none required; Back returns to play.
+Support: Heritage bonus and milestone progress.
+Deferred: per-voyage detail on selection.
+Layout: a full-height scrolling document.
+Feedback: the reading hint shows more content or the end.
+
+**Decisions (council, mandate, legacy).**
+Decision: which response do I commit?
+Focus: the situation text and the option cards side by side.
+Action: Commit on the selected option; Pause stays reachable.
+Support: known consequences per option, officer advice, the countdown and
+whether fallback is paused.
+Deferred: full consequences (scroll), delegation settings (cog menu).
+Layout: a centred overlay over a dimmed ship; the voyage clock is held.
+Feedback: the selection lights; commit closes the overlay and logs the outcome.
+
+**Homecoming.**
+Decision: what did the voyage cost, and how do we recover?
+Focus: the outcome and scores.
+Action: choose or defer the recovery review, then file the report.
+Support: losses to ship and people beside the recovery choice.
+Deferred: per-phase detail and the chronicle (History).
+Layout: a scrolling report; time controls read Report review.
+Feedback: filing returns to the port Bridge with the recovery applied.
+
 ## 10. Shared toolkit boundary
 
 Use toolkit input/UI/text, assets, persistence, RNG, capture and procedural audio
