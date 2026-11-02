@@ -87,7 +87,7 @@ run interactively; the findings below come from reading the code.
   locks up (see CR-01) instead of hitting the clear quarantine-and-error path.
   **Action:** reject unknown catalog ids in `validation::validate` so they
   take the existing quarantine path.
-- [ ] **CR-03 — Loading a save parses the game data again (agent).**
+- [x] **CR-03 — Loading a save parses the game data again (agent).**
   `save::load_campaign` calls `GameData::load()` inside the `and_then`, and
   `migrate_save_value` calls it again for migrated saves. That is up to two
   extra full parses of every embedded JSON file. The validation data also skips

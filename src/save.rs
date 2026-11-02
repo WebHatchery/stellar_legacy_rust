@@ -1,6 +1,6 @@
 //! Save slots and migration (GDD §7): local persistence only, no server.
 
-use crate::data::GameConfig;
+use crate::data::{GameConfig, GameData};
 use crate::simulation::survival;
 use crate::state::sim::SimState;
 use macroquad_toolkit::persistence::{
@@ -28,7 +28,10 @@ pub fn save_campaign(config: &GameConfig, sim: &SimState) -> Result<(), String> 
     save_to_slot_with_version(&config.game_name, &config.save_slot, &save, &config.version)
 }
 
-pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
+/// Load and validate the campaign against the game's own loaded data, so a
+/// load never re-parses the embedded catalogs.
+pub fn load_campaign(data: &GameData) -> Result<SimState, String> {
+    let config = &data.config;
     let loaded: SaveData = match load_from_slot_with_migration(
         &config.game_name,
         &config.save_slot,
@@ -36,7 +39,7 @@ pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
         |version, value| migrate_save_value(version, value, config),
     )
     .and_then(|save: SaveData| {
-        validation::validate(&save.sim, &crate::data::GameData::load()?)?;
+        validation::validate(&save.sim, data)?;
         Ok(save)
     }) {
         Ok(save) => save,
@@ -53,6 +56,8 @@ pub fn load_campaign(config: &GameConfig) -> Result<SimState, String> {
 /// v0.2.0 adds Agenda, issue, and survival state. New fields are serde-defaulted
 /// so v0.1.0 saves preserve their existing resources and obligations while the
 /// next safe simulation update derives new warnings and maintenance notices.
+/// Validation happens once, in [`load_campaign`], for migrated and current
+/// saves alike.
 pub fn migrate_save_value(
     detected_version: Option<String>,
     value: Value,
@@ -77,7 +82,6 @@ pub fn migrate_save_value(
             if version == "0.1.0" {
                 survival::migrate_legacy(&mut save.sim);
             }
-            validation::validate(&save.sim, &crate::data::GameData::load()?)?;
             save.version = config.version.clone();
             Ok(save)
         }

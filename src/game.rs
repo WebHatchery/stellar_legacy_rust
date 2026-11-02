@@ -603,7 +603,7 @@ impl Game {
                         .success("The founding generation takes its oath.");
                 }
             }
-            StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
+            StateTransition::LoadCampaign => match save::load_campaign(&self.data) {
                 Ok(mut sim) => {
                     crate::simulation::culture::refresh(&mut sim, &self.data);
                     // A save lost to an old dynasty-extinction rule resumes
