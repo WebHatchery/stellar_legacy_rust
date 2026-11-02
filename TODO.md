@@ -79,7 +79,7 @@ run interactively; the findings below come from reading the code.
   **Action:** clear an unresolvable pending dilemma the same way the event
   path clears an unknown template (`None => sim.pending_event = None`). Log the
   fallback only when `resolve_dilemma` returns `Some`.
-- [ ] **CR-02 — Save validation only checks the Agenda (agent).**
+- [x] **CR-02 — Save validation only checks the Agenda (agent).**
   `save/validation.rs` checks projects, capabilities and issues. It does not
   check `legacy.legacy_id`, `pending_dilemma`, `pending_event.template_id`,
   `contract.template_id`, the subsystem keys against `data.subsystems`, or the

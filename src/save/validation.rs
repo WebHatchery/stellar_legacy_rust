@@ -32,7 +32,54 @@ pub(super) fn validate(sim: &SimState, data: &GameData) -> Result<(), String> {
         validate_job(job, sim, data, &mut ids)?;
     }
     validate_capabilities(sim, data)?;
-    validate_issues(sim, data)
+    validate_issues(sim, data)?;
+    validate_catalog_ids(sim, data)
+}
+
+/// Every catalog id a save names must still exist in the loaded data, so a save
+/// written against removed content is quarantined with a clear error instead of
+/// loading into a state that cannot draw or resolve it.
+fn validate_catalog_ids(sim: &SimState, data: &GameData) -> Result<(), String> {
+    let legacy = data
+        .legacies
+        .get(&sim.legacy.legacy_id)
+        .ok_or_else(|| format!("Unknown saved legacy: {}", sim.legacy.legacy_id))?;
+    if let Some(pending) = &sim.pending_dilemma {
+        if !legacy.dilemmas.iter().any(|d| d.id == pending.dilemma_id) {
+            return Err(format!("Unknown pending dilemma: {}", pending.dilemma_id));
+        }
+    }
+    if let Some(pending) = &sim.pending_event {
+        if data.events.get(&pending.template_id).is_none() {
+            return Err(format!("Unknown pending event: {}", pending.template_id));
+        }
+    }
+    let charters = sim
+        .contract
+        .as_ref()
+        .map(|contract| &contract.template_id)
+        .into_iter()
+        .chain(&sim.selected_charter);
+    for id in charters {
+        if data.contracts.get(id).is_none() {
+            return Err(format!("Unknown saved charter: {id}"));
+        }
+    }
+    if let Some(id) = sim
+        .subsystems
+        .keys()
+        .find(|id| data.subsystems.get(id).is_none())
+    {
+        return Err(format!("Unknown saved subsystem: {id}"));
+    }
+    if let Some(faction) = sim
+        .factions
+        .iter()
+        .find(|faction| data.factions.get(&faction.faction_id).is_none())
+    {
+        return Err(format!("Unknown saved people: {}", faction.faction_id));
+    }
+    Ok(())
 }
 
 fn validate_job(
