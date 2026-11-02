@@ -137,7 +137,8 @@ fn draw_voyage(ctx: &GameplayCtx<'_>, rect: Rect) {
     let sim = ctx.sim;
     term_panel(rect, Some("The voyage"));
     let content = rect.inset(28.0);
-    let mut y = content.y + 30.0;
+    // Room under the 34px panel header for the 22px title at 150% text.
+    let mut y = content.y + 38.0;
     if let Some(contract) = sim.contract.as_ref() {
         draw_ui_text_ex(
             &contract.name,

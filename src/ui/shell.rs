@@ -205,10 +205,13 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
     );
     let subtitle = "CUSTODIAN // SHIP INTELLIGENCE";
     let subtitle_style = TextStyle::new(10.0, term::accent());
+    // Raise the subtitle as the text grows so its descenders stay inside the
+    // header band (and under the guide banner when it covers the band).
+    let lift = (macroquad_toolkit::ui::ui_text_scale() - 1.0).max(0.0) * 8.0;
     draw_ui_text_ex(
         subtitle,
         rect.x + 16.0,
-        rect.y + 54.0,
+        rect.y + 54.0 - lift,
         subtitle_style.params(),
     );
     // The status lines start clear of the brand block, which widens with the

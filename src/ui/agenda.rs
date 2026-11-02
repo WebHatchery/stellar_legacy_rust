@@ -127,24 +127,14 @@ fn draw_job(
     draw_job_controls(ctx, job, row, pointer, actions);
 }
 
+/// Name, target, status and stage line, each placed below the last at its
+/// measured height so the block reflows with the text-size preference.
 fn draw_job_header(
     ctx: &GameplayCtx<'_>,
     job: &crate::state::sim::ProjectInstance,
     definition: &crate::data::projects::ProjectDefinition,
     row: Rect,
 ) {
-    draw_ui_text_ex(
-        &definition.name,
-        row.x + 10.0,
-        row.y + 17.0,
-        TextStyle::new(16.0, term::primary()).params(),
-    );
-    draw_ui_text_ex(
-        &target_label(ctx.data, job.target_id.as_deref()),
-        row.x + 10.0,
-        row.y + 34.0,
-        TextStyle::new(12.0, term::dim()).params(),
-    );
     let status = match job.status {
         ProjectStatus::Running => format!(
             "RUNNING · {:.0}%",
@@ -160,20 +150,11 @@ fn draw_job_header(
         }
         _ => format!("{:?}", job.status).to_uppercase(),
     };
-    draw_ui_text_ex(
-        &status,
-        row.x + 10.0,
-        row.y + 51.0,
-        TextStyle::new(
-            11.0,
-            if job.status == ProjectStatus::Paused {
-                term::alert()
-            } else {
-                term::accent()
-            },
-        )
-        .params(),
-    );
+    let status_tone = if job.status == ProjectStatus::Paused {
+        term::alert()
+    } else {
+        term::accent()
+    };
     let detail = job
         .pause_reason
         .as_deref()
@@ -189,12 +170,23 @@ fn draw_job_header(
             },
             str::to_owned,
         );
-    draw_ui_text_ex(
-        &detail,
-        row.x + 10.0,
-        row.y + 69.0,
-        TextStyle::new(14.0, term::dim()).params(),
-    );
+    let lines = [
+        (definition.name.clone(), 17.0, term::primary()),
+        (
+            target_label(ctx.data, job.target_id.as_deref()),
+            15.0,
+            term::dim(),
+        ),
+        (status, 15.0, status_tone),
+        (detail, 15.0, term::dim()),
+    ];
+    let mut y = row.y + 6.0;
+    for (text, size, color) in lines {
+        let style = TextStyle::new(size, color);
+        let line_h = measure_text_size("Ag", style).height;
+        y += line_h + 5.0;
+        draw_ui_text_ex(&text, row.x + 10.0, y, style.params());
+    }
 }
 
 fn draw_job_controls(
@@ -204,7 +196,11 @@ fn draw_job_controls(
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
-    let manage = Rect::new(row.x + 10.0, row.y + 76.0, 164.0, 60.0);
+    // The controls sit at the panel's top right, beside the text block, so
+    // the text can grow with the text-size preference without meeting them.
+    let x = row.right() - 10.0 - (164.0 + 10.0 + 116.0 + 10.0 + 136.0);
+    let y = row.y + 10.0;
+    let manage = Rect::new(x, y, 164.0, 60.0);
     if matches!(
         job.status,
         ProjectStatus::Queued | ProjectStatus::Running | ProjectStatus::Paused
@@ -213,8 +209,8 @@ fn draw_job_controls(
         actions.push(UiAction::PreviewCancelProject(job.sequence_id));
     }
     if let Some((position, count)) = ctx.sim.projects.waiting_position(job.sequence_id) {
-        let up = Rect::new(row.x + 184.0, row.y + 76.0, 116.0, 60.0);
-        let down = Rect::new(row.x + 310.0, row.y + 76.0, 136.0, 60.0);
+        let up = Rect::new(x + 174.0, y, 116.0, 60.0);
+        let down = Rect::new(x + 300.0, y, 136.0, 60.0);
         if term_button(up, "MOVE UP", position > 1, pointer) {
             actions.push(UiAction::MoveProject {
                 sequence_id: job.sequence_id,

@@ -36,7 +36,8 @@ PREP, schematic, subsystem card, active contract). The UI-08 review then:
 - Recaptured the full 25-scene stable set at 1920×1080 and read each back.
 - Ran the capture text/modal audit at 150% for gameplay, prep, posture,
   subsystems, institutions, contract_active, event_fuel_paused, debrief,
-  chronicle, people_officers, market and drydock, and at 75% for gameplay,
+  chronicle, people_officers, market, drydock and (after UI-09) event,
+  agenda, ship, ship_refitted, tutorial and gameover, and at 75% for gameplay,
   prep, posture and contract_active. All pass after the fixes below.
 - Fixed during review: schematic condition percentages moved below each
   box (they collided with codes at 150%); header status lines start past
@@ -53,23 +54,18 @@ milestones, and the scoop-less stall wording.
 
 ### Follow-up tasks
 
-- [ ] **UI-09 — Clear the 150% text-audit failures that predate this backlog.**
-  **Scope/files:** council decision consequence table (`event_text_150`:
-  values overlap row labels), Agenda selected-job block (`agenda_text_150`),
-  loadout catalogue cards (`ship_text_150`, `ship_refitted_text_150`), guide
-  banner over the header subtitle (`tutorial_text_150`), game-over voyage
-  title over its panel header (`gameover_text_150`).
-  **Acceptance:** each named scene passes the capture text audit at 150% and
-  still passes at 100% and 75%; reflow rather than shrink type.
-
 - [ ] **UI-10 — Loosen layouts that pass the audit but crowd at 150%.**
   **Scope/files:** brand title and subtitle (`ui/shell.rs::draw_header`);
   Bridge HULL/AIR/FUEL gauge captions over their fill; Bridge readiness
   labels running into their bars (`ui/bridge/watch.rs`); schematic "post
   vacant" captions touching deck labels; fuel-stall recovery text truncated
-  in `contract_systems/obstacle.rs`; REVIEW MANDATE truncated to REVIEW.
+  in `contract_systems/obstacle.rs`; REVIEW MANDATE truncated to REVIEW;
+  Agenda readiness column clipping its recovery note and running the
+  KNOWLEDGE / LEADERSHIP / STABLE heading past its panel; collapsed refit
+  preview codes overlapping (AGR over LSH).
   **Acceptance:** at 150% each reads without touching or cut words, checked
-  in `gameplay_text_150`, `posture_text_150` and `contract_active_text_150`.
+  in `gameplay_text_150`, `posture_text_150`, `contract_active_text_150`,
+  `agenda_text_150` and `ship_text_150`.
 
 - [ ] **UI-11 — Interactive pass in the running build (human).**
   **Action:** exercise the "not exercised" list above in the Windows or

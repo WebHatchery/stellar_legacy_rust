@@ -91,7 +91,7 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
     ];
     let col_w = (area.w - 24.0) / 3.0;
 
-    const STRIDE: f32 = CARD_H + 10.0;
+    const CARD_GAP: f32 = 10.0;
     // Gutter reserved at each column's right edge for its scrollbar.
     const GUTTER: f32 = 12.0;
     let mut scrolls = ctx.ship_scroll.get();
@@ -124,7 +124,8 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
             content.bottom() - (content.y + 34.0),
         );
         let card_w = view.w - GUTTER;
-        let content_h = cards.len() as f32 * STRIDE;
+        let heights: Vec<f32> = cards.iter().map(|c| card_height(c, card_w)).collect();
+        let content_h = heights.iter().map(|h| h + CARD_GAP).sum::<f32>();
         let scroll = &mut scrolls[i];
         scroll.update_at(view, content_h, pointer.position);
         // A swipe down a catalog column must not also buy the part it lifts over.
@@ -135,14 +136,14 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
         };
 
         let mut y = view.y - scroll.offset();
-        for component in cards {
-            let card = Rect::new(view.x, y, card_w, CARD_H);
+        for (component, height) in cards.into_iter().zip(heights) {
+            let card = Rect::new(view.x, y, card_w, height);
             // Cull partially-scrolled cards so none spills past the panel.
             if is_fully_visible(card, view) {
                 let installed = is_installed(ctx, *kind, &component.id);
                 draw_component_card(ctx, card, component, installed, pointer, *kind, actions);
             }
-            y += STRIDE;
+            y += height + CARD_GAP;
         }
         scroll.draw_scrollbar_with(
             view,
@@ -582,6 +583,20 @@ fn draw_component_surface(rect: Rect, installed: bool, salvaged: bool) {
 /// three lines, the stat line and a 46px action anchored to the bottom.
 /// Three cards fill a column below the refit view.
 const CARD_H: f32 = 200.0;
+/// Blurb type size and the gap between blurb and stat line.
+const BLURB_SIZE: f32 = 16.0;
+const STATS_SIZE: f32 = 18.0;
+
+/// A card grows past [`CARD_H`] when its blurb wraps further at a larger
+/// text size, so the stat line and action never spill into the next card.
+fn card_height(component: &ShipComponent, card_w: f32) -> f32 {
+    let scale = macroquad_toolkit::ui::ui_text_scale();
+    let stride = (BLURB_SIZE * scale * 1.4).ceil();
+    let lines = macroquad_toolkit::ui::wrap_text(&component.description, card_w - 32.0, BLURB_SIZE)
+        .len() as f32;
+    let content = 46.0 + lines * stride + 8.0 + STATS_SIZE * scale + 12.0 + 56.0;
+    content.max(CARD_H)
+}
 
 fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     draw_ui_text_ex(
@@ -613,7 +628,7 @@ fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
         rect.x + 16.0,
         rect.y + 46.0,
         rect.w - 32.0,
-        16.0,
+        BLURB_SIZE,
         term::dim(),
     );
 
@@ -622,8 +637,8 @@ fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
         draw_ui_text_ex(
             &stats,
             rect.x + 16.0,
-            below + 18.0,
-            TextStyle::new(18.0, term::accent()).params(),
+            below + 8.0 + STATS_SIZE * macroquad_toolkit::ui::ui_text_scale(),
+            TextStyle::new(STATS_SIZE, term::accent()).params(),
         );
     }
 }

@@ -145,6 +145,7 @@ type OptionEffects = (Vec<super::effects::EffectTerm>, Option<(i64, i64)>);
 /// their effect columns share the rest of the panel.
 const GRID_LABEL_W: f32 = 310.0;
 const GRID_ROW_H: f32 = 40.0;
+const SOULS_LABEL: &str = "souls (uncertain)";
 const GRID_TEXT: f32 = 20.0;
 const OPTION_H: f32 = 76.0;
 const COMMIT_H: f32 = 56.0;
@@ -160,7 +161,23 @@ fn draw_council_choices(
 ) {
     let state = ctx.presentation;
     let gap = 14.0;
-    let cols_x = right.x + GRID_LABEL_W;
+    let grid = option_effects(ctx, event, available);
+    // The label column fits its longest row at the current text size, so a
+    // value never lands on its label; it never takes more than 40%.
+    let label_w = grid
+        .1
+        .iter()
+        .map(String::as_str)
+        .chain(
+            grid.0
+                .iter()
+                .any(|(_, souls)| souls.is_some())
+                .then_some(SOULS_LABEL),
+        )
+        .map(|label| measure_text_size(label, TextStyle::new(GRID_TEXT, term::dim())).width + 28.0)
+        .fold(GRID_LABEL_W, f32::max)
+        .min(right.w * 0.4);
+    let cols_x = right.x + label_w;
     let col_w =
         (right.right() - cols_x - gap * (available.len() - 1) as f32) / available.len() as f32;
     let column = |index: usize| cols_x + index as f32 * (col_w + gap);
@@ -186,7 +203,7 @@ fn draw_council_choices(
         }
     }
     let grid_top = right.y + OPTION_H + 24.0;
-    let grid_bottom = draw_effect_grid(ctx, event, available, grid_top, &column);
+    let grid_bottom = draw_effect_grid(&grid, label_w, grid_top, &column);
 
     // Each option's consequence sits under its own column, so every choice
     // is legible at once; only the selected one gates the commit on reading.
@@ -257,48 +274,25 @@ Unavailable: insufficient stores for this choice.",
 /// makes, one column per option, the selected column lit. A dash marks an
 /// option that leaves that row alone. Returns the grid's bottom edge.
 fn draw_effect_grid(
-    ctx: &GameplayCtx<'_>,
-    event: &crate::data::events::EventTemplate,
-    available: &[usize],
+    grid: &(Vec<OptionEffects>, Vec<String>),
+    label_w: f32,
     top: f32,
     column: &dyn Fn(usize) -> f32,
 ) -> f32 {
-    let per_option: Vec<OptionEffects> = available
-        .iter()
-        .map(|&index| {
-            let fuel = crate::simulation::event_resolver::outcome_fuel_preview(
-                ctx.sim, ctx.data, event, index,
-            );
-            let souls = crate::simulation::event_resolver::outcome_pop_impact_range(
-                ctx.sim, ctx.data, event, index,
-            );
-            (
-                super::effects::effect_terms(&event.outcomes[index], fuel),
-                souls,
-            )
-        })
-        .collect();
-    let mut rows: Vec<String> = Vec::new();
-    for (terms, _) in &per_option {
-        for term in terms {
-            if !rows.contains(&term.label) {
-                rows.push(term.label.clone());
-            }
-        }
-    }
+    let (per_option, rows) = grid;
     let has_souls = per_option.iter().any(|(_, souls)| souls.is_some());
     let row_count = rows.len() + usize::from(has_souls);
     let height = GRID_ROW_H * row_count.max(1) as f32;
     if row_count == 0 {
         draw_ui_text_ex(
             "No option makes an immediate material change.",
-            column(0) - GRID_LABEL_W,
+            column(0) - label_w,
             top + 27.0,
             TextStyle::new(GRID_TEXT, term::dim()).params(),
         );
         return top + height;
     }
-    let label_x = column(0) - GRID_LABEL_W;
+    let label_x = column(0) - label_w;
     for (row, label) in rows.iter().enumerate() {
         let y = top + row as f32 * GRID_ROW_H + 27.0;
         draw_ui_text_ex(
@@ -324,7 +318,7 @@ fn draw_effect_grid(
     if has_souls {
         let y = top + rows.len() as f32 * GRID_ROW_H + 27.0;
         draw_ui_text_ex(
-            "souls (uncertain)",
+            SOULS_LABEL,
             label_x,
             y,
             TextStyle::new(GRID_TEXT, term::dim()).params(),
@@ -343,4 +337,37 @@ fn draw_effect_grid(
         }
     }
     top + height
+}
+
+/// Each available option's known terms and population band, plus the union
+/// of row labels in first-seen order.
+fn option_effects(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    available: &[usize],
+) -> (Vec<OptionEffects>, Vec<String>) {
+    let per_option: Vec<OptionEffects> = available
+        .iter()
+        .map(|&index| {
+            let fuel = crate::simulation::event_resolver::outcome_fuel_preview(
+                ctx.sim, ctx.data, event, index,
+            );
+            let souls = crate::simulation::event_resolver::outcome_pop_impact_range(
+                ctx.sim, ctx.data, event, index,
+            );
+            (
+                super::effects::effect_terms(&event.outcomes[index], fuel),
+                souls,
+            )
+        })
+        .collect();
+    let mut rows: Vec<String> = Vec::new();
+    for (terms, _) in &per_option {
+        for term in terms {
+            if !rows.contains(&term.label) {
+                rows.push(term.label.clone());
+            }
+        }
+    }
+    (per_option, rows)
 }
