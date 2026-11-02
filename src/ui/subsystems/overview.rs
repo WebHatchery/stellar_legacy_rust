@@ -91,11 +91,14 @@ pub(crate) fn select_compartments(
         let Some(index) = ids.iter().position(|id| id == &glyph.id) else {
             continue;
         };
+        // The pressable area is the drawn compartment, grown to the 44px touch
+        // minimum when a small frame shrinks it below that.
+        let height = glyph.rect.h.max(44.0);
         let rect = Rect::new(
             glyph.rect.x,
-            glyph.rect.center().y - 22.0,
+            glyph.rect.center().y - height * 0.5,
             glyph.rect.w.max(44.0),
-            44.0,
+            height,
         );
         macroquad_toolkit::ui::note_neighbour(rect);
         macroquad_toolkit::ui::note_target(&glyph.label, rect);
@@ -112,8 +115,8 @@ pub(crate) fn select_compartments(
             draw_ui_text_ex(
                 "WORK",
                 rect.right() + 6.0,
-                rect.center().y + 5.0,
-                TextStyle::new(12.0, term::primary()).params(),
+                rect.center().y + 6.0,
+                TextStyle::new(16.0, term::primary()).params(),
             );
         }
         if ctx.presentation.selected_system.get() == index {

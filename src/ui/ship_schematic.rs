@@ -128,11 +128,16 @@ fn subsystem_short(id: &str) -> &'static str {
 /// The bridge is stood by the ship's command staff.
 const BRIDGE_POSTS: &[&str] = &["commander", "navigator"];
 
-/// Fixed distance from the corridor to each deck's room centres. Rooms are placed
-/// relative to this, not to the hull size, so the layout survives any hull class.
-const ROW_OFFSET: f32 = 48.0;
+/// Distance from the corridor to each deck's room centres at the smallest
+/// frame. Rooms are placed relative to this, not to the hull size, so the layout
+/// survives any hull class.
+const ROW_OFFSET: f32 = 50.0;
 /// The vertical slot each room occupies (tallest tier-3 box plus headroom).
-const ROOM_SLOT_H: f32 = 46.0;
+const ROOM_SLOT_H: f32 = 52.0;
+/// Frame height at which the schematic draws at its base size. Taller frames
+/// enlarge rooms, hull and spacing together (up to 2x) so the diagram fills its
+/// container instead of floating as a thin strip.
+const BASE_FRAME_H: f32 = 300.0;
 
 fn any_post_aboard(sim: &SimState, posts: &[&str]) -> bool {
     sim.crew
@@ -199,6 +204,8 @@ struct HullGeometry {
     max_h: f32,
     sx0: f32,
     sx1: f32,
+    /// Container fit: 1.0 at [`BASE_FRAME_H`], up to 2.0 for tall frames.
+    scale: f32,
 }
 
 impl HullGeometry {
@@ -303,8 +310,9 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
 fn hull_geometry(profile: &Profile, frame: Rect) -> HullGeometry {
     let cy = frame.y + frame.h * 0.5;
     let cx = frame.x + frame.w * 0.5;
-    let row_offset = ROW_OFFSET;
-    let max_h = (row_offset + ROOM_SLOT_H * 0.5 + 20.0) * profile.height;
+    let scale = (frame.h / BASE_FRAME_H).clamp(1.0, 2.0);
+    let row_offset = ROW_OFFSET * scale;
+    let max_h = (row_offset + (ROOM_SLOT_H * 0.5 + 20.0) * scale) * profile.height;
     let hull_span = frame.w * 0.86 * profile.length;
     let sx0 = cx - hull_span * 0.5;
     let sx1 = cx + hull_span * 0.5;
@@ -316,6 +324,7 @@ fn hull_geometry(profile: &Profile, frame: Rect) -> HullGeometry {
         max_h,
         sx0,
         sx1,
+        scale,
     };
     let shoulder = 0.82 + profile.bulge * 0.13;
     let bow = 0.12 + (1.0 - profile.nose) * 0.26;
@@ -361,20 +370,29 @@ fn hull_geometry(profile: &Profile, frame: Rect) -> HullGeometry {
     }
     HullGeometry {
         outline,
-        ring: profile
-            .ring
-            .then(|| (vec2(cx, cy), row_offset + ROOM_SLOT_H * 0.5 + 10.0)),
+        ring: profile.ring.then(|| {
+            (
+                vec2(cx, cy),
+                row_offset + (ROOM_SLOT_H * 0.5 + 10.0) * scale,
+            )
+        }),
         ..geometry
     }
 }
 
 fn anchor_modules(sim: &SimState, data: &GameData, geometry: &HullGeometry) -> Vec<ModuleGlyph> {
+    let s = geometry.scale;
     let mut modules = Vec::new();
     modules.push(component_glyph(
         "bridge",
         "COMMAND BRIDGE",
         "CMD",
-        Rect::new(geometry.x_at(0.05) - 6.0, geometry.cy - 18.0, 66.0, 36.0),
+        Rect::new(
+            geometry.x_at(0.05) - 6.0,
+            geometry.cy - 20.0 * s,
+            84.0 * s,
+            40.0 * s,
+        ),
         ModuleKind::Bridge,
         sim.ship.hull_integrity,
         any_post_aboard(sim, BRIDGE_POSTS),
@@ -385,15 +403,15 @@ fn anchor_modules(sim: &SimState, data: &GameData, geometry: &HullGeometry) -> V
     let engine_label = engine
         .map(|component| component.name.to_uppercase())
         .unwrap_or_else(|| sim.ship.engine.to_uppercase());
-    let engine_height = 38.0 + engine.map_or(0, |c| c.stats.speed.clamp(0, 6)) as f32 * 4.0;
+    let engine_height = (40.0 + engine.map_or(0, |c| c.stats.speed.clamp(0, 6)) as f32 * 4.0) * s;
     modules.push(component_glyph(
         &sim.ship.engine,
         &engine_label,
         "DRV",
         Rect::new(
-            geometry.x_at(0.95) - 64.0,
+            geometry.x_at(0.95) - 80.0 * s,
             geometry.cy - engine_height / 2.0,
-            72.0,
+            88.0 * s,
             engine_height,
         ),
         ModuleKind::Engine,
@@ -416,16 +434,17 @@ fn weapon_glyph(
     let label = weapon
         .map(|component| component.name.to_uppercase())
         .unwrap_or_else(|| weapon_id.to_uppercase());
-    let width = 60.0 + weapon.map_or(0, |c| c.stats.combat.clamp(0, 12)) as f32 * 3.0;
+    let s = geometry.scale;
+    let width = (80.0 + weapon.map_or(0, |c| c.stats.combat.clamp(0, 12)) as f32 * 3.0) * s;
     component_glyph(
         weapon_id,
         &label,
         "WPN",
         Rect::new(
             geometry.x_at(0.5) - width / 2.0,
-            geometry.cy - geometry.max_h - 30.0,
+            geometry.cy - geometry.max_h - 36.0 * s,
             width,
-            24.0,
+            30.0 * s,
         ),
         ModuleKind::Weapon,
         sim.ship.hull_integrity,
@@ -454,8 +473,8 @@ fn subsystem_glyph(
     let upper = index < cols;
     let t = 0.20 + (col as f32 + 0.5) / cols as f32 * 0.60;
     let visual_tier = state.tier.min(3) as f32;
-    let width = 58.0 + visual_tier * 9.0;
-    let height = 30.0 + visual_tier * 5.0;
+    let width = (76.0 + visual_tier * 9.0) * geometry.scale;
+    let height = (36.0 + visual_tier * 5.0) * geometry.scale;
     let band_y = if upper {
         geometry.cy - geometry.row_offset
     } else {

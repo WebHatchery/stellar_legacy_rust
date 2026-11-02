@@ -202,15 +202,18 @@ fn draw_glyph_face(glyph: &ModuleGlyph, tone: Color) {
 
     // In-box identity, all in the condition tone: a standardized pictogram on the
     // left, its 3-letter tag to the right, seated above the pip row.
-    let icon_c = vec2(r.x + 13.0, r.y + (r.h - 8.0) * 0.5);
-    draw_icon(glyph, icon_c, 6.5, tone);
+    // Icon and code size with the box, so a fitted schematic stays legible.
+    let icon = (r.h * 0.2).clamp(6.5, 13.0);
+    let icon_c = vec2(r.x + icon + 7.0, r.y + (r.h - 8.0) * 0.5);
+    draw_icon(glyph, icon_c, icon, tone);
+    let text_x = icon_c.x + icon + 4.0;
     draw_text_centered_in_box_ex(
         &glyph.code,
-        r.x + 20.0,
+        text_x,
         r.y,
-        r.w - 28.0,
+        r.right() - 12.0 - text_x,
         r.h - 10.0,
-        TextStyle::new(13.0, tone),
+        TextStyle::new((r.h * 0.42).clamp(16.0, 26.0), tone),
     );
 }
 
@@ -256,9 +259,9 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
     if glyph.kind == ModuleKind::Weapon {
         draw_ui_text_ex(
             &glyph.label,
-            r.right() + 8.0,
-            r.center().y + 4.0,
-            TextStyle::new(12.0, label_color).params(),
+            r.right() + 10.0,
+            r.center().y + 6.0,
+            TextStyle::new(18.0, label_color).params(),
         );
         return;
     }
@@ -268,16 +271,16 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
     // deck caption beneath — a clear primary/secondary typographic split.
     let (ly, leader_from, leader_to) = match glyph.kind {
         ModuleKind::Bridge | ModuleKind::Engine => {
-            let ly = r.bottom() + 18.0;
-            (ly, r.bottom(), ly - 12.0)
+            let ly = r.bottom() + 24.0;
+            (ly, r.bottom(), ly - 18.0)
         }
         ModuleKind::Subsystem if r.center().y < ship_cy => {
-            let ly = frame.y + 26.0;
-            (ly, r.y, ly + 6.0)
+            let ly = frame.y + 22.0;
+            (ly, r.y, ly + 28.0)
         }
         _ => {
-            let ly = frame.bottom() - 24.0;
-            (ly, r.bottom(), ly - 18.0)
+            let ly = frame.bottom() - 30.0;
+            (ly, r.bottom(), ly - 22.0)
         }
     };
     draw_line(
@@ -292,14 +295,14 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         &glyph.label,
         r.center().x,
         ly,
-        TextStyle::new(12.0, label_color),
+        TextStyle::new(18.0, label_color),
     );
     if glyph.kind == ModuleKind::Subsystem {
         draw_text_centered(
             &format!("DECKS {}-{}", glyph.deck_lo, glyph.deck_hi),
             r.center().x,
-            ly + 13.0,
-            TextStyle::new(10.0, term::dim()),
+            ly + 22.0,
+            TextStyle::new(16.0, term::dim()),
         );
     }
 }

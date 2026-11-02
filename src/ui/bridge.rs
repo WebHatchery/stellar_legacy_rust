@@ -7,17 +7,22 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         dashboard::draw(ctx, area, pointer, actions);
         return;
     }
-    let subject = Rect::new(area.x, area.y, area.w * 0.64, 400.0);
+    // 1080p composition: the ship dominates, the current concern stands beside
+    // it at full height, and recent developments are a short strip below.
+    const GAP: f32 = 16.0;
+    const RECENT_H: f32 = 170.0;
+    let top_h = area.h - RECENT_H - GAP;
+    let subject = Rect::new(area.x, area.y, (area.w * 0.68).floor(), top_h);
     let attention = Rect::new(
-        subject.right() + 16.0,
+        subject.right() + GAP,
         area.y,
-        area.w - subject.w - 16.0,
-        400.0,
+        area.w - subject.w - GAP,
+        top_h,
     );
     draw_voyage_subject(ctx, subject, pointer, actions);
     draw_attention(ctx, attention, pointer, actions);
-    let bottom = Rect::new(area.x, subject.bottom() + 14.0, area.w, area.h - 414.0);
-    draw_operational_summary(ctx, bottom, pointer, actions);
+    let recent = Rect::new(area.x, subject.bottom() + GAP, area.w, RECENT_H);
+    draw_recent(ctx, recent, pointer, actions);
 }
 
 fn draw_voyage_subject(
@@ -32,15 +37,11 @@ fn draw_voyage_subject(
         .contract
         .as_ref()
         .map_or("Choose the next voyage", |c| c.name.as_str());
-    draw_text_block(
+    draw_ui_text_ex(
         title,
-        subject.x + 20.0,
-        subject.y + 16.0,
-        subject.w - 40.0,
-        36.0,
-        26.0,
-        4.0,
-        term::primary(),
+        subject.x + 28.0,
+        subject.y + 46.0,
+        TextStyle::new(30.0, term::primary()).params(),
     );
     let phase = sim.contract.as_ref().map_or_else(
         || "In port · Review a charter, then prepare provisions".to_owned(),
@@ -53,110 +54,70 @@ fn draw_voyage_subject(
             )
         },
     );
-    draw_text_block(
+    draw_ui_text_ex(
         &phase,
-        subject.x + 20.0,
-        subject.y + 56.0,
-        subject.w - 40.0,
-        44.0,
-        17.0,
-        4.0,
-        term::dim(),
+        subject.x + 28.0,
+        subject.y + 80.0,
+        TextStyle::new(20.0, term::dim()).params(),
     );
-    let diagram = Rect::new(subject.x + 24.0, subject.y + 82.0, subject.w - 48.0, 250.0);
+    // The essentials of the living ship sit with the ship itself.
+    let condition = format!(
+        "Hull {:.0}% · Air {:.0}% · Fuel {:.0}% · {} people aboard",
+        sim.ship.hull_integrity * 100.0,
+        sim.ship.life_support * 100.0,
+        sim.ship.fuel * 100.0,
+        sim.population.count
+    );
+    draw_ui_text_ex(
+        &condition,
+        subject.x + 28.0,
+        subject.y + 110.0,
+        TextStyle::new(20.0, term::accent()).params(),
+    );
+    let diagram = Rect::new(
+        subject.x + 28.0,
+        subject.y + 130.0,
+        subject.w - 56.0,
+        subject.h - 220.0,
+    );
     let ship = ship_schematic::build(sim, ctx.data, diagram);
     ship_schematic::draw(diagram, &ship);
     crate::ui::subsystems::select_compartments(ctx, &ship, pointer, actions, true);
+    let footer_y = subject.bottom() - 72.0;
     if term_button(
-        Rect::new(subject.x + 20.0, subject.bottom() - 58.0, 250.0, 44.0),
+        Rect::new(subject.x + 28.0, footer_y, 340.0, 52.0),
         "Inspect ship & compartments",
         true,
         pointer,
     ) {
         actions.push(UiAction::SelectScreen(Screen::ShipBuilder));
     }
-}
-
-fn draw_operational_summary(
-    ctx: &GameplayCtx<'_>,
-    bottom: Rect,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) {
-    let sim = ctx.sim;
-    let condition = Rect::new(bottom.x, bottom.y, 340.0, bottom.h);
-    term_panel(condition, Some("Ship & people"));
-    let rows = [
-        format!(
-            "Hull {:.0}% · Air {:.0}% · Fuel {:.0}%",
-            sim.ship.hull_integrity * 100.0,
-            sim.ship.life_support * 100.0,
-            sim.ship.fuel * 100.0
-        ),
-        format!(
-            "{} people · Generation {}",
-            sim.population.count, sim.dynasty.generation
-        ),
-        format!(
-            "{} active projects · {} waiting",
-            sim.projects.active_count(),
-            sim.projects.waiting_count()
-        ),
-    ];
-    for (i, line) in rows.iter().take(2).enumerate() {
-        draw_text_block(
-            line,
-            condition.x + 16.0,
-            condition.y + 44.0 + i as f32 * 26.0,
-            condition.w - 32.0,
-            24.0,
-            16.0,
-            4.0,
-            term::dim(),
-        );
-    }
     if term_button(
-        Rect::new(
-            condition.x + 16.0,
-            condition.bottom() - 54.0,
-            condition.w - 32.0,
-            44.0,
-        ),
+        Rect::new(subject.x + 384.0, footer_y, 340.0, 52.0),
         "All instruments & maintenance",
         true,
         pointer,
     ) {
         ctx.presentation.instruments.set(true);
     }
-    let recent = Rect::new(
-        condition.right() + 14.0,
-        bottom.y,
-        bottom.w - condition.w - 14.0,
-        bottom.h,
-    );
+}
+
+/// A short strip of the latest developments; the full record lives in History.
+fn draw_recent(ctx: &GameplayCtx<'_>, recent: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     term_panel(recent, Some("Recent developments"));
-    let mut y = recent.y + 44.0;
-    for entry in sim
-        .log
-        .iter()
-        .rev()
-        .take(((recent.h - 44.0) / 44.0).floor().max(0.0) as usize)
-    {
+    let text_w = recent.w - 300.0;
+    let mut y = recent.y + 46.0;
+    for entry in ctx.sim.log.iter().rev() {
         let text = format!("Year {} · {}", entry.year, entry.text);
-        draw_text_block(
-            &text,
-            recent.x + 16.0,
-            y,
-            recent.w - 232.0,
-            40.0,
-            16.0,
-            3.0,
-            term::dim(),
-        );
-        y += 44.0;
+        let lines = macroquad_toolkit::ui::wrap_text(&text, text_w, 18.0).len() as f32;
+        if y + lines * 26.0 > recent.bottom() - 8.0 {
+            break;
+        }
+        y = crate::ui::reading::flow_text(&text, recent.x + 20.0, y, text_w, 18.0, term::dim())
+            + 8.0;
     }
     if term_button(
-        Rect::new(recent.right() - 204.0, recent.y + 48.0, 188.0, 44.0),
+        Rect::new(recent.right() - 260.0, recent.y + 50.0, 240.0, 52.0),
         "Open History",
         true,
         pointer,
@@ -206,12 +167,12 @@ fn draw_attention(
     let resource_top = draw_due_commitment(ctx, rect, pointer, actions);
     draw_text_block(
         &heading,
-        rect.x + 20.0,
+        rect.x + 24.0,
         resource_top,
-        rect.w - 40.0,
-        52.0,
-        22.0,
-        4.0,
+        rect.w - 48.0,
+        76.0,
+        26.0,
+        6.0,
         if heading.starts_with('!') {
             term::alert()
         } else {
@@ -220,17 +181,17 @@ fn draw_attention(
     );
     draw_text_block(
         &detail,
-        rect.x + 20.0,
-        resource_top + 54.0,
-        rect.w - 40.0,
-        rect.bottom() - resource_top - 118.0,
-        16.0,
-        4.0,
+        rect.x + 24.0,
+        resource_top + 84.0,
+        rect.w - 48.0,
+        rect.bottom() - resource_top - 172.0,
+        20.0,
+        6.0,
         term::dim(),
     );
     attention_action(
         ctx,
-        Rect::new(rect.x + 20.0, rect.bottom() - 58.0, rect.w - 40.0, 44.0),
+        Rect::new(rect.x + 24.0, rect.bottom() - 72.0, rect.w - 48.0, 52.0),
         label,
         target,
         pointer,
@@ -248,7 +209,7 @@ fn draw_due_commitment(
     let duty = sim
         .next_timed_obligation()
         .filter(|d| d.due_year.is_some_and(|year| year <= sim.year() + 1));
-    let top = rect.y + 44.0;
+    let top = rect.y + 56.0;
     if let Some(duty) = duty {
         draw_text_block(
             &format!(
@@ -256,23 +217,23 @@ fn draw_due_commitment(
                 duty.due_year.unwrap_or_default(),
                 duty.title
             ),
-            rect.x + 20.0,
+            rect.x + 24.0,
             top,
-            rect.w - 40.0,
-            56.0,
-            18.0,
-            4.0,
+            rect.w - 48.0,
+            60.0,
+            20.0,
+            5.0,
             term::alert(),
         );
         attention_action(
             ctx,
-            Rect::new(rect.x + 20.0, top + 60.0, rect.w - 40.0, 44.0),
+            Rect::new(rect.x + 24.0, top + 68.0, rect.w - 48.0, 52.0),
             "Review obligations",
             Screen::Chronicle,
             pointer,
             actions,
         );
-        top + 116.0
+        top + 140.0
     } else {
         top
     }

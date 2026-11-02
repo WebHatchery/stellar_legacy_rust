@@ -334,7 +334,7 @@ fn draw_module_upgrade(
 /// purchase/commission; those are drydock work.
 fn draw_underway(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     const GAP: f32 = 12.0;
-    let left_w = 296.0;
+    let left_w = 380.0;
     let left = Rect::new(area.x, area.y, left_w, area.h);
     let main = Rect::new(left.right() + GAP, area.y, area.w - left_w - GAP, area.h);
 
@@ -354,7 +354,6 @@ fn draw_underway(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &
     let schematic = ship_schematic::build(ctx.sim, ctx.data, frame);
     ship_schematic::draw(frame, &schematic);
     crate::ui::subsystems::select_compartments(ctx, &schematic, pointer, actions, true);
-    draw_legend(frame);
 
     let status = Rect::new(main.x, layout.bottom() + GAP, main.w, status_h);
     term_panel(status, Some("SHIP STATUS"));
@@ -367,65 +366,53 @@ fn draw_underway(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &
     );
     ship_schematic::draw_status_strip(strip, &schematic);
 
-    // --- Left rail: overview + field ops ---
-    let rail_h = (area.h - GAP) * 0.5;
-    draw_overview(ctx, Rect::new(left.x, left.y, left.w, rail_h), &schematic);
-    draw_field_ops(
-        ctx,
-        Rect::new(left.x, left.y + rail_h + GAP, left.w, rail_h),
-        pointer,
-        actions,
+    // --- Left rail: overview, the schematic's key, field ops ---
+    let overview = Rect::new(left.x, left.y, left.w, 262.0);
+    let key = Rect::new(left.x, overview.bottom() + GAP, left.w, 360.0);
+    let field = Rect::new(
+        left.x,
+        key.bottom() + GAP,
+        left.w,
+        left.bottom() - key.bottom() - GAP,
     );
+    draw_overview(ctx, overview, &schematic);
+    draw_legend(key);
+    draw_field_ops(ctx, field, pointer, actions);
 }
 
-/// A compact key for the schematic's highlight language, tucked in the top-left
-/// where the hull leaves whitespace.
-fn draw_legend(frame: Rect) {
-    draw_ui_text_ex(
-        "◉ MANNED   ○ VACANT",
-        frame.x,
-        frame.y + 14.0,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-    let mut x = frame.x;
-    draw_ui_text_ex(
-        "COND",
-        x,
-        frame.y + 30.0,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-    x += 42.0;
-    for (label, color) in [
-        ("GOOD", term::accent()),
-        ("WORN", term::dim()),
-        ("CRIT", term::alert()),
-    ] {
-        draw_ui_text_ex(
-            label,
-            x,
-            frame.y + 30.0,
-            TextStyle::new(11.0, color).params(),
-        );
-        x += 42.0;
-    }
-
-    // The same code and pictogram vocabulary appears inside every module box.
-    // Keep the key compact and in the existing upper-left whitespace so it can
-    // explain all nine marks without competing with the hull drawing.
-    let pictograms = [
-        [("AGR", "GROW"), ("EDU", "ARCHIVE"), ("ENG", "ENGINE")],
-        [("LSH", "AIR"), ("MED", "MEDIC"), ("SEC", "WATCH")],
-        [("CMD", "BRIDGE"), ("DRV", "DRIVE"), ("WPN", "WEAPON")],
+/// The schematic's key in its own rail panel: manning, condition colours and
+/// the nine compartment codes, one per row at reading size.
+fn draw_legend(rect: Rect) {
+    term_panel(rect, Some("SCHEMATIC KEY"));
+    let c = rect.inset(16.0);
+    let row = |y: f32, text: &str, color: Color, x: f32| {
+        draw_ui_text_ex(text, x, y, TextStyle::new(17.0, color).params());
+    };
+    let mut y = c.y + 50.0;
+    row(y, "◉ MANNED", term::dim(), c.x);
+    row(y, "○ VACANT", term::dim(), c.x + 170.0);
+    y += 30.0;
+    row(y, "GOOD", term::accent(), c.x);
+    row(y, "WORN", term::dim(), c.x + 110.0);
+    row(y, "CRIT", term::alert(), c.x + 220.0);
+    y += 36.0;
+    let codes = [
+        ("AGR", "Agriculture"),
+        ("EDU", "Archives"),
+        ("ENG", "Engineering"),
+        ("LSH", "Life support"),
+        ("MED", "Medical"),
+        ("SEC", "Security"),
+        ("CMD", "Command"),
+        ("DRV", "Drive"),
+        ("WPN", "Weapon"),
     ];
-    for (row, entries) in pictograms.iter().enumerate() {
-        for (col, (code, name)) in entries.iter().enumerate() {
-            draw_ui_text_ex(
-                &format!("{code} {name}"),
-                frame.x + col as f32 * 88.0,
-                frame.y + 48.0 + row as f32 * 14.0,
-                TextStyle::new(10.0, term::dim()).params(),
-            );
-        }
+    // Two columns keep each code beside its name inside the rail.
+    for (index, (code, name)) in codes.iter().enumerate() {
+        let x = c.x + (index % 2) as f32 * 174.0;
+        let line = y + (index / 2) as f32 * 26.0;
+        row(line, code, term::accent(), x);
+        row(line, name, term::dim(), x + 48.0);
     }
 }
 
@@ -445,11 +432,11 @@ fn draw_overview(ctx: &GameplayCtx<'_>, rect: Rect, schematic: &ship_schematic::
     draw_ui_text_ex(
         "GENERATION SHIP · UNDER WAY",
         c.x,
-        c.y + 58.0,
-        TextStyle::new(11.0, term::dim()).params(),
+        c.y + 64.0,
+        TextStyle::new(16.0, term::dim()).params(),
     );
     let s = &schematic.stats;
-    let mut y = c.y + 90.0;
+    let mut y = c.y + 96.0;
     let rows = [
         ("SOULS ABOARD", ctx.sim.population.count.to_string()),
         ("CREW POSTS", ctx.sim.crew.len().to_string()),
