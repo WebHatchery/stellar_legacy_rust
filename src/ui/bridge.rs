@@ -33,52 +33,38 @@ fn draw_voyage_subject(
 ) {
     let sim = ctx.sim;
     term_panel(subject, None);
-    let title = sim
-        .contract
-        .as_ref()
-        .map_or("Choose the next voyage", |c| c.name.as_str());
+    // Identity only: the charter's name, or plainly "In port". What to do in
+    // port is the attention panel's single call to action.
+    let title = sim.contract.as_ref().map_or("In port", |c| c.name.as_str());
     draw_ui_text_ex(
         title,
         subject.x + 28.0,
         subject.y + 46.0,
         TextStyle::new(30.0, term::primary()).params(),
     );
-    let phase = sim.contract.as_ref().map_or_else(
-        || "In port".to_owned(),
-        |c| {
-            format!(
-                "{} · Voyage {:.0}% · Objective {:.0}%",
-                c.phase.label(),
-                c.progress() * 100.0,
-                c.objective_fraction() * 100.0
-            )
-        },
+    draw_condition_gauges(
+        sim,
+        Rect::new(subject.x + 28.0, subject.y + 64.0, subject.w - 56.0, 26.0),
     );
-    draw_ui_text_ex(
-        &phase,
-        subject.x + 28.0,
-        subject.y + 80.0,
-        TextStyle::new(20.0, term::dim()).params(),
-    );
-    // The essentials of the living ship sit with the ship itself.
-    let condition = format!(
-        "Hull {:.0}% · Air {:.0}% · Fuel {:.0}% · {} people aboard",
-        sim.ship.hull_integrity * 100.0,
-        sim.ship.life_support * 100.0,
-        sim.ship.fuel * 100.0,
-        sim.population.count
-    );
-    draw_ui_text_ex(
-        &condition,
-        subject.x + 28.0,
-        subject.y + 110.0,
-        TextStyle::new(20.0, term::accent()).params(),
-    );
+    if let Some(c) = sim.contract.as_ref() {
+        let phase = format!(
+            "{} · Voyage {:.0}% · Objective {:.0}%",
+            c.phase.label(),
+            c.progress() * 100.0,
+            c.objective_fraction() * 100.0
+        );
+        draw_ui_text_ex(
+            &phase,
+            subject.x + 28.0,
+            subject.y + 116.0,
+            TextStyle::new(20.0, term::dim()).params(),
+        );
+    }
     let diagram = Rect::new(
         subject.x + 28.0,
-        subject.y + 130.0,
+        subject.y + 136.0,
         subject.w - 56.0,
-        subject.h - 220.0,
+        subject.h - 226.0,
     );
     let ship = ship_schematic::build(sim, ctx.data, diagram);
     ship_schematic::draw(diagram, &ship);
@@ -100,6 +86,34 @@ fn draw_voyage_subject(
     ) {
         ctx.presentation.instruments.set(true);
     }
+}
+
+/// Hull, air and fuel as three gauges with the head count beside them: the
+/// living ship's essentials, read at a glance instead of as a sentence.
+fn draw_condition_gauges(sim: &crate::state::SimState, row: Rect) {
+    const GAUGE_W: f32 = 220.0;
+    const GAP: f32 = 16.0;
+    let gauges = [
+        ("HULL", sim.ship.hull_integrity),
+        ("AIR", sim.ship.life_support),
+        ("FUEL", sim.ship.fuel),
+    ];
+    for (i, (label, value)) in gauges.into_iter().enumerate() {
+        let x = row.x + i as f32 * (GAUGE_W + GAP);
+        term_meter(
+            Rect::new(x, row.y, GAUGE_W, row.h),
+            value,
+            1.0,
+            label,
+            &format!("{:.0}%", value * 100.0),
+        );
+    }
+    draw_ui_text_ex(
+        &format!("{} aboard", sim.population.count),
+        row.x + 3.0 * (GAUGE_W + GAP) + 8.0,
+        row.y + row.h * 0.5 + 7.0,
+        TextStyle::new(20.0, term::accent()).params(),
+    );
 }
 
 /// A short strip of the latest developments; the full record lives in History.
@@ -155,15 +169,39 @@ fn draw_attention(
         )
     } else if sim.contract.is_none() {
         (
-            "Ready for your next charter".to_owned(),
+            String::new(),
             String::new(),
             "Choose a charter",
             Screen::Drydock,
         )
     } else {
-        ("No urgent reserve warning".to_owned(), "The current readiness forecast has no vulnerable or critical concern. Follow the voyage or review your queued work.".to_owned(), "Follow voyage", Screen::Contract)
+        (
+            String::new(),
+            String::new(),
+            "Follow voyage",
+            Screen::Contract,
+        )
     };
     let resource_top = draw_due_commitment(ctx, rect, pointer, actions);
+    if heading.is_empty() {
+        // Nothing wrong: a lit lamp says so; the button below is the next step.
+        draw_circle(rect.x + 34.0, resource_top + 14.0, 7.0, term::accent());
+        draw_ui_text_ex(
+            "All clear",
+            rect.x + 52.0,
+            resource_top + 21.0,
+            TextStyle::new(22.0, term::dim()).params(),
+        );
+        attention_action(
+            ctx,
+            Rect::new(rect.x + 24.0, rect.bottom() - 72.0, rect.w - 48.0, 52.0),
+            label,
+            target,
+            pointer,
+            actions,
+        );
+        return;
+    }
     draw_text_block(
         &heading,
         rect.x + 24.0,

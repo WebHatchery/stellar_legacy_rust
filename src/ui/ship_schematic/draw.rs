@@ -267,8 +267,7 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
     }
 
     // Everything else: name on the deck band (subsystems) or just beside the box
-    // (bridge/engine), with a leader tying label to box and a smaller, dimmer
-    // deck caption beneath — a clear primary/secondary typographic split.
+    // (bridge/engine), with a leader tying label to box.
     let (ly, leader_from, leader_to) = match glyph.kind {
         ModuleKind::Bridge | ModuleKind::Engine => {
             let ly = r.bottom() + 24.0;
@@ -297,14 +296,6 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         ly,
         TextStyle::new(18.0, label_color),
     );
-    if glyph.kind == ModuleKind::Subsystem {
-        draw_text_centered(
-            &format!("DECKS {}-{}", glyph.deck_lo, glyph.deck_hi),
-            r.center().x,
-            ly + 22.0,
-            TextStyle::new(16.0, term::dim()),
-        );
-    }
 }
 
 /// The bottom SHIP STATUS strip: live integrity/fuel meters plus combat and the

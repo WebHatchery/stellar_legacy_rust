@@ -51,11 +51,6 @@ pub struct ModuleGlyph {
     pub tier: u32,
     /// A matching crew post is aboard.
     pub manned: bool,
-    /// Schematic deck range for the caption, e.g. `DECKS 3-4`. Deterministic,
-    /// derived from the module's placed row and longitudinal section, and never
-    /// read by the sim.
-    pub deck_lo: u8,
-    pub deck_hi: u8,
 }
 
 /// A fully-placed schematic: the hull silhouette, an optional habitat ring, the
@@ -143,26 +138,6 @@ fn any_post_aboard(sim: &SimState, posts: &[&str]) -> bool {
     sim.crew
         .iter()
         .any(|c| posts.contains(&c.archetype_id.as_str()))
-}
-
-/// The schematic has six longitudinal deck sections on each side of its
-/// corridor. Number a compartment from the row and column where it is actually
-/// drawn, rather than assigning a flavour number from its id.
-fn deck_range_for_slot(upper: bool, col: usize, cols: usize) -> (u8, u8) {
-    let cols = cols.max(1);
-    let section = (col.saturating_mul(6) / cols).min(5) as u8;
-    let row_start = if upper { 1 } else { 7 };
-    let lo = row_start + section;
-    (lo, lo + 1)
-}
-
-fn component_deck_range(kind: ModuleKind) -> (u8, u8) {
-    match kind {
-        ModuleKind::Bridge => (1, 2),
-        ModuleKind::Weapon => (6, 7),
-        ModuleKind::Engine => (11, 12),
-        ModuleKind::Subsystem => (1, 2),
-    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -486,7 +461,6 @@ fn subsystem_glyph(
         width,
         height,
     );
-    let (deck_lo, deck_hi) = deck_range_for_slot(upper, col, cols);
     Some(ModuleGlyph {
         id: id.to_owned(),
         label: subsystem_short(id).to_owned(),
@@ -496,8 +470,6 @@ fn subsystem_glyph(
         condition: state.condition,
         tier: state.tier,
         manned: any_post_aboard(sim, subsystem_crew_posts(id)),
-        deck_lo,
-        deck_hi,
     })
 }
 
@@ -510,7 +482,6 @@ fn component_glyph(
     condition: f32,
     manned: bool,
 ) -> ModuleGlyph {
-    let (deck_lo, deck_hi) = component_deck_range(kind);
     ModuleGlyph {
         id: id.to_owned(),
         label: label.to_owned(),
@@ -520,8 +491,6 @@ fn component_glyph(
         condition,
         tier: 0,
         manned,
-        deck_lo,
-        deck_hi,
     }
 }
 #[allow(dead_code, unused_imports)]
