@@ -26,6 +26,67 @@ pub struct DepartureForecast {
     pub route_life_support_change: f32,
 }
 
+/// Stores at the start of each charter year, index 0 = departure and the last
+/// entry = berth. One point per year keeps the curve cheap to draw every frame.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StockCurve {
+    pub food: Vec<i64>,
+    pub fuel: Vec<f32>,
+    /// First charter year the stores run out, if they do.
+    pub food_dry_year: Option<u32>,
+    /// First Travel year the burn empties the tank before scoops refill it.
+    pub fuel_dry_year: Option<u32>,
+}
+
+impl DepartureForecast {
+    /// Baseline year-by-year projection from the given starting stores. Food
+    /// follows the steady annual net; the tank burns through Travel years and
+    /// scoops every year, capped at one full tank. Events are not forecast,
+    /// matching the rest of this baseline.
+    pub fn stock_curve(&self, food: i64, fuel: f32, template: &ContractTemplate) -> StockCurve {
+        let years = self.duration_years as usize;
+        let burn_per_travel_year = if self.travel_years > 0 {
+            self.fuel_burn / self.travel_years as f32
+        } else {
+            0.0
+        };
+        let mut travel_year = Vec::with_capacity(years);
+        for phase in &template.phases {
+            for _ in 0..phase.years {
+                travel_year.push(phase.kind == ContractPhase::Travel);
+            }
+        }
+        travel_year.resize(years, false);
+        let mut curve = StockCurve {
+            food: Vec::with_capacity(years + 1),
+            fuel: Vec::with_capacity(years + 1),
+            food_dry_year: None,
+            fuel_dry_year: None,
+        };
+        let (mut food_now, mut fuel_now) = (food, fuel.clamp(0.0, 1.0));
+        curve.food.push(food_now);
+        curve.fuel.push(fuel_now);
+        for (index, travelling) in travel_year.into_iter().enumerate() {
+            let year = index as u32 + 1;
+            food_now = food_now.saturating_add(self.annual_food_net).max(0);
+            if food_now == 0 && curve.food_dry_year.is_none() {
+                curve.food_dry_year = Some(year);
+            }
+            if travelling {
+                fuel_now -= burn_per_travel_year;
+                if fuel_now <= 0.0 {
+                    fuel_now = 0.0;
+                    curve.fuel_dry_year.get_or_insert(year);
+                }
+            }
+            fuel_now = (fuel_now + self.fuel_regen_per_year).min(1.0);
+            curve.food.push(food_now);
+            curve.fuel.push(fuel_now);
+        }
+        curve
+    }
+}
+
 pub fn for_departure(
     sim: &SimState,
     data: &GameData,

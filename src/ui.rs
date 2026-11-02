@@ -7,6 +7,7 @@
 pub mod agenda;
 pub mod authority_modal;
 pub mod bridge;
+pub mod chart;
 pub mod charter_approach;
 pub mod chronicle;
 pub mod contract_systems;

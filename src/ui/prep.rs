@@ -4,19 +4,12 @@
 //! [ LAUNCH ] button. Pure view — it emits `SelectCharter` / `Launch` /
 //! `Refuel` / `Buy` / `BuyParts` only.
 
-use crate::state::sim::TradeResource;
 use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
-/// Vertical stride of one PROVISIONING row, and so of its stock-up target.
-///
-/// 44 is the touch standard (WCAG 2.5.5, Apple, roughly Google's 48dp), and it
-/// is the *stride* that decides it: a hit area grows only halfway toward its
-/// neighbour, so rows packed at 30 cap their targets at 30 however tall the
-/// button is drawn.
-const PROVISION_STRIDE: f32 = 64.0;
+mod provisioning;
 
 pub(crate) fn launch_commit_label(conflicts: usize, shortfalls: usize) -> String {
     match (conflicts, shortfalls) {
@@ -38,29 +31,6 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     crate::ui::mission::draw_selected(ctx, right, pointer, actions);
 }
 
-/// One `LABEL — have / need` provisioning line, reddened when short.
-fn provision_line(x: f32, y: f32, label: &str, have: i64, need: i64, note: &str) {
-    let color = if have < need {
-        term::alert()
-    } else {
-        term::accent()
-    };
-    draw_ui_text_ex(
-        &format!("{label} - stored {have} / recommended {need}"),
-        x,
-        y,
-        TextStyle::new(13.0, color).params(),
-    );
-    if !note.is_empty() {
-        draw_ui_text_ex(
-            note,
-            x,
-            y + 17.0,
-            TextStyle::new(11.0, term::dim()).params(),
-        );
-    }
-}
-
 fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let sim = ctx.sim;
     let Some(id) = sim.selected_charter.as_deref() else {
@@ -77,8 +47,9 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     let (conflict_count, y) = draw_conflicts(sim, template, content, y);
     let y = draw_phase_plan(template, content, y);
     let y = draw_route_load(template, &forecast, content, y);
-    let provisioning = draw_provisioning(ctx, content, &forecast, y, pointer, actions);
-    draw_commit(ctx, content, conflict_count, provisioning, pointer, actions);
+    let provisioning =
+        provisioning::draw(ctx, template, content, &forecast, y + 8.0, pointer, actions);
+    draw_commit(content, conflict_count, provisioning, pointer, actions);
 }
 
 fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content: Rect) -> f32 {
@@ -212,218 +183,20 @@ fn draw_route_load(
     y + 20.0
 }
 
-struct ProvisioningState {
-    food_short: i64,
-    parts_short: i64,
-    refuel_missing: f32,
-    refuel_cost: i64,
-}
-
-fn draw_provisioning(
-    ctx: &GameplayCtx<'_>,
-    content: Rect,
-    forecast: &crate::simulation::contract::forecast::DepartureForecast,
-    mut y: f32,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) -> ProvisioningState {
-    let sim = ctx.sim;
-    draw_ui_text_ex(
-        "BASELINE PROVISIONING FORECAST",
-        content.x,
-        y,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    y += 20.0;
-    draw_ui_text_ex(
-        "Food is a reserve; farms supply the crossing. Events can change this forecast.",
-        content.x,
-        y,
-        TextStyle::new(11.0, term::dim()).params(),
-    );
-    y += 22.0;
-    let food_short = draw_food_provision(sim, content, forecast, y, pointer, actions);
-    y += PROVISION_STRIDE;
-    let parts_short = draw_parts_provision(ctx, content, forecast, y, pointer, actions);
-    y += PROVISION_STRIDE;
-    draw_fuel_provision(sim, content, forecast, y);
-    let refuel_missing = 1.0 - sim.ship.fuel;
-    let refuel_cost =
-        (ctx.data.config.provisioning.fuel_cost_credits_per_point as f32 * refuel_missing * 100.0)
-            .ceil() as i64;
-    let review_y = y + 26.0;
-    if ctx.tutorial_enabled
-        && ctx.tutorial_open
-        && !sim.tutorial_dismissed
-        && sim.tutorial_step == 2
-    {
-        let review = Rect::new(content.x, review_y + 24.0, content.w, 44.0);
-        if term_button(review, "PROVISIONS REVIEWED", true, pointer) {
-            actions.push(UiAction::ReviewProvisions);
-        }
-    }
-    ProvisioningState {
-        food_short,
-        parts_short,
-        refuel_missing,
-        refuel_cost,
-    }
-}
-
-fn draw_food_provision(
-    sim: &crate::state::sim::SimState,
-    content: Rect,
-    forecast: &crate::simulation::contract::forecast::DepartureForecast,
-    y: f32,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) -> i64 {
-    let food_need = forecast.recommended_food_store;
-    provision_line(
-        content.x,
-        y,
-        "FOOD",
-        sim.resources.food,
-        food_need,
-        &format!(
-            "Projected end {} · net {:+}/yr ({} made / {} eaten)",
-            forecast.projected_food_end,
-            forecast.annual_food_net,
-            forecast.annual_food_output,
-            forecast.annual_food_use
-        ),
-    );
-    let short = (food_need - sim.resources.food).max(0);
-    let quote = crate::simulation::market::buy_quote(sim, TradeResource::Food, 1);
-    let afford = if quote.effective_unit_price > 0.0 {
-        (sim.resources.credits as f32 / quote.effective_unit_price).floor() as i64
-    } else {
-        0
-    };
-    let buy = short.min(afford);
-    let cost = crate::simulation::market::buy_quote(sim, TradeResource::Food, buy).total_credits;
-    let label = if short == 0 {
-        "FOOD STOCKED".to_owned()
-    } else if buy <= 0 {
-        "NO CREDITS FOR FOOD".to_owned()
-    } else {
-        format!("+{buy} FOOD · {cost} CR")
-    };
-    if term_button(stock_button(content, y), &label, buy > 0, pointer) {
-        actions.push(UiAction::Buy(TradeResource::Food, buy));
-    }
-    short
-}
-
-fn draw_parts_provision(
-    ctx: &GameplayCtx<'_>,
-    content: Rect,
-    forecast: &crate::simulation::contract::forecast::DepartureForecast,
-    y: f32,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) -> i64 {
-    let sim = ctx.sim;
-    let need = forecast.parts_upkeep;
-    provision_line(
-        content.x,
-        y,
-        "PARTS",
-        sim.ship.spare_parts,
-        need,
-        "or restock via a full refit",
-    );
-    let short = (need - sim.ship.spare_parts).max(0);
-    let price = ctx.data.config.provisioning.part_cost_credits;
-    let afford = if price > 0 {
-        sim.resources.credits / price
-    } else {
-        0
-    };
-    let buy = short.min(afford);
-    let label = if short == 0 {
-        "PARTS STOCKED".to_owned()
-    } else if buy <= 0 {
-        "NO CREDITS FOR PARTS".to_owned()
-    } else {
-        format!("+{buy} PARTS · {} CR", buy * price)
-    };
-    if term_button(stock_button(content, y), &label, buy > 0, pointer) {
-        actions.push(UiAction::BuyParts(buy));
-    }
-    short
-}
-
-fn stock_button(content: Rect, y: f32) -> Rect {
-    Rect::new(content.right() - 200.0, y - 24.0, 194.0, 44.0)
-}
-
-fn draw_fuel_provision(
-    sim: &crate::state::sim::SimState,
-    content: Rect,
-    forecast: &crate::simulation::contract::forecast::DepartureForecast,
-    y: f32,
-) {
-    let color = if sim.ship.fuel < 1.0 {
-        term::alert()
-    } else {
-        term::accent()
-    };
-    draw_ui_text_ex(
-        &format!(
-            "FUEL  — tank {:.0}%  ·  {} travel years · total burn {:.2} full tanks",
-            sim.ship.fuel * 100.0,
-            forecast.travel_years,
-            forecast.fuel_burn
-        ),
-        content.x,
-        y,
-        TextStyle::new(13.0, color).params(),
-    );
-    draw_ui_text_ex(
-        &format!(
-            "Scoops replenish up to {:.1}% of a tank per year; capacity is one full tank.",
-            forecast.fuel_regen_per_year * 100.0
-        ),
-        content.x,
-        y + 18.0,
-        TextStyle::new(12.0, term::dim()).params(),
-    );
-}
-
 fn draw_commit(
-    ctx: &GameplayCtx<'_>,
     content: Rect,
     conflict_count: usize,
-    provisioning: ProvisioningState,
+    provisioning: provisioning::ProvisioningState,
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
-    let sim = ctx.sim;
-    let by = content.bottom() - 44.0;
-    let bw = (content.w - 12.0) / 2.0;
     let shortfalls = usize::from(provisioning.food_short > 0)
         + usize::from(provisioning.parts_short > 0)
         + usize::from(provisioning.refuel_missing > 0.001);
     let label = launch_commit_label(conflict_count, shortfalls);
-    if term_button(Rect::new(content.x, by, bw, 44.0), &label, true, pointer) {
+    let launch = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
+    if term_button(launch, &label, true, pointer) {
         actions.push(UiAction::Launch);
-    }
-    let refuel_label =
-        if provisioning.refuel_missing > 0.0 && sim.resources.credits < provisioning.refuel_cost {
-            format!("NEED {} CR", provisioning.refuel_cost)
-        } else if provisioning.refuel_missing > 0.0 {
-            format!("REFUEL ({} CR)", provisioning.refuel_cost)
-        } else {
-            "TANKS FULL".to_owned()
-        };
-    if term_button(
-        Rect::new(content.x + bw + 12.0, by, bw, 44.0),
-        &refuel_label,
-        provisioning.refuel_missing > 0.0 && sim.resources.credits >= provisioning.refuel_cost,
-        pointer,
-    ) {
-        actions.push(UiAction::Refuel);
     }
 }
 #[allow(dead_code, unused_imports)]
