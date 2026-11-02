@@ -15,3 +15,4 @@ dist/
 .gemini
 __pycache__/
 *.pyc
+docs/verification/*.log

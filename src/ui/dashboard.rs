@@ -515,11 +515,12 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             ctx.sim.projects.waiting_count()
         ),
         content.x,
-        content.y + 14.0,
-        TextStyle::new(11.0, term::primary()).params(),
+        content.y + 18.0,
+        TextStyle::new(17.0, term::primary()).params(),
     );
+    let bar_x = content.x + (content.w * 0.45).max(200.0);
     for (index, job) in active_jobs.iter().enumerate() {
-        let y = content.y + 31.0 + index as f32 * 21.0;
+        let y = content.y + 50.0 + index as f32 * 30.0;
         let definition = ctx.data.projects.get(&job.project_id);
         let name = definition
             .map(|project| project.name.as_str())
@@ -528,13 +529,13 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             name,
             content.x,
             y,
-            TextStyle::new(11.0, term::dim()).params(),
+            TextStyle::new(17.0, term::dim()).params(),
         );
         let progress = definition
             .map(|project| job.progress(project.duration_months))
             .unwrap_or(0.0);
         term_bar(
-            Rect::new(content.x + 142.0, y - 12.0, content.w - 142.0, 16.0),
+            Rect::new(bar_x, y - 16.0, content.right() - bar_x, 20.0),
             progress,
             term::accent(),
             "",
@@ -542,7 +543,7 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
         );
     }
     let line_h = 34.0;
-    let log_top = content.y + 88.0;
+    let log_top = content.y + 50.0 + 2.0 * 30.0 + 26.0;
     draw_line(
         content.x,
         log_top - 18.0,
@@ -555,13 +556,17 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
     let total = ctx.sim.log.len();
     let start = total.saturating_sub(visible);
 
+    // Columns measured from the widest stamp, so the marker never touches it.
+    let stamp_w = measure_text_size("Y0000·M00", TextStyle::new(17.0, term::faint())).width;
+    let marker_x = content.x + stamp_w + 12.0;
+    let text_x = marker_x + 26.0;
     let mut y = log_top;
     for (i, entry) in ctx.sim.log.iter().enumerate().skip(start) {
         draw_ui_text_ex(
             &format!("Y{}·M{:02}", entry.year, entry.month),
             content.x,
             y,
-            TextStyle::new(13.0, term::faint()).params(),
+            TextStyle::new(17.0, term::faint()).params(),
         );
         // The newest line streams in like live console output, with a blinking
         // cursor while it types; older lines are shown in full.
@@ -576,21 +581,14 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             entry.text.clone()
         };
         let (marker, color) = log_tone(&entry.text);
-        // Leave a measured gap after the timestamp so the marker cannot touch
-        // its final glyph when a narrow font or accessibility scale is active.
-        draw_ui_text_ex(
-            marker,
-            content.x + 54.0,
-            y,
-            TextStyle::new(13.0, color).params(),
-        );
+        draw_ui_text_ex(marker, marker_x, y, TextStyle::new(17.0, color).params());
         draw_text_block(
             &shown,
-            content.x + 76.0,
-            y - 12.0,
-            content.w - 76.0,
+            text_x,
+            y - 17.0,
+            content.right() - text_x,
             30.0,
-            13.0,
+            17.0,
             2.0,
             color,
         );
