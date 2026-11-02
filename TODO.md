@@ -68,7 +68,7 @@ data loading and UI panics. Strict Clippy is clean and every `.rs` file is
 under 800 lines (largest: `game/capture_scenes/routes.rs`, 766). Nothing was
 run interactively; the findings below come from reading the code.
 
-- [ ] **CR-01 — A missing legacy dilemma locks the clock (agent).**
+- [x] **CR-01 — A missing legacy dilemma locks the clock (agent).**
   `legacy::resolve_dilemma` returns `None` without clearing
   `sim.pending_dilemma` when `pending_dilemma_def` finds nothing (an unknown
   `legacy_id` or `dilemma_id` from an older save) or the option index is out of

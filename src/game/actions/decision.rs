@@ -69,7 +69,13 @@ impl Game {
                         .unwrap_or(0)
                 })
                 .unwrap_or(0);
-            legacy::resolve_dilemma(sim, &self.data, pick);
+            // A dilemma the loaded data cannot resolve (removed legacy or an
+            // empty option list) is dropped, as an unknown event is above;
+            // leaving it pending would hold the clock forever.
+            if legacy::resolve_dilemma(sim, &self.data, pick).is_none() {
+                sim.pending_dilemma = None;
+                return;
+            }
             let actor = sim
                 .dynasty
                 .leader()
