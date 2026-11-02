@@ -102,7 +102,7 @@ impl Game {
         if !self.checkpoints.failed {
             if let GameState::Gameplay(gameplay) = &mut self.state {
                 gameplay.sim.push_log(format!(
-                    "Save failed: {error}. Keep the game open for automatic retry, or use Utilities / Save game."
+                    "Save failed: {error}. Keep the game open for automatic retry, or use Menu / Save game."
                 ));
             }
         }

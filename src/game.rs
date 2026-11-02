@@ -313,12 +313,23 @@ impl Game {
             self.help_open = !self.help_open;
             self.settings_open = false;
         }
-        // Esc closes whichever panel is open (help first, then settings).
-        if is_key_pressed(KeyCode::Escape) {
+        // Esc closes whichever panel is open (help first, then settings);
+        // with none open during play it toggles the cog menu.
+        if self.boot.is_done() && is_key_pressed(KeyCode::Escape) {
             if self.help_open {
                 self.help_open = false;
             } else if self.settings_open {
                 self.settings_open = false;
+            } else if let GameState::Gameplay(gameplay) = &self.state {
+                let sim = &gameplay.sim;
+                let blocked = sim.authority.pending_review.is_some()
+                    || sim.pending_event.is_some()
+                    || sim.pending_dilemma.is_some()
+                    || sim.terminal.is_some();
+                if !blocked {
+                    let menu = &self.presentation.utilities;
+                    menu.set(!menu.get());
+                }
             }
         }
 
@@ -375,7 +386,7 @@ impl Game {
         if matches!(self.state, GameState::Gameplay(_)) && is_key_pressed(KeyCode::Space) {
             actions.push(UiAction::TogglePause);
         }
-        if self.settings_open || self.help_open {
+        if self.settings_open || self.help_open || self.presentation.utilities.get() {
             return;
         }
 

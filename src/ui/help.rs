@@ -15,8 +15,8 @@ const CONTROLS: &[(&str, &str)] = &[
         "DECISIONS",
         "Select a council choice, read its effects, then tap Commit",
     ),
-    ("DISPLAY", "Tap Utilities, then Display & sound"),
-    ("HELP", "Tap Utilities, then Help"),
+    ("MENU", "Tap the cog or press Esc"),
+    ("SETTINGS", "Open the menu, then Settings (or F1)"),
     ("CLOSE", "Tap CLOSE or the visible back button"),
 ];
 

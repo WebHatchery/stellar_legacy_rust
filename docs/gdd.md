@@ -335,7 +335,7 @@ effects, remembered institutional moment and current grievance. Discipline
 controls show school funding dates, knowledge-preservation
 benefits, existing archives and custodians. Custody explains its lasting choice
 and stops offering another appointment once a custodian exists.
-Utilities contains Save game, Help, Display & sound and Return to menu.
+The cog menu (top right, or Esc) contains Save game, Settings, Help and Return to menu.
 Pause/Resume and speed controls remain reachable above blocking decisions.
 Navigation underlines the active destination and section, and speed controls
 underline the current running speed. Presses visibly light navigation targets,

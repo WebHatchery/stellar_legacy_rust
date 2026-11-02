@@ -88,8 +88,8 @@ a keyboard is optional. Drag lists to scroll.
 | **Voyage / Drydock / Market** | Choose and prepare charters, and trade while in port. |
 | **Voyage / Contract** | Follow mission progress; tap **REVIEW MANDATE** for authority rules. |
 | **History** | Read the record of earlier voyages and the legacy they leave. |
-| **Utilities / Save game / Return to menu** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
-| **Utilities / Help / Display & sound** | Read controls and identity guidance, or adjust presentation, audio, and delegation settings. |
+| **Cog menu (Esc) / Save game / Return to menu** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
+| **Cog menu / Settings / Help** | Adjust display, sound, tutorial and council-default settings, or read controls and identity guidance. |
 
 Saves are local. On Windows, **HELP → OPEN SAVE FOLDER** opens their location.
 Campaigns autosave every 30 seconds of active application time, including in
@@ -138,7 +138,7 @@ recovery, so a shortage cannot hide a due commitment.
 
 The game is designed for a single 1920×1080 desktop canvas. Larger or smaller
 windows, and the browser canvas, show that same layout scaled to fit. In
-**Display & sound**, **Text size** is a 75–150% preference with a visible
+**Settings**, **Text size** is a 75–150% preference with a visible
 **Reset** button; it defaults to 100% and saves automatically. The settings dialog keeps **Close settings** fixed while
 its contents scroll. It does not change the simulation or campaign save.
 

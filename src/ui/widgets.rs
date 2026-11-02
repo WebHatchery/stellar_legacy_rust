@@ -109,6 +109,39 @@ pub fn term_button_sized(
     enabled && pointer.released_on(hit)
 }
 
+/// A square icon button carrying a drawn cog. `name` is what the layout audit
+/// and touch registry call it; the face shows only the glyph.
+pub fn cog_button(rect: Rect, name: &str, active: bool, pointer: Pointer) -> bool {
+    let hit = touch_area(rect);
+    note_neighbour(rect);
+    note_target(name, rect);
+    let fill = if active || pointer.pressing(hit) {
+        term::surface_active()
+    } else if pointer.hovering_over(hit) {
+        term::surface_hover()
+    } else {
+        term::surface()
+    };
+    let border = if active { term::primary() } else { term::dim() };
+    draw_surface(rect, &SurfaceStyle::new(fill).with_border(1.0, border));
+    draw_cog(rect.center(), rect.w.min(rect.h) * 0.3, term::primary());
+    pointer.released_on(hit)
+}
+
+/// Eight square teeth around a ring with an open hub.
+fn draw_cog(c: Vec2, r: f32, color: Color) {
+    const TEETH: usize = 8;
+    let tooth = r * 0.38;
+    for k in 0..TEETH {
+        let (sn, cs) = (k as f32 * std::f32::consts::TAU / TEETH as f32).sin_cos();
+        let inner = c + vec2(cs, sn) * (r * 0.72);
+        let outer = c + vec2(cs, sn) * (r + tooth * 0.55);
+        draw_line(inner.x, inner.y, outer.x, outer.y, tooth, color);
+    }
+    draw_circle(c.x, c.y, r * 0.86, color);
+    draw_circle(c.x, c.y, r * 0.36, term::surface());
+}
+
 /// Which end of a meter is the dangerous one, for the critical-red highlight.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MeterTone {

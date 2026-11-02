@@ -186,33 +186,33 @@ fn draw_context_subtabs(ctx: &GameplayCtx<'_>, current: Destination, pointer: Po
 }
 
 fn draw_utilities_toggle(ctx: &GameplayCtx<'_>, pointer: Pointer) {
-    if term_button(
-        Rect::new(logical_width() - 146.0, 78.0, 130.0, 44.0),
-        "Utilities",
-        true,
+    let open = ctx.presentation.utilities.get();
+    if cog_button(
+        Rect::new(logical_width() - 60.0, 78.0, 44.0, 44.0),
+        "Menu",
+        open,
         pointer,
     ) {
-        ctx.presentation
-            .utilities
-            .set(!ctx.presentation.utilities.get());
+        ctx.presentation.utilities.set(!open);
     }
 }
 
+/// The cog menu, also opened and closed by Esc.
 pub fn draw_utilities(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if !ctx.presentation.utilities.get() {
         return;
     }
     actions.clear();
-    let rect = Rect::new(928.0, 128.0, 336.0, 320.0);
+    let rect = Rect::new(logical_width() - 352.0, 128.0, 336.0, 320.0);
     macroquad_toolkit::ui::occlude(rect);
-    // The utility drawer sits over bridge copy and status text. Its panel is
-    // opaque, so keep the layout audit focused on the drawer's own controls.
+    // The menu sits over bridge copy and status text. Its panel is opaque, so
+    // keep the layout audit focused on the menu's own controls.
     let _modal_region = Region::on(rect, term::panel());
-    term_panel(rect, Some("Utilities"));
+    term_panel(rect, Some("Menu"));
     for (i, (label, action)) in [
         ("Save game", UiAction::SaveGame),
+        ("Settings", UiAction::OpenSettings),
         ("Help", UiAction::OpenHelp),
-        ("Display & sound", UiAction::OpenSettings),
         ("Return to menu", UiAction::ToMenu),
     ]
     .into_iter()
@@ -235,7 +235,7 @@ pub fn draw_utilities(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec
     }
     if term_button(
         Rect::new(rect.x + 16.0, rect.bottom() - 52.0, rect.w - 32.0, 44.0),
-        "Close utilities",
+        "Resume",
         true,
         pointer,
     ) {

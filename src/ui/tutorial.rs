@@ -24,7 +24,7 @@ fn guide(data: &crate::data::GameData, step: usize) -> Option<Guide> {
     } else {
         Guide {
             heading: "Custodian guide complete".into(),
-            tip: "Ship prepared, work queued, time held and the council answered. Help stays in Utilities.".into(),
+            tip: "Ship prepared, work queued, time held and the council answered. Help stays in the cog menu.".into(),
             complete: true,
         }
     })
