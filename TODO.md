@@ -94,7 +94,7 @@ run interactively; the findings below come from reading the code.
   the `build_mode::load_data` adjustments.
   **Action:** pass the `&GameData` that `Game` already owns into
   `load_campaign` / `migrate_save_value`, and validate once.
-- [ ] **CR-04 — Config values the code divides by are never checked (agent).**
+- [x] **CR-04 — Config values the code divides by are never checked (agent).**
   `GameData::load` validates `projects.json` and its references, but nothing
   checks `game_config` values. `campaign.months_per_window == 0` divides by
   zero in `event_resolver/skeleton.rs::generate_beats`.

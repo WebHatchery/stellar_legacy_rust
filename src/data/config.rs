@@ -330,3 +330,39 @@ pub struct GameConfig {
     /// oldest beats fall away.
     pub voyage_highlight_limit: usize,
 }
+
+impl GameConfig {
+    /// Fail fast on tunables the simulation divides by, subtracts from, or
+    /// waits on, so a bad edit to `game_config.json` names the field at load
+    /// instead of panicking or misbehaving mid-voyage.
+    pub fn validates(&self) -> Result<(), String> {
+        let positive = [
+            ("autosave_interval_seconds", self.autosave_interval_seconds),
+            (
+                "real_time.seconds_per_month",
+                self.real_time.seconds_per_month,
+            ),
+            (
+                "real_time.decision_timeout_secs",
+                self.real_time.decision_timeout_secs,
+            ),
+        ];
+        for (field, value) in positive {
+            if !value.is_finite() || value <= 0.0 {
+                return Err(format!("game_config.{field} must be positive, got {value}"));
+            }
+        }
+        if self.campaign_skeleton.months_per_window == 0 {
+            return Err(
+                "game_config.campaign_skeleton.months_per_window must be at least 1".into(),
+            );
+        }
+        if self.crew.recruit_age_max < self.crew.recruit_age_min {
+            return Err(format!(
+                "game_config.crew.recruit_age_max ({}) is below recruit_age_min ({})",
+                self.crew.recruit_age_max, self.crew.recruit_age_min
+            ));
+        }
+        Ok(())
+    }
+}

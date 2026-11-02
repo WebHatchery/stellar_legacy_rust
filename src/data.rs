@@ -184,8 +184,10 @@ impl GameData {
         let events = Self::load_events()?;
         let projects = Self::load_projects()?;
         Self::validate_project_references(&projects, &events)?;
+        let config: GameConfig = load_embedded_json_labeled("game_config", GAME_CONFIG_JSON)?;
+        config.validates()?;
         Ok(Self {
-            config: load_embedded_json_labeled("game_config", GAME_CONFIG_JSON)?,
+            config,
             ship_components: load_embedded_json_labeled("ship_components", SHIP_COMPONENTS_JSON)?,
             events,
             legacies: DataRegistry::from_embedded_json(LEGACIES_JSON, "id")?,

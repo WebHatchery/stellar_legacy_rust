@@ -61,7 +61,7 @@ impl Game {
         }
 
         self.month_accumulator += dt * multiplier;
-        let per_month = self.data.config.real_time.seconds_per_month.max(0.01);
+        let per_month = self.data.config.real_time.seconds_per_month;
         while self.month_accumulator >= per_month {
             self.month_accumulator -= per_month;
             self.advance_one_month();
