@@ -219,6 +219,14 @@ fn draw_glyph_face(glyph: &ModuleGlyph, tone: Color) {
 
 fn draw_glyph_markers(glyph: &ModuleGlyph) {
     let r = glyph.rect;
+    // Condition as text in the box's bottom-right corner, so a failing room
+    // reads without relying on its border colour.
+    if glyph.kind == ModuleKind::Subsystem {
+        let style = TextStyle::new(14.0, condition_tone(glyph.condition));
+        let text = format!("{:.0}%", glyph.condition * 100.0);
+        let w = measure_text_size(&text, style).width;
+        draw_ui_text_ex(&text, r.right() - 6.0 - w, r.bottom() - 3.0, style.params());
+    }
     // Tier pips (subsystems only), matching the subsystems screen convention.
     if glyph.kind == ModuleKind::Subsystem {
         for t in 0..3 {
@@ -248,11 +256,13 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
     // spine, so they label locally — right beside the box — which also keeps the
     // top-left legend area clear.
     let ship_cy = frame.y + frame.h * 0.5;
+    // Vacant posts keep a readable name; a second caption says so in words.
     let label_color = if glyph.manned {
         term::primary()
     } else {
-        term::faint()
+        term::dim()
     };
+    let vacant = !glyph.manned && glyph.kind == ModuleKind::Subsystem;
 
     // The dorsal weapon labels to its side, clear of the centre-top captions; no
     // leader, since its mount branch already ties it to the hull.
@@ -275,7 +285,7 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         }
         ModuleKind::Subsystem if r.center().y < ship_cy => {
             let ly = frame.y + 22.0;
-            (ly, r.y, ly + 28.0)
+            (ly, r.y, ly + if vacant { 44.0 } else { 28.0 })
         }
         _ => {
             let ly = frame.bottom() - 30.0;
@@ -296,6 +306,14 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         ly,
         TextStyle::new(18.0, label_color),
     );
+    if vacant {
+        draw_text_centered(
+            "post vacant",
+            r.center().x,
+            ly + 20.0,
+            TextStyle::new(14.0, term::dim()),
+        );
+    }
 }
 
 /// The bottom SHIP STATUS strip: live integrity/fuel meters plus combat and the

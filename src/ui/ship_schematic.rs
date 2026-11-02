@@ -133,6 +133,11 @@ const ROOM_SLOT_H: f32 = 52.0;
 /// enlarge rooms, hull and spacing together (up to 2x) so the diagram fills its
 /// container instead of floating as a thin strip.
 const BASE_FRAME_H: f32 = 300.0;
+/// Height kept clear at the top and bottom of the frame for deck captions,
+/// including the second "post vacant" line.
+const LABEL_BAND_H: f32 = 64.0;
+/// How far above the hull a dorsal weapon mount reaches, at base scale.
+const WEAPON_RISE: f32 = 36.0;
 
 fn any_post_aboard(sim: &SimState, posts: &[&str]) -> bool {
     sim.crew
@@ -285,7 +290,12 @@ pub fn build(sim: &SimState, data: &GameData, frame: Rect) -> ShipSchematic {
 fn hull_geometry(profile: &Profile, frame: Rect) -> HullGeometry {
     let cy = frame.y + frame.h * 0.5;
     let cx = frame.x + frame.w * 0.5;
-    let scale = (frame.h / BASE_FRAME_H).clamp(1.0, 2.0);
+    // Grow with the frame, but never so far that the hull (and a dorsal
+    // weapon above it) reaches into the caption bands reserved at the top and
+    // bottom of the frame.
+    let extent = (ROW_OFFSET + ROOM_SLOT_H * 0.5 + 20.0) * profile.height + WEAPON_RISE;
+    let fit = ((frame.h * 0.5 - LABEL_BAND_H) / extent).max(0.6);
+    let scale = (frame.h / BASE_FRAME_H).clamp(1.0, 2.0).min(fit);
     let row_offset = ROW_OFFSET * scale;
     let max_h = (row_offset + (ROOM_SLOT_H * 0.5 + 20.0) * scale) * profile.height;
     let hull_span = frame.w * 0.86 * profile.length;
@@ -417,7 +427,7 @@ fn weapon_glyph(
         "WPN",
         Rect::new(
             geometry.x_at(0.5) - width / 2.0,
-            geometry.cy - geometry.max_h - 36.0 * s,
+            geometry.cy - geometry.max_h - WEAPON_RISE * s,
             width,
             30.0 * s,
         ),

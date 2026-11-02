@@ -59,8 +59,15 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
             ctx.ship_modules_tab.set(i == 1);
         }
     }
-    let preview_area = Rect::new(area.x, area.y + SEG_H + 10.0, area.w, 172.0);
-    preview::draw(ctx, preview_area);
+    // Collapsed, the catalogue stays the dominant refit decision; enlarged,
+    // the preview becomes a full labelled schematic to inspect.
+    let preview_h = if ctx.presentation.ship_preview_expanded.get() {
+        560.0
+    } else {
+        172.0
+    };
+    let preview_area = Rect::new(area.x, area.y + SEG_H + 10.0, area.w, preview_h);
+    preview::draw(ctx, preview_area, pointer);
     let body = Rect::new(
         area.x,
         preview_area.bottom() + 12.0,

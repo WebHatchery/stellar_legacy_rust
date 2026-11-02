@@ -330,6 +330,10 @@ Recovered fittings use authored names, identify the replaced part and explain
 installation costs, engineer requirements and drydock-only restrictions.
 Emergency stabilisation controls share the action's availability check and cannot
 spend stores at full air.
+Schematic compartments show their condition as a percentage in the box, and
+vacant posts keep a readable name with a "post vacant" caption. The hull scales
+to stay clear of the caption bands. The refit preview can be enlarged into the
+full labelled schematic and shrunk back beside the catalogue.
 Compartment upgrades identify the next fitting and distinguish purchased tiers
 from mission rewards, with full costs and explicit port-only installation.
 Compartment cards show the local custodian, authored descriptor, exact annual

@@ -49,6 +49,10 @@ impl Game {
     pub(super) fn seed_drydock_ship(&mut self, scene: &str) {
         self.ship_modules_tab.set(scene == "ship_modules");
         self.ship_preview.set((0, -100.0));
+        // The refitted scene shows the enlarged, labelled refit preview.
+        self.presentation
+            .ship_preview_expanded
+            .set(scene == "ship_refitted");
         match scene {
             "ship" | "ship_refitted" => {
                 let mut sim = SimState::new_campaign(

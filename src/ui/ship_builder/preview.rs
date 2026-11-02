@@ -1,11 +1,33 @@
 //! Live drydock silhouette from the same model as the underway blueprint.
 use super::*;
 use crate::ui::ship_schematic::ModuleKind;
+use crate::ui::term_button;
 use macroquad_toolkit::ui::{draw_text_block, draw_text_centered_in_box_ex};
 use std::hash::{Hash, Hasher};
 
-pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect) {
+pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("YOUR SHIP // LIVE REFIT VIEW"));
+    let expanded = ctx.presentation.ship_preview_expanded.get();
+    let toggle = Rect::new(area.right() - 564.0, area.bottom() - 54.0, 220.0, 44.0);
+    if term_button(
+        toggle,
+        if expanded {
+            "Shrink preview"
+        } else {
+            "Enlarge preview"
+        },
+        true,
+        pointer,
+    ) {
+        ctx.presentation.ship_preview_expanded.set(!expanded);
+    }
+    if expanded {
+        let frame = Rect::new(area.x + 16.0, area.y + 44.0, area.w - 600.0, area.h - 56.0);
+        let schematic = ship_schematic::build(ctx.sim, ctx.data, frame);
+        ship_schematic::draw(frame, &schematic);
+        draw_summary(ctx, area, &schematic, term::accent(), false);
+        return;
+    }
     let source = Rect::new(0.0, 0.0, 1900.0, 330.0);
     let schematic = ship_schematic::build(ctx.sim, ctx.data, source);
     let mut hash = std::collections::hash_map::DefaultHasher::new();
@@ -23,7 +45,7 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect) {
     };
     ctx.ship_preview.set((signature, changed_at));
     let changed = get_time() - changed_at < 1.6;
-    let frame = Rect::new(area.x + 12.0, area.y + 36.0, area.w - 354.0, area.h - 44.0);
+    let frame = Rect::new(area.x + 12.0, area.y + 36.0, area.w - 590.0, area.h - 44.0);
     let scale = (frame.w / source.w).min(frame.h / source.h);
     let origin = vec2(
         frame.x + (frame.w - source.w * scale) / 2.0,
@@ -84,8 +106,8 @@ fn draw_modules(schematic: &ship_schematic::ShipSchematic, origin: Vec2, scale: 
             r.x - 18.0,
             r.bottom() + 2.0,
             r.w + 36.0,
-            14.0,
-            TextStyle::new(10.0, color),
+            16.0,
+            TextStyle::new(13.0, color),
         );
     }
 }
@@ -111,26 +133,24 @@ fn draw_summary(
         .and_then(|id| ctx.data.ship_components.find(ComponentKind::Weapon, id))
         .map(|c| c.name.as_str())
         .unwrap_or("Unarmed");
-    let summary = format!(
-        "{}\n{}\n{}\n{}\n{}",
+    let mut summary = format!(
+        "{}\n{}\n{}\n{}",
         schematic.hull_name,
         engine,
         weapon,
         stats_line(&schematic.stats),
-        if changed {
-            "REFIT APPLIED"
-        } else {
-            "Module numbers show installed tiers"
-        }
     );
+    if changed {
+        summary.push_str("\nREFIT APPLIED");
+    }
     draw_text_block(
         &summary,
         area.right() - 328.0,
-        area.y + 46.0,
+        area.y + 44.0,
         312.0,
         area.h - 52.0,
-        13.0,
-        5.0,
+        15.0,
+        4.0,
         tone,
     );
 }

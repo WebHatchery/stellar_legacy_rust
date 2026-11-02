@@ -21,6 +21,8 @@ pub struct Presentation {
     pub selected_agenda: Cell<usize>,
     pub utilities: Cell<bool>,
     pub instruments: Cell<bool>,
+    /// The refit preview is enlarged into a full labelled schematic.
+    pub ship_preview_expanded: Cell<bool>,
     pub event_key: std::cell::RefCell<String>,
     pub event_choice: Cell<usize>,
     pub situation_scroll: Cell<ScrollArea>,

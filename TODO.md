@@ -33,25 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-05 — Make the ship schematic useful and identifiable.**
-  **Scope/files:** Bridge, Systems and loadout preview;
-  `src/ui/ship_schematic.rs::build`, `src/ui/ship_schematic/draw.rs`,
-  `src/ui/subsystems/overview.rs::{draw,select_compartments}`,
-  `src/ui/ship_builder/preview.rs`.
-  **Observed:** Labels are dimmed for vacant posts; in `ui_subsystems.png`, lower
-  captions sit very close to their glyphs. The loadout preview scales a
-  1900×330 source into a shallow strip with tiny module labels.
-  **Change:** Fit the diagram to its container with reserved label bands and a
-  readable minimum compartment size. Provide names and textual
-  condition/vacancy on selection, not color alone. Keep vacant compartment
-  names readable. In refit comparison, allow a larger inspectable preview and
-  move tier-explanation prose to contextual help.
-  **Acceptance:** A player can identify and inspect a failing compartment
-  without guessing colored boxes. Labels do not crowd glyphs; all hull
-  silhouettes fit. Catalogue comparison remains the dominant refit decision.
-  **Check:** Barge, corvette, ring and ark; healthy, damaged, vacant and
-  active-project compartments. 
-
 - [ ] **UI-06 — Split immediate subsystem care from institutional and culture detail.**
   **Scope/files:** Ship/Systems selected compartment, port and underway;
   `src/ui/subsystems.rs::{draw_card,draw_card_identity,draw_card_bars,draw_card_actions}`,
@@ -70,7 +51,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   reading institutional history; no urgent consequence or prerequisite is
   concealed.
   **Check:** A damaged low-knowledge system, a sound system and a late-game
-  school/custody case at 100% and 150% text. Depends on UI-05.
+  school/custody case at 100% and 150% text.
 
 - [ ] **UI-07 — Focus the active voyage on progress and the current obstacle.**
   **Scope/files:** Voyage/Contract during travel, operation, fuel stall and return;
