@@ -371,11 +371,15 @@ pub fn pause_check(sim: &SimState, data: &GameData, sequence_id: u64) -> Result<
     Ok(())
 }
 
+/// The reason recorded when the Custodian pauses a job by hand. The agenda
+/// already shows the job as paused, so this reason is not repeated there.
+pub const CUSTODIAN_PAUSE: &str = "Paused by the Custodian.";
+
 pub fn pause_project(sim: &mut SimState, data: &GameData, sequence_id: u64) -> Result<(), String> {
     pause_check(sim, data, sequence_id)?;
     let job = sim.projects.find_mut(sequence_id).expect("checked job");
     job.status = ProjectStatus::Paused;
-    job.pause_reason = Some("Paused by the Custodian.".to_owned());
+    job.pause_reason = Some(CUSTODIAN_PAUSE.to_owned());
     sim.push_log(format!("Agenda paused job {}.", sequence_id));
     Ok(())
 }

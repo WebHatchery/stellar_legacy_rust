@@ -57,22 +57,15 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
     ship_schematic::draw(diagram, &ship);
     select_compartments(ctx, &ship, base_pointer, actions, false);
     if let Some(glyph) = ship.modules.iter().find(|glyph| glyph.id == ids[selected]) {
-        draw_ui_text_ex(
-            if glyph.manned {
-                "Officer assigned"
-            } else {
-                "! Officer post vacant"
-            },
-            rail.x + 16.0,
-            rail.bottom() - 42.0,
-            TextStyle::new(16.0, term::dim()).params(),
-        );
-        draw_ui_text_ex(
-            "Tap a compartment to inspect",
-            rail.x + 16.0,
-            rail.bottom() - 18.0,
-            TextStyle::new(14.0, term::dim()).params(),
-        );
+        // A staffed post is the norm; only a vacancy earns a line.
+        if !glyph.manned {
+            draw_ui_text_ex(
+                "! Officer post vacant",
+                rail.x + 16.0,
+                rail.bottom() - 18.0,
+                TextStyle::new(16.0, term::alert()).params(),
+            );
+        }
     }
     if let Some(id) = ctx.custody_picker {
         draw_custody_picker(ctx, area, id, pointer, actions);

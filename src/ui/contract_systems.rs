@@ -187,21 +187,17 @@ fn draw_available(
         TextStyle::new(13.0, term::dim()).params(),
     );
     y += 20.0;
-    // On a brand-new campaign the line becomes the tutorial's pointer toward
-    // the PREP screen; both variants are authored in game_config.
-    let tutorial = &ctx.data.config.tutorial;
+    // Only a first voyage's tutorial points the way to PREP; a seasoned
+    // Custodian needs no standing instruction over the charter list.
     let tutorial_active = !sim.tutorial_dismissed && ctx.chronicle.entries.is_empty();
-    let (hint, hint_color) = if tutorial_active {
-        (tutorial.drydock_hint.as_str(), term::accent())
-    } else {
-        (tutorial.drydock_refit_hint.as_str(), term::faint())
-    };
-    draw_ui_text_ex(
-        hint,
-        content.x,
-        y,
-        TextStyle::new(12.0, hint_color).params(),
-    );
+    if tutorial_active {
+        draw_ui_text_ex(
+            &ctx.data.config.tutorial.drydock_hint,
+            content.x,
+            y,
+            TextStyle::new(12.0, term::accent()).params(),
+        );
+    }
     let cards = Rect::new(
         content.x,
         y + 26.0,

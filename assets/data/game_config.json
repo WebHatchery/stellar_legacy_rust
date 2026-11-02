@@ -126,7 +126,6 @@
   },
   "tutorial": {
     "drydock_hint": "FIRST VOYAGE - Select a charter below to open the PREP screen and ready the ship.",
-    "drydock_refit_hint": "Repair or refit on the SHIP screen, then choose the next charter:",
     "legacy_intro": "The legacy is the founding society's mandate and culture. It shapes the names, priorities, and dilemmas you will carry as the Custodian:",
     "factions_intro": "Founding peoples are the human cultures that commissioned and crew you. Their balance shapes advice and political pressure across the voyage:",
     "steps": [
@@ -220,15 +219,15 @@
     "sections": [
       {
         "heading": "YOUR COMMISSION",
-        "body": "The founding society commissioned you to operate the vessel and preserve its mandate. Choose a legacy and founding peoples, then choose a charter. Tap Read briefing & prepare, review the briefing, and tap LAUNCH when the ship is ready."
+        "body": "The founding society commissioned you to run the vessel and keep its mandate."
       },
       {
         "heading": "THE HUMAN PARTNERS",
-        "body": "The captain and council are human actors with their own priorities and mortality. You execute routine operations under a standing mandate; the captain can object to a strategic posture when the ship's condition makes it unsafe. Tap REVIEW MANDATE on CONTRACT to see the rule."
+        "body": "Captains and councils are mortal and keep their own priorities. The captain may object when a posture puts the ship at risk."
       },
       {
         "heading": "CONTINUITY",
-        "body": "One Custodian persists through captain deaths, retirements, voyages, and drydock. Recorded promises and captaincies remain available in the Chronicle. If no eligible heir remains, the founding commission ends; this is a campaign ending, not the Custodian dying with one captain."
+        "body": "You outlast every captain. The commission ends only when no heir remains."
       }
     ],
     "dismiss_label": "BEGIN BRIEFING"

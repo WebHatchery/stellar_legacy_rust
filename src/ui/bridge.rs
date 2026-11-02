@@ -44,7 +44,7 @@ fn draw_voyage_subject(
         TextStyle::new(30.0, term::primary()).params(),
     );
     let phase = sim.contract.as_ref().map_or_else(
-        || "In port · Review a charter, then prepare provisions".to_owned(),
+        || "In port".to_owned(),
         |c| {
             format!(
                 "{} · Voyage {:.0}% · Objective {:.0}%",
@@ -156,8 +156,7 @@ fn draw_attention(
     } else if sim.contract.is_none() {
         (
             "Ready for your next charter".to_owned(),
-            "Choose a destination and review its commitments before provisioning the ship."
-                .to_owned(),
+            String::new(),
             "Choose a charter",
             Screen::Drydock,
         )

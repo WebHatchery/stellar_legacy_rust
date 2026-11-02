@@ -78,7 +78,6 @@ fn tutorial_steps_cover_the_launch_flow() {
     let data = GameData::load().unwrap();
     let tutorial = &data.config.tutorial;
     assert!(!tutorial.drydock_hint.trim().is_empty());
-    assert!(!tutorial.drydock_refit_hint.trim().is_empty());
     // The PREP checklist binds these ids to completion checks — the
     // authored steps must match them exactly, in launch order.
     let ids: Vec<&str> = tutorial.steps.iter().map(|s| s.id.as_str()).collect();

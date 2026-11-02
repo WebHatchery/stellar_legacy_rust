@@ -17,8 +17,6 @@ pub struct TutorialStep {
 pub struct TutorialConfig {
     /// One-line hint over the drydock charter list on a first voyage.
     pub drydock_hint: String,
-    /// The same line's everyday text once the tutorial is over.
-    pub drydock_refit_hint: String,
     /// Explains the legacy column on the new-game screen (what the choice does).
     pub legacy_intro: String,
     /// Explains the founding-peoples column on the new-game screen.

@@ -21,7 +21,9 @@ pub(super) fn draw(
 pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
     let sim = ctx.sim;
     form.heading("Who decides?");
-    form.text("Council review brings an event to you. Delegating lets advisors choose automatically. Changes apply to future events; outcomes remain in History. Story dilemmas still require your choice.");
+    form.text(
+        "Delegated kinds of event are settled by advisors; story dilemmas always come to you.",
+    );
     for category in EventCategory::ALL {
         let delegated = sim.delegation.is_delegated(category);
         form.action(

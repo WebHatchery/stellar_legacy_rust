@@ -177,6 +177,7 @@ fn draw_job_header(
     let detail = job
         .pause_reason
         .as_deref()
+        .filter(|reason| *reason != crate::simulation::projects::CUSTODIAN_PAUSE)
         .or(job.stop_reason.as_deref())
         .map_or_else(
             || {
@@ -226,16 +227,6 @@ fn draw_job_controls(
                 direction: 1,
             });
         }
-        draw_text_block(
-            "Unavailable jobs are skipped. To resume paused work, tap REVIEW PROJECT.",
-            row.x + 10.0,
-            row.y + 145.0,
-            row.w - 20.0,
-            38.0,
-            12.0,
-            3.0,
-            term::dim(),
-        );
     }
 }
 
