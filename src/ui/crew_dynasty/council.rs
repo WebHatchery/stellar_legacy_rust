@@ -82,9 +82,14 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
     ));
 
     form.heading("Legacy condition");
+    legacy_condition_lines(ctx, form);
+}
+
+/// Only conditions the voyage has actually accrued are listed; a clean record
+/// reads as tradition alone, and a zero failure risk is not reported.
+fn legacy_condition_lines(ctx: &GameplayCtx<'_>, form: &mut Form) {
+    let sim = ctx.sim;
     let legacy = &sim.legacy;
-    // Only conditions the voyage has actually accrued are listed; a clean
-    // record reads as tradition alone.
     let mut lines = vec![format!("Tradition points: {}", legacy.tradition_points)];
     if legacy.body_horror_events > 0 {
         lines.push(format!("Body-horror events: {}", legacy.body_horror_events));
