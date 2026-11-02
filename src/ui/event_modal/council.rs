@@ -1,6 +1,7 @@
 //! A council decision separates the situation from the selected commitment.
 use super::*;
-use crate::ui::reading::read_lines;
+use crate::ui::reading::{flow_text, read_lines_sized};
+use crate::ui::term_button_sized;
 use macroquad_toolkit::ui::ScrollArea;
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {
@@ -69,22 +70,22 @@ fn draw_council_panel(
         frame.y + 25.0,
         TextStyle::new(16.0, term::alert()),
     );
-    let left = Rect::new(frame.x + 20.0, frame.y + 52.0, 418.0, frame.h - 72.0);
+    let left = Rect::new(frame.x + 24.0, frame.y + 56.0, 560.0, frame.h - 76.0);
     let right = Rect::new(
         left.right() + 26.0,
         left.y,
         frame.right() - left.right() - 46.0,
         left.h,
     );
-    crate::ui::identity::portrait(Rect::new(left.x, left.y, 54.0, 64.0), captain);
+    crate::ui::identity::portrait(Rect::new(left.x, left.y, 68.0, 80.0), captain);
     draw_text_block(
         &event.title,
-        left.x + 72.0,
-        left.y,
-        left.w - 72.0,
-        66.0,
-        26.0,
-        5.0,
+        left.x + 88.0,
+        left.y + 4.0,
+        left.w - 88.0,
+        80.0,
+        34.0,
+        6.0,
         term::primary(),
     );
     draw_council_situation(ctx, event, left, pointer);
@@ -112,16 +113,17 @@ fn draw_council_situation(
             ));
         }
     }
-    let situation = Rect::new(left.x, left.y + 80.0, left.w, left.h - 148.0);
-    read_lines(
+    let situation = Rect::new(left.x, left.y + 104.0, left.w, left.h - 180.0);
+    read_lines_sized(
         &text,
         situation,
         &state.situation_scroll,
         pointer,
         term::dim(),
+        22.0,
     );
-    if term_button(
-        Rect::new(left.x, left.bottom() - 48.0, left.w, 44.0),
+    if term_button_sized(
+        Rect::new(left.x, left.bottom() - COMMIT_H, left.w, COMMIT_H),
         if advice_open {
             "Hide officer advice"
         } else {
@@ -129,6 +131,7 @@ fn draw_council_situation(
         },
         true,
         pointer,
+        20.0,
     ) {
         state.event_advice.set(!advice_open);
         state.situation_scroll.set(ScrollArea::new());
@@ -140,8 +143,11 @@ type OptionEffects = (Vec<super::effects::EffectTerm>, Option<(i64, i64)>);
 
 /// Width of the comparison grid's row-label column; the option buttons and
 /// their effect columns share the rest of the panel.
-const GRID_LABEL_W: f32 = 300.0;
-const GRID_ROW_H: f32 = 30.0;
+const GRID_LABEL_W: f32 = 310.0;
+const GRID_ROW_H: f32 = 40.0;
+const GRID_TEXT: f32 = 20.0;
+const OPTION_H: f32 = 76.0;
+const COMMIT_H: f32 = 56.0;
 
 fn draw_council_choices(
     ctx: &GameplayCtx<'_>,
@@ -153,44 +159,82 @@ fn draw_council_choices(
     actions: &mut Vec<UiAction>,
 ) {
     let state = ctx.presentation;
-    let gap = 10.0;
+    let gap = 14.0;
     let cols_x = right.x + GRID_LABEL_W;
     let col_w =
         (right.right() - cols_x - gap * (available.len() - 1) as f32) / available.len() as f32;
     let column = |index: usize| cols_x + index as f32 * (col_w + gap);
+    let card_bottom = right.bottom() - COMMIT_H - 18.0;
+    // The chosen option is lit as a whole card, top to bottom, so the
+    // comparison reads down a column rather than across a gap.
+    draw_rectangle(
+        column(selected) - 6.0,
+        right.y - 6.0,
+        col_w + 12.0,
+        card_bottom - right.y + 12.0,
+        term::surface_inset(),
+    );
     for (index, &outcome_index) in available.iter().enumerate() {
         let option = &event.outcomes[outcome_index];
-        let rect = Rect::new(column(index), right.y, col_w, 68.0);
-        if term_button(rect, &option.label, true, pointer) {
+        let rect = Rect::new(column(index), right.y, col_w, OPTION_H);
+        if term_button_sized(rect, &option.label, true, pointer, 20.0) {
             state.event_choice.set(index);
             state.event_scroll.set(ScrollArea::new());
         }
         if selected == index {
-            draw_rectangle(rect.x, rect.bottom() + 3.0, rect.w, 3.0, term::primary());
+            draw_rectangle(rect.x, rect.bottom() + 4.0, rect.w, 4.0, term::primary());
         }
     }
-    let grid_top = right.y + 92.0;
-    let grid_bottom = draw_effect_grid(ctx, event, available, selected, grid_top, &column, col_w);
+    let grid_top = right.y + OPTION_H + 24.0;
+    let grid_bottom = draw_effect_grid(ctx, event, available, grid_top, &column);
+
+    // Each option's consequence sits under its own column, so every choice
+    // is legible at once; only the selected one gates the commit on reading.
+    let detail_top = grid_bottom + 28.0;
+    let mut read_to_end = false;
+    for (index, &outcome_index) in available.iter().enumerate() {
+        let outcome = &event.outcomes[outcome_index];
+        let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
+        let briefing = if affordable {
+            outcome.description.clone()
+        } else {
+            format!(
+                "{}
+
+Unavailable: insufficient stores for this choice.",
+                outcome.description
+            )
+        };
+        let x = column(index) + 8.0;
+        if index == selected {
+            let view = Rect::new(
+                x,
+                detail_top,
+                col_w - 8.0,
+                (card_bottom - detail_top).max(60.0),
+            );
+            read_to_end = read_lines_sized(
+                &briefing,
+                view,
+                &state.event_scroll,
+                pointer,
+                term::primary(),
+                20.0,
+            );
+        } else {
+            flow_text(&briefing, x, detail_top, col_w - 24.0, 20.0, term::dim());
+        }
+    }
+    draw_ui_text_ex(
+        "If chosen",
+        right.x,
+        detail_top + 21.0,
+        TextStyle::new(GRID_TEXT, term::dim()).params(),
+    );
 
     let index = available[selected];
     let outcome = &event.outcomes[index];
     let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
-    let briefing = if affordable {
-        outcome.description.clone()
-    } else {
-        format!(
-            "{}\n\nUnavailable: insufficient stores for this choice.",
-            outcome.description
-        )
-    };
-    let detail_top = grid_bottom + 20.0;
-    let detail = Rect::new(
-        right.x,
-        detail_top,
-        right.w,
-        (right.bottom() - 66.0 - detail_top).max(60.0),
-    );
-    let read_to_end = read_lines(&briefing, detail, &state.event_scroll, pointer, term::dim());
     let label = if !affordable {
         "Commit choice · insufficient stores".to_owned()
     } else if !read_to_end {
@@ -198,11 +242,12 @@ fn draw_council_choices(
     } else {
         format!("Commit: {}", outcome.label)
     };
-    if term_button(
-        Rect::new(right.x, right.bottom() - 48.0, right.w, 48.0),
+    if term_button_sized(
+        Rect::new(right.x, right.bottom() - COMMIT_H, right.w, COMMIT_H),
         &label,
         affordable && read_to_end,
         pointer,
+        20.0,
     ) {
         actions.push(UiAction::ResolveEvent(index));
     }
@@ -215,10 +260,8 @@ fn draw_effect_grid(
     ctx: &GameplayCtx<'_>,
     event: &crate::data::events::EventTemplate,
     available: &[usize],
-    selected: usize,
     top: f32,
     column: &dyn Fn(usize) -> f32,
-    col_w: f32,
 ) -> f32 {
     let per_option: Vec<OptionEffects> = available
         .iter()
@@ -246,30 +289,23 @@ fn draw_effect_grid(
     let has_souls = per_option.iter().any(|(_, souls)| souls.is_some());
     let row_count = rows.len() + usize::from(has_souls);
     let height = GRID_ROW_H * row_count.max(1) as f32;
-    draw_rectangle(
-        column(selected) - 4.0,
-        top,
-        col_w + 8.0,
-        height,
-        term::surface_inset(),
-    );
     if row_count == 0 {
         draw_ui_text_ex(
             "No option makes an immediate material change.",
             column(0) - GRID_LABEL_W,
-            top + 21.0,
-            TextStyle::new(16.0, term::dim()).params(),
+            top + 27.0,
+            TextStyle::new(GRID_TEXT, term::dim()).params(),
         );
         return top + height;
     }
     let label_x = column(0) - GRID_LABEL_W;
     for (row, label) in rows.iter().enumerate() {
-        let y = top + row as f32 * GRID_ROW_H + 21.0;
+        let y = top + row as f32 * GRID_ROW_H + 27.0;
         draw_ui_text_ex(
             label,
             label_x,
             y,
-            TextStyle::new(16.0, term::dim()).params(),
+            TextStyle::new(GRID_TEXT, term::dim()).params(),
         );
         for (index, (terms, _)) in per_option.iter().enumerate() {
             let (text, color) = match terms.iter().find(|term| &term.label == label) {
@@ -281,17 +317,17 @@ fn draw_effect_grid(
                 &text,
                 column(index) + 8.0,
                 y,
-                TextStyle::new(16.0, color).params(),
+                TextStyle::new(GRID_TEXT, color).params(),
             );
         }
     }
     if has_souls {
-        let y = top + rows.len() as f32 * GRID_ROW_H + 21.0;
+        let y = top + rows.len() as f32 * GRID_ROW_H + 27.0;
         draw_ui_text_ex(
             "souls (uncertain)",
             label_x,
             y,
-            TextStyle::new(16.0, term::dim()).params(),
+            TextStyle::new(GRID_TEXT, term::dim()).params(),
         );
         for (index, (_, souls)) in per_option.iter().enumerate() {
             let (text, color) = match souls {
@@ -302,7 +338,7 @@ fn draw_effect_grid(
                 &text,
                 column(index) + 8.0,
                 y,
-                TextStyle::new(16.0, color).params(),
+                TextStyle::new(GRID_TEXT, color).params(),
             );
         }
     }

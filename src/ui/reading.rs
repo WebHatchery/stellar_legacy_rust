@@ -10,14 +10,33 @@ pub fn read_lines(
     pointer: Pointer,
     color: Color,
 ) -> bool {
-    let lines = wrap_text(text, view.w - 20.0, 18.0);
-    let height = lines.len() as f32 * 26.0;
+    read_lines_sized(text, view, cell, pointer, color, 18.0)
+}
+
+/// [`read_lines`] at a chosen type size, for surfaces whose prose is the
+/// point of the screen and earns a larger reading measure.
+pub fn read_lines_sized(
+    text: &str,
+    view: Rect,
+    cell: &std::cell::Cell<ScrollArea>,
+    pointer: Pointer,
+    color: Color,
+    size: f32,
+) -> bool {
+    let stride = (size * 1.45).ceil();
+    let lines = wrap_text(text, view.w - 20.0, size);
+    let height = lines.len() as f32 * stride;
     let mut scroll = cell.get();
     scroll.update_at(view, height, pointer.position);
     for (index, line) in lines.iter().enumerate() {
-        let y = view.y + index as f32 * 26.0 - scroll.offset();
-        if y >= view.y && y + 26.0 <= view.bottom() {
-            draw_ui_text_ex(line, view.x, y + 19.0, TextStyle::new(18.0, color).params());
+        let y = view.y + index as f32 * stride - scroll.offset();
+        if y >= view.y && y + stride <= view.bottom() {
+            draw_ui_text_ex(
+                line,
+                view.x,
+                y + (size * 1.05).round(),
+                TextStyle::new(size, color).params(),
+            );
         }
     }
     scroll.draw_scrollbar_with(
