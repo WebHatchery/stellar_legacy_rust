@@ -18,7 +18,7 @@ pub fn draw_selected(
     else {
         return;
     };
-    let detail = Rect::new(area.x, area.y, area.w, area.h - 356.0);
+    let detail = Rect::new(area.x, area.y, area.w, area.h - 436.0);
     term_panel(detail, Some("SELECTED CHARTER // FULL BRIEFING"));
     let content = detail.inset(18.0);
     let view = Rect::new(content.x, content.y + 32.0, content.w, content.h - 98.0);
@@ -55,13 +55,13 @@ pub fn draw_selected(
     }
     crate::ui::charter_approach::draw(
         ctx,
-        Rect::new(area.x, area.bottom() - 348.0, area.w, 166.0),
+        Rect::new(area.x, area.bottom() - 428.0, area.w, 208.0),
         pointer,
         actions,
     );
     crate::ui::contract_systems::outlook::draw_posture(
         ctx,
-        Rect::new(area.x, area.bottom() - 172.0, area.w, 172.0),
+        Rect::new(area.x, area.bottom() - 212.0, area.w, 212.0),
         pointer,
         actions,
     );

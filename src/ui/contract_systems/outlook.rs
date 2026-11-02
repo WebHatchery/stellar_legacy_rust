@@ -32,26 +32,26 @@ pub(crate) fn draw_posture(
     draw_ui_text_ex(
         &format!("COMMAND POSTURE · {}", ctx.sim.command_posture.label()),
         rect.x + 10.0,
-        rect.y + 18.0,
-        TextStyle::new(13.0, term::primary()).params(),
+        rect.y + 24.0,
+        TextStyle::new(15.0, term::primary()).params(),
     );
     draw_ui_text_ex(
         ctx.sim.command_posture.description(),
         rect.x + 10.0,
-        rect.y + 38.0,
-        TextStyle::new(11.0, term::dim()).params(),
+        rect.y + 66.0,
+        TextStyle::new(13.0, term::dim()).params(),
     );
     let effects = crate::simulation::command::effect_summary(ctx.sim.command_posture);
     if !effects.is_empty() {
         draw_ui_text_ex(
             &effects,
             rect.x + 10.0,
-            rect.y + 58.0,
-            TextStyle::new(11.0, term::accent()).params(),
+            rect.y + 88.0,
+            TextStyle::new(13.0, term::accent()).params(),
         );
     }
     if term_button(
-        Rect::new(rect.right() - 146.0, rect.y + 62.0, 136.0, 44.0),
+        Rect::new(rect.right() - 210.0, rect.y + 4.0, 200.0, 44.0),
         "REVIEW MANDATE",
         true,
         pointer,
@@ -66,8 +66,8 @@ pub(crate) fn draw_posture(
                 crate::simulation::command::review_wait_months(ctx.sim)
             ),
             rect.x + 10.0,
-            rect.y + 75.0,
-            TextStyle::new(10.0, term::alert()).params(),
+            rect.y + 108.0,
+            TextStyle::new(12.0, term::alert()).params(),
         );
     }
     let gap = 6.0;

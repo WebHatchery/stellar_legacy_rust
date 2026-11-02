@@ -58,7 +58,7 @@ fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content
         &template.name,
         content.x,
         y,
-        TextStyle::new(19.0, term::accent()).params(),
+        TextStyle::new(22.0, term::accent()).params(),
     );
     draw_ui_text_ex(
         &format!(
@@ -68,10 +68,10 @@ fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content
             template.reward.credits
         ),
         content.x,
-        y + 24.0,
-        TextStyle::new(13.0, term::dim()).params(),
+        y + 28.0,
+        TextStyle::new(15.0, term::dim()).params(),
     );
-    y + 52.0
+    y + 62.0
 }
 
 fn draw_conflicts(
@@ -85,32 +85,21 @@ fn draw_conflicts(
     if conflicts.is_empty() {
         return (count, y);
     }
-    draw_ui_text_ex(
-        "! OBLIGATION CONFLICT — LAUNCH WOULD CONTRADICT:",
-        content.x,
-        y,
-        TextStyle::new(13.0, term::alert()).params(),
-    );
-    y += 18.0;
+    // One line per promise the launch would break; the LAUNCH button already
+    // carries the default count, so no explanation follows.
     for obligation in conflicts {
         draw_ui_text_ex(
             &format!(
-                "  {} — owed to {}",
+                "! Breaks {} · owed to {}",
                 obligation.title, obligation.beneficiary
             ),
             content.x,
             y,
-            TextStyle::new(12.0, term::alert()).params(),
+            TextStyle::new(15.0, term::alert()).params(),
         );
-        y += 17.0;
+        y += 24.0;
     }
-    draw_ui_text_ex(
-        "  LAUNCH & DEFAULT records each promise broken.",
-        content.x,
-        y,
-        TextStyle::new(12.0, term::alert()).params(),
-    );
-    (count, y + 23.0)
+    (count, y + 12.0)
 }
 
 fn draw_phase_plan(
@@ -118,15 +107,9 @@ fn draw_phase_plan(
     content: Rect,
     y: f32,
 ) -> f32 {
-    draw_ui_text_ex(
-        "PHASE PLAN",
-        content.x,
-        y,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    let bar_y = y + 12.0;
+    let bar_y = y - 8.0;
     let total_years = template.target_duration_years.max(1) as f32;
-    let bar = Rect::new(content.x, bar_y, content.w, 22.0);
+    let bar = Rect::new(content.x, bar_y, content.w, 30.0);
     let mut bx = bar.x;
     for segment in &template.phases {
         let width = bar.w * (segment.years as f32 / total_years);
@@ -137,13 +120,13 @@ fn draw_phase_plan(
         );
         draw_ui_text_ex(
             &format!("{} {}y", segment.kind.label().to_uppercase(), segment.years),
-            rect.x + 5.0,
-            rect.y + 15.0,
-            TextStyle::new(10.0, term::dim()).params(),
+            rect.x + 8.0,
+            rect.y + 21.0,
+            TextStyle::new(14.0, term::dim()).params(),
         );
         bx += width;
     }
-    bar_y + 36.0
+    bar_y + 58.0
 }
 
 fn draw_route_load(
@@ -156,7 +139,7 @@ fn draw_route_load(
     let hull = forecast.route_hull_change * 100.0;
     let life = forecast.route_life_support_change * 100.0;
     let terms: Vec<String> = [
-        (template.hazard >= 0.005).then(|| format!("crisis weight +{:.2}", template.hazard)),
+        (template.hazard >= 0.005).then(|| "more crises".to_owned()),
         (hull.round() != 0.0).then(|| format!("hull {hull:+.0}%")),
         (life.round() != 0.0).then(|| format!("life support {life:+.0}%")),
     ]
@@ -167,11 +150,11 @@ fn draw_route_load(
         return y;
     }
     draw_ui_text_ex(
-        &format!("ROUTE LOAD · {} over charter", terms.join(" · ")),
+        &format!("! Hard route · {}", terms.join(" · ")),
         content.x,
         y,
         TextStyle::new(
-            12.0,
+            15.0,
             if template.hazard > 0.0 || !template.annual_toll.is_none() {
                 term::alert()
             } else {
@@ -180,7 +163,7 @@ fn draw_route_load(
         )
         .params(),
     );
-    y + 20.0
+    y + 24.0
 }
 
 fn draw_commit(

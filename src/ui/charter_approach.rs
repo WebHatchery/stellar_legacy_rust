@@ -24,16 +24,6 @@ pub(crate) fn draw(
     term_panel(area, Some("CHARTER APPROACH // FIXED AT LAUNCH"));
     let content = area.inset(10.0);
     let selected = ctx.sim.selected_charter_approach;
-    draw_ui_text_ex(
-        &format!(
-            "{} · {}",
-            selected.label_for(template.objective),
-            selected.label()
-        ),
-        content.x,
-        content.y + 36.0,
-        TextStyle::new(12.0, term::accent()).params(),
-    );
     let effects = approach::effect_summary(selected);
     let body = if effects.is_empty() {
         selected.description_for(template.objective).to_owned()
@@ -46,11 +36,11 @@ pub(crate) fn draw(
     draw_text_block(
         &body,
         content.x,
-        content.y + 44.0,
+        content.y + 40.0,
         content.w,
-        50.0,
-        10.0,
-        3.0,
+        72.0,
+        14.0,
+        4.0,
         term::dim(),
     );
 
@@ -65,8 +55,8 @@ pub(crate) fn draw(
                 CharterApproach::ProveTheWrit.button_label()
             ),
             content.x,
-            button_y - 6.0,
-            TextStyle::new(9.0, term::alert()).params(),
+            button_y - 10.0,
+            TextStyle::new(13.0, term::alert()).params(),
         );
     }
     let button_w = (content.w - gap * 2.0) / 3.0;
