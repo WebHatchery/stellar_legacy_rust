@@ -22,24 +22,27 @@ const POST_BUTTON_H: f32 = 44.0;
 
 fn priced_action_label(action: &str, cost: i64, credits: i64) -> String {
     if credits >= cost {
-        format!("{action} ({cost} CR)")
+        format!("{action} · {cost} CR")
     } else {
         format!("{action} · NEED {cost} CR")
     }
 }
 
-fn training_label(skill: u32, maximum: u32, gain: u32, cost: i64, credits: i64) -> String {
+/// The training action names only its price: the gain it buys is drawn as a
+/// ghost segment on the skill bar.
+fn training_label(skill: u32, maximum: u32, cost: i64, credits: i64) -> String {
     if skill >= maximum {
         "MASTERED".to_owned()
     } else if credits < cost {
         format!("TRAIN · NEED {cost} CR")
     } else {
-        format!("TRAIN TO SK {} · {cost}CR", (skill + gain).min(maximum))
+        format!("TRAIN · {cost} CR")
     }
 }
 
 mod factions;
 mod people;
+mod rows;
 pub use people::draw;
 
 /// Factions aboard (W7): name, members, share, status. Lost factions dim out.
@@ -160,11 +163,17 @@ fn draw_roster(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mu
     // "... and 3 more" — which named the people it was hiding without letting
     // anyone read them, and hid the very rows a heir is chosen from. It scrolls
     // now, so the panel's height stops deciding who is in the dynasty.
+    let columns = rows::Columns::for_width(content.x, content.w);
+    rows::header(
+        &columns,
+        content.y + 42.0,
+        ["NAME", "AGE · HEIR WINDOW", "LEADERSHIP", "TRAIT"],
+    );
     let view = Rect::new(
         content.x,
-        content.y + 26.0,
+        content.y + 58.0,
         content.w,
-        content.bottom() - (content.y + 26.0),
+        content.bottom() - (content.y + 58.0),
     );
     let row_w = view.w - ROSTER_GUTTER;
     let content_h = members.len() as f32 * ROSTER_STRIDE;
@@ -186,43 +195,14 @@ fn draw_roster(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mu
         if !is_fully_visible(row, view) {
             continue;
         }
-        let y = row.y + 16.0;
         let heir_eligible = member.age >= config.heir_min_age && member.age <= config.heir_max_age;
         let designated = ctx.sim.dynasty.designated_heir == Some(member.id);
-        let color = if member.is_leader {
-            term::accent()
-        } else if heir_eligible {
-            term::primary()
-        } else {
-            term::dim()
-        };
-        let role = if member.is_leader {
-            " [LEADER]"
-        } else if designated {
-            " [HEIR DESIGNATE]"
-        } else {
-            ""
-        };
-        draw_ui_text_ex(
-            &format!(
-                "{} — {} · {} · LD {}{}",
-                member.name, member.age, member.specialization, member.leadership, role
-            ),
-            content.x,
-            y,
-            TextStyle::new(14.0, color).params(),
-        );
-        draw_ui_text_ex(
-            &format!("   trait: {}", member.trait_name),
-            content.x,
-            y + 16.0,
-            TextStyle::new(12.0, term::faint()).params(),
-        );
+        draw_roster_row(ctx, &columns, member, row, heir_eligible, designated);
         if heir_eligible
             && !member.is_leader
             && !designated
             && term_button(
-                Rect::new(row.right() - 100.0, row.y, 100.0, 44.0),
+                Rect::new(row.right() - 160.0, row.y, 160.0, 44.0),
                 "NAME HEIR",
                 true,
                 pointer,
@@ -242,40 +222,166 @@ fn draw_roster(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mu
     ctx.roster_scroll.set(scroll);
 }
 
+/// Name and craft, an age bar over the member's lifespan with the heir window
+/// shaded, a leadership bar, and the trait with any role beneath it.
+fn draw_roster_row(
+    ctx: &GameplayCtx<'_>,
+    columns: &rows::Columns,
+    member: &crate::state::sim::DynastyMember,
+    row: Rect,
+    heir_eligible: bool,
+    designated: bool,
+) {
+    let config = &ctx.data.config;
+    let color = if member.is_leader {
+        term::accent()
+    } else if heir_eligible {
+        term::primary()
+    } else {
+        term::dim()
+    };
+    draw_ui_text_ex(
+        &member.name,
+        columns.name,
+        row.y + 20.0,
+        TextStyle::new(16.0, color).params(),
+    );
+    draw_ui_text_ex(
+        &member.specialization,
+        columns.name,
+        row.y + 44.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    let span = config.member_max_age.max(1) as f32;
+    rows::meter(
+        columns.first_bar,
+        row.y,
+        columns.bar_w,
+        &rows::Meter {
+            frac: member.age as f32 / span,
+            color,
+            caption: &format!("AGE {}", member.age),
+            window: Some((
+                config.heir_min_age as f32 / span,
+                config.heir_max_age as f32 / span,
+            )),
+            ghost: None,
+            cap: None,
+        },
+    );
+    rows::meter(
+        columns.second_bar,
+        row.y,
+        columns.bar_w,
+        &rows::Meter {
+            frac: member.leadership as f32 / 100.0,
+            color,
+            caption: &format!("LD {}", member.leadership),
+            window: None,
+            ghost: None,
+            cap: None,
+        },
+    );
+    draw_ui_text_ex(
+        &member.trait_name,
+        columns.tail,
+        row.y + 20.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    let role = if member.is_leader {
+        "LEADER"
+    } else if designated {
+        "HEIR DESIGNATE"
+    } else {
+        ""
+    };
+    draw_ui_text_ex(
+        role,
+        columns.tail,
+        row.y + 44.0,
+        TextStyle::new(16.0, term::accent()).params(),
+    );
+}
+
+/// Portrait, post and holder, a bar of service still ahead before retirement
+/// that drains like a tank (alert in the last five years), and a skill bar with the next
+/// training gain as a ghost and the post's cap ticked.
+fn draw_post_meters(
+    ctx: &GameplayCtx<'_>,
+    columns: &rows::Columns,
+    archetype: &crate::data::crew::CrewArchetype,
+    holder: &crate::state::sim::CrewMember,
+    y: f32,
+) {
+    let crew_cfg = &ctx.data.config.crew;
+    let years_left = crew_cfg
+        .retirement_age
+        .saturating_sub(holder.age)
+        .saturating_add(1);
+    crate::ui::identity::portrait(Rect::new(columns.name, y - 12.0, 48.0, 54.0), &holder.name);
+    draw_ui_text_ex(
+        &archetype.name,
+        columns.name + 66.0,
+        y + 8.0,
+        TextStyle::new(16.0, term::primary()).params(),
+    );
+    draw_ui_text_ex(
+        &holder.name,
+        columns.name + 66.0,
+        y + 32.0,
+        TextStyle::new(16.0, term::dim()).params(),
+    );
+    let service = (crew_cfg.retirement_age as f32 - crew_cfg.recruit_age_min as f32).max(1.0);
+    let service_tone = if years_left <= 5 {
+        term::alert()
+    } else {
+        term::accent()
+    };
+    rows::meter(
+        columns.first_bar,
+        y - 12.0,
+        columns.bar_w,
+        &rows::Meter {
+            frac: years_left as f32 / service,
+            color: service_tone,
+            caption: &format!("AGE {} · {}Y TO RETIRE", holder.age, years_left),
+            window: None,
+            ghost: None,
+            cap: None,
+        },
+    );
+    let gain = (holder.skill + crew_cfg.train_skill_gain).min(archetype.skill_max);
+    rows::meter(
+        columns.second_bar,
+        y - 12.0,
+        columns.bar_w,
+        &rows::Meter {
+            frac: holder.skill as f32 / 100.0,
+            color: term::accent(),
+            caption: &format!("SKILL {}", holder.skill),
+            window: None,
+            ghost: (gain > holder.skill).then_some(gain as f32 / 100.0),
+            cap: Some(archetype.skill_max as f32 / 100.0),
+        },
+    );
+}
+
 fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     term_panel(rect, Some("SHIP POSTS"));
     let content = rect.inset(18.0);
-    let mut y = content.y + 30.0;
+    let columns = rows::Columns::for_width(content.x, content.w);
+    rows::header(
+        &columns,
+        content.y + 42.0,
+        ["POST", "SERVICE AHEAD", "SKILL · TRAINING", ""],
+    );
+    let mut y = content.y + 72.0;
 
     let crew_cfg = &ctx.data.config.crew;
     for archetype in &ctx.data.crew_archetypes {
         match post_holder(ctx.sim, &archetype.id) {
             Some(holder) => {
-                let years_left = crew_cfg
-                    .retirement_age
-                    .saturating_sub(holder.age)
-                    .saturating_add(1);
-                crate::ui::identity::portrait(
-                    Rect::new(content.x, y - 12.0, 48.0, 54.0),
-                    &holder.name,
-                );
-                draw_text_block(
-                    &format!(
-                        "{} · {}\nAge {} · {} years left · Skill {}",
-                        archetype.name, holder.name, holder.age, years_left, holder.skill
-                    ),
-                    content.x + 66.0,
-                    y - 12.0,
-                    content.w - 384.0,
-                    52.0,
-                    16.0,
-                    3.0,
-                    if years_left <= 5 {
-                        term::alert()
-                    } else {
-                        term::dim()
-                    },
-                );
+                draw_post_meters(ctx, &columns, archetype, holder, y);
                 let maxed = holder.skill >= archetype.skill_max;
                 let apprentice = ctx
                     .sim
@@ -283,7 +389,7 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     .iter()
                     .find(|a| a.post_id == archetype.id);
                 if term_button(
-                    Rect::new(content.right() - 302.0, y - 14.0, 144.0, POST_BUTTON_H),
+                    Rect::new(content.right() - 412.0, y - 14.0, 200.0, POST_BUTTON_H),
                     &apprentice.map_or_else(
                         || {
                             priced_action_label(
@@ -301,11 +407,10 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                     actions.push(UiAction::DesignateApprentice(archetype.id.clone()));
                 }
                 if term_button(
-                    Rect::new(content.right() - 150.0, y - 14.0, 144.0, POST_BUTTON_H),
+                    Rect::new(content.right() - 204.0, y - 14.0, 200.0, POST_BUTTON_H),
                     &training_label(
                         holder.skill,
                         archetype.skill_max,
-                        crew_cfg.train_skill_gain,
                         crew_cfg.train_cost_credits,
                         ctx.sim.resources.credits,
                     ),
@@ -316,14 +421,21 @@ fn draw_posts(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut
                 }
             }
             None => {
+                rows::vacant_seat(Rect::new(content.x, y - 12.0, 48.0, 54.0));
                 draw_ui_text_ex(
-                    &format!("{} — POST VACANT", archetype.name),
-                    content.x,
-                    y,
-                    TextStyle::new(13.0, term::dim()).params(),
+                    &archetype.name,
+                    columns.name + 66.0,
+                    y + 8.0,
+                    TextStyle::new(16.0, term::dim()).params(),
+                );
+                draw_ui_text_ex(
+                    "VACANT",
+                    columns.name + 66.0,
+                    y + 32.0,
+                    TextStyle::new(16.0, term::alert()).params(),
                 );
                 if term_button(
-                    Rect::new(content.right() - 150.0, y - 14.0, 144.0, POST_BUTTON_H),
+                    Rect::new(content.right() - 204.0, y - 14.0, 200.0, POST_BUTTON_H),
                     &priced_action_label(
                         "RECRUIT",
                         crew_cfg.recruit_cost_credits,
