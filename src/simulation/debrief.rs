@@ -112,6 +112,12 @@ pub fn seal(
         institutions,
         population_start: contract.starting_population,
         population_end: sim.population.count,
+        population_track: contract
+            .population_track
+            .iter()
+            .copied()
+            .chain(std::iter::once(sim.population.count))
+            .collect(),
         homecoming_line,
         legacy_line,
         recovery: Some(crate::simulation::homecoming::build_plan(sim, data)),

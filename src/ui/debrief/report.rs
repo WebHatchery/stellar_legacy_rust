@@ -20,6 +20,17 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, report: &VoyageDebrief, area: Rect, po
     } else {
         accounting(report)
     };
+    // The outcome page shares its width with the voyage curve.
+    let area = if ctx.presentation.report_page.get() == 2 {
+        area
+    } else {
+        let curve_w = (area.w * 0.36).clamp(480.0, 680.0);
+        curve::draw(
+            report,
+            Rect::new(area.right() - curve_w, area.y, curve_w, area.h),
+        );
+        Rect::new(area.x, area.y, area.w - curve_w - 12.0, area.h)
+    };
     crate::ui::reading::read_lines(
         &text,
         column_panel(area, "Homecoming record").inset(8.0),
@@ -34,10 +45,10 @@ pub(super) fn draw(ctx: &GameplayCtx<'_>, report: &VoyageDebrief, area: Rect, po
 }
 
 pub(crate) fn accounting(r: &VoyageDebrief) -> String {
-    let mut text = format!("{}\n\n{} years under way · {} generations passed · {} survivors aboard\nPopulation {} → {} ({:+}) · Y{}–Y{}\nCommand: {} · Charter approach: {} · Custodian: {} (perceived {:.0}%)\n\nFinal score {:.2} · {}\n", r.homecoming_line.as_deref().unwrap_or("The ship has returned."), r.duration_years, r.generations, r.population_end, r.population_start, r.population_end, r.population_change(), r.began_year, r.ended_year, r.command_posture.label(), r.approach.label(), r.custodian_disposition(), r.custodian_empathy.clamp(0.0,1.0)*100.0, r.score, r.outcome);
-    let (reached, total) = r.milestones_reached();
+    // Population, score and marks are drawn on the voyage curve beside this.
+    let mut text = format!("{}\n\n{} years under way · {} generations passed · {} survivors aboard\nCommand: {} · Charter approach: {} · Custodian: {} (perceived {:.0}%)\n\n", r.homecoming_line.as_deref().unwrap_or("The ship has returned."), r.duration_years, r.generations, r.population_end, r.command_posture.label(), r.approach.label(), r.custodian_disposition(), r.custodian_empathy.clamp(0.0,1.0)*100.0);
     text.push_str(&format!(
-        "Marks reached {reached}/{total} · {}\n",
+        "{}\n",
         if r.unpaid() {
             "No payout"
         } else {

@@ -130,6 +130,10 @@ pub struct VoyageDebrief {
     pub institutions: Vec<InstitutionRecord>,
     pub population_start: u32,
     pub population_end: u32,
+    /// Population at each charter year then at berth, oldest first. Empty on
+    /// reports sealed before the track existed.
+    #[serde(default)]
+    pub population_track: Vec<u32>,
     /// The authored homecoming prose for this outcome band, if the pool had a
     /// line for it.
     pub homecoming_line: Option<String>,
@@ -164,6 +168,7 @@ impl Default for VoyageDebrief {
             institutions: Vec::new(),
             population_start: 0,
             population_end: 0,
+            population_track: Vec::new(),
             homecoming_line: None,
             legacy_line: None,
             recovery: None,

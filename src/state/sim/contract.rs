@@ -196,6 +196,10 @@ pub struct ActiveContract {
     pub milestones: Vec<MilestoneState>,
     /// Population when the contract began, for the survival metric.
     pub starting_population: u32,
+    /// Population at the start of each charter year, index 0 = launch. Drawn
+    /// as the homecoming curve; older saves load with none.
+    #[serde(default)]
+    pub population_track: Vec<u32>,
     /// Quantified objective amount for full pay (W2), copied from the charter.
     pub objective_target: f32,
     /// Human unit for the objective counter.

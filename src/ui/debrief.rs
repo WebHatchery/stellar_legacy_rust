@@ -12,6 +12,7 @@
 //! recovery review.
 
 mod columns;
+mod curve;
 mod recovery;
 pub(crate) mod report;
 

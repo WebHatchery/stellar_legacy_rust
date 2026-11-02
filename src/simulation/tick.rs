@@ -107,6 +107,7 @@ fn advance_month(sim: &mut SimState, data: &GameData, report: &mut TickReport) -
         return true;
     }
     month_of_contract(sim, data, report);
+    sample_population_track(sim);
     report.leader_died = false;
     mortality::monthly_tick(sim, data, report);
 
@@ -126,6 +127,18 @@ fn advance_month(sim: &mut SimState, data: &GameData, report: &mut TickReport) -
         || report.terminal.is_some()
         || report.critical_warning
         || report.phase_changed.is_some()
+}
+
+/// One population sample per charter year. Keyed on the track's length, so a
+/// fuel-stalled clock that sits on a year boundary does not sample twice.
+fn sample_population_track(sim: &mut SimState) {
+    let count = sim.population.count;
+    if let Some(contract) = sim.contract.as_mut() {
+        let year = (contract.months_elapsed / 12) as usize;
+        if contract.population_track.len() == year {
+            contract.population_track.push(count);
+        }
+    }
 }
 
 fn record_terminal(sim: &mut SimState, data: &GameData, report: &mut TickReport) -> bool {

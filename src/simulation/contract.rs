@@ -307,6 +307,7 @@ pub fn start_contract(template: &ContractTemplate, sim: &SimState) -> ActiveCont
             })
             .collect(),
         starting_population: sim.population.count,
+        population_track: vec![sim.population.count],
         objective_target: template.objective_target,
         objective_unit: template.objective_unit.clone(),
         // A preserve charter (round 23) sets out *carrying* the full objective and only
