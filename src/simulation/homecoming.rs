@@ -358,10 +358,3 @@ fn school_cost(sim: &SimState, data: &GameData) -> i64 {
         data.config.crew.school_cost_credits
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/homecoming/tests.rs"
-    ));
-}

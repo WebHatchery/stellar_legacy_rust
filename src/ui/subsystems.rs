@@ -179,13 +179,6 @@ fn draw_train_button(
         actions.push(UiAction::TrainSubsystemKnowledge(id.to_owned()));
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/subsystems/tests.rs"
-    ));
-}
 fn draw_custody_picker(
     ctx: &GameplayCtx<'_>,
     area: Rect,

@@ -132,10 +132,3 @@ pub fn effect_summary(approach: CharterApproach) -> String {
     }
     lines.join("\n")
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/approach/tests.rs"
-    ));
-}

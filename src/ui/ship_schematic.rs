@@ -503,10 +503,3 @@ fn component_glyph(
         manned,
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/ship_schematic/tests.rs"
-    ));
-}

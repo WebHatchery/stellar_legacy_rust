@@ -181,22 +181,26 @@ fn test_code_and_test_only_helpers_live_under_tests() {
         misplaced.is_empty(),
         "test attributes must live in tests/: {misplaced:?}"
     );
+    // Only the autoplay soak and release-balance harnesses are still pulled
+    // into src/ by include!; every other suite lives in tests/ (§11.7).
+    let included: Vec<_> = rust_files(&root)
+        .into_iter()
+        .filter(|path| {
+            let source = fs::read_to_string(path).expect("Rust source");
+            source.contains("/tests/unit/") && !path.ends_with("simulation.rs")
+        })
+        .collect();
     assert!(
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/unit")
-            .is_dir(),
-        "the migrated unit suites must remain under tests/unit"
+        included.is_empty(),
+        "src/ must not include test suites: {included:?}"
     );
 }
 
 #[test]
 fn game_data_uses_the_toolkit_loader_boundary() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let data_sources = rust_files(&root.join("src/data"));
-    let test_sources = rust_files(&root.join("tests/unit/data"));
-    let direct_parse: Vec<_> = data_sources
+    let direct_parse: Vec<_> = rust_files(&root.join("src/data"))
         .into_iter()
-        .chain(test_sources)
         .filter(|path| {
             let source = fs::read_to_string(path).expect("Rust source");
             source.contains("serde_json::from_str")

@@ -11,10 +11,3 @@ pub(super) fn review_after_action(open: bool, action: &UiAction, sim: &SimState)
         _ => open,
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/game/actions/mission/tests.rs"
-    ));
-}

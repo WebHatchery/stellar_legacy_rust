@@ -541,10 +541,3 @@ impl ActiveContract {
         self.phases[..i].iter().map(|s| s.years * 12).sum()
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/state/sim/contract/tests.rs"
-    ));
-}

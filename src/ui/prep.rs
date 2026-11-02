@@ -196,10 +196,3 @@ fn draw_commit(
         actions.push(UiAction::Launch);
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/prep/tests.rs"
-    ));
-}

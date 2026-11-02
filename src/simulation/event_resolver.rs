@@ -209,10 +209,3 @@ pub fn shown_description(sim: &SimState, template: &EventTemplate) -> String {
         _ => template.description.clone(),
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/event_resolver/tests.rs"
-    ));
-}

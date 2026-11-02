@@ -96,10 +96,3 @@ pub struct HomecomingRecoveryRecord {
     pub target_label: String,
     pub note: String,
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/state/sim/homecoming/tests.rs"
-    ));
-}

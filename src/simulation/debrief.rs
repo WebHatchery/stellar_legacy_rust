@@ -123,10 +123,3 @@ pub fn seal(
         recovery: Some(crate::simulation::homecoming::build_plan(sim, data)),
     })
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/debrief/tests.rs"
-    ));
-}

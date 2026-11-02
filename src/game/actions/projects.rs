@@ -216,13 +216,6 @@ impl Game {
         }
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/game/actions/projects/tests.rs"
-    ));
-}
 fn format_refund(amounts: crate::state::sim::ProjectAmounts) -> String {
     let mut values = Vec::new();
     if amounts.credits > 0.0 {

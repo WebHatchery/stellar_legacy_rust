@@ -293,10 +293,3 @@ fn draw_market_footer(ctx: &GameplayCtx<'_>, content: Rect, y: f32) {
         );
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/market/tests.rs"
-    ));
-}

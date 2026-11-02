@@ -147,10 +147,3 @@ fn substitute(text: &str, name: &str, post: &str, skill_band: &str, faction: &st
         .replace("{skill_band}", skill_band)
         .replace("{faction}", faction)
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/advice/tests.rs"
-    ));
-}

@@ -12,13 +12,6 @@ pub(crate) fn recovery_record_heading(
         record.choice.label()
     )
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/chronicle/archive/tests.rs"
-    ));
-}
 pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("MISSION ARCHIVE"));
     let mut form = Form::new();

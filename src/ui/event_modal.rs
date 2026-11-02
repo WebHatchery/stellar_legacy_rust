@@ -205,10 +205,3 @@ fn draw_typed_block(text: &str, x: f32, y: f32, w: f32, reveal: f32) {
         term::dim(),
     );
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/event_modal/tests.rs"
-    ));
-}

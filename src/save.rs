@@ -90,10 +90,3 @@ pub fn migrate_save_value(
         )),
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/save/tests.rs"
-    ));
-}

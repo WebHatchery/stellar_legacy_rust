@@ -165,10 +165,3 @@ pub fn complete_review(sim: &mut SimState, choice: AuthorityChoice) -> Option<Co
         AuthorityChoice::EmergencyOverride => None,
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/state/sim/authority/tests.rs"
-    ));
-}

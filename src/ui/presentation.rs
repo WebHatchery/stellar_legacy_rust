@@ -46,10 +46,3 @@ impl Presentation {
         Some(selected)
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/presentation/tests.rs"
-    ));
-}

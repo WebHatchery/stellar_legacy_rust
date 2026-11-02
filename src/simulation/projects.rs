@@ -634,13 +634,3 @@ pub fn advance_captured_month(
     }
     start_waiting_jobs(sim, data);
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/projects/tests.rs"
-    ));
-}
-
-#[allow(unused_imports)]
-pub(crate) use tests::advance_projects;

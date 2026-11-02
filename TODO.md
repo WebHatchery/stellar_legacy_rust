@@ -104,7 +104,7 @@ run interactively; the findings below come from reading the code.
   auto-resolves every decision on the first frame.
   **Action:** add a `GameConfig::validates()` that fails fast with labelled
   errors, and call it from `GameData::load`.
-- [ ] **CR-05 — Old-style test modules still live in `src/` (agent, separate change).**
+- [x] **CR-05 — Old-style test modules still live in `src/` (agent, separate change).**
   61 `#[allow(dead_code, unused_imports)] mod tests { include!(…) }` blocks
   pull `tests/unit/**` into `src/`, against CODE_STANDARDS §11.7. They have no
   `#[cfg(test)]`, so non-`#[test]` helpers and imports also compile into
@@ -112,6 +112,11 @@ run interactively; the findings below come from reading the code.
   **Action:** in a dedicated pass, delete the cases §11.3 rules out (UI
   layout, experimental rules, balancing, internals). Move the rest into
   `tests/` against the `lib.rs` public API, then remove the `include!` blocks.
+  **Done 2026-11-03:** 61 include blocks and 107 suite files removed. Kept:
+  `tests/data_integrity.rs` (content loads, save label matches Cargo) and
+  `tests/save_round_trip.rs` (round trip, corrupt-save quarantine), reached
+  through a narrow persistence seam in `lib.rs`. The autoplay soak and the
+  release-balance matrix stay in place for now (see CR-09).
 - [x] **CR-06 — Stale comments and dead code (agent).**
   `game/realtime.rs`: the doc comment for a deleted run-timer function
   ("The cosmetic run timer's elapsed seconds (PLAN M4.7)…") is now attached to
@@ -129,3 +134,20 @@ run interactively; the findings below come from reading the code.
   checks, the frame panics.
   **Action:** switch these to `let … else { return; }` so the draw call
   degrades to an empty panel instead of a crash.
+- [ ] **CR-08 — The function-length gate fails on two draw functions (agent).**
+  `cargo test --test code_standards` fails at HEAD:
+  `production_functions_stay_under_the_limit` reports
+  `ui/contract_systems/outlook.rs:45-145` (101 lines) and
+  `ui/event_modal/council.rs:153-271` (119 lines), over the 100-line limit.
+  **Action:** split each function into cohesive helpers (not compressed
+  formatting), and recapture the active-contract and event screens.
+- [ ] **CR-09 — The autoplay soak and balance matrix still live in `src/` (owner decision).**
+  `simulation.rs` still uses `include!` to pull in
+  `tests/unit/simulation/autoplay.rs` (the owner's playtest soak, 12 tests) and
+  `balance.rs` (the ignored release-balance report) as uncfg'd modules, so they
+  compile into release builds. They drive private services, so they can't move
+  to `tests/` without a wide public API.
+  **Action:** choose between a feature-gated `analysis` module or binary
+  (`cargo run --features analysis --bin balance`) and deleting them. The crate
+  also has no asset-registry integrity gate, which §11.2 says every crate
+  keeps; add one alongside.

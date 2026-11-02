@@ -419,10 +419,3 @@ fn post_name<'a>(data: &'a GameData, archetype_id: &'a str) -> &'a str {
         .find(|a| a.id == archetype_id)
         .map_or(archetype_id, |a| a.name.as_str())
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/mortality/tests.rs"
-    ));
-}

@@ -269,10 +269,3 @@ pub(crate) fn join_names(names: &[String]) -> String {
 pub(crate) fn pick(pool: &[String], rng: &mut SeededRng) -> String {
     rng.choose(pool).cloned().unwrap_or_default()
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/state/sim/dynasty/tests.rs"
-    ));
-}

@@ -150,10 +150,3 @@ pub fn for_departure(
         route_life_support_change: template.annual_toll.ship.life_support * years,
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/contract/forecast/tests.rs"
-    ));
-}

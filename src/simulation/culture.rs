@@ -172,10 +172,3 @@ pub fn annual_effects(sim: &mut SimState, data: &GameData) {
     }
     sim.population.apply(&people);
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/culture/tests.rs"
-    ));
-}

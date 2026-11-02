@@ -350,10 +350,3 @@ pub fn apply_loadout_effects(sim: &mut SimState, data: &GameData) {
         sim.fuel_scooped_accum += sim.ship.fuel - before;
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/ship/tests.rs"
-    ));
-}

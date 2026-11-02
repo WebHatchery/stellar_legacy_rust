@@ -289,10 +289,3 @@ pub fn officer_departed(sim: &mut SimState, data: &GameData, officer: &CrewMembe
     }
     crate::simulation::culture::refresh(sim, data);
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/institutions/tests.rs"
-    ));
-}

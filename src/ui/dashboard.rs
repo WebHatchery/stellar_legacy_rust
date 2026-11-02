@@ -654,10 +654,3 @@ fn log_tone(text: &str) -> (&'static str, Color) {
         ("·", term::dim())
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/dashboard/tests.rs"
-    ));
-}

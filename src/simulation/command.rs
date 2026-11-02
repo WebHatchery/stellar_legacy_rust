@@ -113,10 +113,3 @@ pub fn apply_annual_effects(sim: &mut SimState) {
     sim.population.legacy_loyalty = (sim.population.legacy_loyalty + loyalty).clamp(0.0, 1.0);
     sim.push_log(report);
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/command/tests.rs"
-    ));
-}

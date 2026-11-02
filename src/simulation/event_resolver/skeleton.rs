@@ -74,10 +74,3 @@ pub fn generate_beats(
     }
     beats
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/event_resolver/skeleton/tests.rs"
-    ));
-}

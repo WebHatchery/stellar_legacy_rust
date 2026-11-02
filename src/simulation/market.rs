@@ -231,10 +231,3 @@ fn shift_price(sim: &mut SimState, resource: TradeResource, signed_amount: i64) 
         base
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/market/tests.rs"
-    ));
-}

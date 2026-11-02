@@ -153,10 +153,3 @@ pub fn apply_overdue_maintenance(sim: &mut SimState, data: &GameData) {
         }
     }
 }
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/simulation/issues/tests.rs"
-    ));
-}

@@ -24,6 +24,10 @@ mod ui;
 
 pub use data::GameData;
 pub use game::Game;
+/// Campaign persistence seam: found, save and resume a campaign without the
+/// Macroquad shell, for save-integrity harnesses.
+pub use save::{load_campaign, save_campaign};
+pub use state::sim::{founding_faction_ids, SimState};
 
 use macroquad_toolkit::ui::{
     begin_target_audit, begin_target_frame, end_target_audit, neighbours_warm, overlapping_targets,
