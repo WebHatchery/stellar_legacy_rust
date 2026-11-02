@@ -203,12 +203,23 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
         0.12,
         2.0,
     );
+    let subtitle = "CUSTODIAN // SHIP INTELLIGENCE";
+    let subtitle_style = TextStyle::new(10.0, term::accent());
     draw_ui_text_ex(
-        "CUSTODIAN // SHIP INTELLIGENCE",
+        subtitle,
         rect.x + 16.0,
         rect.y + 54.0,
-        TextStyle::new(10.0, term::accent()).params(),
+        subtitle_style.params(),
     );
+    // The status lines start clear of the brand block, which widens with the
+    // text-size preference.
+    let brand_w = measure_text_size(
+        &ctx.data.config.display_name.to_uppercase(),
+        TextStyle::new(24.0, term::primary()),
+    )
+    .width
+    .max(measure_text_size(subtitle, subtitle_style).width);
+    let info_x = rect.x + (16.0 + brand_w + 32.0).max(330.0);
 
     let leader = sim
         .dynasty
@@ -240,7 +251,7 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
             leader,
             run_seg
         ),
-        rect.x + 330.0,
+        info_x,
         rect.y + 18.0,
         TextStyle::new(11.0, term::dim()).params(),
     );
@@ -254,7 +265,7 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
             sim.resources.food,
             sim.resources.influence
         ),
-        rect.x + 330.0,
+        info_x,
         rect.y + 44.0,
         TextStyle::new(12.0, term::dim()).params(),
     );

@@ -219,13 +219,19 @@ fn draw_glyph_face(glyph: &ModuleGlyph, tone: Color) {
 
 fn draw_glyph_markers(glyph: &ModuleGlyph) {
     let r = glyph.rect;
-    // Condition as text in the box's bottom-right corner, so a failing room
-    // reads without relying on its border colour.
+    // Condition as text just under the box's right edge, so a failing room
+    // reads without relying on its border colour. Outside the box it never
+    // collides with the code, whatever the text size.
     if glyph.kind == ModuleKind::Subsystem {
         let style = TextStyle::new(14.0, condition_tone(glyph.condition));
         let text = format!("{:.0}%", glyph.condition * 100.0);
-        let w = measure_text_size(&text, style).width;
-        draw_ui_text_ex(&text, r.right() - 6.0 - w, r.bottom() - 3.0, style.params());
+        let size = measure_text_size(&text, style);
+        draw_ui_text_ex(
+            &text,
+            r.right() - size.width,
+            r.bottom() + size.height + 2.0,
+            style.params(),
+        );
     }
     // Tier pips (subsystems only), matching the subsystems screen convention.
     if glyph.kind == ModuleKind::Subsystem {

@@ -39,6 +39,9 @@ fn draw_posture_summary(ctx: &GameplayCtx<'_>, rect: Rect) {
     }
 }
 
+/// Spacing between the posture effects and review-lock lines.
+const POSTURE_LINE_H: f32 = 28.0;
+
 pub(crate) fn draw_posture(
     ctx: &GameplayCtx<'_>,
     rect: Rect,
@@ -55,16 +58,21 @@ pub(crate) fn draw_posture(
         rect.y + 24.0,
         TextStyle::new(15.0, term::primary()).params(),
     );
-    // PREP gives the posture room for two description lines; the underway
-    // contract panel keeps it to one.
-    let desc_h = if rect.h >= 220.0 { 48.0 } else { 24.0 };
-    let effects_y = rect.y + 52.0 + desc_h + 18.0;
+    // Effects and the review lock sit on fixed lines above the 50px button
+    // row; the description takes the space above them.
+    let can_change = crate::simulation::command::posture_change_allowed(ctx.sim);
+    let lock_y = rect.bottom() - 62.0;
+    let effects_y = if can_change {
+        lock_y
+    } else {
+        lock_y - POSTURE_LINE_H
+    };
     draw_text_block(
         ctx.sim.command_posture.description(),
         rect.x + 10.0,
         rect.y + 52.0,
         rect.w - 20.0,
-        desc_h,
+        (effects_y - POSTURE_LINE_H - rect.y - 52.0).max(24.0),
         17.0,
         4.0,
         term::dim(),
@@ -86,7 +94,6 @@ pub(crate) fn draw_posture(
     ) {
         actions.push(UiAction::OpenHelp);
     }
-    let can_change = crate::simulation::command::posture_change_allowed(ctx.sim);
     if !can_change {
         draw_ui_text_ex(
             &format!(
@@ -94,7 +101,7 @@ pub(crate) fn draw_posture(
                 crate::simulation::command::review_wait_months(ctx.sim)
             ),
             rect.x + 10.0,
-            effects_y + 22.0,
+            lock_y,
             TextStyle::new(15.0, term::alert()).params(),
         );
     }
@@ -245,7 +252,7 @@ pub(super) fn draw(
     if options {
         draw_posture(
             ctx,
-            Rect::new(content.x, content.bottom() - 238.0, content.w, 180.0),
+            Rect::new(content.x, content.bottom() - 288.0, content.w, 230.0),
             pointer,
             actions,
         );

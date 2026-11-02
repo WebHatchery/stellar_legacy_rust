@@ -28,25 +28,50 @@ display-size preference. Every task below is designed, captured and reviewed at
   and explicit recovery decisions. Do not replace legitimate management
   comparisons with a decorative world view.
 
-### Findings and implementation tasks
+### Review record — 2026-11-02
 
-Ordered by player impact and dependencies. The contract is the screen briefs
-in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
+UI-01 to UI-07 are implemented (GDD §9.1 briefs, Bridge, time controls,
+PREP, schematic, subsystem card, active contract). The UI-08 review then:
 
-### Further inspection required
+- Recaptured the full 25-scene stable set at 1920×1080 and read each back.
+- Ran the capture text/modal audit at 150% for gameplay, prep, posture,
+  subsystems, institutions, contract_active, event_fuel_paused, debrief,
+  chronicle, people_officers, market and drydock, and at 75% for gameplay,
+  prep, posture and contract_active. All pass after the fixes below.
+- Fixed during review: schematic condition percentages moved below each
+  box (they collided with codes at 150%); header status lines start past
+  the brand block; the clock status line moved to the navigation row; the
+  PREP charter title cleared its panel header; posture effects and lock
+  lines anchor above the button row.
 
-- [ ] **UI-08 — Review the revised hierarchy in play and in dense states.**
-  **Scope/files:** All affected screens; `scripts/capture_ui.ps1`,
-  `src/game/capture_scenes.rs` and children, `src/game/render.rs`.
-  **Action:** After each affected implementation, regenerate the scenes at
-  1920×1080 directly in `docs/verification/`, replacing equivalent captures.
-  Sample text 75/100/150%, long names/large values, full queues, extended
-  family/history, first-use guide, selected inspector, authority/event decision,
-  critical-air recovery, Homecoming and terminal state. Exercise navigation,
-  inspection, drag, purchase, pause/resume, confirmation/dismissal, Help
-  reopening and save/menu recovery. Observe notifications at arrival and after
-  expiry, including whether they cover actions.
-  **Acceptance:** Reviewers can identify the current decision and primary action
-  within roughly a second; no more than three strong regions compete during
-  normal play. Costs, warnings and recovery survive disclosure. Record checked
-  interactions and any untested combinations explicitly.
+Not exercised (captures only, no interactive run): navigation, drag,
+purchase, pause/resume, confirmation/dismissal, Help reopening, save/menu
+recovery, notification arrival and expiry, long names and large values,
+full queues, extended family/history, critical-air recovery, the live
+guide-hold and fuel-stall status lines, a calm contract with reached
+milestones, and the scoop-less stall wording.
+
+### Follow-up tasks
+
+- [ ] **UI-09 — Clear the 150% text-audit failures that predate this backlog.**
+  **Scope/files:** council decision consequence table (`event_text_150`:
+  values overlap row labels), Agenda selected-job block (`agenda_text_150`),
+  loadout catalogue cards (`ship_text_150`, `ship_refitted_text_150`), guide
+  banner over the header subtitle (`tutorial_text_150`), game-over voyage
+  title over its panel header (`gameover_text_150`).
+  **Acceptance:** each named scene passes the capture text audit at 150% and
+  still passes at 100% and 75%; reflow rather than shrink type.
+
+- [ ] **UI-10 — Loosen layouts that pass the audit but crowd at 150%.**
+  **Scope/files:** brand title and subtitle (`ui/shell.rs::draw_header`);
+  Bridge HULL/AIR/FUEL gauge captions over their fill; Bridge readiness
+  labels running into their bars (`ui/bridge/watch.rs`); schematic "post
+  vacant" captions touching deck labels; fuel-stall recovery text truncated
+  in `contract_systems/obstacle.rs`; REVIEW MANDATE truncated to REVIEW.
+  **Acceptance:** at 150% each reads without touching or cut words, checked
+  in `gameplay_text_150`, `posture_text_150` and `contract_active_text_150`.
+
+- [ ] **UI-11 — Interactive pass in the running build (human).**
+  **Action:** exercise the "not exercised" list above in the Windows or
+  browser build and record outcomes here. Needs a person at the controls;
+  capture scenes cannot press, drag or wait for notifications to expire.

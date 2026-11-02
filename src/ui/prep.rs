@@ -55,7 +55,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
 }
 
 fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content: Rect) -> f32 {
-    let y = content.y + 38.0;
+    let y = content.y + 46.0;
     draw_ui_text_ex(
         &template.name,
         content.x,
@@ -73,7 +73,7 @@ fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content
         y + 28.0,
         TextStyle::new(15.0, term::dim()).params(),
     );
-    y + 62.0
+    y + 56.0
 }
 
 fn draw_conflicts(

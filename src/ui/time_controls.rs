@@ -11,6 +11,8 @@ use macroquad_toolkit::prelude::{draw_text_centered_in_box_ex, TextStyle};
 use macroquad_toolkit::ui::{draw_ui_text_ex, measure_text_size, occlude, Pointer};
 
 const PANEL_W: f32 = 360.0;
+/// Room kept at the right of the navigation row for the cog button.
+const STATUS_COG_GAP: f32 = 72.0;
 
 pub(crate) fn fallback_label(speed: GameSpeed, remaining: f32) -> String {
     let seconds = remaining.ceil().max(0.0) as u32;
@@ -137,9 +139,17 @@ pub fn draw_at(
             actions.push(UiAction::SetSpeed(speed));
         }
     }
+    // The status sits in the navigation row's free space, right-aligned
+    // under the controls and before the cog, clear of the header text at
+    // every text size.
     if let Some((status, color)) = clock.status(sim) {
         let style = TextStyle::new(17.0, color);
-        let w = measure_text_size(status, style).width;
-        draw_ui_text_ex(status, panel.x - 16.0 - w, y + 28.0, style.params());
+        let size = measure_text_size(status, style);
+        draw_ui_text_ex(
+            status,
+            panel.right() - STATUS_COG_GAP - size.width,
+            y + 81.0 + size.height * 0.35,
+            style.params(),
+        );
     }
 }
