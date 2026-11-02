@@ -60,3 +60,72 @@ milestones, and the scoop-less stall wording.
   **Action:** exercise the "not exercised" list above in the Windows or
   browser build and record outcomes here. Needs a person at the controls;
   capture scenes cannot press, drag or wait for notifications to expire.
+
+## Code review — 2026-11-03
+
+Source review of the save/load path, real-time clock, decision timeouts, tick,
+data loading and UI panics. Strict Clippy is clean and every `.rs` file is
+under 800 lines (largest: `game/capture_scenes/routes.rs`, 766). Nothing was
+run interactively; the findings below come from reading the code.
+
+- [ ] **CR-01 — A missing legacy dilemma locks the clock (agent).**
+  `legacy::resolve_dilemma` returns `None` without clearing
+  `sim.pending_dilemma` when `pending_dilemma_def` finds nothing (an unknown
+  `legacy_id` or `dilemma_id` from an older save) or the option index is out of
+  range. The event modal draws nothing for it, and once the timeout passes
+  `Game::auto_resolve_decision` (`game/actions/decision.rs`) runs again every
+  frame: a new "Captain … took the highest-probability legacy response" log
+  line and warning toast each frame, and time never moves again.
+  **Action:** clear an unresolvable pending dilemma the same way the event
+  path clears an unknown template (`None => sim.pending_event = None`). Log the
+  fallback only when `resolve_dilemma` returns `Some`.
+- [ ] **CR-02 — Save validation only checks the Agenda (agent).**
+  `save/validation.rs` checks projects, capabilities and issues. It does not
+  check `legacy.legacy_id`, `pending_dilemma`, `pending_event.template_id`,
+  `contract.template_id`, the subsystem keys against `data.subsystems`, or the
+  faction ids. A save that names removed content loads, then fails silently or
+  locks up (see CR-01) instead of hitting the clear quarantine-and-error path.
+  **Action:** reject unknown catalog ids in `validation::validate` so they
+  take the existing quarantine path.
+- [ ] **CR-03 — Loading a save parses the game data again (agent).**
+  `save::load_campaign` calls `GameData::load()` inside the `and_then`, and
+  `migrate_save_value` calls it again for migrated saves. That is up to two
+  extra full parses of every embedded JSON file. The validation data also skips
+  the `build_mode::load_data` adjustments.
+  **Action:** pass the `&GameData` that `Game` already owns into
+  `load_campaign` / `migrate_save_value`, and validate once.
+- [ ] **CR-04 — Config values the code divides by are never checked (agent).**
+  `GameData::load` validates `projects.json` and its references, but nothing
+  checks `game_config` values. `campaign.months_per_window == 0` divides by
+  zero in `event_resolver/skeleton.rs::generate_beats`.
+  `crew.recruit_age_max < recruit_age_min` underflows a `u32` in
+  `simulation/crew.rs`. `real_time.seconds_per_month <= 0` is quietly clamped
+  to 0.01 s in `game/realtime.rs`, and `decision_timeout_secs <= 0`
+  auto-resolves every decision on the first frame.
+  **Action:** add a `GameConfig::validates()` that fails fast with labelled
+  errors, and call it from `GameData::load`.
+- [ ] **CR-05 — Old-style test modules still live in `src/` (agent, separate change).**
+  61 `#[allow(dead_code, unused_imports)] mod tests { include!(…) }` blocks
+  pull `tests/unit/**` into `src/`, against CODE_STANDARDS §11.7. They have no
+  `#[cfg(test)]`, so non-`#[test]` helpers and imports also compile into
+  release builds; the lint allow hides this.
+  **Action:** in a dedicated pass, delete the cases §11.3 rules out (UI
+  layout, experimental rules, balancing, internals). Move the rest into
+  `tests/` against the `lib.rs` public API, then remove the `include!` blocks.
+- [ ] **CR-06 — Stale comments and dead code (agent).**
+  `game/realtime.rs`: the doc comment for a deleted run-timer function
+  ("The cosmetic run timer's elapsed seconds (PLAN M4.7)…") is now attached to
+  `decision_remaining`. `simulation/tick.rs`: the `TickReport` doc comment
+  starts mid-sentence ("to: log lines…"). `lib.rs::report_touch_targets`: the
+  `for` loop that prints clashes comes after `assert!(clashes.is_empty())`, so
+  it can never run.
+  **Action:** delete the orphaned comment, rewrite the `TickReport` summary,
+  and either print the clashes before asserting or drop the loop.
+- [ ] **CR-07 — UI code panics on conditions that other code guarantees (agent, low).**
+  `ui/contract_systems.rs::draw_active` (`contract.as_ref().unwrap()`),
+  `ui/mission.rs::build_abort` (two unwraps behind `can_return_home`) and
+  `ui/agenda.rs` (`waiting_position(..).expect("waiting job")`) depend on
+  checks made in another function. If a future caller skips one of those
+  checks, the frame panics.
+  **Action:** switch these to `let … else { return; }` so the draw call
+  degrades to an empty panel instead of a crash.
