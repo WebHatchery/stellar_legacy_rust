@@ -162,21 +162,7 @@ fn draw_council_choices(
     let state = ctx.presentation;
     let gap = 14.0;
     let grid = option_effects(ctx, event, available);
-    // The label column fits its longest row at the current text size, so a
-    // value never lands on its label; it never takes more than 40%.
-    let label_w = grid
-        .1
-        .iter()
-        .map(String::as_str)
-        .chain(
-            grid.0
-                .iter()
-                .any(|(_, souls)| souls.is_some())
-                .then_some(SOULS_LABEL),
-        )
-        .map(|label| measure_text_size(label, TextStyle::new(GRID_TEXT, term::dim())).width + 28.0)
-        .fold(GRID_LABEL_W, f32::max)
-        .min(right.w * 0.4);
+    let label_w = grid_label_width(&grid, right.w);
     let cols_x = right.x + label_w;
     let col_w =
         (right.right() - cols_x - gap * (available.len() - 1) as f32) / available.len() as f32;
@@ -248,8 +234,45 @@ Unavailable: insufficient stores for this choice.",
         detail_top + 21.0,
         TextStyle::new(GRID_TEXT, term::dim()).params(),
     );
+    draw_commit(
+        ctx,
+        event,
+        available[selected],
+        read_to_end,
+        right,
+        pointer,
+        actions,
+    );
+}
 
-    let index = available[selected];
+/// The label column fits its longest row at the current text size, so a
+/// value never lands on its label; it never takes more than 40% of `width`.
+fn grid_label_width(grid: &(Vec<OptionEffects>, Vec<String>), width: f32) -> f32 {
+    grid.1
+        .iter()
+        .map(String::as_str)
+        .chain(
+            grid.0
+                .iter()
+                .any(|(_, souls)| souls.is_some())
+                .then_some(SOULS_LABEL),
+        )
+        .map(|label| measure_text_size(label, TextStyle::new(GRID_TEXT, term::dim())).width + 28.0)
+        .fold(GRID_LABEL_W, f32::max)
+        .min(width * 0.4)
+}
+
+/// The full-width commit bar: live only once the selected option is both
+/// affordable and read to its end, and saying which of the two is missing.
+fn draw_commit(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    index: usize,
+    read_to_end: bool,
+    right: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let outcome = &event.outcomes[index];
     let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
     let label = if !affordable {

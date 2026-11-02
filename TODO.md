@@ -134,13 +134,6 @@ run interactively; the findings below come from reading the code.
   checks, the frame panics.
   **Action:** switch these to `let … else { return; }` so the draw call
   degrades to an empty panel instead of a crash.
-- [ ] **CR-08 — The function-length gate fails on two draw functions (agent).**
-  `cargo test --test code_standards` fails at HEAD:
-  `production_functions_stay_under_the_limit` reports
-  `ui/contract_systems/outlook.rs:45-145` (101 lines) and
-  `ui/event_modal/council.rs:153-271` (119 lines), over the 100-line limit.
-  **Action:** split each function into cohesive helpers (not compressed
-  formatting), and recapture the active-contract and event screens.
 - [ ] **CR-09 — The autoplay soak and balance matrix still live in `src/` (owner decision).**
   `simulation.rs` still uses `include!` to pull in
   `tests/unit/simulation/autoplay.rs` (the owner's playtest soak, 12 tests) and

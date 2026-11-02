@@ -122,6 +122,18 @@ pub(crate) fn draw_posture(
             TextStyle::new(15.0, term::alert()).params(),
         );
     }
+    draw_posture_buttons(ctx, rect, can_change, pointer, actions);
+}
+
+/// The three posture choices along the panel's bottom edge, the active one
+/// marked and every one locked while the review lock holds.
+fn draw_posture_buttons(
+    ctx: &GameplayCtx<'_>,
+    rect: Rect,
+    can_change: bool,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
     let gap = 6.0;
     // Keep the policy controls at the touch-first 44px target even in PREP,
     // where this panel is deliberately compact.
