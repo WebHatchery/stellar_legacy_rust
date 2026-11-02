@@ -126,8 +126,8 @@
   },
   "tutorial": {
     "drydock_hint": "FIRST VOYAGE - Select a charter below to open the PREP screen and ready the ship.",
-    "legacy_intro": "The founding society's mandate and culture. It shapes the names, priorities and dilemmas you carry as the Custodian.",
-    "factions_intro": "The human cultures that commissioned and crew you. Their balance shapes advice, politics and who runs the ship as generations pass.",
+    "legacy_intro": "The founding society's mandate. It decides the dilemmas you will face.",
+    "factions_intro": "The cultures who crew the ship. Their balance decides who runs it.",
     "steps": [
       {
         "id": "choose_charter",

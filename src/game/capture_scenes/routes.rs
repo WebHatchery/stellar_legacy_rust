@@ -151,6 +151,9 @@ impl Game {
         }
         let mut menu = MenuState::new(true);
         menu.phase = crate::state::MenuPhase::NewGame;
+        // Two rival peoples chosen: open cards, closed cards and the rival
+        // warning all show in one frame.
+        menu.selected_factions = vec!["ascension_circle".to_owned(), "hearth_union".to_owned()];
         self.state = crate::state::GameState::Menu(menu);
     }
 

@@ -185,24 +185,24 @@ fn draw_heading(heading: &str, heading_color: Color, intro: &str, col: Rect) -> 
     head_h + 8.0 + intro_h + 10.0
 }
 
+/// Legacy cards: each closed to its name until chosen. Only the chosen legacy
+/// opens to its description, and only it shows what it changes.
 fn draw_legacy_column(ctx: &MenuCtx<'_>, col: Rect, actions: &mut Vec<UiAction>) {
     let tut = &ctx.data.config.tutorial;
     let mut y = col.y + draw_heading("LEGACY", term::accent(), &tut.legacy_intro, col);
     let name_h = line_h(NAME_SIZE);
     let body_w = col.w - PAD * 2.0;
-    let body_h = ctx
-        .legacy_ids
-        .iter()
-        .filter_map(|id| ctx.data.legacies.get(id))
-        .map(|l| wrapped_h(&l.description, body_w, BODY_SIZE, 2.0))
-        .fold(0.0, f32::max);
-    let card_h = PAD * 2.0 + name_h + 8.0 + body_h;
     for (i, legacy_id) in ctx.legacy_ids.iter().enumerate() {
         let Some(legacy) = ctx.data.legacies.get(legacy_id) else {
             continue;
         };
-        let rect = Rect::new(col.x, y, col.w, card_h);
         let selected = i == ctx.menu.selected_legacy;
+        let body_h = if selected {
+            wrapped_h(&legacy.description, body_w, BODY_SIZE, 3.0) + 8.0
+        } else {
+            0.0
+        };
+        let rect = Rect::new(col.x, y, col.w, PAD * 2.0 + name_h + body_h);
         card(rect, selected);
         draw_ui_text_ex(
             &format!("{} {}", i + 1, legacy.name),
@@ -218,22 +218,18 @@ fn draw_legacy_column(ctx: &MenuCtx<'_>, col: Rect, actions: &mut Vec<UiAction>)
             )
             .params(),
         );
-        let body_top = rect.y + PAD + name_h + 8.0;
-        fit_block(
-            &legacy.description,
-            Rect::new(
-                rect.x + PAD,
-                body_top,
-                rect.w - PAD * 2.0,
-                rect.bottom() - PAD + 4.0 - body_top,
-            ),
-            BODY_SIZE,
-            term::dim(),
-        );
+        if selected {
+            fit_block(
+                &legacy.description,
+                Rect::new(rect.x + PAD, rect.y + PAD + name_h + 8.0, body_w, body_h),
+                BODY_SIZE,
+                term::primary(),
+            );
+        }
         if ctx.pointer.released_on(rect) {
             actions.push(UiAction::SelectLegacy(i));
         }
-        y += card_h + 10.0;
+        y += rect.h + 10.0;
     }
     if let Some(legacy) = ctx
         .legacy_ids
@@ -244,59 +240,23 @@ fn draw_legacy_column(ctx: &MenuCtx<'_>, col: Rect, actions: &mut Vec<UiAction>)
     }
 }
 
-/// The selected legacy's temperament, its undoing set apart in the alert tone,
-/// then the dilemmas it will put to the Custodian. The authored `effects` line
-/// carries temperament and undoing, split at "Undoing:".
-fn draw_legacy_effects(legacy: &crate::data::legacies::LegacyDef, rect: Rect) {
-    if rect.h < 40.0 {
-        return;
-    }
-    draw_surface(
-        rect,
-        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
-    );
+/// The chosen legacy's temperament, then its undoing in the alert tone. The
+/// authored `effects` line carries both, split at "Undoing:". The box is only
+/// as tall as its text; with large text the undoing drops before the
+/// temperament is cut.
+fn draw_legacy_effects(legacy: &crate::data::legacies::LegacyDef, room: Rect) {
     let (temperament, undoing) = match legacy.effects.split_once("Undoing:") {
         Some((t, u)) => (t.trim(), Some(u.trim())),
         None => (legacy.effects.trim(), None),
     };
-    let x = rect.x + PAD;
-    let w = rect.w - PAD * 2.0;
-    let bottom = rect.bottom() - PAD;
+    let w = room.w - PAD * 2.0;
     let head_h = line_h(META_SIZE);
-    let mut y = rect.y + PAD;
-    // A section that does not fit is left out, except the first: the
-    // temperament always shows, cut to the box if it must be.
-    let section = |label: &str, tone: Color, body: &str, body_tone: Color, y: &mut f32| {
-        let first = *y <= rect.y + PAD;
-        let mut body_h = wrapped_h(body, w, BODY_SIZE, 3.0);
-        if *y + head_h + 8.0 + body_h > bottom + 4.0 {
-            if !first {
-                *y = bottom + 1.0;
-                return;
-            }
-            body_h = bottom - (*y + head_h + 8.0);
-        }
-        draw_ui_text_ex(
-            label,
-            x,
-            *y + head_h,
-            TextStyle::new(META_SIZE, tone).params(),
-        );
-        fit_block(
-            body,
-            Rect::new(x, *y + head_h + 8.0, w, body_h),
-            BODY_SIZE,
-            body_tone,
-        );
-        *y += head_h + 8.0 + body_h + 12.0;
-    };
-    section(
-        "WHAT THIS CHANGES",
+    let mut sections = vec![(
+        "WHAT THIS CHANGES".to_owned(),
         term::accent(),
-        temperament,
+        temperament.to_owned(),
         term::primary(),
-        &mut y,
-    );
+    )];
     if let Some(undoing) = undoing {
         let (name, text) = undoing
             .split_once(" — ")
@@ -311,20 +271,50 @@ fn draw_legacy_effects(legacy: &crate::data::legacies::LegacyDef, rect: Rect) {
             .next()
             .map(|c| c.to_uppercase().collect::<String>() + chars.as_str())
             .unwrap_or_default();
-        section(&label, term::alert(), &text, term::dim(), &mut y);
+        sections.push((label, term::alert(), text, term::dim()));
     }
-    if !legacy.dilemmas.is_empty() {
-        let titles: Vec<&str> = legacy.dilemmas.iter().map(|d| d.title.as_str()).collect();
-        section(
-            "DILEMMAS AHEAD",
-            term::accent(),
-            &titles.join(" · "),
-            term::dim(),
-            &mut y,
+    let section_h = |body: &str| head_h + 8.0 + wrapped_h(body, w, BODY_SIZE, 3.0);
+    let mut total = PAD * 2.0 - 12.0;
+    let mut shown = 0;
+    for (_, _, body, _) in &sections {
+        let h = section_h(body) + 12.0;
+        if shown > 0 && total + h > room.h {
+            break;
+        }
+        total += h;
+        shown += 1;
+    }
+    let rect = Rect::new(room.x, room.y, room.w, total.min(room.h));
+    if rect.h < 40.0 {
+        return;
+    }
+    draw_surface(
+        rect,
+        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+    );
+    let mut y = rect.y + PAD;
+    for (label, tone, body, body_tone) in sections.iter().take(shown) {
+        draw_ui_text_ex(
+            label,
+            rect.x + PAD,
+            y + head_h,
+            TextStyle::new(META_SIZE, *tone).params(),
         );
+        let body_top = y + head_h + 8.0;
+        let body_h = (rect.bottom() - PAD - body_top).min(wrapped_h(body, w, BODY_SIZE, 3.0));
+        fit_block(
+            body,
+            Rect::new(rect.x + PAD, body_top, w, body_h),
+            BODY_SIZE,
+            *body_tone,
+        );
+        y += section_h(body) + 12.0;
     }
 }
 
+/// The peoples as a 2-column grid. Unchosen peoples are a name and a stance
+/// tag; a chosen people opens to its full card. Rows are as tall as their
+/// tallest card, and open rows share whatever room is left when text is large.
 fn draw_peoples_column(ctx: &MenuCtx<'_>, col: Rect, actions: &mut Vec<UiAction>) {
     let starting = ctx.data.config.factions.starting_count as usize;
     let chosen = ctx.menu.selected_factions.len();
@@ -337,69 +327,95 @@ fn draw_peoples_column(ctx: &MenuCtx<'_>, col: Rect, actions: &mut Vec<UiAction>
     let tut = &ctx.data.config.tutorial;
     let used = draw_heading(&heading, tone, &tut.factions_intro, col);
 
-    let ids = GameData::sorted_ids(&ctx.data.factions);
+    let peoples: Vec<(String, &crate::data::factions::FactionDef)> =
+        GameData::sorted_ids(&ctx.data.factions)
+            .into_iter()
+            .filter_map(|id| ctx.data.factions.get(&id).map(|f| (id, f)))
+            .collect();
     let cols = 2usize;
-    let rows = ids.len().div_ceil(cols).max(1);
     let gap = 12.0;
     let grid_top = col.y + used;
     let card_w = (col.w - gap * (cols as f32 - 1.0)) / cols as f32;
-    let card_h = (col.bottom() - grid_top - gap * (rows as f32 - 1.0)) / rows as f32;
-    for (i, id) in ids.iter().enumerate() {
-        let Some(faction) = ctx.data.factions.get(id) else {
-            continue;
-        };
-        let rect = Rect::new(
-            col.x + (i % cols) as f32 * (card_w + gap),
-            grid_top + (i / cols) as f32 * (card_h + gap),
-            card_w,
-            card_h,
-        );
-        draw_people_card(ctx, id, faction, rect);
-        if ctx.pointer.released_on(rect) {
-            actions.push(UiAction::ToggleFaction(id.clone()));
+    let is_chosen = |id: &str| ctx.menu.selected_factions.iter().any(|f| f == id);
+    let need: Vec<f32> = peoples
+        .iter()
+        .map(|(id, faction)| {
+            if is_chosen(id) {
+                open_card_height(ctx, id, faction, card_w)
+            } else {
+                closed_card_height()
+            }
+        })
+        .collect();
+
+    // Closed rows keep their size; open rows split what remains.
+    let rows: Vec<(f32, bool)> = need
+        .chunks(cols)
+        .zip(peoples.chunks(cols))
+        .map(|(h, row)| {
+            (
+                h.iter().copied().fold(0.0, f32::max),
+                row.iter().any(|(id, _)| is_chosen(id)),
+            )
+        })
+        .collect();
+    let avail = col.bottom() - grid_top - gap * rows.len().saturating_sub(1) as f32;
+    let closed_sum: f32 = rows.iter().filter(|r| !r.1).map(|r| r.0).sum();
+    let open_count = rows.iter().filter(|r| r.1).count().max(1) as f32;
+    let open_share = (avail - closed_sum) / open_count;
+
+    let mut y = grid_top;
+    for (r, (row_h, open)) in rows.iter().enumerate() {
+        let row_h = if *open { row_h.min(open_share) } else { *row_h };
+        for c in 0..cols {
+            let i = r * cols + c;
+            let Some((id, faction)) = peoples.get(i) else {
+                continue;
+            };
+            let rect = Rect::new(
+                col.x + c as f32 * (card_w + gap),
+                y,
+                card_w,
+                need[i].min(row_h),
+            );
+            draw_people_card(ctx, id, faction, rect);
+            if ctx.pointer.released_on(rect) {
+                actions.push(UiAction::ToggleFaction(id.clone()));
+            }
         }
+        y += row_h + gap;
     }
 }
 
-/// One founding people: lamp and name, who they are, then what they mean in
-/// play — their stance on technology, the module they tend, and the peoples
-/// they stand with or against. A rival already chosen alongside them lights
-/// that line in the alert tone, so a quarrelsome crew is visible before launch.
-fn draw_people_card(
+fn meta_step() -> f32 {
+    line_h(META_SIZE) + 6.0
+}
+
+fn closed_card_height() -> f32 {
+    PAD * 2.0 + line_h(NAME_SIZE) + 4.0 + meta_step()
+}
+
+fn open_card_height(
     ctx: &MenuCtx<'_>,
     id: &str,
     faction: &crate::data::factions::FactionDef,
-    rect: Rect,
-) {
+    w: f32,
+) -> f32 {
+    let desc_h = wrapped_h(&faction.description, w - PAD * 2.0, BODY_SIZE, 3.0);
+    let meta = people_meta(ctx, id, faction).len() as f32;
+    PAD * 2.0 + line_h(NAME_SIZE) + 10.0 + desc_h + 6.0 + meta_step() * meta - 2.0
+}
+
+/// What a people means in play, most important first: stance and the module
+/// they tend, their kin and rivals (alert tone when a chosen people's rival is
+/// chosen too), how the ship's name drifts when they lead, and their growth.
+fn people_meta(
+    ctx: &MenuCtx<'_>,
+    id: &str,
+    faction: &crate::data::factions::FactionDef,
+) -> Vec<(String, Color)> {
     let chosen = &ctx.menu.selected_factions;
     let selected = chosen.iter().any(|f| f == id);
-    card(rect, selected);
-
-    let name_h = line_h(NAME_SIZE);
-    let lamp_r = 6.0;
-    let lamp_c = vec2(rect.x + PAD + lamp_r, rect.y + PAD + name_h * 0.55);
-    if selected {
-        draw_circle(lamp_c.x, lamp_c.y, lamp_r, term::accent());
-    } else {
-        draw_circle_lines(lamp_c.x, lamp_c.y, lamp_r, 1.5, term::dim());
-    }
-    let name_x = rect.x + PAD + lamp_r * 2.0 + 10.0;
-    fit_line(
-        &faction.name,
-        name_x,
-        rect.y + PAD - 4.0,
-        rect.right() - PAD - name_x,
-        NAME_SIZE,
-        if selected {
-            term::accent()
-        } else {
-            term::primary()
-        },
-    );
-
-    // What they mean in play, most important first. Meta lines anchor to the
-    // card's foot; when larger text leaves too little room, the least important
-    // drop before the description is cut.
     let name_of = |other: &String| {
         ctx.data
             .factions
@@ -442,20 +458,68 @@ fn draw_people_card(
             term::dim(),
         ));
     }
+    meta
+}
 
+/// One founding people. Closed: lamp, name and stance tag. Open (chosen): the
+/// full description, then its meta lines anchored to the card's foot; when
+/// larger text leaves too little room the least important lines drop first.
+fn draw_people_card(
+    ctx: &MenuCtx<'_>,
+    id: &str,
+    faction: &crate::data::factions::FactionDef,
+    rect: Rect,
+) {
+    let selected = ctx.menu.selected_factions.iter().any(|f| f == id);
+    card(rect, selected);
+
+    let name_h = line_h(NAME_SIZE);
+    let lamp_r = 6.0;
+    let lamp_c = vec2(rect.x + PAD + lamp_r, rect.y + PAD + name_h * 0.55);
+    if selected {
+        draw_circle(lamp_c.x, lamp_c.y, lamp_r, term::accent());
+    } else {
+        draw_circle_lines(lamp_c.x, lamp_c.y, lamp_r, 1.5, term::dim());
+    }
+    let name_x = rect.x + PAD + lamp_r * 2.0 + 10.0;
+    fit_line(
+        &faction.name,
+        name_x,
+        rect.y + PAD - 4.0,
+        rect.right() - PAD - name_x,
+        NAME_SIZE,
+        if selected {
+            term::accent()
+        } else {
+            term::primary()
+        },
+    );
     let inner_w = rect.w - PAD * 2.0;
+    if !selected {
+        fit_line(
+            stance_label(faction.ideology),
+            name_x,
+            rect.y + PAD + name_h + 2.0,
+            rect.right() - PAD - name_x,
+            META_SIZE,
+            term::dim(),
+        );
+        return;
+    }
+
+    let mut meta = people_meta(ctx, id, faction);
     let body_top = rect.y + PAD + name_h + 10.0;
     let desc_h = wrapped_h(&faction.description, inner_w, BODY_SIZE, 3.0);
-    let meta_step = line_h(META_SIZE) + 6.0;
+    let step = meta_step();
     let room = rect.bottom() - PAD + 2.0 - (body_top + desc_h + 6.0);
-    let fits = ((room / meta_step).floor().max(1.0) as usize).min(meta.len());
+    let fits = ((room / step).floor().max(1.0) as usize).min(meta.len());
     meta.truncate(fits);
-    let meta_top = rect.bottom() - PAD + 2.0 - meta_step * meta.len() as f32;
+    let meta_top = rect.bottom() - PAD + 2.0 - step * meta.len() as f32;
     for (n, (text, color)) in meta.iter().enumerate() {
         fit_line(
             text,
             rect.x + PAD,
-            meta_top + meta_step * n as f32,
+            meta_top + step * n as f32,
             inner_w,
             META_SIZE,
             *color,
