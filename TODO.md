@@ -33,24 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-07 — Focus the active voyage on progress and the current obstacle.**
-  **Scope/files:** Voyage/Contract during travel, operation, fuel stall and return;
-  `src/ui/contract_systems.rs::{draw_active,draw_contract_progress,draw_contract_milestones,draw_return_button}`,
-  `src/ui/contract_systems/outlook.rs`.
-  **Observed:** `ui_contract_active.png` devotes most emphasis to bright success
-  metric bars and a full-width Cancel mission / Return home control. A real
-  fuel stall appears as a small text row. Phase/milestones repeat across the
-  two panels; outlook and posture add nested borders and small prose.
-  **Change:** Make route/phase, objective and next milestone the dominant
-  summary. Promote a current stall to an actionable obstacle with its recovery
-  route. Disclose scoring weights, completed milestones, locked approach effects
-  and posture alternatives on demand. Remove the empty outlook box and repeated
-  phase facts. Keep a secondary Review return home action with its confirmation.
-  **Acceptance:** A stalled player first sees why progress stopped and where to
-  recover. A calm player sees mission progress.
-  **Check:** Fuel stall with/without scoop recovery, calm operation, reached
-  milestones and return.
-
 ### Further inspection required
 
 - [ ] **UI-08 — Review the revised hierarchy in play and in dense states.**

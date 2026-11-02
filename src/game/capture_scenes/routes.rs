@@ -54,7 +54,13 @@ pub(super) fn capture(game: &mut Game, scene: &str) {
         | "tutorial_complete"
         | "tutorial_navigation" => game.capture_prep(scene),
         "drydock" => game.capture_drydock(),
-        "contract_active" | "posture" => game.capture_contract_active(),
+        "contract_active" | "posture" => {
+            // "posture" opens the contract view's scoring and posture options.
+            let open = scene == "posture";
+            game.presentation.contract_detail.set(open);
+            game.presentation.posture_options.set(open);
+            game.capture_contract_active()
+        }
         "authority_review" => game.capture_authority_review(),
         "dilemma" => game.capture_dilemma(),
         "dilemma_combat" => game.capture_dilemma_combat(),

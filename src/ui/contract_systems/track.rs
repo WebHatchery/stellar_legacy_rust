@@ -16,7 +16,9 @@ use macroquad_toolkit::ui::draw_ui_text_ex;
 const TRACK_H: f32 = 64.0;
 const METRIC_STRIDE: f32 = 50.0;
 
-pub(super) fn draw(contract: &ActiveContract, operation_site: &str, content: Rect) {
+/// `detail` discloses reached milestones and the success metrics; without it
+/// the view keeps to route, objective and the milestones still ahead.
+pub(super) fn draw(contract: &ActiveContract, operation_site: &str, content: Rect, detail: bool) {
     let mut y = content.y + 42.0;
     draw_ui_text_ex(
         &contract.name,
@@ -50,7 +52,7 @@ pub(super) fn draw(contract: &ActiveContract, operation_site: &str, content: Rec
     let track = Rect::new(content.x, y, content.w, TRACK_H);
     draw_track(contract, track);
     y = draw_places(contract, operation_site, track) + 18.0;
-    y = draw_milestones(contract, content, y) + 22.0;
+    y = draw_milestones(contract, content, y, detail) + 22.0;
     term_bar(
         Rect::new(content.x, y, content.w, 22.0),
         contract.objective_fraction(),
@@ -61,7 +63,9 @@ pub(super) fn draw(contract: &ActiveContract, operation_site: &str, content: Rec
             contract.objective_progress, contract.objective_target, contract.objective_unit
         ),
     );
-    draw_metrics(contract, content, y + 58.0);
+    if detail {
+        draw_metrics(contract, content, y + 58.0);
+    }
 }
 
 /// Phase bands with the elapsed span washed in, the ship as a bright mast at
@@ -154,10 +158,28 @@ fn draw_places(contract: &ActiveContract, operation_site: &str, track: Rect) -> 
 
 /// One line per milestone: its diamond, name and reward, and on the right
 /// either REACHED or the mission time until it.
-fn draw_milestones(contract: &ActiveContract, content: Rect, mut y: f32) -> f32 {
+fn draw_milestones(contract: &ActiveContract, content: Rect, mut y: f32, detail: bool) -> f32 {
     // Only the next milestone carries a countdown; later ones wait their turn.
     let next = contract.next_milestone_eta();
-    for milestone in &contract.milestones {
+    let reached = contract.milestones.iter().filter(|m| m.reached).count();
+    if !detail && reached > 0 {
+        y += 26.0;
+        chart::marker(vec2(content.x + 8.0, y - 6.0), 7.0, term::accent());
+        draw_ui_text_ex(
+            &format!(
+                "{reached} milestone{} reached",
+                if reached == 1 { "" } else { "s" }
+            ),
+            content.x + 26.0,
+            y,
+            TextStyle::new(16.0, term::accent()).params(),
+        );
+    }
+    for milestone in contract
+        .milestones
+        .iter()
+        .filter(|milestone| detail || !milestone.reached)
+    {
         y += 26.0;
         let (color, status) = if milestone.reached {
             (term::accent(), "REACHED".to_owned())

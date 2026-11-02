@@ -23,6 +23,10 @@ pub struct Presentation {
     pub selected_agenda: Cell<usize>,
     pub utilities: Cell<bool>,
     pub instruments: Cell<bool>,
+    /// The contract view discloses scoring and reached milestones.
+    pub contract_detail: Cell<bool>,
+    /// The contract view discloses posture alternatives.
+    pub posture_options: Cell<bool>,
     /// The refit preview is enlarged into a full labelled schematic.
     pub ship_preview_expanded: Cell<bool>,
     pub event_key: std::cell::RefCell<String>,

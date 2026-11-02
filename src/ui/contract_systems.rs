@@ -9,6 +9,7 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, measure_ui_text, RectExt};
 
+mod obstacle;
 pub(crate) mod outlook;
 mod track;
 
@@ -101,14 +102,30 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
     let left = Rect::new(area.x, area.y, area.w * 0.6, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
     term_panel(left, Some("ACTIVE CONTRACT"));
-    let content = left.inset(20.0);
+    let mut content = left.inset(20.0);
+    // A stall is the obstacle: it leads, ahead of the progress it is blocking.
+    if mission_clock_status(ctx.sim, ctx.data).1 {
+        obstacle::draw_fuel_stall(ctx, content, pointer, actions);
+        content.y += obstacle::HEIGHT;
+        content.h -= obstacle::HEIGHT;
+    }
     let site = ctx
         .data
         .contracts
         .get(&contract.template_id)
         .map(|template| template.operation_site())
         .unwrap_or_else(|| contract.name.clone());
-    track::draw(contract, &site, content);
+    let detail = ctx.presentation.contract_detail.get();
+    track::draw(contract, &site, content, detail);
+    let toggle = Rect::new(content.x, content.bottom() - 44.0, 300.0, 44.0);
+    let toggle_label = if detail {
+        "Hide scoring"
+    } else {
+        "Scoring & milestones"
+    };
+    if term_button(toggle, toggle_label, true, pointer) {
+        ctx.presentation.contract_detail.set(!detail);
+    }
     draw_return_button(ctx, content, pointer, actions);
     outlook::draw(ctx, right, pointer, actions);
 }
@@ -120,13 +137,19 @@ fn draw_return_button(
     actions: &mut Vec<UiAction>,
 ) {
     let underway = crate::simulation::contract::can_return_home(ctx.sim);
-    let abort = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
+    // Secondary: the confirmation review carries the consequences.
+    let abort = Rect::new(
+        content.right() - 300.0,
+        content.bottom() - 44.0,
+        300.0,
+        44.0,
+    );
     if underway {
-        if term_button(abort, "CANCEL MISSION / RETURN HOME", true, pointer) {
+        if term_button(abort, "Review return home", true, pointer) {
             actions.push(UiAction::ReviewReturnHome);
         }
     } else {
-        term_button(abort, "— HOMEBOUND —", false, pointer);
+        term_button(abort, "Homebound", false, pointer);
     }
 }
 

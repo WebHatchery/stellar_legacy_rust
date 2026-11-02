@@ -19,6 +19,26 @@ pub(super) fn mission_time(months: u32) -> String {
     }
 }
 
+/// The current posture in one line with its effects, for the calm contract
+/// view; alternatives open behind Posture options.
+fn draw_posture_summary(ctx: &GameplayCtx<'_>, rect: Rect) {
+    draw_ui_text_ex(
+        &format!("COMMAND POSTURE · {}", ctx.sim.command_posture.label()),
+        rect.x,
+        rect.y + 20.0,
+        TextStyle::new(17.0, term::primary()).params(),
+    );
+    let effects = crate::simulation::command::effect_summary(ctx.sim.command_posture);
+    if !effects.is_empty() {
+        draw_ui_text_ex(
+            &effects,
+            rect.x,
+            rect.y + 46.0,
+            TextStyle::new(16.0, term::accent()).params(),
+        );
+    }
+}
+
 pub(crate) fn draw_posture(
     ctx: &GameplayCtx<'_>,
     rect: Rect,
@@ -118,8 +138,8 @@ fn draw_campaign_outlook(contract: &ActiveContract, rect: Rect) {
     draw_ui_text_ex(
         "CAMPAIGN OUTLOOK",
         rect.x + 10.0,
-        rect.y + 18.0,
-        TextStyle::new(12.0, term::primary()).params(),
+        rect.y + 22.0,
+        TextStyle::new(16.0, term::primary()).params(),
     );
     for (index, beat) in upcoming.into_iter().enumerate() {
         let eta = beat.month_clock.saturating_sub(contract.months_elapsed);
@@ -131,8 +151,8 @@ fn draw_campaign_outlook(contract: &ActiveContract, rect: Rect) {
                 beat.family.to_uppercase()
             ),
             rect.x + 10.0,
-            rect.y + 43.0 + index as f32 * 22.0,
-            TextStyle::new(12.0, term::dim()).params(),
+            rect.y + 50.0 + index as f32 * 26.0,
+            TextStyle::new(15.0, term::dim()).params(),
         );
     }
 }
@@ -185,18 +205,13 @@ pub(super) fn draw(
     content.y += 24.0;
     content.h -= 24.0;
     let (clock_status, clock_stalled) = super::mission_clock_status(ctx.sim, ctx.data);
+    // The stall itself leads the left panel; here the check is one quiet line.
     draw_ui_text_ex(
-        "TRAVEL FUEL CHECK",
+        &format!("TRAVEL FUEL · {clock_status}"),
         content.x,
         content.y + 20.0,
-        TextStyle::new(14.0, term::primary()).params(),
-    );
-    draw_ui_text_ex(
-        &clock_status,
-        content.x,
-        content.y + 41.0,
         TextStyle::new(
-            13.0,
+            16.0,
             if clock_stalled {
                 term::alert()
             } else {
@@ -209,21 +224,47 @@ pub(super) fn draw(
     draw_text_block(
         &route,
         content.x,
-        content.y + 68.0,
+        content.y + 52.0,
         content.w,
-        100.0,
-        12.0,
-        3.0,
+        130.0,
+        16.0,
+        5.0,
         term::dim(),
     );
     draw_campaign_outlook(
         contract,
-        Rect::new(content.x, content.y + 180.0, content.w, 102.0),
+        Rect::new(content.x, content.y + 196.0, content.w, 128.0),
     );
-    draw_posture(
-        ctx,
-        Rect::new(content.x, content.bottom() - 182.0, content.w, 172.0),
+    let options = ctx.presentation.posture_options.get();
+    let toggle = Rect::new(
+        content.right() - 260.0,
+        content.bottom() - 44.0,
+        260.0,
+        44.0,
+    );
+    if options {
+        draw_posture(
+            ctx,
+            Rect::new(content.x, content.bottom() - 238.0, content.w, 180.0),
+            pointer,
+            actions,
+        );
+    } else {
+        draw_posture_summary(
+            ctx,
+            Rect::new(content.x, content.bottom() - 112.0, content.w, 60.0),
+        );
+    }
+    if term_button(
+        toggle,
+        if options {
+            "Hide posture options"
+        } else {
+            "Posture options"
+        },
+        true,
         pointer,
-        actions,
-    );
+    ) {
+        ctx.presentation.posture_options.set(!options);
+    }
 }

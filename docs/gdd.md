@@ -366,6 +366,11 @@ temporary clock hold; the selected time speed is preserved.
 The posture comparison identifies the current policy, explains the 100%
 baseline and annual social tradeoffs, and shows months until another proposal
 is available. The current policy cannot be proposed again.
+The active contract leads with route, phase, objective and the milestones still
+ahead. A fuel stall replaces that lead with an obstacle block naming annual
+scoop recovery and a Review fuel readiness route to the Agenda. Success metrics
+and reached milestones open under Scoring & milestones, posture alternatives
+under Posture options, and Review return home is a secondary action.
 The voyage report exposes the shared travel fuel check. A fuel stall
 explains current annual scoop recovery or its absence, port-only refuelling,
 and provides a visible link to Agenda readiness. Fuel readiness is distinct
