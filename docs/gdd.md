@@ -349,7 +349,7 @@ The cog menu (top right, or Esc) contains Save game, Settings, Help and Return t
 Pause/Resume and speed controls remain reachable above blocking decisions,
 in port as well as underway. With no decision pending, port and Homecoming
 review replace the speed bank with an In port or Report review plate. A status
-line beside the controls distinguishes explicit pause, guide hold, decision
+line under the controls, before the cog, distinguishes explicit pause, guide hold, decision
 fallback (running or paused) and a fuel stall.
 Navigation underlines the active destination and section, and speed controls
 underline the current running speed. Presses visibly light navigation targets,
