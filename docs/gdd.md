@@ -308,6 +308,8 @@ from human acceptance.
 ## 9. Presentation and navigation
 
 Bridge, Ship, People, Voyage and History stay in a stable order in port and underway.
+The Bridge shows the latest development for six voyage months; History keeps
+the full ship's log, newest first.
 Ship contains Loadout, Systems and Agenda; People separates Family, Officers,
 Factions and Council. Voyage offers Drydock/Market in port and Contract underway.
 Family entries include specialization and trait. Training names its resulting

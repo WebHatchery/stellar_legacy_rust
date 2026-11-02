@@ -109,6 +109,48 @@ pub fn term_button_sized(
     enabled && pointer.released_on(hit)
 }
 
+/// The action that advances play in this phase: a heavier primary border and
+/// larger caption set it apart from utilities and equally weighted choices.
+/// Use at most one per screen.
+pub fn term_button_primary(rect: Rect, label: &str, enabled: bool, pointer: Pointer) -> bool {
+    let hit = touch_area(rect);
+    note_neighbour(rect);
+    note_target(label, rect);
+    let hovered = enabled && pointer.hovering_over(hit);
+    let pressing = enabled && pointer.pressing(hit);
+    let fill = if !enabled {
+        term::surface_disabled()
+    } else if pressing {
+        term::surface_active()
+    } else if hovered {
+        term::surface_hover()
+    } else {
+        term::surface()
+    };
+    let border = if enabled {
+        term::primary()
+    } else {
+        term::faint()
+    };
+    draw_surface(rect, &SurfaceStyle::new(fill).with_border(3.0, border));
+    draw_text_centered_in_box_ex(
+        label,
+        rect.x + 6.0,
+        rect.y,
+        rect.w - 12.0,
+        rect.h,
+        TextStyle::new(
+            22.0,
+            if enabled {
+                term::primary()
+            } else {
+                term::dim()
+            },
+        ),
+    );
+    enabled && pointer.released_on(hit)
+}
+
 /// A square icon button carrying a drawn cog. `name` is what the layout audit
 /// and touch registry call it; the face shows only the glyph.
 pub fn cog_button(rect: Rect, name: &str, active: bool, pointer: Pointer) -> bool {

@@ -155,7 +155,7 @@ pub struct Game {
     /// playthroughs and long ago outgrew the nine entries it used to show.
     chronicle_scroll: Cell<ScrollArea>,
     /// CHRONICLE sub-tab: current voyage records or completed mission archive.
-    chronicle_records_tab: Cell<bool>,
+    chronicle_records_tab: Cell<usize>,
     /// Smooth-scroll state for active duties. Obligations accumulate independently
     /// of the record/archive sub-tab and must remain reachable on long voyages.
     obligations_scroll: Cell<ScrollArea>,
@@ -270,7 +270,7 @@ impl Game {
             ship_scroll: Cell::new([ScrollArea::new(); 3]),
             roster_scroll: Cell::new(ScrollArea::new()),
             chronicle_scroll: Cell::new(ScrollArea::new()),
-            chronicle_records_tab: Cell::new(true),
+            chronicle_records_tab: Cell::new(0),
             obligations_scroll: Cell::new(ScrollArea::new()),
             obligation_resolved_tab: Cell::new(false),
             obligation_history_scroll: Cell::new(ScrollArea::new()),

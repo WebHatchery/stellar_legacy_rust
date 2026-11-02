@@ -33,32 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-02 — Recompose the Bridge around the ship/current concern and retire the permanent event panel.**
-  **Scope/files:** Port, calm voyage and resource-risk Bridge;
-  `src/ui/bridge.rs::{draw,draw_voyage_subject,draw_attention,draw_operational_summary}`,
-  `src/ui/widgets.rs`, `src/game/render.rs::draw_notifications`.
-  **Observed:** `ui_gameplay.png` has four equally bordered regions: ship,
-  attention, ship/people and recent developments. Choose a charter, inspection,
-  queue and History share button treatment. The fixed 400px subject and 250px
-  diagram leave almost half the screen to sparse lower panels. The recent-log
-  panel persists old events indefinitely. Generation repeats in the header and
-  summary.
-  **Change:** Use a dominant ship/voyage area, one current-concern/action area and
-  quiet navigation. Merge essential hull/air/fuel state with the ship; remove the
-  separate Ship & people box, duplicated generation/status and repeated port
-  instructions. Replace the permanent Recent developments panel with brief
-  change feedback and a quiet visible History route. Keep unresolved threats
-  persistent next to their recovery action even after feedback expires. Let the
-  subject fill the available height. Give the phase-appropriate action distinct
-  emphasis; reduce queue/inspection utility weight without hiding them.
-  **Acceptance:** Within a glance, the player can identify the current concern
-  and next action. Calm play has no more than three strong attention regions;
-  the 1080p canvas is filled with useful ship content rather than log
-  containers. Old events are retrievable in History.
-  **Check:** Gameplay, dashboard-risk and calm underway captures; concern →
-  recovery → Bridge and History → Bridge paths; simultaneous reserve warning
-  and due obligation. Follows the GDD §9.1 briefs.
-
 - [ ] **UI-03 — Separate time controls from utilities and show whether time can actually advance.**
   **Scope/files:** Port, Homecoming and blocking decisions;
   `src/ui/time_controls.rs`, `src/game/render.rs::draw_overlays`,
@@ -93,8 +67,8 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   assumptions, shortages and default consequences remain available before
   launching. No completed tutorial instruction persists as ordinary chrome.
   **Check:** Long briefing, locked approach, insufficient funds, several
-  conflicting obligations and tutorial on/off; 150% text. Depends on the action
-  hierarchy from UI-02.
+  conflicting obligations and tutorial on/off; 150% text. Use `term_button_primary` for
+  launch.
 
 - [ ] **UI-05 — Make the ship schematic useful and identifiable.**
   **Scope/files:** Bridge, Systems and loadout preview;
@@ -113,7 +87,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   without guessing colored boxes. Labels do not crowd glyphs; all hull
   silhouettes fit. Catalogue comparison remains the dominant refit decision.
   **Check:** Barge, corvette, ring and ark; healthy, damaged, vacant and
-  active-project compartments. Depends on UI-02.
+  active-project compartments. 
 
 - [ ] **UI-06 — Split immediate subsystem care from institutional and culture detail.**
   **Scope/files:** Ship/Systems selected compartment, port and underway;
@@ -151,7 +125,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   **Acceptance:** A stalled player first sees why progress stopped and where to
   recover. A calm player sees mission progress.
   **Check:** Fuel stall with/without scoop recovery, calm operation, reached
-  milestones and return. Depends on UI-02/03 and the disclosure from UI-04.
+  milestones and return. Depends on UI-03 and the disclosure from UI-04.
 
 ### Further inspection required
 

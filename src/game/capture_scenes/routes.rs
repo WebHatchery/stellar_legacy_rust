@@ -679,7 +679,7 @@ impl Game {
         let mut gameplay = GameplayState::new(sim);
         gameplay.screen = Screen::Chronicle;
         if scene == "mission_archive" {
-            self.chronicle_records_tab.set(false);
+            self.chronicle_records_tab.set(1);
         }
         if scene == "obligation_history" {
             self.obligation_detail = gameplay

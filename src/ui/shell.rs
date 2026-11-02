@@ -51,7 +51,8 @@ pub struct GameplayCtx<'a> {
     pub chronicle_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Chronicle sub-tab: `true` shows the current voyage's competing decision
     /// records; `false` shows the cross-campaign mission archive.
-    pub chronicle_records_tab: &'a std::cell::Cell<bool>,
+    /// History archive tab: 0 voyage record, 1 mission archive, 2 ship's log.
+    pub chronicle_records_tab: &'a std::cell::Cell<usize>,
     /// Smooth-scroll state for the active obligations ledger.
     pub obligations_scroll: &'a std::cell::Cell<macroquad_toolkit::ui::ScrollArea>,
     /// Obligation ledger sub-tab: `false` active, `true` resolved.

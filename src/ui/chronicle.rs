@@ -33,13 +33,16 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
 }
 
 fn draw_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
-    let records = ctx.chronicle_records_tab.get();
+    let tab = ctx.chronicle_records_tab.get();
     let gap = 8.0;
-    let tab_w = (area.w - gap) * 0.5;
-    for (index, label) in ["VOYAGE RECORD", "MISSION ARCHIVE"].iter().enumerate() {
+    let tab_w = (area.w - 2.0 * gap) / 3.0;
+    for (index, label) in ["VOYAGE RECORD", "MISSION ARCHIVE", "SHIP'S LOG"]
+        .iter()
+        .enumerate()
+    {
         let rect = Rect::new(area.x + index as f32 * (tab_w + gap), area.y, tab_w, TAB_H);
         let hit = touch_area(rect);
-        let active = (index == 0) == records;
+        let active = index == tab;
         note_neighbour(rect);
         note_target(label, rect);
         draw_surface(
@@ -69,19 +72,20 @@ fn draw_archive(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
             TextStyle::new(13.0, if active { term::accent() } else { term::dim() }),
         );
         if pointer.released_on(hit) && !active {
-            ctx.chronicle_records_tab.set(index == 0);
+            ctx.chronicle_records_tab.set(index);
             ctx.chronicle_scroll.set(ScrollArea::new());
         }
     }
 
     let body = Rect::new(area.x, area.y + TAB_H + 8.0, area.w, area.h - TAB_H - 8.0);
-    if records {
-        draw_decision_records(ctx, body, pointer);
-    } else {
-        draw_mission_archive(ctx, body, pointer);
+    match tab {
+        0 => draw_decision_records(ctx, body, pointer),
+        2 => ship_log::draw(ctx, body, pointer),
+        _ => draw_mission_archive(ctx, body, pointer),
     }
 }
 
+mod ship_log;
 mod timeline;
 use timeline::draw_decision_records;
 

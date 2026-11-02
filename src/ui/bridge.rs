@@ -9,22 +9,19 @@ pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut V
         dashboard::draw(ctx, area, pointer, actions);
         return;
     }
-    // 1080p composition: the ship dominates, the current concern stands beside
-    // it at full height, and recent developments are a short strip below.
+    // 1080p composition: the ship dominates at full height and the current
+    // concern stands beside it. Developments are a brief change line inside
+    // the ship panel; the full record lives in History.
     const GAP: f32 = 16.0;
-    const RECENT_H: f32 = 170.0;
-    let top_h = area.h - RECENT_H - GAP;
-    let subject = Rect::new(area.x, area.y, (area.w * 0.68).floor(), top_h);
+    let subject = Rect::new(area.x, area.y, (area.w * 0.68).floor(), area.h);
     let attention = Rect::new(
         subject.right() + GAP,
         area.y,
         area.w - subject.w - GAP,
-        top_h,
+        area.h,
     );
     draw_voyage_subject(ctx, subject, pointer, actions);
     draw_attention(ctx, attention, pointer, actions);
-    let recent = Rect::new(area.x, subject.bottom() + GAP, area.w, RECENT_H);
-    draw_recent(ctx, recent, pointer, actions);
 }
 
 fn draw_voyage_subject(
@@ -66,28 +63,62 @@ fn draw_voyage_subject(
         subject.x + 28.0,
         subject.y + 136.0,
         subject.w - 56.0,
-        subject.h - 226.0,
+        subject.h - 236.0,
     );
     let ship = ship_schematic::build(sim, ctx.data, diagram);
     ship_schematic::draw(diagram, &ship);
     crate::ui::subsystems::select_compartments(ctx, &ship, pointer, actions, true);
-    let footer_y = subject.bottom() - 72.0;
-    if term_button(
-        Rect::new(subject.x + 28.0, footer_y, 340.0, 52.0),
-        "Inspect ship & compartments",
-        true,
-        pointer,
-    ) {
+    draw_footer(ctx, subject, pointer, actions);
+}
+
+/// The quiet bottom row of the ship panel: the latest development while it
+/// is fresh, then the History and inspection routes at utility weight.
+fn draw_footer(
+    ctx: &GameplayCtx<'_>,
+    subject: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    const BTN_W: f32 = 200.0;
+    const BTN_H: f32 = 44.0;
+    let y = subject.bottom() - 68.0;
+    let inspect = Rect::new(subject.right() - 28.0 - BTN_W, y, BTN_W, BTN_H);
+    let history = Rect::new(inspect.x - 12.0 - BTN_W, y, BTN_W, BTN_H);
+    if let Some(entry) = fresh_development(ctx.sim) {
+        draw_text_block(
+            &format!("Year {} · {}", entry.year, entry.text),
+            subject.x + 28.0,
+            y + 2.0,
+            history.x - subject.x - 52.0,
+            BTN_H,
+            18.0,
+            4.0,
+            term::dim(),
+        );
+    }
+    if term_button_sized(history, "History", true, pointer, 15.0) {
+        ctx.presentation.history_page.set(0);
+        ctx.chronicle_records_tab.set(2);
+        ctx.chronicle_scroll
+            .set(macroquad_toolkit::ui::ScrollArea::new());
+        actions.push(UiAction::SelectScreen(Screen::Chronicle));
+    }
+    if term_button_sized(inspect, "Inspect ship", true, pointer, 15.0) {
         actions.push(UiAction::SelectScreen(Screen::ShipBuilder));
     }
-    if term_button(
-        Rect::new(subject.x + 384.0, footer_y, 340.0, 52.0),
-        "All instruments & maintenance",
-        true,
-        pointer,
-    ) {
-        ctx.presentation.instruments.set(true);
-    }
+}
+
+/// How many voyage months a development stays on the Bridge before it is
+/// left to History.
+const FRESH_MONTHS: u32 = 6;
+
+/// The newest log entry, if it is recent enough to count as a change rather
+/// than history.
+fn fresh_development(sim: &crate::state::SimState) -> Option<&crate::state::sim::LogEntry> {
+    let entry = sim.log.last()?;
+    let now = sim.year() * 12 + sim.month();
+    let then = entry.year * 12 + entry.month;
+    (now.saturating_sub(then) <= FRESH_MONTHS).then_some(entry)
 }
 
 /// Hull, air and fuel as three gauges with the head count beside them: the
@@ -116,30 +147,6 @@ fn draw_condition_gauges(sim: &crate::state::SimState, row: Rect) {
         row.y + row.h * 0.5 + 7.0,
         TextStyle::new(20.0, term::accent()).params(),
     );
-}
-
-/// A short strip of the latest developments; the full record lives in History.
-fn draw_recent(ctx: &GameplayCtx<'_>, recent: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
-    term_panel(recent, Some("Recent developments"));
-    let text_w = recent.w - 300.0;
-    let mut y = recent.y + 46.0;
-    for entry in ctx.sim.log.iter().rev() {
-        let text = format!("Year {} · {}", entry.year, entry.text);
-        let lines = macroquad_toolkit::ui::wrap_text(&text, text_w, 18.0).len() as f32;
-        if y + lines * 26.0 > recent.bottom() - 8.0 {
-            break;
-        }
-        y = crate::ui::reading::flow_text(&text, recent.x + 20.0, y, text_w, 18.0, term::dim())
-            + 8.0;
-    }
-    if term_button(
-        Rect::new(recent.right() - 260.0, recent.y + 50.0, 240.0, 52.0),
-        "Open History",
-        true,
-        pointer,
-    ) {
-        actions.push(UiAction::SelectScreen(Screen::Chronicle));
-    }
 }
 
 fn draw_attention(
@@ -265,14 +272,14 @@ fn draw_due_commitment(
             5.0,
             term::alert(),
         );
-        attention_action(
-            ctx,
+        if term_button(
             Rect::new(rect.x + 24.0, top + 68.0, rect.w - 48.0, 52.0),
             "Review obligations",
-            Screen::Chronicle,
+            true,
             pointer,
-            actions,
-        );
+        ) {
+            go_to(ctx, Screen::Chronicle, actions);
+        }
         top + 140.0
     } else {
         top
@@ -287,10 +294,15 @@ fn attention_action(
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
-    if term_button(rect, label, true, pointer) {
-        if target == Screen::Chronicle {
-            ctx.presentation.history_page.set(1);
-        }
-        actions.push(UiAction::SelectScreen(target));
+    if term_button_primary(rect, label, true, pointer) {
+        go_to(ctx, target, actions);
     }
+}
+
+/// Obligation routes open History on the obligations ledger.
+fn go_to(ctx: &GameplayCtx<'_>, target: Screen, actions: &mut Vec<UiAction>) {
+    if target == Screen::Chronicle {
+        ctx.presentation.history_page.set(1);
+    }
+    actions.push(UiAction::SelectScreen(target));
 }

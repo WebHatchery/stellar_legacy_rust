@@ -81,13 +81,13 @@ a keyboard is optional. Drag lists to scroll.
 | --- | --- |
 | **Bridge / Ship / People / Voyage / History** | Stable destinations in port and underway; section controls open their details. |
 | **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time. |
-| **Bridge** | Review resources, ship condition, and recent developments. |
+| **Bridge** | Watch the ship, see the current concern and take the next action. |
 | **Ship / Agenda** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
 | **Ship / Systems** | Inspect the loadout and manage the systems keeping the vessel running. |
 | **People** | Review your people, captain, and succession. |
 | **Voyage / Drydock / Market** | Choose and prepare charters, and trade while in port. |
 | **Voyage / Contract** | Follow mission progress; tap **REVIEW MANDATE** for authority rules. |
-| **History** | Read the record of earlier voyages and the legacy they leave. |
+| **History** | Read earlier voyages, obligations, milestones and the full ship's log. |
 | **Cog menu (Esc) / Save game / Return to menu** | Save your campaign or return to the menu; use **CONTINUE** to resume a saved game. |
 | **Cog menu / Settings / Help** | Adjust display, sound, tutorial and council-default settings, or read controls and identity guidance. |
 
