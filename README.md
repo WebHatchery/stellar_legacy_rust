@@ -179,6 +179,7 @@ operations. Additional checks scoped to this game are:
 ```powershell
 cargo test -p stellar_legacy
 cargo test -p stellar_legacy --features demo
+cargo test -p stellar_legacy --features analysis   # autoplay soak + balance harness
 cargo clippy -p stellar_legacy --all-targets --all-features -- -D warnings
 cargo fmt -p stellar_legacy -- --check
 ```

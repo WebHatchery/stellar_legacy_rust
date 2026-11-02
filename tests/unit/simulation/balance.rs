@@ -1,8 +1,8 @@
 // Deterministic release-balance matrix.
 //
-// Kept behind `cfg(test)` so analysis policy and report writing cannot affect
-// release saves. Run explicitly with:
-// `cargo test generate_release_balance_report -- --ignored --nocapture`.
+// Compiled only with the `analysis` feature, so analysis policy and report
+// writing never reach a shipped build. Run explicitly with:
+// `cargo test --features analysis generate_release_balance_report -- --ignored --nocapture`.
 
 use super::{contract, event_resolver, legacy, market, ship, subsystems, tick};
 use crate::data::events::EventCategory;

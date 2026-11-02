@@ -182,7 +182,8 @@ fn test_code_and_test_only_helpers_live_under_tests() {
         "test attributes must live in tests/: {misplaced:?}"
     );
     // Only the autoplay soak and release-balance harnesses are still pulled
-    // into src/ by include!; every other suite lives in tests/ (§11.7).
+    // into src/ by include!, behind the `analysis` feature so no shipped build
+    // carries them; every other suite lives in tests/ (§11.7).
     let included: Vec<_> = rust_files(&root)
         .into_iter()
         .filter(|path| {
@@ -193,6 +194,12 @@ fn test_code_and_test_only_helpers_live_under_tests() {
     assert!(
         included.is_empty(),
         "src/ must not include test suites: {included:?}"
+    );
+    let simulation = fs::read_to_string(root.join("simulation.rs")).expect("simulation.rs");
+    assert_eq!(
+        simulation.matches("/tests/unit/").count(),
+        simulation.matches("#[cfg(feature = \"analysis\")]").count(),
+        "each analysis harness include must sit behind the analysis feature"
     );
 }
 

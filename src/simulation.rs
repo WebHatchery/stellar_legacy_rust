@@ -3,6 +3,7 @@
 
 pub mod advice;
 pub mod approach;
+#[cfg(feature = "analysis")]
 #[allow(dead_code, unused_imports)]
 pub mod autoplay {
     include!(concat!(
@@ -10,6 +11,7 @@ pub mod autoplay {
         "/tests/unit/simulation/autoplay.rs"
     ));
 }
+#[cfg(feature = "analysis")]
 #[allow(dead_code, unused_imports)]
 mod balance {
     include!(concat!(
