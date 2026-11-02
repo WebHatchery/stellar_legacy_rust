@@ -4,7 +4,6 @@
 use crate::simulation::crew::post_holder;
 
 use crate::simulation::succession::planned_heir;
-use crate::state::sim::factions::{approval_band_label, mood_band_for};
 use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -39,6 +38,7 @@ fn training_label(skill: u32, maximum: u32, gain: u32, cost: i64, credits: i64) 
     }
 }
 
+mod factions;
 mod people;
 pub use people::draw;
 
@@ -67,7 +67,8 @@ fn draw_factions(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &
         draw_recruitment(ctx, content, pointer, actions);
         return;
     }
-    draw_aboard_factions(ctx, content);
+    let y = factions::draw_aboard(ctx, content);
+    draw_lost_factions(ctx, content, y);
 }
 
 fn draw_recruitment(
@@ -103,96 +104,6 @@ fn draw_recruitment(
             actions.push(UiAction::RecruitFactionGroup(id.clone()));
         }
     }
-}
-
-fn draw_aboard_factions(ctx: &GameplayCtx<'_>, content: Rect) {
-    let sim = ctx.sim;
-    let total_aboard: u32 = sim
-        .factions
-        .iter()
-        .filter(|f| f.is_aboard())
-        .map(|f| f.members)
-        .sum();
-    let faction_name = |id: &str| {
-        ctx.data
-            .factions
-            .get(id)
-            .map(|d| d.name.clone())
-            .unwrap_or_else(|| id.to_owned())
-    };
-    let mut y = content.y + 34.0;
-    let short_name = |id: &str| {
-        let name = ctx
-            .data
-            .factions
-            .get(id)
-            .map(|definition| definition.name.as_str())
-            .unwrap_or(id);
-        name.strip_prefix("The ")
-            .or_else(|| name.strip_prefix("Keepers of the "))
-            .unwrap_or(name)
-            .to_owned()
-    };
-
-    // The peoples still aboard come first — they are the living ship.
-    for fs in sim.factions.iter().filter(|f| f.is_aboard()) {
-        let share = if total_aboard > 0 {
-            fs.members as f32 / total_aboard as f32 * 100.0
-        } else {
-            0.0
-        };
-        let definition = ctx.data.factions.get(&fs.faction_id);
-        let tended = definition
-            .and_then(|definition| ctx.data.subsystems.get(&definition.tended_subsystem))
-            .map(|subsystem| subsystem.name.as_str())
-            .unwrap_or("no named discipline");
-        let rivals: Vec<_> = definition
-            .into_iter()
-            .flat_map(|definition| &definition.rivals)
-            .filter(|id| sim.is_faction_aboard(id))
-            .map(|id| short_name(id))
-            .collect();
-        let allies: Vec<_> = definition
-            .into_iter()
-            .flat_map(|definition| &definition.allies)
-            .filter(|id| sim.is_faction_aboard(id))
-            .map(|id| short_name(id))
-            .collect();
-        let mut ties = String::new();
-        if !rivals.is_empty() {
-            ties.push_str(&format!(" · RIVAL {}", rivals.join(", ")));
-        }
-        if !allies.is_empty() {
-            ties.push_str(&format!(" · ALLY {}", allies.join(", ")));
-        }
-        let mood = mood_band_for(fs.approval);
-        crate::ui::identity::emblem(Rect::new(content.x, y - 12.0, 64.0, 64.0), &fs.faction_id);
-        draw_text_block(
-            &format!(
-                "{} · {} people ({share:.0}%)\n{} {:.0}% approval · Care: {}{}",
-                faction_name(&fs.faction_id),
-                fs.members,
-                approval_band_label(fs.approval),
-                fs.approval * 100.0,
-                tended,
-                ties
-            ),
-            content.x + 86.0,
-            y - 12.0,
-            content.w - 104.0,
-            66.0,
-            18.0,
-            6.0,
-            match mood {
-                -1 => term::alert(),
-                1 => term::accent(),
-                _ => term::dim(),
-            },
-        );
-        y += 88.0;
-    }
-
-    draw_lost_factions(ctx, content, y);
 }
 
 fn draw_lost_factions(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
