@@ -149,7 +149,8 @@ pub fn term_bar(rect: Rect, frac: f32, fill: Color, label: &str, value: &str) {
     }
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 1.0, term::border());
 
-    let font = 14.0;
+    // Label size follows the bar, never below the canvas minimum.
+    let font = (rect.h * 0.68).clamp(MIN_FONT_SIZE, 20.0);
     let baseline = rect.y + rect.h * 0.5 + font * 0.36;
     // The label reads as near-black over a fill that covers it, and switches to
     // the bright tube color where the fill falls short so it stays legible on
@@ -219,16 +220,16 @@ pub fn term_meter_toned(
 }
 
 pub fn stat_line(x: f32, y: f32, label: &str, value: &str, value_color: Color) {
-    draw_ui_text_ex(label, x, y, TextStyle::new(15.0, term::dim()).params());
-    draw_text_right(value, x + 250.0, y, TextStyle::new(15.0, value_color));
+    draw_ui_text_ex(label, x, y, TextStyle::new(17.0, term::dim()).params());
+    draw_text_right(value, x + 250.0, y, TextStyle::new(17.0, value_color));
 }
 
 /// A dense spec row: dimmed label flush left, value flush right at `x + w`.
 /// Used for the ship-class readout and other two-column stat blocks that want
 /// the value pinned to a panel's right edge rather than a fixed column.
 pub fn spec_line(x: f32, y: f32, w: f32, label: &str, value: &str, value_color: Color) {
-    draw_ui_text_ex(label, x, y, TextStyle::new(14.0, term::dim()).params());
-    draw_text_right(value, x + w, y, TextStyle::new(14.0, value_color));
+    draw_ui_text_ex(label, x, y, TextStyle::new(18.0, term::dim()).params());
+    draw_text_right(value, x + w, y, TextStyle::new(18.0, value_color));
 }
 
 /// Minimal line-art glyphs for the status gauges. Drawn from primitives (no
@@ -312,8 +313,8 @@ pub fn status_badge(rect: Rect, icon: GaugeIcon, label: &str, value: &str, tone:
     draw_ui_text_ex(
         label,
         tx,
-        cy - 3.0,
-        TextStyle::new(12.0, term::dim()).params(),
+        cy - 4.0,
+        TextStyle::new(16.0, term::dim()).params(),
     );
-    draw_ui_text_ex(value, tx, cy + 15.0, TextStyle::new(15.0, tone).params());
+    draw_ui_text_ex(value, tx, cy + 20.0, TextStyle::new(18.0, tone).params());
 }

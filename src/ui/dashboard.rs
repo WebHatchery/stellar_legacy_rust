@@ -6,8 +6,8 @@ use crate::simulation::ship::{field_repair_target, full_repair_needed, RepairKin
 use crate::state::sim::{PopulationState, ProjectStatus, SimState};
 use crate::state::Screen;
 use crate::ui::{
-    spec_line, stat_line, status_badge, term, term_bar, term_button, term_meter, term_meter_toned,
-    term_panel, GameplayCtx, GaugeIcon, MeterTone, UiAction,
+    spec_line, status_badge, term, term_bar, term_button, term_meter, term_meter_toned, term_panel,
+    GameplayCtx, GaugeIcon, MeterTone, UiAction,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -21,18 +21,23 @@ use status::custodian_status;
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     // Reserve a full-width instrument strip along the bottom (the mockup's
     // systems readout); the three panels share the space above it.
-    let strip_h = 64.0;
-    let panels_h = area.h - strip_h - 12.0;
-    let left = Rect::new(area.x, area.y, 380.0, panels_h);
-    let mid = Rect::new(area.x + 392.0, area.y, 380.0, panels_h);
-    let right = Rect::new(area.x + 784.0, area.y, area.w - 784.0, panels_h);
+    let strip_h = 72.0;
+    let panels_h = area.h - strip_h - 16.0;
+    let left = Rect::new(area.x, area.y, 560.0, panels_h);
+    let mid = Rect::new(left.right() + 16.0, area.y, 560.0, panels_h);
+    let right = Rect::new(
+        mid.right() + 16.0,
+        area.y,
+        area.right() - mid.right() - 16.0,
+        panels_h,
+    );
 
     draw_ship_panel(ctx, left, pointer, actions);
     draw_colony_panel(ctx, mid);
     draw_log_panel(ctx, right);
     draw_systems_strip(
         ctx,
-        Rect::new(area.x, area.y + panels_h + 12.0, area.w, strip_h),
+        Rect::new(area.x, area.y + panels_h + 16.0, area.w, strip_h),
     );
 }
 
@@ -54,29 +59,29 @@ fn draw_ship_vitals(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
     let sim = ctx.sim;
 
     term_meter(
-        Rect::new(content.x, y, content.w, 22.0),
+        Rect::new(content.x, y, content.w, 28.0),
         sim.ship.hull_integrity,
         1.0,
         "HULL INTEGRITY",
         &format!("{:.0}%", sim.ship.hull_integrity * 100.0),
     );
-    y += 32.0;
+    y += 40.0;
     term_meter(
-        Rect::new(content.x, y, content.w, 22.0),
+        Rect::new(content.x, y, content.w, 28.0),
         sim.ship.life_support,
         1.0,
         "LIFE SUPPORT",
         &format!("{:.0}%", sim.ship.life_support * 100.0),
     );
-    y += 32.0;
+    y += 40.0;
     term_meter(
-        Rect::new(content.x, y, content.w, 22.0),
+        Rect::new(content.x, y, content.w, 28.0),
         sim.ship.fuel,
         1.0,
         "FUEL RESERVES",
         &format!("{:.0}%", sim.ship.fuel * 100.0),
     );
-    y += 34.0;
+    y += 64.0;
     let contract_line = sim
         .contract
         .as_ref()
@@ -86,21 +91,16 @@ fn draw_ship_vitals(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
         "ACTIVE CONTRACT",
         content.x,
         y,
-        TextStyle::new(15.0, term::dim()).params(),
+        TextStyle::new(18.0, term::dim()).params(),
     );
-    y += 18.0;
-    draw_text_block(
+    y += 28.0;
+    draw_ui_text_ex(
         &contract_line,
         content.x,
-        y - 12.0,
-        content.w,
-        36.0,
-        14.0,
-        3.0,
-        term::accent(),
+        y,
+        TextStyle::new(20.0, term::accent()).params(),
     );
-    y += 32.0;
-    y
+    y + 44.0
 }
 
 fn draw_ship_specs(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) -> f32 {
@@ -185,10 +185,9 @@ fn draw_ship_specs(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) -> f32 {
         ),
     ] {
         spec_line(content.x, y, content.w, label, &value, color);
-        y += 18.0;
+        y += 30.0;
     }
-    y += 6.0;
-    y
+    y + 12.0
 }
 
 fn draw_ship_maintenance(
@@ -215,16 +214,16 @@ fn draw_ship_maintenance(
         ),
         content.x,
         y,
-        TextStyle::new(15.0, term::dim()).params(),
+        TextStyle::new(18.0, term::dim()).params(),
     );
-    y += 20.0;
+    y += 16.0;
     let field_affordable = |stat: f32| {
         stat < repair.field_ceiling
             && sim.ship.spare_parts >= repair.field_parts_cost
             && sim.resources.minerals >= repair.field_minerals_cost
     };
-    const REPAIR_H: f32 = 44.0;
-    const REPAIR_GAP: f32 = 10.0;
+    const REPAIR_H: f32 = 52.0;
+    const REPAIR_GAP: f32 = 12.0;
     let half_w = (content.w - REPAIR_GAP) * 0.5;
     let repair_label = |name: &str, stat: f32| {
         if stat >= repair.field_ceiling {
@@ -305,14 +304,15 @@ fn draw_colony_meters(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
     let mut y = content.y + 40.0;
     let pop = &ctx.sim.population;
 
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "POPULATION",
         &pop.count.to_string(),
         term::accent(),
     );
-    y += 30.0;
+    y += 28.0;
 
     // Most meters read low-is-bad; adaptation is neutral and cultural drift is
     // high-is-bad, so their critical-red highlight is toned accordingly.
@@ -330,32 +330,34 @@ fn draw_colony_meters(ctx: &GameplayCtx<'_>, content: Rect) -> f32 {
     ];
     for (label, value, tone) in bars {
         term_meter_toned(
-            Rect::new(content.x, y, content.w, 20.0),
+            Rect::new(content.x, y, content.w, 28.0),
             value,
             1.0,
             label,
             &format!("{:.0}%", value * 100.0),
             tone,
         );
-        y += 30.0;
+        y += 40.0;
     }
-    y + 12.0
+    y + 22.0
 }
 
 fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
     let pop = &ctx.sim.population;
     let legacy = &ctx.sim.legacy;
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "TRADITION",
         &legacy.tradition_points.to_string(),
         term::primary(),
     );
-    y += 24.0;
-    stat_line(
+    y += 30.0;
+    spec_line(
         content.x,
         y,
+        content.w,
         "CONSEQUENCES CARRIED",
         &ctx.sim.consequences.len().to_string(),
         if ctx.sim.consequences.is_empty() {
@@ -364,10 +366,11 @@ fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
             term::alert()
         },
     );
-    y += 24.0;
-    stat_line(
+    y += 30.0;
+    spec_line(
         content.x,
         y,
+        content.w,
         "DELEGATED DOMAINS",
         &format!(
             "{}",
@@ -383,7 +386,7 @@ fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
         ),
         term::primary(),
     );
-    y += 24.0;
+    y += 30.0;
 
     // How far this crew has drifted from the hopeful founders who cast off
     // (PLAN M4.1). Voyage drift makes this climb over a long run. The
@@ -395,19 +398,20 @@ fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
     } else {
         term::alert()
     };
-    stat_line(
+    spec_line(
         content.x,
         y,
+        content.w,
         "FROM THE FOUNDING",
         &format!("{:.0}%", dist * 100.0),
         dist_color,
     );
-    y += 18.0;
+    y += 28.0;
     draw_ui_text_ex(
         &format!("> {}", founder_distance_label(dist)),
         content.x,
         y,
-        TextStyle::new(13.0, term::dim()).params(),
+        TextStyle::new(18.0, term::dim()).params(),
     );
 }
 
@@ -417,18 +421,18 @@ fn draw_population_breakdown(ctx: &GameplayCtx<'_>, content: Rect) {
     // pinned to the panel foot so the colony's makeup reads at a glance.
     let aboard: Vec<_> = ctx.sim.factions.iter().filter(|f| f.is_aboard()).collect();
     if !aboard.is_empty() {
-        let row_h = 52.0;
+        let row_h = 68.0;
         let card = Rect::new(
             content.x,
-            content.bottom() - row_h - 22.0,
+            content.bottom() - row_h - 34.0,
             content.w,
-            row_h + 22.0,
+            row_h + 34.0,
         );
         draw_ui_text_ex(
             "POPULATION BREAKDOWN",
             card.x,
-            card.y + 12.0,
-            TextStyle::new(13.0, term::primary()).params(),
+            card.y + 18.0,
+            TextStyle::new(18.0, term::primary()).params(),
         );
         let tiles = aboard.len().min(4);
         let gap = 8.0;
