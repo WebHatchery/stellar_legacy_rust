@@ -36,6 +36,26 @@ pub struct MarketEntry {
     pub price: f32,
     /// Signed change from the latest drift or player trade.
     pub trend: f32,
+    /// Earlier settled prices, oldest first, capped at `PRICE_HISTORY_LEN`.
+    /// Drawn as the exchange's sparkline; older saves load with none.
+    #[serde(default)]
+    pub history: Vec<f32>,
+}
+
+/// How many earlier prices an entry remembers for its sparkline.
+pub const PRICE_HISTORY_LEN: usize = 24;
+
+impl MarketEntry {
+    /// Move to a new price, remembering the old one and the signed change.
+    pub fn set_price(&mut self, price: f32) {
+        let old = self.price;
+        self.history.push(old);
+        if self.history.len() > PRICE_HISTORY_LEN {
+            self.history.remove(0);
+        }
+        self.price = price;
+        self.trend = price - old;
+    }
 }
 
 /// The exchange's last settled ticket. Kept with market state so leaving and

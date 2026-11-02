@@ -139,6 +139,7 @@ fn starting_market(config: &GameConfig) -> MarketState {
                 resource,
                 price: base_price(resource),
                 trend: 0.0,
+                history: Vec::new(),
             })
             .collect(),
         last_trade: None,

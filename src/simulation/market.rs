@@ -22,10 +22,8 @@ pub fn drift_prices(sim: &mut SimState) {
     for i in 0..sim.market.entries.len() {
         let drift = sim.rng.range_f32(-0.08, 0.08);
         let entry = &mut sim.market.entries[i];
-        let old = entry.price;
         let base = base_price(entry.resource);
-        entry.price = (old * (1.0 + drift)).clamp(base * 0.5, base * 3.0);
-        entry.trend = entry.price - old;
+        entry.set_price((entry.price * (1.0 + drift)).clamp(base * 0.5, base * 3.0));
     }
 }
 
@@ -227,9 +225,7 @@ fn shift_price(sim: &mut SimState, resource: TradeResource, signed_amount: i64) 
         .iter_mut()
         .find(|e| e.resource == resource)
     {
-        let old = entry.price;
-        entry.price = (entry.price + shift).clamp(base * 0.5, base * 3.0);
-        entry.trend = entry.price - old;
+        entry.set_price((entry.price + shift).clamp(base * 0.5, base * 3.0));
         entry.price
     } else {
         base
