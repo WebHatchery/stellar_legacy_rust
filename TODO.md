@@ -88,7 +88,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   **Acceptance:** A stalled player first sees why progress stopped and where to
   recover. A calm player sees mission progress.
   **Check:** Fuel stall with/without scoop recovery, calm operation, reached
-  milestones and return. 
+  milestones and return.
 
 ### Further inspection required
 
