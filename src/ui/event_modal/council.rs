@@ -135,6 +135,14 @@ fn draw_council_situation(
     }
 }
 
+/// One option's known terms and its uncertain population band, if any.
+type OptionEffects = (Vec<super::effects::EffectTerm>, Option<(i64, i64)>);
+
+/// Width of the comparison grid's row-label column; the option buttons and
+/// their effect columns share the rest of the panel.
+const GRID_LABEL_W: f32 = 300.0;
+const GRID_ROW_H: f32 = 30.0;
+
 fn draw_council_choices(
     ctx: &GameplayCtx<'_>,
     event: &crate::data::events::EventTemplate,
@@ -146,10 +154,13 @@ fn draw_council_choices(
 ) {
     let state = ctx.presentation;
     let gap = 10.0;
-    let width = (right.w - gap * (available.len() - 1) as f32) / available.len() as f32;
+    let cols_x = right.x + GRID_LABEL_W;
+    let col_w =
+        (right.right() - cols_x - gap * (available.len() - 1) as f32) / available.len() as f32;
+    let column = |index: usize| cols_x + index as f32 * (col_w + gap);
     for (index, &outcome_index) in available.iter().enumerate() {
         let option = &event.outcomes[outcome_index];
-        let rect = Rect::new(right.x + index as f32 * (width + gap), right.y, width, 68.0);
+        let rect = Rect::new(column(index), right.y, col_w, 68.0);
         if term_button(rect, &option.label, true, pointer) {
             state.event_choice.set(index);
             state.event_scroll.set(ScrollArea::new());
@@ -158,26 +169,27 @@ fn draw_council_choices(
             draw_rectangle(rect.x, rect.bottom() + 3.0, rect.w, 3.0, term::primary());
         }
     }
+    let grid_top = right.y + 92.0;
+    let grid_bottom = draw_effect_grid(ctx, event, available, selected, grid_top, &column, col_w);
+
     let index = available[selected];
     let outcome = &event.outcomes[index];
-    let population = crate::simulation::event_resolver::outcome_pop_impact_range(
-        ctx.sim, ctx.data, event, index,
-    );
-    let fuel =
-        crate::simulation::event_resolver::outcome_fuel_preview(ctx.sim, ctx.data, event, index);
-    let (effects, _) = known_effects(outcome, population, fuel);
     let affordable = crate::simulation::event_resolver::outcome_affordable(ctx.sim, outcome);
-    let briefing = format!(
-        "{}\n\n{}{}",
-        outcome.description,
-        effects,
-        if affordable {
-            ""
-        } else {
-            "\n\nUnavailable: insufficient stores for this choice."
-        }
+    let briefing = if affordable {
+        outcome.description.clone()
+    } else {
+        format!(
+            "{}\n\nUnavailable: insufficient stores for this choice.",
+            outcome.description
+        )
+    };
+    let detail_top = grid_bottom + 20.0;
+    let detail = Rect::new(
+        right.x,
+        detail_top,
+        right.w,
+        (right.bottom() - 66.0 - detail_top).max(60.0),
     );
-    let detail = Rect::new(right.x, right.y + 92.0, right.w, right.h - 158.0);
     let read_to_end = read_lines(&briefing, detail, &state.event_scroll, pointer, term::dim());
     let label = if !affordable {
         "Commit choice · insufficient stores".to_owned()
@@ -194,4 +206,105 @@ fn draw_council_choices(
     ) {
         actions.push(UiAction::ResolveEvent(index));
     }
+}
+
+/// Every option's known changes side by side: one row per change any option
+/// makes, one column per option, the selected column lit. A dash marks an
+/// option that leaves that row alone. Returns the grid's bottom edge.
+fn draw_effect_grid(
+    ctx: &GameplayCtx<'_>,
+    event: &crate::data::events::EventTemplate,
+    available: &[usize],
+    selected: usize,
+    top: f32,
+    column: &dyn Fn(usize) -> f32,
+    col_w: f32,
+) -> f32 {
+    let per_option: Vec<OptionEffects> = available
+        .iter()
+        .map(|&index| {
+            let fuel = crate::simulation::event_resolver::outcome_fuel_preview(
+                ctx.sim, ctx.data, event, index,
+            );
+            let souls = crate::simulation::event_resolver::outcome_pop_impact_range(
+                ctx.sim, ctx.data, event, index,
+            );
+            (
+                super::effects::effect_terms(&event.outcomes[index], fuel),
+                souls,
+            )
+        })
+        .collect();
+    let mut rows: Vec<String> = Vec::new();
+    for (terms, _) in &per_option {
+        for term in terms {
+            if !rows.contains(&term.label) {
+                rows.push(term.label.clone());
+            }
+        }
+    }
+    let has_souls = per_option.iter().any(|(_, souls)| souls.is_some());
+    let row_count = rows.len() + usize::from(has_souls);
+    let height = GRID_ROW_H * row_count.max(1) as f32;
+    draw_rectangle(
+        column(selected) - 4.0,
+        top,
+        col_w + 8.0,
+        height,
+        term::surface_inset(),
+    );
+    if row_count == 0 {
+        draw_ui_text_ex(
+            "No option makes an immediate material change.",
+            column(0) - GRID_LABEL_W,
+            top + 21.0,
+            TextStyle::new(16.0, term::dim()).params(),
+        );
+        return top + height;
+    }
+    let label_x = column(0) - GRID_LABEL_W;
+    for (row, label) in rows.iter().enumerate() {
+        let y = top + row as f32 * GRID_ROW_H + 21.0;
+        draw_ui_text_ex(
+            label,
+            label_x,
+            y,
+            TextStyle::new(16.0, term::dim()).params(),
+        );
+        for (index, (terms, _)) in per_option.iter().enumerate() {
+            let (text, color) = match terms.iter().find(|term| &term.label == label) {
+                Some(term) if term.value.is_empty() => ("●".to_owned(), term.color()),
+                Some(term) => (term.value.clone(), term.color()),
+                None => ("—".to_owned(), term::dim()),
+            };
+            draw_ui_text_ex(
+                &text,
+                column(index) + 8.0,
+                y,
+                TextStyle::new(16.0, color).params(),
+            );
+        }
+    }
+    if has_souls {
+        let y = top + rows.len() as f32 * GRID_ROW_H + 21.0;
+        draw_ui_text_ex(
+            "souls (uncertain)",
+            label_x,
+            y,
+            TextStyle::new(16.0, term::dim()).params(),
+        );
+        for (index, (_, souls)) in per_option.iter().enumerate() {
+            let (text, color) = match souls {
+                Some((lo, hi)) => super::effects::impact_label(*lo, *hi),
+                None => ("—".to_owned(), term::dim()),
+            };
+            draw_ui_text_ex(
+                &text,
+                column(index) + 8.0,
+                y,
+                TextStyle::new(16.0, color).params(),
+            );
+        }
+    }
+    top + height
 }

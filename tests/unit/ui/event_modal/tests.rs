@@ -1,5 +1,14 @@
 use super::*;
 
+/// Every known term of an outcome as one searchable line.
+fn known(outcome: &crate::data::events::EventOutcome, fuel: Option<(f32, f32)>) -> String {
+    effects::effect_terms(outcome, fuel)
+        .iter()
+        .map(|term| format!("{} {}", term.label, term.value))
+        .collect::<Vec<_>>()
+        .join(" · ")
+}
+
 #[test]
 fn fuel_preview_matches_resolution_at_tank_limits_and_with_protection() {
     let data = crate::data::GameData::load().unwrap();
@@ -15,7 +24,7 @@ fn fuel_preview_matches_resolution_at_tank_limits_and_with_protection() {
             let mut resolved = sim.clone();
             crate::simulation::event_resolver::apply_outcome(&mut resolved, &data, event, index);
             assert_eq!(preview, (fuel, resolved.ship.fuel));
-            let (text, _) = known_effects(&event.outcomes[index], None, Some(preview));
+            let text = known(&event.outcomes[index], Some(preview));
             assert!(text.contains("fuel tank"));
             assert!(!text.contains("20000%"));
             assert!(!text.contains("18000%"));
@@ -56,7 +65,7 @@ fn known_effects_include_cultural_and_faction_consequences() {
         .iter()
         .find(|outcome| outcome.id == "hold_an_election")
         .unwrap();
-    let (text, _) = known_effects(election, None, None);
+    let text = known(election, None);
 
     assert!(text.contains("adapt +2%"));
     assert!(text.contains("meridian accord approval +4%"));
@@ -72,7 +81,7 @@ fn known_effects_keep_small_objective_changes_and_timed_payoffs_visible() {
         .iter()
         .find(|outcome| outcome.id == "wake_her_into_the_crew")
         .unwrap();
-    let (wake_text, _) = known_effects(wake, None, None);
+    let wake_text = known(wake, None);
     assert!(wake_text.contains("objective -0.01%"));
     assert!(wake_text.contains("mercy reputation +2%"));
 
@@ -81,7 +90,7 @@ fn known_effects_keep_small_objective_changes_and_timed_payoffs_visible() {
         .iter()
         .find(|outcome| outcome.id == "mend_the_bank_and_return_her_to_cold")
         .unwrap();
-    let (repair_text, _) = known_effects(repair, None, None);
+    let repair_text = known(repair, None);
     assert!(repair_text.contains("follow-up in 25y"));
 }
 
@@ -94,7 +103,7 @@ fn known_effects_name_the_custodians_change_as_ai_empathy() {
         .iter()
         .find(|outcome| outcome.id == "teach_it_the_crew")
         .unwrap();
-    let (text, _) = known_effects(humane, None, None);
+    let text = known(humane, None);
     assert!(text.contains("AI empathy +9%"));
     assert!(!text.contains("custodian empathy reputation"));
 }
