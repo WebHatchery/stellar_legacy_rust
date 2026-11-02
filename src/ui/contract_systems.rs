@@ -48,7 +48,8 @@ pub(crate) fn mission_clock_status(sim: &SimState, data: &GameData) -> (String, 
     }
     let burn = data.config.provisioning.fuel_burn_per_travel_month
         * crate::simulation::subsystems::engineering_fuel_burn_factor(sim, data)
-        * crate::simulation::command::fuel_burn_factor(sim.command_posture);
+        * crate::simulation::command::fuel_burn_factor(sim.command_posture)
+        * crate::simulation::approach::fuel_burn_factor(contract.approach);
     if sim.ship.fuel < burn {
         (
             format!("STALLED · NEED {:.1}% FUEL TO ADVANCE", burn * 100.0),

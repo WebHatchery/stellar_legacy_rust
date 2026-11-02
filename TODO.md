@@ -33,23 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-03 — Separate time controls from utilities and show whether time can actually advance.**
-  **Scope/files:** Port, Homecoming and blocking decisions;
-  `src/ui/time_controls.rs`, `src/game/render.rs::draw_overlays`,
-  `src/game/realtime.rs`.
-  **Observed:** Pause and all speed buttons remain prominent in port and
-  Homecoming, although those phases cannot advance voyage time (GDD §3).
-  **Change:** Group Pause/Resume and speed together, apart from Utilities. In
-  phases with no running clock, replace the speed bank with a concise In
-  port/Report review state. Distinguish explicit pause, tutorial hold, fuel
-  stall and decision fallback. Keep a direct Pause control available when the
-  decision countdown can run.
-  **Acceptance:** The player never infers that choosing 3x will progress a docked
-  ship. Decisions permit immediate pause and clearly show whether fallback time
-  is stopped.
-  **Check:** Port → launch → pause → decision → resume → Homecoming, with speed
-  preservation and the fallback countdown.
-
 - [ ] **UI-04 — Put departure readiness before briefing detail and make launch the clear commitment.**
   **Scope/files:** Selected charter/PREP and tutorial provisions lesson;
   `src/ui/prep.rs`, `src/ui/mission.rs::draw_selected`, `src/ui/charter_approach.rs`,
@@ -125,7 +108,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   **Acceptance:** A stalled player first sees why progress stopped and where to
   recover. A calm player sees mission progress.
   **Check:** Fuel stall with/without scoop recovery, calm operation, reached
-  milestones and return. Depends on UI-03 and the disclosure from UI-04.
+  milestones and return. Depends on the disclosure from UI-04.
 
 ### Further inspection required
 

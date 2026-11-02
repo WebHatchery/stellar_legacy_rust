@@ -80,7 +80,7 @@ a keyboard is optional. Drag lists to scroll.
 | Control or screen | Use it to |
 | --- | --- |
 | **Bridge / Ship / People / Voyage / History** | Stable destinations in port and underway; section controls open their details. |
-| **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time. |
+| **PAUSE / RESUME**, **1x / 2x / 3x** | Control the passage of time under way. In port and during Homecoming review the group reads **time stopped** instead; a status line names any pause, guide hold, decision countdown or fuel stall. |
 | **Bridge** | Watch the ship, see the current concern and take the next action. |
 | **Ship / Agenda** | Compare readiness, inspect aftermath, and queue, pause, resume, reorder, or cancel underway ship projects. |
 | **Ship / Systems** | Inspect the loadout and manage the systems keeping the vessel running. |

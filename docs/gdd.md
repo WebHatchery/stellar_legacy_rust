@@ -338,7 +338,11 @@ controls show school funding dates, knowledge-preservation
 benefits, existing archives and custodians. Custody explains its lasting choice
 and stops offering another appointment once a custodian exists.
 The cog menu (top right, or Esc) contains Save game, Settings, Help and Return to menu.
-Pause/Resume and speed controls remain reachable above blocking decisions.
+Pause/Resume and speed controls remain reachable above blocking decisions,
+in port as well as underway. With no decision pending, port and Homecoming
+review replace the speed bank with an In port or Report review plate. A status
+line beside the controls distinguishes explicit pause, guide hold, decision
+fallback (running or paused) and a fuel stall.
 Navigation underlines the active destination and section, and speed controls
 underline the current running speed. Presses visibly light navigation targets,
 and Drydock/Market share a section row. Scrolling documents reserve a footer

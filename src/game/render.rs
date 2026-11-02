@@ -154,7 +154,14 @@ impl Game {
                 && !self.welcome_open
                 && gameplay.sim.terminal.is_none()
             {
-                ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
+                let fuel_stalled =
+                    ui::contract_systems::mission_clock_status(&gameplay.sim, &self.data).1;
+                let clock = ui::time_controls::ClockState::of(
+                    &gameplay.sim,
+                    self.tutorial_holds_clock(),
+                    fuel_stalled,
+                );
+                ui::time_controls::draw(&gameplay.sim, clock, pointer, &mut time_actions);
             }
         }
         let welcome_dismiss = self.welcome_open
