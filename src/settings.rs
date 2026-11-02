@@ -89,8 +89,6 @@ pub struct DisplaySettings {
     pub phosphor: Phosphor,
     /// Master mix, deliberately restrained by default.
     pub audio_volume: f32,
-    /// Whole-interface scale, applied through the shared responsive viewport.
-    pub ui_scale: f32,
     /// Independent text enlargement; it does not change panel geometry.
     pub text_scale: f32,
     /// Underway engine-room ambience; cues remain available when disabled.
@@ -112,7 +110,6 @@ impl Default for DisplaySettings {
             flicker: false,
             phosphor: Phosphor::Amber,
             audio_volume: 0.35,
-            ui_scale: 1.0,
             text_scale: 1.0,
             ambience: true,
             tutorial_enabled: true,
@@ -124,7 +121,6 @@ impl DisplaySettings {
     /// Loads saved preferences, falling back to defaults.
     pub fn load(game_name: &str) -> Self {
         let mut settings: Self = load_json_key(game_name, DISPLAY_KEY).unwrap_or_default();
-        settings.ui_scale = macroquad_toolkit::ui::sanitize_ui_scale(settings.ui_scale);
         settings.text_scale = if settings.text_scale.is_finite() {
             settings.text_scale.clamp(0.75, 1.5)
         } else {

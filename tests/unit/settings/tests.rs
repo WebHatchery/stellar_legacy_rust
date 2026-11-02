@@ -60,17 +60,3 @@ fn old_terminal_preferences_keep_their_selected_scheme() {
         assert_eq!(settings.phosphor, expected);
     }
 }
-#[test]
-fn ui_scale_defaults_for_old_saves_and_round_trips() {
-    let old: DisplaySettings = serde_json::from_str(r#"{"crt_enabled":false}"#).unwrap();
-    assert_eq!(old.ui_scale, 1.0);
-    assert_eq!(old.text_scale, 1.0);
-    let settings = DisplaySettings {
-        ui_scale: 2.0,
-        text_scale: 1.25,
-        ..Default::default()
-    };
-    let json = serde_json::to_string(&settings).unwrap();
-    let restored: DisplaySettings = serde_json::from_str(&json).unwrap();
-    assert_eq!(restored, settings);
-}

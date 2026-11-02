@@ -18,8 +18,6 @@ fn is_agenda_scene(scene: &str) -> bool {
         scene,
         "agenda"
             | "agenda_review"
-            | "agenda_narrow"
-            | "agenda_review_narrow"
             | "agenda_cancel"
             | "agenda_review_blocked"
             | "agenda_queue"
@@ -31,7 +29,7 @@ fn is_agenda_scene(scene: &str) -> bool {
 impl Game {
     /// Seed a deterministic state for the headless screenshot harness.
     pub fn begin_capture_scene(&mut self, scene: &str) {
-        let (scene, mobile_offset) = scene
+        let (scene, form_offset) = scene
             .split_once('@')
             .map_or((scene, None), |(name, offset)| {
                 (name, offset.parse::<f32>().ok())
@@ -40,8 +38,8 @@ impl Game {
         // never the boot log. Force canonical amber display so captures are
         // deterministic regardless of any persisted preference.
         self.presentation = Default::default();
-        self.presentation.capture_mobile_offset.set(
-            mobile_offset.map(|offset| (matches!(scene, "settings" | "help" | "welcome"), offset)),
+        self.presentation.capture_form_offset.set(
+            form_offset.map(|offset| (matches!(scene, "settings" | "help" | "welcome"), offset)),
         );
         self.chronicle = Default::default();
         self.achievements = Achievements::from_definitions(crate::achievements::definitions());
@@ -59,7 +57,6 @@ impl Game {
         self.tutorial_open = false;
         self.abort_confirm.set(false);
         self.display = crate::settings::DisplaySettings::default();
-        let scene = scene.strip_suffix("_portrait").unwrap_or(scene);
         let scene = display::prepare(scene, &mut self.display);
         let scene = if scene == "settings_gameplay" {
             self.settings_open = true;
@@ -114,25 +111,7 @@ impl Game {
         if scene == "milestones" {
             self.presentation.history_page.set(2);
         }
-        *self.presentation.mobile_section.borrow_mut() = match scene {
-            "prep_briefing" => "briefing",
-            "prep_approach" => "approach",
-            "prep_forecast" => "forecast",
-            "posture" => "posture",
-            "people_officers" => "officers",
-            "people_factions" | "crew_recruitment" => "factions",
-            "people_council" => "council",
-            "obligation_archive" | "obligation_history" => "obligations",
-            "mission_archive" => "archive",
-            "milestones" => "milestones",
-            "subsystems" => "system:engineering_bay",
-            "institutions" => "system:agriculture",
-            "agenda_catalogue" => "catalogue",
-            _ => "",
-        }
-        .to_owned();
         self.presentation.utilities.set(scene == "utilities");
-        self.presentation.navigation_open.set(scene == "navigation");
         self.presentation.instruments.set(scene == "instruments");
     }
     fn capture_warning_state(&mut self, scene: &str) {

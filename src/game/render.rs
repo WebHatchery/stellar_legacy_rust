@@ -4,7 +4,6 @@ use super::*;
 impl Game {
     pub fn draw(&mut self) {
         clear_background(ui::term::bg());
-        macroquad_toolkit::ui::set_ui_scale(self.display.ui_scale);
         macroquad_toolkit::ui::set_ui_text_scale(self.display.text_scale);
 
         let modal_reveal = self.modal_reveal();
@@ -12,7 +11,7 @@ impl Game {
 
         let show_boot = !self.boot.is_done() && matches!(self.state, GameState::Menu(_));
 
-        let virtual_ui = macroquad_toolkit::ui::VirtualUi::responsive();
+        let virtual_ui = ui::canvas();
         let (width, height) = (virtual_ui.logical_width, virtual_ui.logical_height);
         virtual_ui.begin();
         let pointer = Pointer::read(|p| virtual_ui.screen_to_ui(p));
@@ -79,7 +78,6 @@ impl Game {
         }
         match &self.state {
             GameState::Menu(menu) => ui::draw_menu(ui::MenuCtx {
-                presentation: &self.presentation,
                 data: &self.data,
                 menu,
                 legacy_ids: &self.legacy_ids,
@@ -125,24 +123,7 @@ impl Game {
     }
 
     fn draw_boot_screen(&self) {
-        if ui::mobile::active() {
-            macroquad_toolkit::ui::draw_ui_text(
-                "STELLAR LEGACY",
-                16.0,
-                48.0,
-                24.0,
-                ui::term::primary(),
-            );
-            macroquad_toolkit::ui::draw_ui_text(
-                "Preparing ship systems…",
-                16.0,
-                90.0,
-                18.0,
-                ui::term::dim(),
-            );
-        } else {
-            self.boot.draw();
-        }
+        self.boot.draw();
     }
 
     fn draw_overlays(
@@ -167,35 +148,22 @@ impl Game {
         let help_action = self.help_open.then(|| self.draw_help(pointer)).flatten();
         let mut time_actions = Vec::new();
         if let GameState::Gameplay(gameplay) = &self.state {
-            if !ui::mobile::active()
-                && !ui::compact()
-                && !self.settings_open
-                && !self.help_open
-                && !self.welcome_open
-            {
+            if !self.settings_open && !self.help_open && !self.welcome_open {
                 ui::time_controls::draw(&gameplay.sim, pointer, &mut time_actions);
             }
         }
         let welcome_dismiss = self.welcome_open
             && matches!(self.state, GameState::Menu(_))
-            && if ui::mobile::active() || ui::compact() {
-                ui::mobile::welcome(&self.data.config.welcome, &self.presentation, pointer)
-            } else {
-                ui::welcome::draw(&self.data.config.welcome, pointer)
-            };
+            && ui::welcome::draw(&self.data.config.welcome, pointer);
         (display_actions, help_action, time_actions, welcome_dismiss)
     }
 
     fn draw_help(&self, pointer: Pointer) -> Option<ui::help::HelpAction> {
-        if ui::mobile::active() || ui::compact() {
-            ui::mobile::help(&self.presentation, pointer)
-        } else {
-            ui::help::draw(pointer, &self.data.config.version)
-        }
+        ui::help::draw(pointer, &self.data.config.version)
     }
 
     fn draw_notifications(&self, width: f32, height: f32) {
-        let virtual_ui = macroquad_toolkit::ui::VirtualUi::responsive();
+        let virtual_ui = ui::canvas();
         virtual_ui.begin();
         macroquad_toolkit::notifications::draw_notifications_in_viewport(
             self.notifications.get_notifications(),

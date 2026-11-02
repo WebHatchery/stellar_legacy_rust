@@ -248,7 +248,7 @@ fn draw_choice(
 ) {
     draw_rectangle(row.x, row.y, row.w, row.h, term::surface_inset());
     draw_rectangle_lines(row.x, row.y, row.w, row.h, 1.0, term::faint());
-    let mut form = crate::ui::mobile::form::Form::new();
+    let mut form = crate::ui::form::Form::new();
     build_choice(ctx, choice, &mut form);
     let key = format!("catalogue:{}:{:?}", choice.project_id, choice.target_id);
     form.draw(
@@ -263,7 +263,7 @@ fn draw_choice(
 pub(crate) fn build_choice(
     ctx: &GameplayCtx<'_>,
     choice: &CatalogueChoice,
-    form: &mut crate::ui::mobile::form::Form,
+    form: &mut crate::ui::form::Form,
 ) {
     let Some(definition) = ctx.data.projects.get(&choice.project_id) else {
         return;

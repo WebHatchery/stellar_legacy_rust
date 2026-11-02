@@ -8,7 +8,6 @@ struct Guide {
     heading: String,
     tip: String,
     complete: bool,
-    needs_navigation: bool,
 }
 
 fn guide(data: &crate::data::GameData, step: usize) -> Option<Guide> {
@@ -21,47 +20,14 @@ fn guide(data: &crate::data::GameData, step: usize) -> Option<Guide> {
             heading: format!("Guide {}/{} · {}", step + 1, steps.len(), lesson.label),
             tip: lesson.tip.clone(),
             complete: false,
-            needs_navigation: matches!(
-                lesson.id.as_str(),
-                "dashboard" | "people" | "systems" | "launch" | "agenda"
-            ),
         }
     } else {
         Guide {
             heading: "Custodian guide complete".into(),
             tip: "You have prepared the ship, queued work, controlled time and answered the council. Tap FINISH to close the guide; Help remains in Utilities.".into(),
             complete: true,
-            needs_navigation: false,
         }
     })
-}
-
-pub(crate) fn form(ctx: &GameplayCtx<'_>, form: &mut crate::ui::mobile::form::Form) {
-    if let Some(guide) = guide(ctx.data, ctx.sim.tutorial_step) {
-        form.heading(&guide.heading);
-        if guide.needs_navigation && crate::ui::mobile::navigation_is_compact() {
-            form.text("Tap Navigate to open the station list, then follow the instruction below.");
-        }
-        form.text(&guide.tip);
-        form.action(
-            if guide.complete {
-                "FINISH"
-            } else {
-                "Skip tutorial"
-            },
-            true,
-            if guide.complete {
-                UiAction::NextTutorial
-            } else {
-                UiAction::SkipTutorial
-            },
-        );
-    }
-}
-
-pub(crate) fn reading_step(ctx: &GameplayCtx<'_>) -> Option<usize> {
-    (ctx.tutorial_enabled && ctx.tutorial_open && !ctx.sim.tutorial_dismissed)
-        .then_some(ctx.sim.tutorial_step)
 }
 
 pub fn draw(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiAction>) {

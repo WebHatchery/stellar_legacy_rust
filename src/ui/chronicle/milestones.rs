@@ -1,6 +1,6 @@
 //! Scrollable achievement goals shared across display sizes.
 use super::*;
-use crate::ui::mobile::form::Form;
+use crate::ui::form::Form;
 
 pub(super) fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer) {
     term_panel(area, Some("MILESTONES"));

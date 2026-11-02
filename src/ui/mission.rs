@@ -67,7 +67,7 @@ pub fn draw_selected(
     );
 }
 
-pub(crate) fn build_abort(ctx: &GameplayCtx<'_>, form: &mut crate::ui::mobile::form::Form) {
+pub(crate) fn build_abort(ctx: &GameplayCtx<'_>, form: &mut crate::ui::form::Form) {
     form.heading("Return home early?");
     form.action("Keep voyaging", true, UiAction::DismissReturnHome);
     if !crate::simulation::contract::can_return_home(ctx.sim) {
@@ -115,7 +115,7 @@ pub fn draw_abort(ctx: &GameplayCtx<'_>, pointer: Pointer, actions: &mut Vec<UiA
     // that surface with the layout audit so the covered bridge copy is not
     // mistaken for text colliding with the modal's own report.
     let _modal_region = Region::on(panel, term::panel());
-    let mut form = crate::ui::mobile::form::Form::new();
+    let mut form = crate::ui::form::Form::new();
     build_abort(ctx, &mut form);
     form.draw(
         panel.inset(20.0),

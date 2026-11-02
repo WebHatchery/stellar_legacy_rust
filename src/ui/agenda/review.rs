@@ -1,6 +1,6 @@
 //! One project review for desktop, scaled panels and phones.
 use super::*;
-use crate::ui::{logical_height, logical_width, mobile::form::Form};
+use crate::ui::{form::Form, logical_height, logical_width};
 use macroquad_toolkit::ui::{occlude, RectExt};
 
 pub(super) fn draw(ctx: &GameplayCtx<'_>, id: u64, pointer: Pointer, actions: &mut Vec<UiAction>) {

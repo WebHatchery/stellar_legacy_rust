@@ -14,18 +14,17 @@ pub mod crew_dynasty;
 pub mod dashboard;
 pub mod debrief;
 pub mod event_modal;
+pub(crate) mod form;
 pub mod game_over;
 pub mod help;
 pub mod identity;
 pub mod main_menu;
 pub mod market;
 pub mod mission;
-pub mod mobile;
 pub mod navigation;
 pub mod prep;
 pub mod presentation;
 pub mod recovery_warning;
-mod responsive;
 pub mod settings;
 pub mod shell;
 pub mod ship_builder;
@@ -53,20 +52,21 @@ use macroquad_toolkit::ui::{
     draw_ui_text_ex, note_neighbour, note_target, touch_area, Pointer, RectExt,
 };
 
-pub const LOGICAL_WIDTH: f32 = 1280.0;
-pub const LOGICAL_HEIGHT: f32 = 720.0;
+pub const LOGICAL_WIDTH: f32 = 1920.0;
+pub const LOGICAL_HEIGHT: f32 = 1080.0;
+
+/// The single 1920×1080 design canvas, letterboxed into whatever window
+/// hosts it. Every layout is authored in these coordinates.
+pub fn canvas() -> macroquad_toolkit::ui::VirtualUi {
+    macroquad_toolkit::ui::VirtualUi::new(LOGICAL_WIDTH, LOGICAL_HEIGHT)
+}
 
 pub fn logical_width() -> f32 {
-    macroquad_toolkit::ui::VirtualUi::responsive().logical_width
+    LOGICAL_WIDTH
 }
 
 pub fn logical_height() -> f32 {
-    macroquad_toolkit::ui::VirtualUi::responsive().logical_height
-}
-
-/// Reflow crowded panel contents, while retaining the desktop navigation shell.
-pub fn compact() -> bool {
-    logical_width() < 1200.0 || logical_height() < 680.0
+    LOGICAL_HEIGHT
 }
 
 pub mod term;

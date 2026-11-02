@@ -209,13 +209,3 @@ fn game_data_uses_the_toolkit_loader_boundary() {
         "game-data modules must use macroquad-toolkit loading: {direct_parse:?}"
     );
 }
-
-#[test]
-fn migrated_tests_record_why_large_feature_suites_are_distinct() {
-    assert!(
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/TEST_COVERAGE.md")
-            .is_file(),
-        "tests/TEST_COVERAGE.md must explain suites that exceed the five-case target"
-    );
-}

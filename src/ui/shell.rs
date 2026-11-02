@@ -77,12 +77,6 @@ pub struct GameplayCtx<'a> {
 }
 
 pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
-    if mobile::active() {
-        return mobile::draw(&ctx);
-    }
-    if compact() {
-        return responsive::draw(&ctx);
-    }
     let mut actions = Vec::new();
     let pointer = ctx.pointer;
 

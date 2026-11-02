@@ -49,16 +49,8 @@ fn report_touch_targets(scene: &str) {
     for (a, b, area) in &clashes {
         println!("touch[{scene}] AMBIGUOUS: \"{a}\" and \"{b}\" share {area:.0}px²");
     }
-    if let Some((width, label)) = smallest_touchable_width(if ui::mobile::active() {
-        ui::mobile::size().0
-    } else {
-        ui::logical_width()
-    }) {
-        let viewport = if ui::mobile::active() {
-            ui::mobile::size().0
-        } else {
-            ui::logical_width()
-        };
+    if let Some((width, label)) = smallest_touchable_width(ui::logical_width()) {
+        let viewport = ui::logical_width();
         assert!(
             width <= viewport + 0.5,
             "capture[{scene}] target {label:?} needs {width:.0}px, viewport is {viewport:.0}px"

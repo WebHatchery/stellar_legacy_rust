@@ -1,7 +1,7 @@
 //! One readable council brief across display sizes.
 use super::*;
 use crate::data::events::EventCategory;
-use crate::ui::mobile::form::Form;
+use crate::ui::form::Form;
 
 pub(super) fn draw(
     ctx: &GameplayCtx<'_>,

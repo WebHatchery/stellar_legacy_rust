@@ -1,6 +1,6 @@
 //! A shared, wrapping archive for the long memory between campaigns.
 use super::*;
-use crate::ui::mobile::form::Form;
+use crate::ui::form::Form;
 
 pub(crate) fn recovery_record_heading(
     record: &crate::state::sim::HomecomingRecoveryRecord,

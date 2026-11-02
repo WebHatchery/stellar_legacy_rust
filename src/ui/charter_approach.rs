@@ -1,7 +1,7 @@
 //! PREP controls for the doctrine fixed when a charter launches.
 
 use crate::simulation::approach;
-use crate::state::sim::{CharterApproach, SimState};
+use crate::state::sim::CharterApproach;
 use crate::ui::{draw_text_block, term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
@@ -86,18 +86,4 @@ pub(crate) fn draw(
             crate::ui::selection_marker(button);
         }
     }
-}
-
-pub(crate) fn mobile_summary(
-    sim: &SimState,
-    objective: crate::data::contracts::ContractObjective,
-) -> String {
-    let approach = sim.selected_charter_approach;
-    format!(
-        "{} · {}\n{}\n{}",
-        approach.label_for(objective),
-        approach.label(),
-        approach.description_for(objective),
-        approach::effect_summary(approach)
-    )
 }

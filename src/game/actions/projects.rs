@@ -73,7 +73,6 @@ impl Game {
         match result {
             Ok(id) => {
                 self.select_queued_project(id);
-                self.presentation.mobile_section.borrow_mut().clear();
                 self.presentation.utilities.set(false);
                 self.project_cancel_confirm.set(None);
                 self.presentation.project_cancellation.set(None);

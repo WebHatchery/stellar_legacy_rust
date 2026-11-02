@@ -19,7 +19,6 @@ pub enum DisplayAction {
     SetPhosphor(Phosphor),
     SetAudio(f32),
     SetTextScale(f32),
-    SetUiScale(f32),
     ToggleAmbience,
     ToggleTutorial,
     /// Flip whether this category is delegated by default in new voyages.
@@ -48,13 +47,6 @@ pub fn draw(
 
 fn build_rows(display: &DisplaySettings, delegation: &DelegationSettings) -> Vec<Row> {
     let mut rows = vec![
-        Row::scale(
-            "UI scale",
-            display.ui_scale,
-            0.75,
-            2.0,
-            DisplayAction::SetUiScale,
-        ),
         Row::scale(
             "Text size",
             display.text_scale,
@@ -295,11 +287,4 @@ fn choice_button(rect: Rect, label: &str, active: bool, pointer: Pointer) -> boo
         TextStyle::new(15.0, if active { term::accent() } else { term::dim() }),
     );
     pointer.released_on(hit)
-}
-#[allow(dead_code, unused_imports)]
-mod tests {
-    include!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/unit/ui/settings/tests.rs"
-    ));
 }
