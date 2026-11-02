@@ -551,7 +551,7 @@ fn run_one(
             sim.resources.apply(&payout);
             break;
         }
-        if report.dynasty_extinct {
+        if report.terminal.is_some() {
             run.extinct = true;
             break;
         }

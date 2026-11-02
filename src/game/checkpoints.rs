@@ -53,7 +53,7 @@ impl Game {
             }),
             decision: current_decision_key(sim),
             homecoming: sim.debrief.is_some(),
-            ended: sim.terminal.is_some() || sim.dynasty.extinct,
+            ended: sim.terminal.is_some(),
         };
         let changed = self.checkpoints.boundary.as_ref() != Some(&boundary);
         self.checkpoints.boundary = Some(boundary);

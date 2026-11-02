@@ -248,10 +248,6 @@ pub fn play_with_policy(
             sim.contract = None;
             break;
         }
-        if report.dynasty_extinct {
-            outcome.extinct = true;
-            break;
-        }
         if report.terminal.is_some() || sim.terminal.is_some() {
             outcome.extinct = true;
             break;

@@ -46,7 +46,7 @@ fn compare_ship_work_policies_on_the_reserve_cohort() {
                     completed += usize::from(outcome.completed);
                     if let Some(reason) = reason {
                         terminal[match reason {
-                            TerminalReason::DynastyExtinction => 0,
+                            TerminalReason::DynastyExtinction | TerminalReason::Stranded => 0,
                             TerminalReason::HullLoss => 1,
                             TerminalReason::PopulationLoss => 2,
                             TerminalReason::LifeSupportFailure => 3,
@@ -70,7 +70,7 @@ fn compare_ship_work_policies_on_the_reserve_cohort() {
                 }
             }
         }
-        eprintln!("SHIP_WORK {policy:?}: completed={completed}; terminal[dynasty,hull,population,air]={terminal:?}; timeout={timed_out}; min_food={food}; min_parts={parts}; critical_months={critical}; months={months}; occupied_slot_months={occupied}; blocked_jobs={blocked}; queue_transitions={changes}; recoveries={recoveries}; recovery_months={recovery_months}; max_recovery={max_recovery}");
+        eprintln!("SHIP_WORK {policy:?}: completed={completed}; terminal[stranded,hull,population,air]={terminal:?}; timeout={timed_out}; min_food={food}; min_parts={parts}; critical_months={critical}; months={months}; occupied_slot_months={occupied}; blocked_jobs={blocked}; queue_transitions={changes}; recoveries={recoveries}; recovery_months={recovery_months}; max_recovery={max_recovery}");
         totals.push((completed, terminal.iter().sum::<usize>(), critical));
     }
     if let Ok(path) = std::env::var("STELLAR_SHIP_WORK_REPORT") {

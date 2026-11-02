@@ -25,11 +25,11 @@ pub struct FlavorConfig {
     /// Placeholder: `{name}`. Empty falls back to the built-in line.
     #[serde(default)]
     pub retirement: Vec<String>,
-    /// The dynasty ends with no heir (content-depth voice round 5): the tragic
-    /// counterpart to `homecoming`, indexed by generation. Empty falls back to
-    /// the built-in line so the ending is never blank.
+    /// The founding line dies out and the people raise a new house to the
+    /// first chair. `{name}` is the new captain; indexed by generation. Empty
+    /// falls back to the built-in line.
     #[serde(default)]
-    pub extinction: Vec<String>,
+    pub new_house: Vec<String>,
     /// A serving officer dies at their post (real-time loop follow-up: characters
     /// age and die on a monthly roll, not only at generation ticks). Placeholders
     /// `{name}`, `{post}`. Indexed by the officer's id; empty falls back.

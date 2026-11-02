@@ -360,7 +360,7 @@ impl Game {
         self.update_realtime(dt);
         self.update_checkpoints(get_frame_time());
         let ambience = self.display.ambience
-            && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && !gameplay.sim.dynasty.extinct && gameplay.sim.terminal.is_none());
+            && matches!(&self.state, GameState::Gameplay(gameplay) if gameplay.sim.contract.is_some() && gameplay.sim.debrief.is_none() && gameplay.sim.terminal.is_none());
         self.audio
             .update_ambience(ambience, self.display.audio_volume);
     }
@@ -595,9 +595,9 @@ impl Game {
             StateTransition::LoadCampaign => match save::load_campaign(&self.data.config) {
                 Ok(mut sim) => {
                     crate::simulation::culture::refresh(&mut sim, &self.data);
-                    if sim.terminal.is_none() && sim.dynasty.extinct {
-                        crate::simulation::survival::check_and_record(&mut sim, &self.data);
-                    }
+                    // A save lost to an old dynasty-extinction rule resumes
+                    // under a new house: a lost captain is no longer an ending.
+                    crate::simulation::mortality::restore_captaincy(&mut sim, &self.data);
                     // Older slideshow saves may resume after their launch steps.
                     if sim.has_pending_decision() && sim.tutorial_step < 10 {
                         sim.tutorial_step = 10;

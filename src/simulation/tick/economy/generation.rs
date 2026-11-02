@@ -39,9 +39,7 @@ pub(super) fn turn_the_generation(sim: &mut SimState, data: &GameData, report: &
     // Aging, death, and succession are continuous now and live in `mortality`;
     // this tick only adds the young and runs the once-a-generation beats.
     sim.dynasty.years_since_generation += 1;
-    if !sim.dynasty.extinct
-        && sim.dynasty.years_since_generation >= config.generation_interval_years
-    {
+    if sim.dynasty.years_since_generation >= config.generation_interval_years {
         let births = succession::process_generation(sim, data);
         let gen_index = sim.dynasty.generation as usize;
         let flavor = &data.config.flavor;

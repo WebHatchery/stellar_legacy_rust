@@ -1,6 +1,8 @@
 //! Authoritative vessel survival checks and the visible life-support rescue path.
 
+use crate::data::contracts::ContractPhase;
 use crate::data::{GameData, ResourceDelta};
+use crate::simulation::{ship, subsystems};
 use crate::state::sim::{SimState, TerminalOutcome, TerminalReason};
 
 /// Evaluate terminal conditions without mutating state. The order keeps a
@@ -27,13 +29,57 @@ pub fn terminal_reason(sim: &SimState, data: &GameData) -> Option<(TerminalReaso
             ),
         ));
     }
-    if sim.dynasty.extinct {
-        return Some((
-            TerminalReason::DynastyExtinction,
-            "The founding dynasty has no eligible successor.".to_owned(),
-        ));
+    if let Some(evidence) = stranded(sim, data) {
+        return Some((TerminalReason::Stranded, evidence));
     }
     None
+}
+
+/// The one way a sound, crewed ship is lost: it cannot move and cannot be
+/// mended to move. That means a Travel leg with a dry tank, no fuel coming in
+/// from the scoops, and nothing aboard that could change it — no salvaged
+/// scoop-bearing part that can be fitted now, and no engineering repair that
+/// would bring a fouled scoop back. A lost captain, a hungry year or a calm in
+/// port is never this; a lucky event cannot be counted on, so it is not a fix.
+/// Returns the evidence line when stranded.
+pub fn stranded(sim: &SimState, data: &GameData) -> Option<String> {
+    let contract = sim.contract.as_ref()?;
+    let (_, phase) = contract.phase_at(contract.months_elapsed + 1);
+    if phase != ContractPhase::Travel || sim.ship.fuel > 0.0 {
+        return None;
+    }
+    let stats = ship::loadout_stats(sim, data);
+    let regen_factor = subsystems::engineering_fuel_regen_factor(sim, data);
+    if stats.fuel_regen > 0 && regen_factor > 0.0 {
+        return None;
+    }
+    // Scoops fitted but fouled: a mendable engineering bay clears them.
+    if stats.fuel_regen > 0 && subsystems::repair_blocker(sim, data, "engineering_bay").is_none() {
+        return None;
+    }
+    // No scoop at all: a salvaged part that carries one, fittable right now.
+    let fittable_scoop = sim.ship.salvage.iter().any(|id| {
+        data.ship_components
+            .find_any(id)
+            .is_some_and(|(_, part)| part.stats.fuel_regen > 0)
+            && ship::install_eligibility(sim, data, id) == ship::InstallEligibility::Ready
+    });
+    if fittable_scoop {
+        return None;
+    }
+    let drive = data
+        .ship_components
+        .find_any(&sim.ship.engine)
+        .map_or("drive", |(_, part)| part.name.as_str());
+    Some(if stats.fuel_regen > 0 {
+        format!(
+            "The tank ran dry mid-crossing. The engineering bay is too far gone to clear the {drive}'s scoops, and no one aboard can mend it."
+        )
+    } else {
+        format!(
+            "The tank ran dry mid-crossing. The {drive} gathers no fuel of its own, and nothing in the salvage hold could be fitted to take it."
+        )
+    })
 }
 
 /// Record a terminal result exactly once and freeze the voyage clock.
@@ -173,12 +219,6 @@ pub fn migrate_legacy(sim: &mut SimState) {
         sim.speed = crate::state::sim::GameSpeed::Paused;
         sim.survival.warning_active = true;
         return;
-    }
-    if sim.terminal.is_none() && sim.dynasty.extinct && sim.survival.migration_notice.is_none() {
-        sim.survival.migration_notice = Some(
-            "This campaign was migrated after dynasty extinction; its terminal record is preserved."
-                .to_owned(),
-        );
     }
     if sim.terminal.is_none() && sim.ship.life_support <= 0.0 && sim.survival.air_zero_months == 0 {
         sim.survival.warning_active = true;

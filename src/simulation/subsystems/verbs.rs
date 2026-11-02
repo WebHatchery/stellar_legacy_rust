@@ -40,40 +40,56 @@ pub fn repair_target_condition(sim: &SimState, data: &GameData, id: &str) -> Opt
     Some((current + data.config.repair.field_gain * effectiveness).min(ceiling))
 }
 
-/// Repair a subsystem (W5), underway or in port. Requires living expertise —
-/// knowledge >= the subsystem's threshold — then spends parts + minerals to
-/// restore condition (field ceiling underway, whole in port).
-pub fn repair_subsystem(sim: &mut SimState, data: &GameData, id: &str) -> Result<(), String> {
+/// Why a repair of `id` cannot happen right now, or `None` when it can. The
+/// single gate shared by the verb and the stranded check, so "can this ship be
+/// mended" never disagrees with what the repair button would do.
+pub fn repair_blocker(sim: &SimState, data: &GameData, id: &str) -> Option<String> {
     let Some(def) = data.subsystems.get(id) else {
-        return Err("Unknown subsystem.".to_owned());
+        return Some("Unknown subsystem.".to_owned());
     };
     let knowledge = sim.subsystems.get(id).map(|s| s.knowledge).unwrap_or(0.0);
     if knowledge < def.repair_knowledge_required {
-        return Err(format!(
+        return Some(format!(
             "No one aboard remembers how to mend the {}.",
             def.name
         ));
     }
     let current = sim.subsystems.get(id).map(|s| s.condition).unwrap_or(0.0);
-    let in_port = sim.contract.is_none();
-    let ceiling = if in_port {
+    let ceiling = if sim.contract.is_none() {
         1.0
     } else {
         data.config.repair.field_ceiling
     };
     if current >= ceiling {
-        return Err("It is already as sound as this can make it here.".to_owned());
+        return Some("It is already as sound as this can make it here.".to_owned());
     }
-    let name = def.name.clone();
-    let restored = repair_target_condition(sim, data, id)
-        .ok_or_else(|| format!("The {name} is not fitted aboard this ship."))?;
+    if repair_target_condition(sim, data, id).is_none() {
+        return Some(format!("The {} is not fitted aboard this ship.", def.name));
+    }
     let minerals = ResourceDelta {
         minerals: -def.repair_minerals_cost,
         ..Default::default()
     };
     if sim.ship.spare_parts < def.repair_parts_cost || !sim.resources.can_afford(&minerals) {
-        return Err("Not enough spare parts or minerals to mend it.".to_owned());
+        return Some("Not enough spare parts or minerals to mend it.".to_owned());
     }
+    None
+}
+
+/// Repair a subsystem (W5), underway or in port. Requires living expertise —
+/// knowledge >= the subsystem's threshold — then spends parts + minerals to
+/// restore condition (field ceiling underway, whole in port).
+pub fn repair_subsystem(sim: &mut SimState, data: &GameData, id: &str) -> Result<(), String> {
+    if let Some(reason) = repair_blocker(sim, data, id) {
+        return Err(reason);
+    }
+    let def = data.subsystems.get(id).expect("checked by repair_blocker");
+    let name = def.name.clone();
+    let restored = repair_target_condition(sim, data, id).expect("checked by repair_blocker");
+    let minerals = ResourceDelta {
+        minerals: -def.repair_minerals_cost,
+        ..Default::default()
+    };
     sim.resources.apply(&minerals);
     sim.ship.spare_parts -= def.repair_parts_cost;
     if let Some(state) = sim.subsystems.get_mut(id) {

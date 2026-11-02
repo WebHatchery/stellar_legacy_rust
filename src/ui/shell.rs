@@ -80,9 +80,9 @@ pub fn draw_gameplay(ctx: GameplayCtx<'_>) -> Vec<UiAction> {
     let mut actions = Vec::new();
     let pointer = ctx.pointer;
 
-    // Extinction halts the voyage: a full-screen terminal takeover replaces the
-    // normal screens (GDD §7).
-    if ctx.sim.terminal.is_some() || ctx.sim.dynasty.extinct {
+    // A lost vessel halts the voyage: a full-screen terminal takeover replaces
+    // the normal screens (GDD §7).
+    if ctx.sim.terminal.is_some() {
         draw_terminal_gameplay(&ctx, pointer, &mut actions);
         return actions;
     }

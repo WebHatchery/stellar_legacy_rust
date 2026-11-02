@@ -36,7 +36,9 @@ pub struct TickReport {
     pub contract_completed: Option<(f32, SuccessLevel)>,
     /// Set when an event fired that needs a council decision (not delegated).
     pub decision_required: bool,
-    pub dynasty_extinct: bool,
+    /// Set the month the founding line died out and the people raised a new
+    /// house to the first chair (`mortality::restore_captaincy`).
+    pub new_house: bool,
     /// Set the month a *sitting leader dies in office* (real-time loop follow-up:
     /// mortality is continuous now). Reset at the top of each month; read by
     /// `fire_succession_beat` to force the ship to reckon with an untried command.
@@ -123,7 +125,7 @@ fn advance_month(sim: &mut SimState, data: &GameData, report: &mut TickReport) -
     }
     report.decision_required
         || report.contract_completed.is_some()
-        || report.dynasty_extinct
+        || report.new_house
         || report.terminal.is_some()
         || report.critical_warning
         || report.phase_changed.is_some()
@@ -152,10 +154,7 @@ fn record_terminal(sim: &mut SimState, data: &GameData, report: &mut TickReport)
 }
 
 fn roll_monthly_events(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
-    if sim.pending_dilemma.is_some()
-        || report.contract_completed.is_some()
-        || report.dynasty_extinct
-    {
+    if sim.pending_dilemma.is_some() || report.contract_completed.is_some() {
         return;
     }
     if fire_succession_beat(sim, data, report)

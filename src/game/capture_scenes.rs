@@ -12,6 +12,7 @@ pub(crate) mod blueprint;
 mod display;
 mod homecoming;
 mod routes;
+mod stranded;
 
 fn is_agenda_scene(scene: &str) -> bool {
     matches!(

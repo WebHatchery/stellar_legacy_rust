@@ -15,7 +15,7 @@
 use crate::data::{FlavorConfig, GameData, MortalityConfig};
 use crate::simulation::tick::TickReport;
 use crate::simulation::{debrief, institutions, memory, subsystems, succession};
-use crate::state::sim::{generate_member, CrewMember, DynastyMember, SimState};
+use crate::state::sim::{generate_member, CrewMember, DynastyMember, SimState, TerminalReason};
 
 /// The chance a character of `age` dies in a given month: a flat accident floor
 /// at any age, plus an age-scaled term that switches on at `onset_age` and
@@ -123,14 +123,14 @@ pub fn annual_aging(sim: &mut SimState, data: &GameData) {
 
 /// One month of the death roll (real-time loop follow-up): every living dynasty
 /// member and crew officer faces `monthly_death_chance`. Deaths are logged and a
-/// vacated leadership triggers succession; the report carries out whether the
-/// dynasty died out (so the game ends) and whether a *sitting leader* fell this
+/// vacated leadership triggers succession; the report carries out whether a
+/// new house had to take the chair and whether a *sitting leader* fell this
 /// month (so the skeleton can force a succession beat).
 pub fn monthly_tick(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
     let (dead, crew_dead) = roll_monthly_deaths(sim, data);
     log_monthly_deaths(sim, data, &dead, &crew_dead);
     resolve_leadership(sim, data, report, &dead);
-    mark_extinction(sim, data, report);
+    report.new_house = restore_captaincy(sim, data);
 }
 
 fn roll_monthly_deaths(
@@ -268,24 +268,81 @@ fn resolve_leadership(
     }
 }
 
-fn mark_extinction(sim: &mut SimState, data: &GameData, report: &mut TickReport) {
-    // The last of the line gone is the campaign's end state (GDD §7). Announce it
-    // once, on the crossing into extinction.
-    if sim.dynasty.members.is_empty() && !sim.dynasty.extinct {
-        sim.dynasty.extinct = true;
-        // Seal the last captaincy: the roster is a record of who held the chair,
-        // and an open-ended final reign would read as still sitting.
-        let year = sim.year();
-        sim.dynasty.end_reign(year);
-        let line = FlavorConfig::line_with_name(&data.config.flavor.extinction, 0, "")
-            .unwrap_or_else(|| "The dynasty has no heirs. The line ends here.".to_owned());
-        sim.push_log(line);
+/// The founding line can die out; the ship cannot go without a captain. When
+/// the last of the line is gone and anyone is still aboard, the people raise a
+/// new house from among themselves: a captain in their prime and one younger
+/// kin, so the new line can renew. The generation count and the reign roster
+/// carry on — the chair outlives any one family. Also lifts a legacy save's
+/// extinction (an old `DynastyExtinction` terminal record) so that campaign
+/// can resume. Returns whether a new house took the chair.
+pub fn restore_captaincy(sim: &mut SimState, data: &GameData) -> bool {
+    let legacy_end = sim
+        .terminal
+        .as_ref()
+        .is_some_and(|t| t.reason == TerminalReason::DynastyExtinction);
+    if legacy_end {
+        sim.terminal = None;
     }
-    if sim.dynasty.extinct {
-        report.dynasty_extinct = true;
-        // Extinction supersedes any succession beat this same month.
-        report.leader_died = false;
+    sim.dynasty.extinct = false;
+    if !sim.dynasty.members.is_empty() || sim.population.count == 0 {
+        return false;
     }
+    let year = sim.year();
+    sim.dynasty.end_reign(year);
+    let legacy_id = sim.legacy.legacy_id.clone();
+    let mut rng = sim.rng;
+    let next_id = &mut sim.dynasty.next_member_id;
+    let mut captain = generate_member(
+        data,
+        &legacy_id,
+        35 + rng.below(11) as u32,
+        &mut rng,
+        next_id,
+    );
+    let mut kin = generate_member(
+        data,
+        &legacy_id,
+        18 + rng.below(8) as u32,
+        &mut rng,
+        next_id,
+    );
+    sim.rng = rng;
+    // One house, one name: the kin takes the captain's surname.
+    if let (Some((_, surname)), Some((given, _))) =
+        (captain.name.split_once(' '), kin.name.split_once(' '))
+    {
+        kin.name = format!("{given} {surname}");
+    }
+    captain.is_leader = true;
+    let name = captain.name.clone();
+    let dynasty = &mut sim.dynasty;
+    dynasty.members.push(captain);
+    dynasty.members.push(kin);
+    dynasty.designated_heir = None;
+    dynasty.leader_reign_years = 0;
+    dynasty.long_reign_marked = false;
+    dynasty.begin_reign(year);
+    crate::state::sim::authority::refresh_captain(sim);
+    sim.inherit_obligations();
+    let line = FlavorConfig::line_with_name(
+        &data.config.flavor.new_house,
+        sim.dynasty.generation as usize,
+        &name,
+    )
+    .unwrap_or_else(|| {
+        format!("The founders' line is gone. The people raise {name} to the first chair.")
+    });
+    sim.push_log(line.clone());
+    debrief::remember(
+        sim,
+        data,
+        crate::state::sim::debrief::HighlightKind::Decision,
+        line,
+    );
+    if legacy_end {
+        sim.speed = crate::state::sim::GameSpeed::Paused;
+    }
+    true
 }
 
 /// A heavy population-loss outcome may also claim a named character (real-time

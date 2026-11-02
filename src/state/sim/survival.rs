@@ -5,7 +5,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TerminalReason {
+    /// Legacy only: saves from before a lost line raised a new house. Such a
+    /// record is lifted on load (`mortality::restore_captaincy`), never written.
     DynastyExtinction,
+    /// Dry in mid-crossing with no scoop and no way aboard to fit or mend one.
+    Stranded,
     HullLoss,
     PopulationLoss,
     LifeSupportFailure,
@@ -15,6 +19,7 @@ impl TerminalReason {
     pub fn label(self) -> &'static str {
         match self {
             Self::DynastyExtinction => "DYNASTY EXTINCTION",
+            Self::Stranded => "VESSEL LOST · STRANDED",
             Self::HullLoss => "VESSEL LOST · HULL FAILURE",
             Self::PopulationLoss => "VESSEL LOST · NO POPULATION",
             Self::LifeSupportFailure => "VESSEL LOST · LIFE SUPPORT FAILURE",

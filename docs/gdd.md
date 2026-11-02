@@ -119,7 +119,8 @@ report and Chronicle; it cannot be swapped underway.
 Living relatives and officers age on annual Founding Day. Mortality is checked
 monthly with an age-dependent hazard, and severe events can claim named people.
 Retirement, death, eligible/designated heirs and surviving family determine
-succession. A depleted line can become extinct. Founding peoples, faction
+succession. If the line dies out, the people raise a new house (a captain and
+one kin) to the first chair; a lost captain never ends the campaign. Founding peoples, faction
 membership, approval and relationships continue to evolve during the voyage.
 
 Seven crew archetypes supply named expertise. Vacancies and untrained posts have
@@ -212,8 +213,11 @@ shared forecasts, issue state, observed trends and recovery hysteresis.
 
 ### 5.8 Survival
 
-Dynasty extinction, zero hull, zero population and sustained zero life support
-are terminal conditions. Zero-air grace is **12 voyage months**, counted once per
+The ship is lost only when it cannot go on: zero hull, zero population,
+sustained zero life support, or **stranded** — a Travel leg with a dry tank, no
+scoop income, and no fix aboard (no fittable salvaged scoop-bearing part and no
+engineering repair that would clear fouled scoops). Events that might grant
+fuel are luck, not a fix, and do not hold off the loss. Zero-air grace is **12 voyage months**, counted once per
 month. The critical threshold is 20%; its review stops the real-time burst.
 Emergency stabilisation adds 15% life support at a cost of 300 energy,
 50 minerals and 10 spare parts. It is limited within an air crisis and rearmed
@@ -221,7 +225,8 @@ when warning/countdown recovery clears its used flag. It buys time rather than
 curing every failure.
 The Agenda retains a recovery path after the first warning is reviewed.
 Terminal results are sealed and recorded; recovery controls do not revive a dead
-campaign. Food/fuel warnings are forecasts, with shortages feeding other damage.
+campaign. Saves sealed under the old dynasty-extinction rule resume under a new
+house on load. Food/fuel warnings are forecasts, with shortages feeding other damage.
 
 ### 5.9 Homecoming recovery
 

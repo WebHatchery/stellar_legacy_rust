@@ -12,7 +12,7 @@ impl Game {
             return;
         };
         let sim = &mut gameplay.sim;
-        if sim.has_pending_decision() || sim.dynasty.extinct || sim.terminal.is_some() {
+        if sim.has_pending_decision() || sim.terminal.is_some() {
             return;
         }
 
@@ -24,10 +24,11 @@ impl Game {
             self.audio
                 .cue(crate::audio::Cue::Council, self.display.audio_volume);
         }
-        if report.dynasty_extinct {
-            self.notifications.danger("The dynasty has ended.");
+        if report.new_house {
+            self.notifications
+                .warning("The founders' line is gone. A new house takes the chair.");
             self.audio
-                .cue(crate::audio::Cue::GameOver, self.display.audio_volume);
+                .cue(crate::audio::Cue::Succession, self.display.audio_volume);
         }
         if let Some(outcome) = report.terminal.as_ref() {
             self.notifications.danger(outcome.reason.label());

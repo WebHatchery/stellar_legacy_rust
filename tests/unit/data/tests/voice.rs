@@ -57,8 +57,8 @@ fn generational_turnover_voice_is_authored_and_varies() {
         "the retirement pool needs variety — it fires several times a generation"
     );
     assert!(
-        !flavor.extinction.is_empty(),
-        "the line-ends ending needs prose"
+        !flavor.new_house.is_empty(),
+        "a new house taking the chair needs prose"
     );
     // Consecutive retirements (the same generation) draw different lines.
     let a = FlavorConfig::line_with_name(&flavor.retirement, 0, "Vale").unwrap();

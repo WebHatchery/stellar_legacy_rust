@@ -60,7 +60,7 @@ pub(super) fn capture(game: &mut Game, scene: &str) {
         "dilemma_combat" => game.capture_dilemma_combat(),
         "chronicle" | "mission_archive" | "obligation_history" | "obligation_archive"
         | "milestones" => game.capture_chronicle(scene),
-        "gameover" => game.capture_gameover(),
+        "gameover" => game.fly_to_stranding(),
         "debrief" | "debrief_captains" | "debrief_moments" | "debrief_accounting" => {
             game.capture_debrief()
         }
@@ -689,20 +689,6 @@ impl Game {
                 .map(|obligation| obligation.id.clone());
         }
         self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
-    }
-
-    fn capture_gameover(&mut self) {
-        let mut sim = SimState::new_campaign(
-            &self.data,
-            "preservers",
-            0xC0FFEE,
-            &crate::state::sim::founding_faction_ids(&self.data),
-        );
-        sim.month_clock = 148 * 12;
-        sim.dynasty.generation = 6;
-        sim.legacy.tradition_points = 210;
-        sim.dynasty.extinct = true;
-        self.state = crate::state::GameState::Gameplay(Box::new(GameplayState::new(sim)));
     }
 
     fn capture_debrief(&mut self) {

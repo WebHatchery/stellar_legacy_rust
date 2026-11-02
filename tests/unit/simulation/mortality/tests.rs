@@ -116,7 +116,7 @@ fn a_leader_dying_in_office_is_flagged_for_the_succession_beat() {
         report.leader_died,
         "the leader's death in office is flagged"
     );
-    assert!(!report.dynasty_extinct, "an heir carries the line on");
+    assert!(!report.new_house, "an heir carries the line on");
     assert!(sim.dynasty.leader().is_some(), "the seat is filled at once");
 }
 

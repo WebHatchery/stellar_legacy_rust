@@ -24,7 +24,6 @@ impl Game {
             GameState::Gameplay(g) => {
                 let key = current_decision_key(&g.sim);
                 let can_advance = key.is_none()
-                    && !g.sim.dynasty.extinct
                     && g.sim.terminal.is_none()
                     && g.sim.contract.is_some()
                     && g.sim.speed != crate::state::sim::GameSpeed::Paused;
@@ -72,7 +71,6 @@ impl Game {
             let stop = match &self.state {
                 GameState::Gameplay(g) => {
                     g.sim.has_pending_decision()
-                        || g.sim.dynasty.extinct
                         || g.sim.terminal.is_some()
                         || g.sim.contract.is_none()
                         || g.sim.speed == crate::state::sim::GameSpeed::Paused

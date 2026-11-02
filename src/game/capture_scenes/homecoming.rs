@@ -66,7 +66,7 @@ impl Game {
                     None => sim.pending_event = None,
                 }
             }
-            if sim.dynasty.extinct {
+            if sim.terminal.is_some() {
                 break;
             }
             // The same standing orders `autoplay::play_mission` flies under:
@@ -93,7 +93,7 @@ impl Game {
                 concluded = Some(result);
                 break;
             }
-            if report.dynasty_extinct {
+            if report.terminal.is_some() {
                 break;
             }
         }

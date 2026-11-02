@@ -468,10 +468,10 @@
       "{name} stepped off the duty roster, one more founder's craft handed down the line.",
       "{name} left the post to a former apprentice and did not once look back."
     ],
-    "extinction": [
-      "The dynasty found no heir. The founders' line ends here, in the dark between stars, its long charter unfinished.",
-      "The last of the line was laid to rest with no one to follow. What the founders began ends, quietly, aboard the ship they launched.",
-      "No heir came. The name that cast the ship off is the name that ends with it, somewhere the charts do not reach."
+    "new_house": [
+      "The founders' line found no heir. The decks would not leave the chair empty; they raised {name} to it, and a new house began.",
+      "The last of the old line was laid to rest. By the next watch the people had chosen {name}, and the ship had a captain again.",
+      "No heir came, so the ship made one: {name}, called up from the decks to carry what the founders began."
     ],
     "famine": [
       "Rations ran out. The population diminished by {losses}.",

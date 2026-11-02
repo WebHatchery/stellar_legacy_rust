@@ -85,10 +85,7 @@ pub fn install_successor(
             dynasty.begin_reign(year);
             (Some(dynasty.members[i].name.clone()), false)
         }
-        None => {
-            dynasty.extinct = dynasty.members.is_empty();
-            (None, dynasty.extinct)
-        }
+        None => (None, dynasty.members.is_empty()),
     }
 }
 
