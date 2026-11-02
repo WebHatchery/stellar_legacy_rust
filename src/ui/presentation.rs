@@ -18,6 +18,8 @@ pub struct Presentation {
     pub report_scroll: Cell<ScrollArea>,
     pub people_page: Cell<usize>,
     pub selected_system: Cell<usize>,
+    /// The Systems card shows Continuity & culture instead of immediate care.
+    pub continuity_open: Cell<bool>,
     pub selected_agenda: Cell<usize>,
     pub utilities: Cell<bool>,
     pub instruments: Cell<bool>,

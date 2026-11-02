@@ -336,8 +336,12 @@ to stay clear of the caption bands. The refit preview can be enlarged into the
 full labelled schematic and shrunk back beside the catalogue.
 Compartment upgrades identify the next fitting and distinguish purchased tiers
 from mission rewards, with full costs and explicit port-only installation.
-Compartment cards show the local custodian, authored descriptor, exact annual
-effects, remembered institutional moment and current grievance. Discipline
+Compartment cards lead with immediate care: fitting and tier, whether and how
+far the crew can repair, condition and knowledge, and one line each for an
+active grievance or a school lapsing within five years, above Repair, Upgrade
+and Train. A Continuity & culture disclosure holds the local custodian,
+authored descriptor, exact annual effects, remembered institutional moment,
+current grievance and the school/archive/custody action. Discipline
 controls show school funding dates, knowledge-preservation
 benefits, existing archives and custodians. Custody explains its lasting choice
 and stops offering another appointment once a custodian exists.

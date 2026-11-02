@@ -33,26 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-06 — Split immediate subsystem care from institutional and culture detail.**
-  **Scope/files:** Ship/Systems selected compartment, port and underway;
-  `src/ui/subsystems.rs::{draw_card,draw_card_identity,draw_card_bars,draw_card_actions}`,
-  `src/ui/subsystems/overview.rs`.
-  **Observed:** The selected card always combines condition, knowledge, tier,
-  school, archive, custodian, culture effects, memory and grievance before a
-  row of repair/upgrade/train/institution controls. Culture uses a fixed small
-  text block.
-  **Change:** Lead with condition, repair capability, knowledge prerequisite and
-  the relevant repair/train action including cost/shortfall. Move culture
-  history, exact passive modifiers, school/archive management and custody
-  comparison into an explicit Continuity & culture disclosure. Keep an active
-  grievance, expiring school or lost repair capability summarized next to the
-  affected decision. Reflow detail instead of reducing font size.
-  **Acceptance:** A new player can diagnose and address a damaged system without
-  reading institutional history; no urgent consequence or prerequisite is
-  concealed.
-  **Check:** A damaged low-knowledge system, a sound system and a late-game
-  school/custody case at 100% and 150% text.
-
 - [ ] **UI-07 — Focus the active voyage on progress and the current obstacle.**
   **Scope/files:** Voyage/Contract during travel, operation, fuel stall and return;
   `src/ui/contract_systems.rs::{draw_active,draw_contract_progress,draw_contract_milestones,draw_return_button}`,

@@ -41,7 +41,7 @@ pub(super) fn capture(game: &mut Game, scene: &str) {
         "ship_underway_ark" => game.capture_ship_underway_ark(),
         "ship_underway_prow" => game.capture_ship_underway_prow(),
         "ship_underway_ring" => game.capture_ship_underway_ring(),
-        "subsystems" | "institutions" => game.capture_subsystems(),
+        "subsystems" | "institutions" => game.capture_subsystems(scene),
         "custody" => game.capture_custody(),
         "market" => game.capture_market(),
         "abort" => game.capture_abort(),
@@ -314,7 +314,7 @@ impl Game {
         self.state = self.underway_blueprint_state(Some("habitat_ring"));
     }
 
-    fn capture_subsystems(&mut self) {
+    fn capture_subsystems(&mut self, scene: &str) {
         // The underway subsystems screen (W5) with mixed tiers, worn
         // condition, and knowledge dipping below a repair threshold.
         let mut sim = SimState::new_campaign(
@@ -360,6 +360,20 @@ impl Game {
         if let Some(template) = self.data.contracts.get("deep_vein_survey") {
             sim.contract = Some(contract::start_contract(template, &sim));
         }
+        // "subsystems" shows immediate care for the damaged, under-taught
+        // medical bay; "institutions" opens agriculture's Continuity & culture.
+        let institutions = scene == "institutions";
+        let focus = if institutions {
+            "agriculture"
+        } else {
+            "medical_bay"
+        };
+        let index = crate::data::GameData::sorted_ids(&self.data.subsystems)
+            .iter()
+            .position(|id| id == focus)
+            .unwrap_or(0);
+        self.presentation.selected_system.set(index);
+        self.presentation.continuity_open.set(institutions);
         let mut gameplay = GameplayState::new(sim);
         gameplay.screen = Screen::Subsystems;
         self.state = crate::state::GameState::Gameplay(Box::new(gameplay));
