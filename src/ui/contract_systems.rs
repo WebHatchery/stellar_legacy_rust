@@ -558,15 +558,19 @@ fn draw_charter_card_content(
         TextStyle::new(16.0, term::dim()).params(),
     );
     draw_text_block(
-        &format!(
-            "Route: {} · {} launch promises",
-            if template.hazard > 0.0 {
+        &{
+            let route = if template.hazard > 0.0 {
                 "more crisis-prone"
             } else {
                 "ordinary crisis exposure"
-            },
-            template.launch_obligation_operations.len()
-        ),
+            };
+            // A promise count only earns space when launching would make one.
+            match template.launch_obligation_operations.len() {
+                0 => format!("Route: {route}"),
+                1 => format!("Route: {route} · 1 launch promise"),
+                n => format!("Route: {route} · {n} launch promises"),
+            }
+        },
         card.x + 14.0,
         card.y + 98.0,
         card.w - 28.0,

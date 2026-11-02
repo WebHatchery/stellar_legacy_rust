@@ -181,13 +181,22 @@ fn draw_route_load(
     content: Rect,
     y: f32,
 ) -> f32 {
+    // Only the loads this route actually carries; a benign route draws nothing.
+    let hull = forecast.route_hull_change * 100.0;
+    let life = forecast.route_life_support_change * 100.0;
+    let terms: Vec<String> = [
+        (template.hazard >= 0.005).then(|| format!("crisis weight +{:.2}", template.hazard)),
+        (hull.round() != 0.0).then(|| format!("hull {hull:+.0}%")),
+        (life.round() != 0.0).then(|| format!("life support {life:+.0}%")),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    if terms.is_empty() {
+        return y;
+    }
     draw_ui_text_ex(
-        &format!(
-            "ROUTE LOAD · crisis weight +{:.2} · hull {:+.0}% · life support {:+.0}% over charter",
-            template.hazard,
-            forecast.route_hull_change * 100.0,
-            forecast.route_life_support_change * 100.0
-        ),
+        &format!("ROUTE LOAD · {} over charter", terms.join(" · ")),
         content.x,
         y,
         TextStyle::new(

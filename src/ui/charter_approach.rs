@@ -34,12 +34,17 @@ pub(crate) fn draw(
         content.y + 36.0,
         TextStyle::new(12.0, term::accent()).params(),
     );
+    let effects = approach::effect_summary(selected);
+    let body = if effects.is_empty() {
+        selected.description_for(template.objective).to_owned()
+    } else {
+        format!(
+            "{}\n{effects}",
+            selected.description_for(template.objective)
+        )
+    };
     draw_text_block(
-        &format!(
-            "{}\n{}",
-            selected.description_for(template.objective),
-            approach::effect_summary(selected)
-        ),
+        &body,
         content.x,
         content.y + 44.0,
         content.w,

@@ -41,17 +41,15 @@ pub(crate) fn draw_posture(
         rect.y + 38.0,
         TextStyle::new(11.0, term::dim()).params(),
     );
-    draw_ui_text_ex(
-        &format!(
-            "WORK {:.0}% · EVENTS {:.0}% · FUEL {:.0}%",
-            crate::simulation::command::objective_factor(ctx.sim.command_posture) * 100.0,
-            crate::simulation::command::event_chance_factor(ctx.sim.command_posture) * 100.0,
-            crate::simulation::command::fuel_burn_factor(ctx.sim.command_posture) * 100.0,
-        ),
-        rect.x + 10.0,
-        rect.y + 58.0,
-        TextStyle::new(11.0, term::accent()).params(),
-    );
+    let effects = crate::simulation::command::effect_summary(ctx.sim.command_posture);
+    if !effects.is_empty() {
+        draw_ui_text_ex(
+            &effects,
+            rect.x + 10.0,
+            rect.y + 58.0,
+            TextStyle::new(11.0, term::accent()).params(),
+        );
+    }
     if term_button(
         Rect::new(rect.right() - 146.0, rect.y + 62.0, 136.0, 44.0),
         "REVIEW MANDATE",
@@ -95,31 +93,26 @@ pub(crate) fn draw_posture(
 }
 
 fn draw_campaign_outlook(contract: &ActiveContract, rect: Rect) {
-    draw_surface(
-        rect,
-        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
-    );
-    draw_ui_text_ex(
-        "CAMPAIGN OUTLOOK · EXACT EVENT WITHHELD",
-        rect.x + 10.0,
-        rect.y + 18.0,
-        TextStyle::new(12.0, term::primary()).params(),
-    );
     let upcoming: Vec<_> = contract
         .beats
         .iter()
         .filter(|beat| !beat.fired && beat.month_clock > contract.months_elapsed)
         .take(3)
         .collect();
+    // An empty forecast is not news; the panel only appears when it has beats.
     if upcoming.is_empty() {
-        draw_ui_text_ex(
-            "No major scheduled beats remain on the current heading.",
-            rect.x + 10.0,
-            rect.y + 44.0,
-            TextStyle::new(12.0, term::dim()).params(),
-        );
         return;
     }
+    draw_surface(
+        rect,
+        &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
+    );
+    draw_ui_text_ex(
+        "CAMPAIGN OUTLOOK",
+        rect.x + 10.0,
+        rect.y + 18.0,
+        TextStyle::new(12.0, term::primary()).params(),
+    );
     for (index, beat) in upcoming.into_iter().enumerate() {
         let eta = beat.month_clock.saturating_sub(contract.months_elapsed);
         draw_ui_text_ex(
@@ -136,19 +129,9 @@ fn draw_campaign_outlook(contract: &ActiveContract, rect: Rect) {
     }
 }
 
-pub(super) fn draw(
-    ctx: &GameplayCtx<'_>,
-    area: Rect,
-    pointer: Pointer,
-    actions: &mut Vec<UiAction>,
-) {
-    let Some(contract) = ctx.sim.contract.as_ref() else {
-        return;
-    };
-    term_panel(area, Some("ROUTE & MISSION"));
-    let mut content = area.inset(20.0);
-    content.y += 24.0;
-    content.h -= 24.0;
+/// The route block; the approach effects line appears only when the approach
+/// actually shifts the voyage.
+fn route_text(ctx: &GameplayCtx<'_>, contract: &ActiveContract) -> String {
     let template = ctx.data.contracts.get(&contract.template_id);
     let operation = template
         .map(|t| t.operation_site())
@@ -184,6 +167,45 @@ pub(super) fn draw(
             )
         })
         .unwrap_or_else(|| "All authored milestones reached".to_owned());
+    let approach_effects = crate::simulation::approach::effect_summary(contract.approach);
+    let mut route_lines = vec![
+        "ORIGIN  Home Berth — departed".to_owned(),
+        format!("OPERATION SITE  {operation}"),
+        format!("OBJECTIVE SYSTEM  {objective_system}"),
+        format!(
+            "CHARTER APPROACH  {}",
+            contract.approach.label_for(contract.objective)
+        ),
+    ];
+    if !approach_effects.is_empty() {
+        route_lines.push(approach_effects);
+    }
+    route_lines.extend([
+        format!("CURRENT PHASE  {}", contract.phase.label().to_uppercase()),
+        format!("NEXT PHASE  {next_phase}"),
+        format!("NEXT MILESTONE  {next_milestone}"),
+        format!(
+            "HOME BERTH  {} remaining",
+            mission_time(contract.mission_months_remaining()).to_lowercase()
+        ),
+        "Fuel stalls extend calendar time.".to_owned(),
+    ]);
+    route_lines.join("\n")
+}
+
+pub(super) fn draw(
+    ctx: &GameplayCtx<'_>,
+    area: Rect,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
+) {
+    let Some(contract) = ctx.sim.contract.as_ref() else {
+        return;
+    };
+    term_panel(area, Some("ROUTE & MISSION"));
+    let mut content = area.inset(20.0);
+    content.y += 24.0;
+    content.h -= 24.0;
     let (clock_status, clock_stalled) = super::mission_clock_status(ctx.sim, ctx.data);
     draw_ui_text_ex(
         "TRAVEL FUEL CHECK",
@@ -205,13 +227,7 @@ pub(super) fn draw(
         )
         .params(),
     );
-    let route = format!(
-        "ORIGIN  Home Berth — departed\nOPERATION SITE  {operation}\nOBJECTIVE SYSTEM  {objective_system}\nCHARTER APPROACH  {}\n{}\nCURRENT PHASE  {}\nNEXT PHASE  {next_phase}\nNEXT MILESTONE  {next_milestone}\nHOME BERTH  {} remaining\nFuel stalls extend calendar time.",
-        contract.approach.label_for(contract.objective),
-        crate::simulation::approach::effect_summary(contract.approach),
-        contract.phase.label().to_uppercase(),
-        mission_time(contract.mission_months_remaining()).to_lowercase()
-    );
+    let route = route_text(ctx, contract);
     draw_text_block(
         &route,
         content.x,

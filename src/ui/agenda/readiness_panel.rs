@@ -54,7 +54,7 @@ fn draw_readiness_rows(
                 TextStyle::new(13.0, band_color(row.band)).params(),
             );
             draw_text_block(
-                &format!("{} / {}", row.evidence, row.trend),
+                &row.evidence_line(" / "),
                 rect.x,
                 rect.y + 26.0,
                 rect.w,

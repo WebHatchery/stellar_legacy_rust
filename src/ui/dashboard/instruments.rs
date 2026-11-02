@@ -1,6 +1,9 @@
 //! Compact voyage instruments and truthful reserve summaries.
 use super::*;
 
+/// Value shown in a strip cell with nothing to report.
+const QUIET: &str = "—";
+
 /// Keep an obligation identifiable inside the narrow instrument tile.
 fn short_duty(title: &str) -> String {
     title
@@ -29,6 +32,83 @@ pub(super) fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             )
         })
         .unwrap_or_else(|| ("DRYDOCK".to_owned(), "SELECT A WRIT".to_owned()));
+    let (decision_label, next_decision, decision_tone) = decision_cell(ctx);
+    let (risk_label, risk_value) = primary_risk(sim, &ctx.data.config);
+    // A quiet cell shows a dash in the faint tone rather than a word that
+    // tells the player nothing is wrong.
+    let risk_quiet = risk_label == "ALL SYSTEMS SOUND";
+    let risk_label = if risk_quiet {
+        QUIET.to_owned()
+    } else {
+        risk_label
+    };
+    let weakest = weakest_module_readout(sim, ctx.data);
+    let weakest_quiet = weakest == "ALL MODULES SOUND";
+    let weakest = if weakest_quiet {
+        QUIET.to_owned()
+    } else {
+        weakest
+    };
+    let posture = if contract.is_some() {
+        sim.command_posture.label().to_owned()
+    } else {
+        QUIET.to_owned()
+    };
+    let cells: [(GaugeIcon, &str, String, Color); 6] = [
+        (GaugeIcon::Fuel, "MISSION PHASE", phase, term::primary()),
+        (GaugeIcon::Maint, "OBJECTIVE", objective, term::accent()),
+        (
+            GaugeIcon::Alert,
+            decision_label,
+            next_decision,
+            decision_tone,
+        ),
+        (
+            GaugeIcon::Life,
+            "PRIMARY RISK",
+            risk_label,
+            if risk_quiet {
+                term::faint()
+            } else if risk_value < 0.35 {
+                term::alert()
+            } else {
+                term::accent()
+            },
+        ),
+        (
+            GaugeIcon::Hull,
+            "WEAKEST MODULE",
+            weakest,
+            if weakest_quiet {
+                term::faint()
+            } else {
+                term::dim()
+            },
+        ),
+        (
+            GaugeIcon::People,
+            "COMMAND POSTURE",
+            posture,
+            if contract.is_some() {
+                term::accent()
+            } else {
+                term::faint()
+            },
+        ),
+    ];
+    let n = cells.len();
+    let cw = inner.w / n as f32;
+    for (i, (icon, label, value, color)) in cells.into_iter().enumerate() {
+        let cell = Rect::new(inner.x + i as f32 * cw, inner.y, cw, inner.h);
+        status_badge(cell, icon, label, &value, color);
+    }
+}
+
+/// The next interruption: a pending decision, else the nearest timed duty,
+/// else a running clock underway or a quiet cell in port.
+fn decision_cell(ctx: &GameplayCtx<'_>) -> (&'static str, String, Color) {
+    let sim = ctx.sim;
+    let contract = sim.contract.as_ref();
     let pending_decision = sim
         .pending_event
         .as_ref()
@@ -39,7 +119,7 @@ pub(super) fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
                 .as_ref()
                 .map(|_| "LEGACY DILEMMA".to_owned())
         });
-    let (decision_label, next_decision, decision_tone) = if let Some(title) = pending_decision {
+    if let Some(title) = pending_decision {
         ("NEXT DECISION", title, term::alert())
     } else if let Some(obligation) = sim.next_timed_obligation() {
         let due_year = obligation.due_year.unwrap_or(sim.year());
@@ -66,51 +146,14 @@ pub(super) fn draw_systems_strip(ctx: &GameplayCtx<'_>, rect: Rect) {
             if contract.is_some() {
                 "CLOCK RUNNING".to_owned()
             } else {
-                "NO ACTIVE COUNCIL".to_owned()
+                QUIET.to_owned()
             },
-            term::primary(),
-        )
-    };
-    let (risk_label, risk_value) = primary_risk(sim, &ctx.data.config);
-    let risk_label = risk_label.replace("ALL SYSTEMS SOUND", "Sound");
-    let weakest = weakest_module_readout(sim, ctx.data).replace("ALL MODULES SOUND", "Sound");
-    let posture = if contract.is_some() {
-        sim.command_posture.label().to_owned()
-    } else {
-        "NO VOYAGE".to_owned()
-    };
-    let cells: [(GaugeIcon, &str, String, Color); 6] = [
-        (GaugeIcon::Fuel, "MISSION PHASE", phase, term::primary()),
-        (GaugeIcon::Maint, "OBJECTIVE", objective, term::accent()),
-        (
-            GaugeIcon::Alert,
-            decision_label,
-            next_decision,
-            decision_tone,
-        ),
-        (
-            GaugeIcon::Life,
-            "PRIMARY RISK",
-            risk_label,
-            if risk_value < 0.35 {
-                term::alert()
+            if contract.is_some() {
+                term::primary()
             } else {
-                term::accent()
+                term::faint()
             },
-        ),
-        (GaugeIcon::Hull, "WEAKEST MODULE", weakest, term::dim()),
-        (
-            GaugeIcon::People,
-            "COMMAND POSTURE",
-            posture,
-            term::accent(),
-        ),
-    ];
-    let n = cells.len();
-    let cw = inner.w / n as f32;
-    for (i, (icon, label, value, color)) in cells.into_iter().enumerate() {
-        let cell = Rect::new(inner.x + i as f32 * cw, inner.y, cw, inner.h);
-        status_badge(cell, icon, label, &value, color);
+        )
     }
 }
 

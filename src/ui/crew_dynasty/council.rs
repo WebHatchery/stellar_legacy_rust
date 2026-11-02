@@ -83,9 +83,29 @@ pub(crate) fn build(ctx: &GameplayCtx<'_>, form: &mut Form) {
 
     form.heading("Legacy condition");
     let legacy = &sim.legacy;
-    form.text(&format!("Tradition points: {}\nBody-horror events: {}\nExistential dread: {:.2}\nPiracy reputation: {:.2}",
-        legacy.tradition_points, legacy.body_horror_events, legacy.existential_dread, legacy.piracy_reputation));
+    // Only conditions the voyage has actually accrued are listed; a clean
+    // record reads as tradition alone.
+    let mut lines = vec![format!("Tradition points: {}", legacy.tradition_points)];
+    if legacy.body_horror_events > 0 {
+        lines.push(format!("Body-horror events: {}", legacy.body_horror_events));
+    }
+    if legacy.existential_dread >= 0.005 {
+        lines.push(format!(
+            "Existential dread: {:.2}",
+            legacy.existential_dread
+        ));
+    }
+    if legacy.piracy_reputation >= 0.005 {
+        lines.push(format!(
+            "Piracy reputation: {:.2}",
+            legacy.piracy_reputation
+        ));
+    }
+    form.text(&lines.join("\n"));
     let risk = crate::simulation::legacy::failure_risk(sim, &ctx.data.config);
+    if risk.total == 0 && !risk.at_risk {
+        return;
+    }
     let risk_name = ctx
         .data
         .legacies

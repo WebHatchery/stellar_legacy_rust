@@ -35,6 +35,23 @@ pub fn fuel_burn_factor(posture: CommandPosture) -> f32 {
     }
 }
 
+/// Signed deltas from the authored cadence; neutral terms are omitted, so
+/// Steady returns an empty string and the UI draws nothing.
+pub fn effect_summary(posture: CommandPosture) -> String {
+    [
+        ("WORK", objective_factor(posture)),
+        ("EVENTS", event_chance_factor(posture)),
+        ("FUEL", fuel_burn_factor(posture)),
+    ]
+    .into_iter()
+    .filter_map(|(label, factor)| {
+        let delta = (factor - 1.0) * 100.0;
+        (delta.round() != 0.0).then(|| format!("{label} {delta:+.0}%"))
+    })
+    .collect::<Vec<_>>()
+    .join(" · ")
+}
+
 /// Whether the council can call a new posture review right now. Port is always
 /// flexible; an underway change is a once-per-year strategic commitment.
 pub fn posture_change_allowed(sim: &SimState) -> bool {

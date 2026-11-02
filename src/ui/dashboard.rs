@@ -354,39 +354,38 @@ fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
         term::primary(),
     );
     y += 30.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "CONSEQUENCES CARRIED",
-        &ctx.sim.consequences.len().to_string(),
-        if ctx.sim.consequences.is_empty() {
-            term::accent()
-        } else {
-            term::alert()
-        },
-    );
-    y += 30.0;
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "DELEGATED DOMAINS",
-        &format!(
-            "{}",
-            [
-                ctx.sim.delegation.immediate_crisis,
-                ctx.sim.delegation.generational_challenge,
-                ctx.sim.delegation.mission_milestone,
-                ctx.sim.delegation.legacy_moment,
-            ]
-            .iter()
-            .filter(|d| **d)
-            .count()
-        ),
-        term::primary(),
-    );
-    y += 30.0;
+    // Zero counts are not news: these rows appear only once they carry weight.
+    if !ctx.sim.consequences.is_empty() {
+        spec_line(
+            content.x,
+            y,
+            content.w,
+            "CONSEQUENCES CARRIED",
+            &ctx.sim.consequences.len().to_string(),
+            term::alert(),
+        );
+        y += 30.0;
+    }
+    let delegated = [
+        ctx.sim.delegation.immediate_crisis,
+        ctx.sim.delegation.generational_challenge,
+        ctx.sim.delegation.mission_milestone,
+        ctx.sim.delegation.legacy_moment,
+    ]
+    .iter()
+    .filter(|d| **d)
+    .count();
+    if delegated > 0 {
+        spec_line(
+            content.x,
+            y,
+            content.w,
+            "DELEGATED DOMAINS",
+            &delegated.to_string(),
+            term::primary(),
+        );
+        y += 30.0;
+    }
 
     // How far this crew has drifted from the hopeful founders who cast off
     // (PLAN M4.1). Voyage drift makes this climb over a long run. The
@@ -398,15 +397,17 @@ fn draw_colony_stats(ctx: &GameplayCtx<'_>, content: Rect, mut y: f32) {
     } else {
         term::alert()
     };
-    spec_line(
-        content.x,
-        y,
-        content.w,
-        "FROM THE FOUNDING",
-        &format!("{:.0}%", dist * 100.0),
-        dist_color,
-    );
-    y += 28.0;
+    if (dist * 100.0).round() > 0.0 {
+        spec_line(
+            content.x,
+            y,
+            content.w,
+            "FROM THE FOUNDING",
+            &format!("{:.0}%", dist * 100.0),
+            dist_color,
+        );
+        y += 28.0;
+    }
     draw_ui_text_ex(
         &format!("> {}", founder_distance_label(dist)),
         content.x,
@@ -504,6 +505,13 @@ const LOG_CPS: f32 = 45.0;
 fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
     term_panel(rect, Some("SHIP'S LOG"));
     let content = Rect::new(rect.x + 18.0, rect.y + 40.0, rect.w - 36.0, rect.h - 58.0);
+    draw_agenda_summary(ctx, content);
+    draw_log_lines(ctx, content);
+}
+
+/// Up to two running jobs with progress bars; the header appears only when
+/// the agenda has work in it.
+fn draw_agenda_summary(ctx: &GameplayCtx<'_>, content: Rect) {
     let active_jobs: Vec<_> = ctx
         .sim
         .projects
@@ -512,16 +520,19 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
         .filter(|job| job.status == ProjectStatus::Running)
         .take(2)
         .collect();
-    draw_ui_text_ex(
-        &format!(
-            "AGENDA // {} ACTIVE · {} WAITING · TAP AGENDA FOR ORDERS",
-            active_jobs.len(),
-            ctx.sim.projects.waiting_count()
-        ),
-        content.x,
-        content.y + 18.0,
-        TextStyle::new(17.0, term::primary()).params(),
-    );
+    let waiting = ctx.sim.projects.waiting_count();
+    if !active_jobs.is_empty() || waiting > 0 {
+        let mut agenda = vec![format!("{} ACTIVE", active_jobs.len())];
+        if waiting > 0 {
+            agenda.push(format!("{waiting} WAITING"));
+        }
+        draw_ui_text_ex(
+            &format!("AGENDA // {}", agenda.join(" · ")),
+            content.x,
+            content.y + 18.0,
+            TextStyle::new(17.0, term::primary()).params(),
+        );
+    }
     let bar_x = content.x + (content.w * 0.45).max(200.0);
     for (index, job) in active_jobs.iter().enumerate() {
         let y = content.y + 50.0 + index as f32 * 30.0;
@@ -546,6 +557,9 @@ fn draw_log_panel(ctx: &GameplayCtx<'_>, rect: Rect) {
             &format!("{:.0}%", progress * 100.0),
         );
     }
+}
+
+fn draw_log_lines(ctx: &GameplayCtx<'_>, content: Rect) {
     let line_h = 34.0;
     let log_top = content.y + 50.0 + 2.0 * 30.0 + 26.0;
     draw_line(

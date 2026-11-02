@@ -146,17 +146,12 @@ fn draw_review_choices(
 }
 
 fn draw_posture_costs(x: f32, y: f32, width: f32, label: &str, posture: CommandPosture) {
-    draw_ui_text_ex(
-        &format!(
-            "{label} {} · WORK {:.0}% · EVENTS {:.0}% · FUEL {:.0}%",
-            posture.label(),
-            crate::simulation::command::objective_factor(posture) * 100.0,
-            crate::simulation::command::event_chance_factor(posture) * 100.0,
-            crate::simulation::command::fuel_burn_factor(posture) * 100.0,
-        ),
-        x,
-        y,
-        TextStyle::new(13.0, term::accent()).params(),
-    );
+    let effects = crate::simulation::command::effect_summary(posture);
+    let line = if effects.is_empty() {
+        format!("{label} {}", posture.label())
+    } else {
+        format!("{label} {} · {effects}", posture.label())
+    };
+    draw_ui_text_ex(&line, x, y, TextStyle::new(13.0, term::accent()).params());
     draw_line(x, y + 8.0, x + width, y + 8.0, 1.0, term::faint());
 }

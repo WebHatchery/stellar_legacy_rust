@@ -147,8 +147,8 @@ fn draw_attention(
         (
             format!("! {} · {}", row.concern, row.band.label()),
             format!(
-                "{}\n{}\nForecast holds current conditions steady.",
-                row.evidence, row.trend
+                "{}\nForecast holds current conditions steady.",
+                row.evidence_line("\n")
             ),
             "Review recovery projects",
             Screen::Agenda,

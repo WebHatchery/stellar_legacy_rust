@@ -95,17 +95,42 @@ pub fn unavailable_reason(
     None
 }
 
+/// Signed modifier line for an approach. Neutral terms are omitted, so an
+/// approach with no trade-offs returns an empty string and callers draw nothing.
 pub fn effect_summary(approach: CharterApproach) -> String {
-    let work = (objective_factor(approach) - 1.0) * 100.0;
-    let events = (event_chance_factor(approach) - 1.0) * 100.0;
-    let fuel = (fuel_burn_factor(approach) - 1.0) * 100.0;
     let people = annual_population_delta(approach);
-    format!(
-        "WORK {work:+.0}% · EVENTS {events:+.0}% · FUEL {fuel:+.0}%\nANNUAL PEOPLE {:+.1}% morale · {:+.1}% unity · PRESERVE LOSS {:+.0}%",
-        people.morale * 100.0,
-        people.unity * 100.0,
-        (preserve_attrition_factor(approach) - 1.0) * 100.0
-    )
+    let pct =
+        |label: &str, value: f32| (value.round() != 0.0).then(|| format!("{label} {value:+.0}%"));
+    let tenth = |label: &str, value: f32| {
+        ((value * 10.0).round() != 0.0).then(|| format!("{value:+.1}% {label}"))
+    };
+    let ship: Vec<String> = [
+        pct("WORK", (objective_factor(approach) - 1.0) * 100.0),
+        pct("EVENTS", (event_chance_factor(approach) - 1.0) * 100.0),
+        pct("FUEL", (fuel_burn_factor(approach) - 1.0) * 100.0),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    let annual: Vec<String> = [
+        tenth("morale", people.morale * 100.0),
+        tenth("unity", people.unity * 100.0),
+        pct(
+            "PRESERVE LOSS",
+            (preserve_attrition_factor(approach) - 1.0) * 100.0,
+        ),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    let mut lines = Vec::new();
+    if !ship.is_empty() {
+        lines.push(ship.join(" · "));
+    }
+    if !annual.is_empty() {
+        lines.push(format!("ANNUAL PEOPLE {}", annual.join(" · ")));
+    }
+    lines.join("\n")
 }
 #[allow(dead_code, unused_imports)]
 mod tests {

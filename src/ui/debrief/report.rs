@@ -44,16 +44,34 @@ pub(crate) fn accounting(r: &VoyageDebrief) -> String {
             "Payout received"
         }
     ));
-    text.push_str(&format!(
-        "\nCHARTER APPROACH\n{}\n{}\n",
-        r.approach.label(),
-        crate::simulation::approach::effect_summary(r.approach)
-    ));
+    // The approach is already named in the Command line above; the block only
+    // earns its space when the approach actually shifted the voyage.
+    let approach_effects = crate::simulation::approach::effect_summary(r.approach);
+    if !approach_effects.is_empty() {
+        text.push_str(&format!(
+            "\nCHARTER APPROACH\n{}\n{approach_effects}\n",
+            r.approach.label()
+        ));
+    }
     text.push_str("\nHOMECOMING RECOVERY\n");
     text.push_str(&recovery_accounting(r));
     text.push('\n');
     let p = &r.payout;
-    text.push_str(&format!("\nPAID\nCredits {:+} · Energy {:+} · Minerals {:+} · Food {:+} · Influence {:+}\n\nSCORE ACCOUNTING\n",p.credits,p.energy,p.minerals,p.food,p.influence));
+    let paid: Vec<String> = [
+        ("Credits", p.credits),
+        ("Energy", p.energy),
+        ("Minerals", p.minerals),
+        ("Food", p.food),
+        ("Influence", p.influence),
+    ]
+    .into_iter()
+    .filter(|(_, amount)| *amount != 0)
+    .map(|(name, amount)| format!("{name} {amount:+}"))
+    .collect();
+    if !paid.is_empty() {
+        text.push_str(&format!("\nPAID\n{}\n", paid.join(" · ")));
+    }
+    text.push_str("\nSCORE ACCOUNTING\n");
     for m in &r.metrics {
         text.push_str(&format!(
             "{}: {:.2} / {:.2} · weight {:.2} · contribution +{:.3}\n",

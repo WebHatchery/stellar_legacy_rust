@@ -55,6 +55,18 @@ pub struct ReadinessRow {
     pub recommended_target: Option<String>,
 }
 
+impl ReadinessRow {
+    /// Evidence with the trend appended only when there is one to report.
+    /// Older saves may still carry the retired "NO PRIOR READING" placeholder.
+    pub fn evidence_line(&self, separator: &str) -> String {
+        if self.trend.is_empty() || self.trend == "NO PRIOR READING" {
+            self.evidence.clone()
+        } else {
+            format!("{}{separator}{}", self.evidence, self.trend)
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReadinessModel {
     pub food: FoodReadiness,
@@ -314,7 +326,8 @@ fn apply_history(
                 "FALLING".into()
             };
         } else {
-            row.trend = "NO PRIOR READING".into();
+            // No earlier reading means no trend to report.
+            row.trend = String::new();
         }
         if row.id == "food" {
             row.trend = if food.net_per_year > 0 {
@@ -367,7 +380,7 @@ fn format_food(food: &FoodReadiness) -> String {
 }
 
 fn trend(_value: f32) -> String {
-    "NO PRIOR READING".to_owned()
+    String::new()
 }
 
 pub fn food_spoilage(stores: i64, config: &crate::data::GameConfig) -> i64 {
