@@ -75,14 +75,12 @@ fn readiness_row(row: &ReadinessRow, x: f32, y: f32, w: f32) {
     };
     let cy = y + ROW_H * 0.5;
     lamp(x + 10.0, cy, state);
-    draw_ui_text_ex(
-        &row.concern,
-        x + 28.0,
-        cy + 6.0,
-        TextStyle::new(17.0, term::primary()).params(),
-    );
-    // A slim unlabeled bar: the lamp gives the band, the bar the margin.
-    let bar_w = (w * 0.32).min(180.0);
+    let label_style = TextStyle::new(17.0, term::primary());
+    draw_ui_text_ex(&row.concern, x + 28.0, cy + 6.0, label_style.params());
+    // A slim unlabeled bar: the lamp gives the band, the bar the margin. It
+    // narrows rather than meet a label that grew with the text size.
+    let label_end = 28.0 + measure_text_size(&row.concern, label_style).width + 16.0;
+    let bar_w = (w * 0.32).min(180.0).min(w - label_end).max(48.0);
     let bar = Rect::new(x + w - bar_w, cy - 5.0, bar_w, 10.0);
     draw_surface(
         bar,

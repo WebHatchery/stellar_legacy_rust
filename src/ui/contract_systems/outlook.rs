@@ -52,11 +52,23 @@ pub(crate) fn draw_posture(
         rect,
         &SurfaceStyle::new(term::surface_inset()).with_border(1.0, term::faint()),
     );
+    let mandate_w =
+        (measure_text_size("REVIEW MANDATE", TextStyle::new(16.0, term::primary())).width + 36.0)
+            .max(200.0);
+    // The heading drops its "COMMAND" prefix when the full form would reach
+    // the Review mandate button at a large text size.
+    let heading_style = TextStyle::new(15.0, term::primary());
+    let full = format!("COMMAND POSTURE · {}", ctx.sim.command_posture.label());
+    let heading = if measure_text_size(&full, heading_style).width + mandate_w + 40.0 <= rect.w {
+        full
+    } else {
+        format!("POSTURE · {}", ctx.sim.command_posture.label())
+    };
     draw_ui_text_ex(
-        &format!("COMMAND POSTURE · {}", ctx.sim.command_posture.label()),
+        &heading,
         rect.x + 10.0,
         rect.y + 24.0,
-        TextStyle::new(15.0, term::primary()).params(),
+        heading_style.params(),
     );
     // Effects and the review lock sit on fixed lines above the 50px button
     // row; the description takes the space above them.
@@ -87,7 +99,12 @@ pub(crate) fn draw_posture(
         );
     }
     if term_button(
-        Rect::new(rect.right() - 210.0, rect.y + 4.0, 200.0, 44.0),
+        Rect::new(
+            rect.right() - mandate_w - 10.0,
+            rect.y + 4.0,
+            mandate_w,
+            44.0,
+        ),
         "REVIEW MANDATE",
         true,
         pointer,

@@ -106,8 +106,8 @@ fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mu
     // A stall is the obstacle: it leads, ahead of the progress it is blocking.
     if mission_clock_status(ctx.sim, ctx.data).1 {
         obstacle::draw_fuel_stall(ctx, content, pointer, actions);
-        content.y += obstacle::HEIGHT;
-        content.h -= obstacle::HEIGHT;
+        content.y += obstacle::height();
+        content.h -= obstacle::height();
     }
     let site = ctx
         .data

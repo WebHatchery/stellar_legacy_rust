@@ -2,6 +2,18 @@
 
 use super::*;
 
+/// Vertical stretch for the readiness rows: 1 at 100% text and below, up to
+/// 1.5 at 150%, so each row's stride and blocks grow with its type instead
+/// of clipping.
+fn k() -> f32 {
+    macroquad_toolkit::ui::ui_text_scale().max(1.0)
+}
+
+/// One readiness or issue row's stride at the current text size.
+fn row_stride() -> f32 {
+    184.0 * k()
+}
+
 pub(super) fn draw_readiness(
     ctx: &GameplayCtx<'_>,
     area: Rect,
@@ -13,8 +25,9 @@ pub(super) fn draw_readiness(
     view.y += 22.0;
     view.h -= 22.0;
     let model = readiness::forecast(ctx.sim, ctx.data);
-    let content_h =
-        model.rows.len() as f32 * 184.0 + 180.0 + ctx.sim.issues.active.len() as f32 * 184.0;
+    let content_h = model.rows.len() as f32 * row_stride()
+        + 180.0 * k()
+        + ctx.sim.issues.active.len() as f32 * row_stride();
     let mut scroll = ctx.agenda_readiness_scroll.get();
     scroll.update_at(view, content_h, pointer.position);
     let pointer = if scroll.absorbs_press() {
@@ -45,27 +58,35 @@ fn draw_readiness_rows(
     mut y: f32,
 ) -> f32 {
     for row in &model.rows {
-        let rect = Rect::new(view.x, y, view.w - 12.0, 178.0);
+        let rect = Rect::new(view.x, y, view.w - 12.0, row_stride() - 6.0);
         if is_fully_visible(rect, view) {
-            draw_ui_text_ex(
-                &format!("{} / {}", row.concern, row.band.label()),
-                rect.x,
-                rect.y + 18.0,
-                TextStyle::new(13.0, band_color(row.band)).params(),
-            );
+            // Concern on the left and band right-aligned when both fit; at a
+            // large text size the band leads the evidence line instead.
+            let style = TextStyle::new(13.0, band_color(row.band));
+            draw_ui_text_ex(&row.concern, rect.x, rect.y + 18.0 * k(), style.params());
+            let fits = measure_text_size(&row.concern, style).width
+                + measure_text_size(row.band.label(), style).width
+                + 16.0
+                <= rect.w;
+            let evidence = if fits {
+                draw_text_right(row.band.label(), rect.right(), rect.y + 18.0 * k(), style);
+                row.evidence_line(" / ")
+            } else {
+                format!("{} / {}", row.band.label(), row.evidence_line(" / "))
+            };
             draw_text_block(
-                &row.evidence_line(" / "),
+                &evidence,
                 rect.x,
-                rect.y + 26.0,
+                rect.y + 26.0 * k(),
                 rect.w,
-                46.0,
+                46.0 * k(),
                 12.0,
                 2.0,
                 term::dim(),
             );
             draw_readiness_action(ctx, row, rect, pointer, actions);
         }
-        y += 184.0;
+        y += row_stride();
     }
     y
 }
@@ -82,7 +103,7 @@ fn draw_readiness_action(
         && !ctx.sim.survival.emergency_used
     {
         let cfg = &ctx.data.config.survival;
-        let button = Rect::new(rect.x, rect.y + 82.0, rect.w, 60.0);
+        let button = Rect::new(rect.x, rect.y + 82.0 * k(), rect.w, 60.0);
         if term_button(
             button,
             "STABILISE AIR",
@@ -99,7 +120,7 @@ fn draw_readiness_action(
                 cfg.emergency_parts_cost
             ),
             rect.x,
-            rect.y + 160.0,
+            rect.y + 82.0 * k() + 60.0 + 18.0 * k(),
             TextStyle::new(11.0, term::dim()).params(),
         );
     } else if let Some(id) = &row.recommended_project {
@@ -107,7 +128,7 @@ fn draw_readiness_action(
             ctx,
             id,
             row.recommended_target.clone(),
-            Rect::new(rect.x, rect.y + 82.0, rect.w, 92.0),
+            Rect::new(rect.x, rect.y + 82.0 * k(), rect.w, 60.0 + 32.0 * k()),
             pointer,
             actions,
         );
@@ -115,7 +136,7 @@ fn draw_readiness_action(
 }
 
 fn draw_readiness_summary(model: &readiness::ReadinessModel, view: Rect, y: f32) -> f32 {
-    let summary = Rect::new(view.x, y, view.w - 12.0, 174.0);
+    let summary = Rect::new(view.x, y, view.w - 12.0, 174.0 * k());
     if is_fully_visible(summary, view) {
         draw_text_block(
             &format!(
@@ -137,7 +158,7 @@ fn draw_readiness_summary(model: &readiness::ReadinessModel, view: Rect, y: f32)
             term::dim(),
         );
     }
-    y + 180.0
+    y + 180.0 * k()
 }
 
 fn draw_active_issues(
@@ -148,7 +169,7 @@ fn draw_active_issues(
     mut y: f32,
 ) {
     for issue in &ctx.sim.issues.active {
-        let rect = Rect::new(view.x, y, view.w - 12.0, 178.0);
+        let rect = Rect::new(view.x, y, view.w - 12.0, row_stride() - 6.0);
         if is_fully_visible(rect, view) {
             let due = issue.due_month.map_or("No deadline".into(), |m| {
                 format!("Deadline Y{}.{}", m / 12, m % 12 + 1)
@@ -158,7 +179,7 @@ fn draw_active_issues(
                 rect.x,
                 rect.y + 4.0,
                 rect.w,
-                64.0,
+                64.0 * k(),
                 13.0,
                 3.0,
                 term::alert(),
@@ -168,13 +189,13 @@ fn draw_active_issues(
                     ctx,
                     id,
                     Some(issue.target.clone()),
-                    Rect::new(rect.x, rect.y + 80.0, rect.w, 92.0),
+                    Rect::new(rect.x, rect.y + 80.0 * k(), rect.w, 60.0 + 32.0 * k()),
                     pointer,
                     actions,
                 );
             }
         }
-        y += 184.0;
+        y += row_stride();
     }
 }
 
@@ -233,7 +254,7 @@ fn queue_response(
             rect.x,
             rect.y + 62.0,
             rect.w,
-            28.0,
+            30.0 * k() * k(),
             11.0,
             1.0,
             if existing.is_some() {

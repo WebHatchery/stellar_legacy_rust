@@ -7,8 +7,11 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_text_block, draw_ui_text_ex};
 
-/// Height the obstacle block takes from the top of the panel content.
-pub(super) const HEIGHT: f32 = 168.0;
+/// Height the obstacle block takes from the top of the panel content; it
+/// grows with the text size so the recovery sentence is never cut.
+pub(super) fn height() -> f32 {
+    168.0 + (macroquad_toolkit::ui::ui_text_scale() - 1.0).max(0.0) * 120.0
+}
 
 pub(super) fn draw_fuel_stall(
     ctx: &GameplayCtx<'_>,
@@ -16,7 +19,7 @@ pub(super) fn draw_fuel_stall(
     pointer: Pointer,
     actions: &mut Vec<UiAction>,
 ) {
-    let rect = Rect::new(content.x, content.y + 16.0, content.w, HEIGHT - 28.0);
+    let rect = Rect::new(content.x, content.y + 16.0, content.w, height() - 28.0);
     draw_surface(
         rect,
         &SurfaceStyle::new(term::surface_inset()).with_border(2.0, term::alert()),

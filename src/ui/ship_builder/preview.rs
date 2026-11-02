@@ -101,12 +101,21 @@ fn draw_modules(schematic: &ship_schematic::ShipSchematic, origin: Vec2, scale: 
         } else {
             module.code.clone()
         };
+        // Upper-deck codes sit above their compartments and the rest below,
+        // so two decks' codes never meet in the corridor between them.
+        let corridor_y = point(schematic.corridor.0).y;
+        let label_h = 16.0 * macroquad_toolkit::ui::ui_text_scale().max(1.0);
+        let label_y = if module.kind == ModuleKind::Subsystem && r.center().y < corridor_y {
+            r.y - 2.0 - label_h
+        } else {
+            r.bottom() + 2.0
+        };
         draw_text_centered_in_box_ex(
             &label,
             r.x - 18.0,
-            r.bottom() + 2.0,
+            label_y,
             r.w + 36.0,
-            16.0,
+            label_h,
             TextStyle::new(13.0, color),
         );
     }

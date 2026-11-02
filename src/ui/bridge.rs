@@ -41,9 +41,17 @@ fn draw_voyage_subject(
         subject.y + 46.0,
         TextStyle::new(30.0, term::primary()).params(),
     );
+    // The gauge row grows with the text size so its captions stay inside the
+    // bars; everything below moves down by the same amount.
+    let grow = 26.0 * (macroquad_toolkit::ui::ui_text_scale().max(1.0) - 1.0);
     draw_condition_gauges(
         sim,
-        Rect::new(subject.x + 28.0, subject.y + 64.0, subject.w - 56.0, 26.0),
+        Rect::new(
+            subject.x + 28.0,
+            subject.y + 64.0,
+            subject.w - 56.0,
+            26.0 + grow,
+        ),
     );
     if let Some(c) = sim.contract.as_ref() {
         let phase = format!(
@@ -55,15 +63,15 @@ fn draw_voyage_subject(
         draw_ui_text_ex(
             &phase,
             subject.x + 28.0,
-            subject.y + 116.0,
+            subject.y + 116.0 + grow,
             TextStyle::new(20.0, term::dim()).params(),
         );
     }
     let diagram = Rect::new(
         subject.x + 28.0,
-        subject.y + 136.0,
+        subject.y + 136.0 + grow,
         subject.w - 56.0,
-        subject.h - 236.0,
+        subject.h - 236.0 - grow,
     );
     let ship = ship_schematic::build(sim, ctx.data, diagram);
     ship_schematic::draw(diagram, &ship);

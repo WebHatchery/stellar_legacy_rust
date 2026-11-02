@@ -284,6 +284,8 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
 
     // Everything else: name on the deck band (subsystems) or just beside the box
     // (bridge/engine), with a leader tying label to box.
+    // The "post vacant" caption sits one scaled line under its name.
+    let line = 20.0 * macroquad_toolkit::ui::ui_text_scale().max(1.0);
     let (ly, leader_from, leader_to) = match glyph.kind {
         ModuleKind::Bridge | ModuleKind::Engine => {
             let ly = r.bottom() + 24.0;
@@ -291,10 +293,10 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         }
         ModuleKind::Subsystem if r.center().y < ship_cy => {
             let ly = frame.y + 22.0;
-            (ly, r.y, ly + if vacant { 44.0 } else { 28.0 })
+            (ly, r.y, ly + if vacant { line + 24.0 } else { 28.0 })
         }
         _ => {
-            let ly = frame.bottom() - 30.0;
+            let ly = frame.bottom() - 30.0 - if vacant { line - 20.0 } else { 0.0 };
             (ly, r.bottom(), ly - 22.0)
         }
     };
@@ -316,7 +318,7 @@ fn draw_glyph_label(frame: Rect, glyph: &ModuleGlyph) {
         draw_text_centered(
             "post vacant",
             r.center().x,
-            ly + 20.0,
+            ly + line,
             TextStyle::new(14.0, term::dim()),
         );
     }

@@ -36,9 +36,11 @@ PREP, schematic, subsystem card, active contract). The UI-08 review then:
 - Recaptured the full 25-scene stable set at 1920×1080 and read each back.
 - Ran the capture text/modal audit at 150% for gameplay, prep, posture,
   subsystems, institutions, contract_active, event_fuel_paused, debrief,
-  chronicle, people_officers, market, drydock and (after UI-09) event,
-  agenda, ship, ship_refitted, tutorial and gameover, and at 75% for gameplay,
-  prep, posture and contract_active. All pass after the fixes below.
+  chronicle, people_officers, market, drydock and (after UI-09/10) event,
+  agenda, ship, ship_refitted, ship_underway, ship_underway_ark, tutorial,
+  settings and gameover; at 125% for agenda, gameplay, tutorial, event and
+  settings; and at 75% for each of those. All pass after the fixes below
+  and in the UI-09 and UI-10 commits.
 - Fixed during review: schematic condition percentages moved below each
   box (they collided with codes at 150%); header status lines start past
   the brand block; the clock status line moved to the navigation row; the
@@ -53,19 +55,6 @@ guide-hold and fuel-stall status lines, a calm contract with reached
 milestones, and the scoop-less stall wording.
 
 ### Follow-up tasks
-
-- [ ] **UI-10 — Loosen layouts that pass the audit but crowd at 150%.**
-  **Scope/files:** brand title and subtitle (`ui/shell.rs::draw_header`);
-  Bridge HULL/AIR/FUEL gauge captions over their fill; Bridge readiness
-  labels running into their bars (`ui/bridge/watch.rs`); schematic "post
-  vacant" captions touching deck labels; fuel-stall recovery text truncated
-  in `contract_systems/obstacle.rs`; REVIEW MANDATE truncated to REVIEW;
-  Agenda readiness column clipping its recovery note and running the
-  KNOWLEDGE / LEADERSHIP / STABLE heading past its panel; collapsed refit
-  preview codes overlapping (AGR over LSH).
-  **Acceptance:** at 150% each reads without touching or cut words, checked
-  in `gameplay_text_150`, `posture_text_150`, `contract_active_text_150`,
-  `agenda_text_150` and `ship_text_150`.
 
 - [ ] **UI-11 — Interactive pass in the running build (human).**
   **Action:** exercise the "not exercised" list above in the Windows or

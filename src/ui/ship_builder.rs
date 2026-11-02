@@ -396,32 +396,15 @@ fn draw_legend(rect: Rect) {
     let row = |y: f32, text: &str, color: Color, x: f32| {
         draw_ui_text_ex(text, x, y, TextStyle::new(17.0, color).params());
     };
-    let mut y = c.y + 50.0;
+    let y = c.y + 50.0;
     row(y, "◉ MANNED", term::dim(), c.x);
     row(y, "○ VACANT", term::dim(), c.x + 170.0);
-    y += 30.0;
+    let y = y + 30.0 * macroquad_toolkit::ui::ui_text_scale().max(1.0);
     row(y, "GOOD", term::accent(), c.x);
     row(y, "WORN", term::dim(), c.x + 110.0);
     row(y, "CRIT", term::alert(), c.x + 220.0);
-    y += 36.0;
-    let codes = [
-        ("AGR", "Agriculture"),
-        ("EDU", "Archives"),
-        ("ENG", "Engineering"),
-        ("LSH", "Life support"),
-        ("MED", "Medical"),
-        ("SEC", "Security"),
-        ("CMD", "Command"),
-        ("DRV", "Drive"),
-        ("WPN", "Weapon"),
-    ];
-    // Two columns keep each code beside its name inside the rail.
-    for (index, (code, name)) in codes.iter().enumerate() {
-        let x = c.x + (index % 2) as f32 * 174.0;
-        let line = y + (index / 2) as f32 * 26.0;
-        row(line, code, term::accent(), x);
-        row(line, name, term::dim(), x + 48.0);
-    }
+    // Every compartment already carries its full name as a caption on the
+    // schematic, so the key explains only the marks that captions do not.
 }
 
 /// The left-rail overview: which ship this is, who it carries, and the loadout

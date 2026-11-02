@@ -195,10 +195,13 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
     term_panel(rect, None);
 
     let sim = ctx.sim;
+    // Title and subtitle both rise as text grows, keeping a gap between them
+    // inside the 58px header band.
+    let title_lift = (macroquad_toolkit::ui::ui_text_scale() - 1.0).max(0.0) * 12.0;
     draw_text_glow(
         &ctx.data.config.display_name.to_uppercase(),
         rect.x + 16.0,
-        rect.y + 36.0,
+        rect.y + 36.0 - title_lift,
         TextStyle::new(24.0, term::primary()),
         0.12,
         2.0,
@@ -207,13 +210,18 @@ fn draw_header(ctx: &GameplayCtx<'_>) {
     let subtitle_style = TextStyle::new(10.0, term::accent());
     // Raise the subtitle as the text grows so its descenders stay inside the
     // header band (and under the guide banner when it covers the band).
-    let lift = (macroquad_toolkit::ui::ui_text_scale() - 1.0).max(0.0) * 8.0;
-    draw_ui_text_ex(
-        subtitle,
-        rect.x + 16.0,
-        rect.y + 54.0 - lift,
-        subtitle_style.params(),
-    );
+    // Above 125% text the band cannot hold both lines apart; the decorative
+    // subtitle gives way to the title.
+    let scale = macroquad_toolkit::ui::ui_text_scale();
+    if scale <= 1.25 {
+        let lift = (scale - 1.0).max(0.0) * 8.0;
+        draw_ui_text_ex(
+            subtitle,
+            rect.x + 16.0,
+            rect.y + 54.0 - lift,
+            subtitle_style.params(),
+        );
+    }
     // The status lines start clear of the brand block, which widens with the
     // text-size preference.
     let brand_w = measure_text_size(
