@@ -3,13 +3,14 @@
 
 use crate::data::contracts::{ContractObjective, ContractPhase};
 use crate::data::{GameData, ResourceDelta};
-use crate::state::sim::{ActiveContract, SimState};
-use crate::ui::{term, term_bar, term_button, term_panel, GameplayCtx, UiAction};
+use crate::state::sim::SimState;
+use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, is_fully_visible, measure_ui_text, RectExt};
 
 pub(crate) mod outlook;
+mod track;
 
 /// A compact ` → +N res` suffix for a milestone's one-time reward (empty when
 /// there is none).
@@ -94,141 +95,21 @@ pub fn draw_active_screen(
     }
 }
 
-/// Draw the authored phase timeline (W2): one bar per Travel/Operation/Return
-/// segment, widths proportional to their years, the current segment lit.
-fn draw_phase_timeline(contract: &ActiveContract, rect: Rect) {
-    let total = contract.target_duration_years.max(1) as f32;
-    let mut x = rect.x;
-    for (i, segment) in contract.phases.iter().enumerate() {
-        let w = rect.w * (segment.years as f32 / total);
-        let seg_rect = Rect::new(x, rect.y, (w - 3.0).max(1.0), rect.h);
-        let current = i == contract.phase_index
-            && !matches!(
-                contract.phase,
-                ContractPhase::Preparation | ContractPhase::Completion
-            );
-        let fill = if current {
-            term::accent()
-        } else {
-            term::surface_inset()
-        };
-        draw_surface(
-            seg_rect,
-            &SurfaceStyle::new(fill).with_border(1.0, term::faint()),
-        );
-        draw_ui_text_ex(
-            &format!("{} {}y", segment.kind.label().to_uppercase(), segment.years),
-            seg_rect.x + 5.0,
-            seg_rect.y + seg_rect.h * 0.5 + 4.0,
-            TextStyle::new(10.0, if current { term::bg() } else { term::dim() }).params(),
-        );
-        x += w;
-    }
-}
-
 fn draw_active(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     let contract = ctx.sim.contract.as_ref().unwrap();
     let left = Rect::new(area.x, area.y, area.w * 0.6, area.h);
     let right = Rect::new(left.right() + 12.0, area.y, area.w - left.w - 12.0, area.h);
     term_panel(left, Some("ACTIVE CONTRACT"));
     let content = left.inset(20.0);
-    let y = draw_contract_progress(contract, content);
-    draw_contract_milestones(contract, content, y);
+    let site = ctx
+        .data
+        .contracts
+        .get(&contract.template_id)
+        .map(|template| template.operation_site())
+        .unwrap_or_else(|| contract.name.clone());
+    track::draw(contract, &site, content);
     draw_return_button(ctx, content, pointer, actions);
     outlook::draw(ctx, right, pointer, actions);
-}
-
-fn draw_contract_progress(contract: &ActiveContract, content: Rect) -> f32 {
-    let mut y = content.y + 42.0;
-    draw_ui_text_ex(
-        &contract.name,
-        content.x,
-        y,
-        TextStyle::new(19.0, term::accent()).params(),
-    );
-    y += 26.0;
-    draw_ui_text_ex(
-        &format!(
-            "{} · PHASE: {} · YEAR {}/{}",
-            contract.objective.label().to_uppercase(),
-            contract.phase.label().to_uppercase(),
-            contract.months_elapsed / 12,
-            contract.target_duration_years
-        ),
-        content.x,
-        y,
-        TextStyle::new(14.0, term::dim()).params(),
-    );
-    y += 24.0;
-    term_bar(
-        Rect::new(content.x, y, content.w, 26.0),
-        contract.progress(),
-        term::accent(),
-        "PROGRESS",
-        &format!("{:.0}%", contract.progress() * 100.0),
-    );
-    y += 34.0;
-    draw_phase_timeline(contract, Rect::new(content.x, y, content.w, 20.0));
-    y += 30.0;
-    term_bar(
-        Rect::new(content.x, y, content.w, 22.0),
-        contract.objective_fraction(),
-        term::accent(),
-        "OBJECTIVE",
-        &format!(
-            "{:.0} / {:.0} {}",
-            contract.objective_progress, contract.objective_target, contract.objective_unit
-        ),
-    );
-    y + 42.0
-}
-
-fn draw_contract_milestones(contract: &ActiveContract, content: Rect, mut y: f32) {
-    draw_ui_text_ex(
-        "MILESTONES",
-        content.x,
-        y,
-        TextStyle::new(15.0, term::primary()).params(),
-    );
-    y += 22.0;
-    for milestone in &contract.milestones {
-        let (mark, color) = if milestone.reached {
-            ("[x]", term::accent())
-        } else {
-            ("[ ]", term::dim())
-        };
-        let bounty = reward_hint(&milestone.reward);
-        draw_ui_text_ex(
-            &format!("{mark} {}{bounty}", milestone.name),
-            content.x,
-            y,
-            TextStyle::new(14.0, color).params(),
-        );
-        y += 22.0;
-    }
-    y += 14.0;
-    draw_ui_text_ex(
-        "SUCCESS METRICS",
-        content.x,
-        y,
-        TextStyle::new(15.0, term::primary()).params(),
-    );
-    y += 22.0;
-    for metric in &contract.metrics {
-        term_bar(
-            Rect::new(content.x, y, content.w, 20.0),
-            (metric.current / metric.target.max(0.001)).min(1.0),
-            term::accent(),
-            &metric.name.to_uppercase(),
-            &format!(
-                "{:.2}/{:.2} (w {:.0}%)",
-                metric.current,
-                metric.target,
-                metric.weight * 100.0
-            ),
-        );
-        y += 28.0;
-    }
 }
 
 fn draw_return_button(

@@ -10,7 +10,7 @@ use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
 
-fn mission_time(months: u32) -> String {
+pub(super) fn mission_time(months: u32) -> String {
     match (months / 12, months % 12) {
         (0, 0) => "NOW".to_owned(),
         (0, months) => format!("{months}m"),
@@ -147,29 +147,9 @@ fn route_text(ctx: &GameplayCtx<'_>, contract: &ActiveContract) -> String {
                 .map(|s| s.name.as_str())
         })
         .unwrap_or(&contract.objective_subsystem);
-    let next_phase = contract
-        .next_phase_eta()
-        .map(|(phase, eta)| {
-            format!(
-                "{} — in {}",
-                phase.label(),
-                mission_time(eta).to_lowercase()
-            )
-        })
-        .unwrap_or_else(|| "Final leg — no further change".to_owned());
-    let next_milestone = contract
-        .next_milestone_eta()
-        .map(|(milestone, eta)| {
-            format!(
-                "{} — in {}",
-                milestone.name,
-                mission_time(eta).to_lowercase()
-            )
-        })
-        .unwrap_or_else(|| "All authored milestones reached".to_owned());
+    // Phase, position, milestones and berth time live on the voyage track.
     let approach_effects = crate::simulation::approach::effect_summary(contract.approach);
     let mut route_lines = vec![
-        "ORIGIN  Home Berth — departed".to_owned(),
         format!("OPERATION SITE  {operation}"),
         format!("OBJECTIVE SYSTEM  {objective_system}"),
         format!(
@@ -180,16 +160,6 @@ fn route_text(ctx: &GameplayCtx<'_>, contract: &ActiveContract) -> String {
     if !approach_effects.is_empty() {
         route_lines.push(approach_effects);
     }
-    route_lines.extend([
-        format!("CURRENT PHASE  {}", contract.phase.label().to_uppercase()),
-        format!("NEXT PHASE  {next_phase}"),
-        format!("NEXT MILESTONE  {next_milestone}"),
-        format!(
-            "HOME BERTH  {} remaining",
-            mission_time(contract.mission_months_remaining()).to_lowercase()
-        ),
-        "Fuel stalls extend calendar time.".to_owned(),
-    ]);
     route_lines.join("\n")
 }
 
@@ -233,14 +203,14 @@ pub(super) fn draw(
         content.x,
         content.y + 68.0,
         content.w,
-        174.0,
+        100.0,
         12.0,
         3.0,
         term::dim(),
     );
     draw_campaign_outlook(
         contract,
-        Rect::new(content.x, content.y + 252.0, content.w, 102.0),
+        Rect::new(content.x, content.y + 180.0, content.w, 102.0),
     );
     draw_posture(
         ctx,
