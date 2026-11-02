@@ -2,6 +2,8 @@
 use super::*;
 use crate::simulation::readiness::{self, ReadinessBand};
 
+mod watch;
+
 pub fn draw(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &mut Vec<UiAction>) {
     if ctx.presentation.instruments.get() {
         dashboard::draw(ctx, area, pointer, actions);
@@ -192,6 +194,7 @@ fn draw_attention(
             resource_top + 21.0,
             TextStyle::new(22.0, term::dim()).params(),
         );
+        watch::draw(ctx, rect, resource_top + 48.0, rect.bottom() - 88.0);
         attention_action(
             ctx,
             Rect::new(rect.x + 24.0, rect.bottom() - 72.0, rect.w - 48.0, 52.0),
