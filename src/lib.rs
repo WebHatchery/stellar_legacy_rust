@@ -42,13 +42,13 @@ fn report_touch_targets(scene: &str) {
         return;
     }
     let clashes = overlapping_targets();
+    for (a, b, area) in &clashes {
+        println!("touch[{scene}] AMBIGUOUS: \"{a}\" and \"{b}\" share {area:.0}px²");
+    }
     assert!(
         clashes.is_empty(),
         "capture[{scene}] has ambiguous touch targets: {clashes:?}"
     );
-    for (a, b, area) in &clashes {
-        println!("touch[{scene}] AMBIGUOUS: \"{a}\" and \"{b}\" share {area:.0}px²");
-    }
     if let Some((width, label)) = smallest_touchable_width(ui::logical_width()) {
         let viewport = ui::logical_width();
         assert!(

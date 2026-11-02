@@ -112,7 +112,7 @@ run interactively; the findings below come from reading the code.
   **Action:** in a dedicated pass, delete the cases §11.3 rules out (UI
   layout, experimental rules, balancing, internals). Move the rest into
   `tests/` against the `lib.rs` public API, then remove the `include!` blocks.
-- [ ] **CR-06 — Stale comments and dead code (agent).**
+- [x] **CR-06 — Stale comments and dead code (agent).**
   `game/realtime.rs`: the doc comment for a deleted run-timer function
   ("The cosmetic run timer's elapsed seconds (PLAN M4.7)…") is now attached to
   `decision_remaining`. `simulation/tick.rs`: the `TickReport` doc comment

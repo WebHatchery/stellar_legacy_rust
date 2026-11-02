@@ -84,9 +84,6 @@ impl Game {
         }
     }
 
-    /// The cosmetic run timer's elapsed seconds (PLAN M4.7): live while a mission
-    /// is active, frozen at the last mission's time while in port, and a fixed
-    /// override in capture. Never feeds the deterministic sim.
     /// Real seconds left before the current blocking decision auto-resolves
     /// (real-time loop §2). Full timeout in capture (the clock never runs there);
     /// 0 when nothing is pending.

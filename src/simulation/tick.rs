@@ -28,8 +28,8 @@ use crate::state::sim::SimState;
 
 use beats::*;
 
-/// to: log lines are already recorded on the sim; a completed contract and a
-/// blocking event are surfaced explicitly.
+/// What one `advance_months` call ran into. Log lines are already recorded on
+/// the sim; a completed contract and a blocking event are surfaced explicitly.
 #[derive(Debug, Default)]
 pub struct TickReport {
     /// Set when the active contract reached its target duration this year.
