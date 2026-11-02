@@ -84,7 +84,7 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
     ];
     let col_w = (area.w - 24.0) / 3.0;
 
-    const STRIDE: f32 = 118.0;
+    const STRIDE: f32 = CARD_H + 10.0;
     // Gutter reserved at each column's right edge for its scrollbar.
     const GUTTER: f32 = 12.0;
     let mut scrolls = ctx.ship_scroll.get();
@@ -129,7 +129,7 @@ fn draw_loadout(ctx: &GameplayCtx<'_>, area: Rect, pointer: Pointer, actions: &m
 
         let mut y = view.y - scroll.offset();
         for component in cards {
-            let card = Rect::new(view.x, y, card_w, 112.0);
+            let card = Rect::new(view.x, y, card_w, CARD_H);
             // Cull partially-scrolled cards so none spills past the panel.
             if is_fully_visible(card, view) {
                 let installed = is_installed(ctx, *kind, &component.id);
@@ -584,13 +584,18 @@ fn draw_component_surface(rect: Rect, installed: bool, salvaged: bool) {
     );
 }
 
+/// Catalogue card height on the 1080p canvas: name, a full blurb of up to
+/// three lines, the stat line and a 46px action anchored to the bottom.
+/// Three cards fill a column below the refit view.
+const CARD_H: f32 = 200.0;
+
 fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     draw_ui_text_ex(
         &component.name,
-        rect.x + 12.0,
-        rect.y + 20.0,
+        rect.x + 16.0,
+        rect.y + 34.0,
         TextStyle::new(
-            15.0,
+            22.0,
             if installed {
                 term::accent()
             } else {
@@ -604,19 +609,17 @@ fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     if component.acquisition.is_mission_only() {
         draw_text_right(
             "MISSION REWARD",
-            rect.right() - 12.0,
-            rect.y + 20.0,
-            TextStyle::new(10.0, term::dim()),
+            rect.right() - 16.0,
+            rect.y + 34.0,
+            TextStyle::new(16.0, term::dim()),
         );
     }
-    draw_text_block(
+    let below = crate::ui::reading::flow_text(
         &component.description,
-        rect.x + 12.0,
-        rect.y + 26.0,
-        rect.w - 24.0,
-        24.0,
-        11.0,
-        2.0,
+        rect.x + 16.0,
+        rect.y + 46.0,
+        rect.w - 32.0,
+        16.0,
         term::dim(),
     );
 
@@ -624,9 +627,9 @@ fn draw_component_info(rect: Rect, component: &ShipComponent, installed: bool) {
     if !stats.is_empty() {
         draw_ui_text_ex(
             &stats,
-            rect.x + 12.0,
-            rect.y + 56.0,
-            TextStyle::new(12.0, term::accent()).params(),
+            rect.x + 16.0,
+            below + 18.0,
+            TextStyle::new(18.0, term::accent()).params(),
         );
     }
 }
@@ -663,7 +666,7 @@ fn draw_component_action(
         cost_parts.push(format!("{} en", cost.energy));
     }
 
-    let btn = Rect::new(rect.x + 12.0, rect.y + 68.0, rect.w - 24.0, 40.0);
+    let btn = Rect::new(rect.x + 16.0, rect.bottom() - 56.0, rect.w - 32.0, 46.0);
     if installed {
         draw_text_centered_in_box_ex(
             "INSTALLED",
@@ -671,7 +674,7 @@ fn draw_component_action(
             btn.y,
             btn.w,
             btn.h,
-            TextStyle::new(14.0, term::accent()),
+            TextStyle::new(20.0, term::accent()),
         );
     } else if salvaged {
         // A found part installs from the hold rather than being bought — free
