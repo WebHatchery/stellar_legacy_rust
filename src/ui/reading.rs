@@ -31,3 +31,16 @@ pub fn read_lines(
     cell.set(scroll);
     read_to_end
 }
+
+/// Draw a wrapped paragraph from its top edge and return the y just below it,
+/// so stacked sections flow from their measured height instead of fixed rows.
+pub fn flow_text(text: &str, x: f32, top: f32, width: f32, size: f32, color: Color) -> f32 {
+    let drawn = size.max(MIN_FONT_SIZE) * macroquad_toolkit::ui::ui_text_scale();
+    let stride = (drawn * 1.4).ceil();
+    let lines = wrap_text(text, width, size);
+    for (index, line) in lines.iter().enumerate() {
+        let baseline = top + index as f32 * stride + drawn;
+        draw_ui_text_ex(line, x, baseline, TextStyle::new(size, color).params());
+    }
+    top + lines.len() as f32 * stride
+}

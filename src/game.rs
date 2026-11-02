@@ -215,6 +215,7 @@ impl Game {
         let display = DisplaySettings::load(&data.config.game_name);
         let crt_style = display.crt_style();
         ui::term::set_phosphor(display.phosphor);
+        macroquad_toolkit::ui::set_min_ui_font_size(ui::MIN_FONT_SIZE);
         let delegation_defaults = crate::settings::load_delegation(&data.config.game_name);
         let audio = AudioManager::new().await;
 

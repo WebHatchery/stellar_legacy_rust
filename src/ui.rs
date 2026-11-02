@@ -54,6 +54,9 @@ use macroquad_toolkit::ui::{
 
 pub const LOGICAL_WIDTH: f32 = 1920.0;
 pub const LOGICAL_HEIGHT: f32 = 1080.0;
+/// Smallest text on the 1920×1080 canvas. Meta lines, captions and the
+/// resource header must stay readable from a desk (CRITICAL_REVIEW §3.2).
+pub const MIN_FONT_SIZE: f32 = 16.0;
 
 /// The single 1920×1080 design canvas, letterboxed into whatever window
 /// hosts it. Every layout is authored in these coordinates.
@@ -187,4 +190,4 @@ pub enum UiAction {
     ResolveAuthority(crate::state::sim::AuthorityChoice),
 }
 
-mod reading;
+pub(crate) mod reading;

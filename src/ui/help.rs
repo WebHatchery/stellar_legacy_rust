@@ -2,10 +2,11 @@
 //! the HELP button in the chrome row. Read-only — returns true on the frame the
 //! player asks to close it.
 
-use crate::ui::{draw_text_block, logical_height, logical_width, term, term_button, term_panel};
+use crate::ui::reading::flow_text;
+use crate::ui::{logical_height, logical_width, term, term_button, term_panel};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
-use macroquad_toolkit::ui::{draw_ui_text_ex, occlude, RectExt};
+use macroquad_toolkit::ui::{draw_ui_text_ex, occlude};
 
 const CONTROLS: &[(&str, &str)] = &[
     ("TABS", "Tap Bridge, Ship, People, Voyage or History"),
@@ -35,98 +36,101 @@ pub fn draw(pointer: Pointer, version: &str) -> Option<HelpAction> {
     );
     occlude(Rect::new(0.0, 0.0, logical_width(), logical_height()));
 
-    let panel = Rect::new(logical_width() / 2.0 - 380.0, 24.0, 760.0, 672.0);
+    let panel = Rect::new((logical_width() - 1240.0) / 2.0, 90.0, 1240.0, 900.0);
     term_panel(panel, Some("HELP // IDENTITY & CONTROLS"));
-    let content = panel.inset(26.0);
+    let content = Rect::new(
+        panel.x + 48.0,
+        panel.y + 72.0,
+        panel.w - 96.0,
+        panel.h - 112.0,
+    );
     draw_help_sections(content, version);
     draw_help_actions(content, pointer)
 }
 
-fn draw_help_sections(content: Rect, version: &str) {
+const HEADING: f32 = 26.0;
+const BODY: f32 = 20.0;
+
+fn heading(text: &str, x: f32, top: f32) -> f32 {
     draw_ui_text_ex(
-        "WHO AM I?",
-        content.x,
-        content.y + 24.0,
-        TextStyle::new(15.0, term::accent()).params(),
+        text,
+        x,
+        top + HEADING,
+        TextStyle::new(HEADING, term::accent()).params(),
     );
-    draw_text_block(
+    top + HEADING + 14.0
+}
+
+fn draw_help_sections(content: Rect, version: &str) {
+    // Two reading columns: who the Custodian is on the left, how to act on the
+    // right, so the 1080p panel is filled by prose at a desk-readable size.
+    let gutter = 56.0;
+    let column = (content.w - gutter) / 2.0;
+    let left = content.x;
+    let right = content.x + column + gutter;
+
+    let mut y = heading("WHO AM I?", left, content.y);
+    y = flow_text(
         "You are the Custodian: the persistent intelligence aboard this generation ship. Captains age, councils change, and the Custodian carries the ship's recorded promises across the centuries.",
-        content.x,
-        content.y + 34.0,
-        content.w,
-        58.0,
-        13.0,
-        3.0,
+        left,
+        y,
+        column,
+        BODY,
         term::primary(),
     );
-    draw_ui_text_ex(
-        "WHO DECIDES?",
-        content.x,
-        content.y + 108.0,
-        TextStyle::new(15.0, term::accent()).params(),
-    );
-    draw_text_block(
+    y = heading("WHO DECIDES?", left, y + 32.0);
+    flow_text(
         "The Custodian executes routine operations under its standing mandate. The serving captain can object to a strategic posture when its cost conflicts with the ship's condition; the review always offers a current policy or a legal compromise. Human messages are attributed in the log.",
-        content.x,
-        content.y + 118.0,
-        content.w,
-        64.0,
-        13.0,
-        3.0,
+        left,
+        y,
+        column,
+        BODY,
         term::primary(),
     );
 
-    draw_ui_text_ex(
-        "TOUCH CONTROLS",
-        content.x,
-        content.y + 206.0,
-        TextStyle::new(15.0, term::accent()).params(),
-    );
-    for (index, (key, desc)) in CONTROLS.iter().enumerate() {
-        let column = index / 4;
-        let row = index % 4;
-        let x = content.x + column as f32 * 350.0;
-        let y = content.y + 224.0 + row as f32 * 30.0;
-        draw_ui_text_ex(key, x, y, TextStyle::new(14.0, term::accent()).params());
-        draw_text_block(
-            desc,
-            x + 86.0,
-            y - 12.0,
-            250.0,
-            30.0,
-            12.0,
-            2.0,
-            term::dim(),
+    let mut y = heading("TOUCH CONTROLS", right, content.y);
+    for (key, desc) in CONTROLS {
+        draw_ui_text_ex(
+            key,
+            right,
+            y + BODY,
+            TextStyle::new(BODY, term::accent()).params(),
         );
+        y = flow_text(desc, right + 150.0, y, column - 150.0, BODY, term::dim()) + 14.0;
     }
-    draw_text_block(
+    flow_text(
         "Mouse or finger works everywhere. Drag a list to scroll it. Tap REVIEW MANDATE in Voyage / Contract for the authority rules. Keyboard shortcuts are optional.",
-        content.x,
-        content.y + 362.0,
-        content.w,
-        38.0,
-        13.0,
-        3.0,
+        right,
+        y + 18.0,
+        column,
+        BODY,
         term::faint(),
     );
-    draw_ui_text_ex(
+
+    let footer = content.bottom() - 150.0;
+    let y = flow_text(
         &format!("VERSION {version}  //  LOCAL SAVES  //  NO TELEMETRY"),
-        content.x,
-        content.y + 414.0,
-        TextStyle::new(12.0, term::faint()).params(),
+        left,
+        footer,
+        content.w,
+        18.0,
+        term::faint(),
     );
-    draw_ui_text_ex(
+    flow_text(
         "Windows: %LOCALAPPDATA%\\stellar_legacy  (includes crash_log.txt)",
-        content.x,
-        content.y + 436.0,
-        TextStyle::new(11.0, term::faint()).params(),
+        left,
+        y + 4.0,
+        content.w,
+        18.0,
+        term::faint(),
     );
 }
 
 fn draw_help_actions(content: Rect, pointer: Pointer) -> Option<HelpAction> {
-    let button_y = content.bottom() - 44.0;
+    let button_y = content.bottom() - 56.0;
+    let half = (content.w - 24.0) / 2.0;
     if term_button(
-        Rect::new(content.x, button_y, 330.0, 44.0),
+        Rect::new(content.x, button_y, half, 56.0),
         "OPEN SAVE FOLDER",
         true,
         pointer,
@@ -134,7 +138,7 @@ fn draw_help_actions(content: Rect, pointer: Pointer) -> Option<HelpAction> {
         return Some(HelpAction::OpenSaveFolder);
     }
     if term_button(
-        Rect::new(content.x + 344.0, button_y, content.w - 344.0, 44.0),
+        Rect::new(content.x + half + 24.0, button_y, half, 56.0),
         "CLOSE",
         true,
         pointer,
