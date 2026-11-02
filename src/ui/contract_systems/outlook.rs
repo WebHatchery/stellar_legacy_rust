@@ -35,19 +35,27 @@ pub(crate) fn draw_posture(
         rect.y + 24.0,
         TextStyle::new(15.0, term::primary()).params(),
     );
-    draw_ui_text_ex(
+    // PREP gives the posture room for two description lines; the underway
+    // contract panel keeps it to one.
+    let desc_h = if rect.h >= 220.0 { 48.0 } else { 24.0 };
+    let effects_y = rect.y + 52.0 + desc_h + 18.0;
+    draw_text_block(
         ctx.sim.command_posture.description(),
         rect.x + 10.0,
-        rect.y + 66.0,
-        TextStyle::new(13.0, term::dim()).params(),
+        rect.y + 52.0,
+        rect.w - 20.0,
+        desc_h,
+        17.0,
+        4.0,
+        term::dim(),
     );
     let effects = crate::simulation::command::effect_summary(ctx.sim.command_posture);
     if !effects.is_empty() {
         draw_ui_text_ex(
             &effects,
             rect.x + 10.0,
-            rect.y + 88.0,
-            TextStyle::new(13.0, term::accent()).params(),
+            effects_y,
+            TextStyle::new(16.0, term::accent()).params(),
         );
     }
     if term_button(
@@ -66,8 +74,8 @@ pub(crate) fn draw_posture(
                 crate::simulation::command::review_wait_months(ctx.sim)
             ),
             rect.x + 10.0,
-            rect.y + 108.0,
-            TextStyle::new(12.0, term::alert()).params(),
+            effects_y + 22.0,
+            TextStyle::new(15.0, term::alert()).params(),
         );
     }
     let gap = 6.0;

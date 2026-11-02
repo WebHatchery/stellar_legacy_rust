@@ -4,7 +4,9 @@
 //! [ LAUNCH ] button. Pure view — it emits `SelectCharter` / `Launch` /
 //! `Refuel` / `Buy` / `BuyParts` only.
 
-use crate::ui::{term, term_button, term_panel, GameplayCtx, UiAction};
+use crate::ui::{
+    term, term_button_primary, term_button_sized, term_panel, GameplayCtx, Screen, UiAction,
+};
 use macroquad::prelude::*;
 use macroquad_toolkit::prelude::*;
 use macroquad_toolkit::ui::{draw_ui_text_ex, RectExt};
@@ -44,7 +46,7 @@ fn draw_prep(ctx: &GameplayCtx<'_>, rect: Rect, pointer: Pointer, actions: &mut 
     term_panel(rect, Some("PREP // DEPARTURE"));
     let content = rect.inset(18.0);
     let y = draw_prep_header(template, content);
-    let (conflict_count, y) = draw_conflicts(sim, template, content, y);
+    let (conflict_count, y) = draw_conflicts(ctx, template, content, y, pointer, actions);
     let y = draw_phase_plan(template, content, y);
     let y = draw_route_load(template, &forecast, content, y);
     let provisioning =
@@ -75,18 +77,24 @@ fn draw_prep_header(template: &crate::data::contracts::ContractTemplate, content
 }
 
 fn draw_conflicts(
-    sim: &crate::state::sim::SimState,
+    ctx: &GameplayCtx<'_>,
     template: &crate::data::contracts::ContractTemplate,
     content: Rect,
     mut y: f32,
+    pointer: Pointer,
+    actions: &mut Vec<UiAction>,
 ) -> (usize, f32) {
-    let conflicts = crate::simulation::contract::obligation_conflicts(sim, template);
+    let conflicts = crate::simulation::contract::obligation_conflicts(ctx.sim, template);
     let count = conflicts.len();
     if conflicts.is_empty() {
         return (count, y);
     }
-    // One line per promise the launch would break; the LAUNCH button already
-    // carries the default count, so no explanation follows.
+    // One line per promise the launch would break, each with a route to its
+    // full record so every affected duty can be read before committing. The
+    // LAUNCH button carries the default count.
+    const ROW_H: f32 = 40.0;
+    const REVIEW_W: f32 = 150.0;
+    y -= 22.0;
     for obligation in conflicts {
         draw_ui_text_ex(
             &format!(
@@ -94,12 +102,18 @@ fn draw_conflicts(
                 obligation.title, obligation.beneficiary
             ),
             content.x,
-            y,
-            TextStyle::new(15.0, term::alert()).params(),
+            y + 25.0,
+            TextStyle::new(17.0, term::alert()).params(),
         );
-        y += 24.0;
+        let review = Rect::new(content.right() - REVIEW_W, y + 2.0, REVIEW_W, 34.0);
+        if term_button_sized(review, "Review duty", true, pointer, 15.0) {
+            ctx.presentation.history_page.set(1);
+            actions.push(UiAction::SelectScreen(Screen::Chronicle));
+            actions.push(UiAction::OpenObligationHistory(obligation.id.clone()));
+        }
+        y += ROW_H;
     }
-    (count, y + 12.0)
+    (count, y + 34.0)
 }
 
 fn draw_phase_plan(
@@ -177,8 +191,8 @@ fn draw_commit(
         + usize::from(provisioning.parts_short > 0)
         + usize::from(provisioning.refuel_missing > 0.001);
     let label = launch_commit_label(conflict_count, shortfalls);
-    let launch = Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0);
-    if term_button(launch, &label, true, pointer) {
+    let launch = Rect::new(content.x, content.bottom() - 56.0, content.w, 56.0);
+    if term_button_primary(launch, &label, true, pointer) {
         actions.push(UiAction::Launch);
     }
 }

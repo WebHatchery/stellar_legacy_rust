@@ -362,6 +362,9 @@ The voyage report exposes the shared travel fuel check. A fuel stall
 explains current annual scoop recovery or its absence, port-only refuelling,
 and provides a visible link to Agenda readiness. Fuel readiness is distinct
 from whether the player has paused time.
+PREP leads with the charter goal, readiness and the obligations launch would
+break, each with a Review duty route to its record. LAUNCH carries the
+primary emphasis; approach and posture summaries precede the briefing.
 Departure fuel forecasts name total burn in full tanks and annual scoop recovery
 as a percentage of one tank, making replenishment across long voyages explicit.
 The founding picker shows each people's outlook and cared-for subsystem

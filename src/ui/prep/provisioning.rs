@@ -91,7 +91,7 @@ pub(super) fn draw(
         content.x,
         y + 8.0,
         content.w,
-        content.bottom() - 60.0 - y - 8.0,
+        content.bottom() - 72.0 - y - 8.0,
     );
     draw_forecast(template, forecast, &curve, chart_area);
     ProvisioningState {

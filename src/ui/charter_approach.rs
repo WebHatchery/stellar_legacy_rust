@@ -36,11 +36,11 @@ pub(crate) fn draw(
     draw_text_block(
         &body,
         content.x,
-        content.y + 40.0,
+        content.y + 34.0,
         content.w,
-        72.0,
-        14.0,
-        4.0,
+        100.0,
+        17.0,
+        5.0,
         term::dim(),
     );
 
@@ -55,8 +55,8 @@ pub(crate) fn draw(
                 CharterApproach::ProveTheWrit.button_label()
             ),
             content.x,
-            button_y - 10.0,
-            TextStyle::new(13.0, term::alert()).params(),
+            button_y - 12.0,
+            TextStyle::new(16.0, term::alert()).params(),
         );
     }
     let button_w = (content.w - gap * 2.0) / 3.0;

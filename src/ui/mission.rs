@@ -18,8 +18,26 @@ pub fn draw_selected(
     else {
         return;
     };
-    let detail = Rect::new(area.x, area.y, area.w, area.h - 436.0);
-    term_panel(detail, Some("SELECTED CHARTER // FULL BRIEFING"));
+    // The launch-relevant choices lead; the full briefing is reading matter
+    // below them.
+    const APPROACH_H: f32 = 232.0;
+    const POSTURE_H: f32 = 228.0;
+    const GAP: f32 = 8.0;
+    crate::ui::charter_approach::draw(
+        ctx,
+        Rect::new(area.x, area.y, area.w, APPROACH_H),
+        pointer,
+        actions,
+    );
+    crate::ui::contract_systems::outlook::draw_posture(
+        ctx,
+        Rect::new(area.x, area.y + APPROACH_H + GAP, area.w, POSTURE_H),
+        pointer,
+        actions,
+    );
+    let top = area.y + APPROACH_H + POSTURE_H + 2.0 * GAP;
+    let detail = Rect::new(area.x, top, area.w, area.bottom() - top);
+    term_panel(detail, Some("CHARTER BRIEFING"));
     let content = detail.inset(18.0);
     let view = Rect::new(content.x, content.y + 32.0, content.w, content.h - 98.0);
     let lines = wrap_text_ex(&template.description, view.w - 18.0, None, 16.0);
@@ -47,24 +65,12 @@ pub fn draw_selected(
     ctx.description_scroll.set(scroll);
     if term_button(
         Rect::new(content.x, content.bottom() - 44.0, content.w, 44.0),
-        "CANCEL SELECTION / CHOOSE ANOTHER",
+        "Choose another charter",
         true,
         pointer,
     ) {
         actions.push(UiAction::CancelSelection);
     }
-    crate::ui::charter_approach::draw(
-        ctx,
-        Rect::new(area.x, area.bottom() - 428.0, area.w, 208.0),
-        pointer,
-        actions,
-    );
-    crate::ui::contract_systems::outlook::draw_posture(
-        ctx,
-        Rect::new(area.x, area.bottom() - 212.0, area.w, 212.0),
-        pointer,
-        actions,
-    );
 }
 
 pub(crate) fn build_abort(ctx: &GameplayCtx<'_>, form: &mut crate::ui::form::Form) {

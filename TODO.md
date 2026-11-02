@@ -33,26 +33,6 @@ display-size preference. Every task below is designed, captured and reviewed at
 Ordered by player impact and dependencies. The contract is the screen briefs
 in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before UI-05–07 refine inspection.
 
-- [ ] **UI-04 — Put departure readiness before briefing detail and make launch the clear commitment.**
-  **Scope/files:** Selected charter/PREP and tutorial provisions lesson;
-  `src/ui/prep.rs`, `src/ui/mission.rs::draw_selected`, `src/ui/charter_approach.rs`,
-  `src/ui/contract_systems/outlook.rs::draw_posture`, `src/ui/tutorial.rs`.
-  **Observed:** PREP divides attention among provisioning, full briefing,
-  approach and posture. Launch has the same styling as refuel/cancel. Approach
-  explanations and the locked reason use the smallest type on screen.
-  **Change:** Start with charter goal/duration, readiness and consequential
-  warnings. Keep purchase costs beside food/parts/fuel controls. Place an
-  emphasized launch action beside the aggregate shortages and obligation
-  defaults, with access to every affected duty before commitment. Show selected
-  approach/posture summaries with explicit comparison controls and readable
-  effects, eligibility and locked-at-launch wording.
-  **Acceptance:** Launch is distinct from cancel/refuel; full costs, fuel
-  assumptions, shortages and default consequences remain available before
-  launching. No completed tutorial instruction persists as ordinary chrome.
-  **Check:** Long briefing, locked approach, insufficient funds, several
-  conflicting obligations and tutorial on/off; 150% text. Use `term_button_primary` for
-  launch.
-
 - [ ] **UI-05 — Make the ship schematic useful and identifiable.**
   **Scope/files:** Bridge, Systems and loadout preview;
   `src/ui/ship_schematic.rs::build`, `src/ui/ship_schematic/draw.rs`,
@@ -108,7 +88,7 @@ in `docs/gdd.md` §9.1; UI-02–04 address composition and core decisions before
   **Acceptance:** A stalled player first sees why progress stopped and where to
   recover. A calm player sees mission progress.
   **Check:** Fuel stall with/without scoop recovery, calm operation, reached
-  milestones and return. Depends on the disclosure from UI-04.
+  milestones and return. 
 
 ### Further inspection required
 
