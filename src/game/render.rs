@@ -138,6 +138,7 @@ impl Game {
         let display_actions = if self.settings_open {
             ui::settings::draw(
                 &self.display,
+                self.window_settings.fullscreen,
                 &self.delegation_defaults,
                 &self.presentation,
                 pointer,

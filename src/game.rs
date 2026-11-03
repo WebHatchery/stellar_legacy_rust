@@ -29,6 +29,7 @@ use macroquad_toolkit::notifications::{
     NotificationAnchor, NotificationManager, NotificationRenderConfig,
 };
 use macroquad_toolkit::prelude::end_virtual_ui_frame;
+use macroquad_toolkit::settings::GameSettings;
 use macroquad_toolkit::ui::{end_frame_neighbours, Pointer, ScrollArea};
 use std::cell::Cell;
 
@@ -87,6 +88,8 @@ pub struct Game {
     crt_style: CrtStyle,
     /// Persisted CRT display preferences.
     display: DisplaySettings,
+    /// Shared toolkit settings whose fullscreen field drives the window.
+    window_settings: GameSettings,
     /// Persisted default council delegation applied to each new voyage (§5.4).
     delegation_defaults: crate::state::sim::DelegationSettings,
     /// Whether the F1 display-settings overlay is open.
@@ -213,6 +216,20 @@ impl Game {
         });
         let save_exists = save::save_exists(&data.config);
         let display = DisplaySettings::load(&data.config.game_name);
+        let mut window_settings = GameSettings::load(&data.config.game_name);
+        let capture_mode = macroquad_toolkit::capture::capture_requested("STELLAR_LEGACY");
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Browsers require a user gesture to enter fullscreen after reload.
+            window_settings.fullscreen = false;
+        }
+        if capture_mode {
+            window_settings.fullscreen = false;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if !capture_mode && window_settings.fullscreen {
+            set_fullscreen(true);
+        }
         let crt_style = display.crt_style();
         ui::term::set_phosphor(display.phosphor);
         macroquad_toolkit::ui::set_min_ui_font_size(ui::MIN_FONT_SIZE);
@@ -243,6 +260,7 @@ impl Game {
             crt: CrtOverlay::new(),
             crt_style,
             display,
+            window_settings,
             delegation_defaults,
             settings_open: false,
             help_open: false,
@@ -485,6 +503,14 @@ impl Game {
     fn apply_display_action(&mut self, action: crate::ui::settings::DisplayAction) {
         use crate::ui::settings::DisplayAction;
         match action {
+            DisplayAction::ToggleFullscreen => {
+                self.window_settings.toggle_fullscreen();
+                if let Err(err) = self.window_settings.save(&self.data.config.game_name) {
+                    self.notifications
+                        .warning(format!("Fullscreen changed but not saved: {err}"));
+                }
+                return;
+            }
             DisplayAction::ToggleCrt => self.display.crt_enabled = !self.display.crt_enabled,
             DisplayAction::ToggleScanlines => self.display.scanlines = !self.display.scanlines,
             DisplayAction::ToggleFlicker => self.display.flicker = !self.display.flicker,

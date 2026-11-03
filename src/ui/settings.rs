@@ -21,6 +21,7 @@ pub enum DisplayAction {
     SetTextScale(f32),
     ToggleAmbience,
     ToggleTutorial,
+    ToggleFullscreen,
     /// Flip whether this category is delegated by default in new voyages.
     ToggleDelegationDefault(EventCategory),
     Close,
@@ -28,6 +29,7 @@ pub enum DisplayAction {
 
 pub fn draw(
     display: &DisplaySettings,
+    fullscreen: bool,
     delegation: &DelegationSettings,
     presentation: &crate::ui::presentation::Presentation,
     pointer: Pointer,
@@ -41,11 +43,15 @@ pub fn draw(
     // remain visible as orientation. Register the opaque panel for collision
     // and contrast auditing so covered menu labels are not counted as peers.
     let _modal_region = Region::on(layout.panel, term::panel());
-    let entries = build_entries(display, delegation);
+    let entries = build_entries(display, delegation, fullscreen);
     draw_entries(entries, layout, presentation, pointer)
 }
 
-fn build_entries(display: &DisplaySettings, delegation: &DelegationSettings) -> Vec<Entry> {
+fn build_entries(
+    display: &DisplaySettings,
+    delegation: &DelegationSettings,
+    fullscreen: bool,
+) -> Vec<Entry> {
     let toggle = |label: &str, on: bool, action| {
         Entry::Row(Row {
             label: label.into(),
@@ -61,6 +67,7 @@ fn build_entries(display: &DisplaySettings, delegation: &DelegationSettings) -> 
             1.5,
             DisplayAction::SetTextScale,
         )),
+        toggle("Fullscreen", fullscreen, DisplayAction::ToggleFullscreen),
         Entry::Row(Row {
             label: "Color scheme".into(),
             choices: Phosphor::ALL
